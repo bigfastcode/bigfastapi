@@ -23,11 +23,13 @@ class UserPasswordUpdate(_pydantic.BaseModel):
 
 class UserVerification(_pydantic.BaseModel):
     email: str
+    redirect_url: str
 
 class UserCreate(_UserBase):
     password: str
     first_name: str
     last_name: str
+    verification_redirect_url: str
 
     class Config:
         orm_mode = True

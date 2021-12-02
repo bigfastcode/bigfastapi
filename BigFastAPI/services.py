@@ -63,7 +63,7 @@ async def create_user(user: _schemas.UserCreate, db: _orm.Session):
     )
     db.add(user_obj)
     db.commit()
-    await resend_verification_mail(user_obj.email, db)
+    await resend_verification_mail(user_obj.email,user.verification_redirect_url, db)
     db.refresh(user_obj)
     return user_obj
 

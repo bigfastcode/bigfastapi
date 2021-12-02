@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="BigFastAPI",
-    version="0.0.7",
+    version="0.0.8",
     author="Nwokoye Chigozie Gregory",
     author_email="gregoflash05@gmail.com.com",
     description="An Authentication Package built on Fast API",
@@ -35,7 +35,6 @@ setuptools.setup(
         "idna>=3.3",
         "Jinja2>=3.0.3",
         "MarkupSafe>=2.0.1",
-        "mysqlclient>=2.1.0",
         "packaging>=21.3",
         "passlib>=1.7.4",
         "psycopg2-binary>=2.9.2",
