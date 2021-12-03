@@ -8,7 +8,7 @@ import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
-from BigFastAPI import database as _database, settings as settings
+from bigfastapi import database as _database, settings as settings
 from . import models as _models, schema as _schemas
 from .token import *
 from .send_mail import *
@@ -63,7 +63,7 @@ async def create_user(user: _schemas.UserCreate, db: _orm.Session):
     )
     db.add(user_obj)
     db.commit()
-    await resend_verification_mail(user_obj.email, db)
+    await resend_verification_mail(user_obj.email,user.verification_redirect_url, db)
     db.refresh(user_obj)
     return user_obj
 

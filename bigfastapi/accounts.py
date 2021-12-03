@@ -6,7 +6,7 @@ import fastapi.security as _security
 import sqlalchemy.orm as _orm
 from . import services as _services, schema as _schemas
 from fastapi import BackgroundTasks
-from BigFastAPI.database import get_db
+from bigfastapi.database import get_db
 
 app = APIRouter(tags=["Auth",])
 
@@ -98,7 +98,7 @@ async def resend_verification(
     email : _schemas.UserVerification,
     db: _orm.Session = _fastapi.Depends(get_db),
     ):
-    return await _services.resend_verification_mail(email.email, db)
+    return await _services.resend_verification_mail(email.email, email.redirect_url, db)
 
 @app.post("/users/verify/{token}")
 async def verify_user(
@@ -113,7 +113,7 @@ async def send_password_rest_email(
     email : _schemas.UserVerification,
     db: _orm.Session = _fastapi.Depends(get_db),
     ):
-    return await _services.send_password_reset_email(email.email,db)
+    return await _services.send_password_reset_email(email.email, email.redirect_url,db)
 
 
 @app.put("/users/password-change/{token}")

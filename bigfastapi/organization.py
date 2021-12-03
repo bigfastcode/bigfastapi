@@ -6,7 +6,7 @@ from fastapi.param_functions import Depends
 import fastapi.security as _security
 import sqlalchemy.orm as _orm
 from . import services as _services, schema as _schemas
-from BigFastAPI.database import get_db
+from bigfastapi.database import get_db
 
 app = APIRouter(tags=["Organization"])
 

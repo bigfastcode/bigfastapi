@@ -4,15 +4,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="BigFastAPI",
-    version="0.0.7",
+    name="bigfastapi",
+    version="0.0.1",
     author="Nwokoye Chigozie Gregory",
     author_email="gregoflash05@gmail.com.com",
     description="An Authentication Package built on Fast API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/rijentech/bigfastapi",
-    packages=["BigFastAPI"],
+    packages=["bigfastapi"],
     install_requires=[
         "aioredis",
         "aiosmtplib>=1.1.6",
@@ -35,7 +35,6 @@ setuptools.setup(
         "idna>=3.3",
         "Jinja2>=3.0.3",
         "MarkupSafe>=2.0.1",
-        "mysqlclient>=2.1.0",
         "packaging>=21.3",
         "passlib>=1.7.4",
         "psycopg2-binary>=2.9.2",

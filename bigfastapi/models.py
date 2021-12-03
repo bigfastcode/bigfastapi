@@ -8,7 +8,7 @@ from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 
-import BigFastAPI.database as _database
+import bigfastapi.database as _database
 
 class User(_database.Base):
     __tablename__ = "users"

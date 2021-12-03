@@ -2,7 +2,7 @@ import fastapi as _fastapi
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import sqlalchemy.orm as _orm
-from BigFastAPI import database as _database, settings as settings
+from bigfastapi import database as _database, settings as settings
 from . import models as _models
 from uuid import uuid4
 from fastapi import BackgroundTasks
@@ -27,11 +27,11 @@ async def get_user_by_email(email: str, db: _orm.Session):
     return db.query(_models.User).filter(_models.User.email == email).first()
 
 
-async def send_password_reset_email(email: str, db: _orm.Session):
+async def send_password_reset_email(email: str,redirect_url: str, db: _orm.Session):
     user = await get_user_by_email(email, db)
     if user:
         token = await create_passwordreset_token(user)
-        path = "{}/?token={}".format(settings.PASSWORD_RESET_BASE_URL, token["token"])
+        path = "{}/?token={}".format(redirect_url, token["token"])
         message = MessageSchema(
             subject="Password Reset",
             recipients=[email],
@@ -48,11 +48,11 @@ async def send_password_reset_email(email: str, db: _orm.Session):
         raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
 
 
-async def resend_verification_mail(email: str, db: _orm.Session):
+async def resend_verification_mail(email: str,redirect_url: str, db: _orm.Session):
     user = await get_user_by_email(email, db)
     if user:
         token = await create_verification_token(user)
-        path = "{}/?token={}".format(settings.EMAIL_VERIFICATION_BASE_URL, token["token"])
+        path = "{}/?token={}".format(redirect_url, token["token"])
         message = MessageSchema(
             subject="Email Verification",
             recipients=[email],
