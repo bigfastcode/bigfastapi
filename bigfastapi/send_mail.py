@@ -2,7 +2,7 @@ import fastapi as _fastapi
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import sqlalchemy.orm as _orm
-from BigFastAPI import database as _database, settings as settings
+from bigfastapi import database as _database, settings as settings
 from . import models as _models
 from uuid import uuid4
 from fastapi import BackgroundTasks

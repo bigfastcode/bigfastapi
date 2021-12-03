@@ -8,7 +8,7 @@ import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
-from BigFastAPI import database as _database, settings as settings
+from bigfastapi import database as _database, settings as settings
 from . import models as _models, schema as _schemas
 from .token import *
 from .send_mail import *
