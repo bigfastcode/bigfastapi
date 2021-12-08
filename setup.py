@@ -57,6 +57,7 @@ setuptools.setup(
         "uvloop>=0.16.0",
         "watchgod>=0.7",
         "websockets>=10.1",
+        "validators"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

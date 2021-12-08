@@ -11,6 +11,7 @@ from uuid import UUID, uuid4
 from bigfastapi import database as _database, settings as settings
 from . import models as _models, schema as _schemas
 from .token import *
+from .code import *
 from .send_mail import *
 
 
@@ -55,7 +56,8 @@ async def is_authenticated(request: Request, token:str = _fastapi.Depends(bearer
     
 
 
-async def create_user(user: _schemas.UserCreate, db: _orm.Session):
+async def create_user(verification_method: str, user: _schemas.UserCreate, db: _orm.Session):
+    verification_info = ""
     user_obj = _models.User(
         id = uuid4().hex,email=user.email, password=_hash.bcrypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name,
@@ -63,9 +65,14 @@ async def create_user(user: _schemas.UserCreate, db: _orm.Session):
     )
     db.add(user_obj)
     db.commit()
-    await resend_verification_mail(user_obj.email,user.verification_redirect_url, db)
+    if verification_method == "code":
+        code = await resend_code_verification_mail(user_obj.email, db, user.verification_code_length)
+        verification_info = code["code"]
+    elif verification_method == "token":
+        token = await resend_token_verification_mail(user_obj.email,user.verification_redirect_url, db)
+        verification_info = token["token"]
     db.refresh(user_obj)
-    return user_obj
+    return {"user":user_obj, "verification_info": verification_info}
 
 
 async def authenticate_user(email: str, password: str, db: _orm.Session):
@@ -107,7 +114,38 @@ async def user_update(user_update: _schemas.UserUpdate, user:_schemas.User, db: 
 
     return _schemas.User.from_orm(user)
 
-async def verify_user(token:str):
+
+async def verify_user_code(code:str):
+    db = _database.SessionLocal()
+    code_db = await get_code_from_db(code, db)
+    if code_db:
+        user = await get_user_by_id(db=db, id=code_db.user_id)
+        user.is_verified = True
+
+        db.commit()
+        db.refresh(user)
+        db.delete(code_db)
+        db.commit()
+        return _schemas.User.from_orm(user)
+    else:
+        raise _fastapi.HTTPException(status_code=401, detail="Invalid Code")
+
+async def password_change_code(password: _schemas.UserPasswordUpdate, code: str, db: _orm.Session):
+
+    code_db = await get_password_reset_code_from_db(code, db)
+    if code_db:
+        user = await get_user_by_id(db=db, id=code_db.user_id)
+        user.password = _hash.bcrypt.hash(password.password)
+        db.commit()
+        db.refresh(user)
+
+        db.delete(code_db)
+        db.commit()
+        return {"message": "password change successful"}
+    else:
+        raise _fastapi.HTTPException(status_code=401, detail="Invalid Token")
+
+async def verify_user_token(token:str):
     db = _database.SessionLocal()
     validate_resp = await validate_token(token)
     if not validate_resp["status"]:
@@ -122,8 +160,7 @@ async def verify_user(token:str):
     db.refresh(user)
 
     return _schemas.User.from_orm(user)
-
-async def password_change(password: _schemas.UserPasswordUpdate, token: str, db: _orm.Session):
+async def password_change_token(password: _schemas.UserPasswordUpdate, token: str, db: _orm.Session):
     validate_resp = await validate_token(token)
     if not validate_resp["status"]:
         raise _fastapi.HTTPException(
