@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bigfastapi",
-    version="0.0.1",
+    version="0.0.2",
     author="Nwokoye Chigozie Gregory",
     author_email="gregoflash05@gmail.com.com",
     description="An Authentication Package built on Fast API",
@@ -57,6 +57,7 @@ setuptools.setup(
         "uvloop>=0.16.0",
         "watchgod>=0.7",
         "websockets>=10.1",
+        "validators"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
