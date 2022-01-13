@@ -3,11 +3,11 @@ import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY
+from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, Text
 from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
-
+from .utils import generate_short_id
 import bigfastapi.database as _database
 
 class User(_database.Base):
@@ -75,3 +75,19 @@ class PasswordResetCode(_database.Base):
     user_id = Column(String(255), ForeignKey("users.id"))
     code = Column(String(255), index=True, unique=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
+
+
+class Ticket(_database.Base):
+    __tablename__ = "ticket"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    user_id = Column(String(255), ForeignKey("users.id"))
+    ticket_id = Column(String(255), index=True, unique=True, default=generate_short_id())
+    title = Column(String(255), index=True)
+    issue = Column(Text(), index=True)
+
+class Faq(_database.Base):
+    __tablename__ = "faq"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    question = Column(String(255), index=True)
+    answer = Column(Text(), index=True)
+

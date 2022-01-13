@@ -86,3 +86,18 @@ class Organization(_OrganizationBase):
 
     class Config:
         orm_mode = True
+
+class Ticket(_pydantic.BaseModel):
+    title: str
+    user_id: str
+    issue: str
+
+    class Config:
+        orm_mode = True
+
+class Faq(_pydantic.BaseModel):
+    question: str
+    answer: str
+
+    class Config:
+        orm_mode = True
