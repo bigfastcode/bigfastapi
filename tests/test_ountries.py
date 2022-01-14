@@ -3,12 +3,12 @@ import os
 import json
 
 def get_JSON_data():
-    with open("bigfastapi/data/geo.json") as file:
+    with open("bigfastapi/data/countries.json") as file:
         data = json.load(file)
         return data
 
 def test_geo_file():
-    assert os.path.isfile("bigfastapi/data/geo.json")
+    assert os.path.isfile("bigfastapi/data/counttries.json")
     try:
         get_JSON_data()
     except Exception as e:
@@ -31,7 +31,7 @@ def test_geo_data():
 
 @pytest.fixture
 def get_countries_mock(mocker):
-    mock_countries = mocker.patch("bigfastapi.geo.get_countries")
+    mock_countries = mocker.patch("bigfastapi.countries.get_countries")
     data = get_JSON_data()
     for country in data:
         del country["states"]
@@ -52,7 +52,7 @@ def get_country_states_mock(mocker):
             del country_found["dial_code"]
         return country_found
     
-    mock_country_states = mocker.patch("bigfastapi.geo.get_country_states", side_effect=side_effect)             
+    mock_country_states = mocker.patch("bigfastapi.countries.get_country_states", side_effect=side_effect)             
     return mock_country_states
 
 @pytest.fixture
@@ -75,7 +75,7 @@ def get_countries_dial_codes_mock(mocker):
             del elem["states"]
         return data
     
-    mock_countries_dial_codes = mocker.patch("bigfastapi.geo.get_countries_dial_codes", side_effect=side_effect)
+    mock_countries_dial_codes = mocker.patch("bigfastapi.countries.get_countries_dial_codes", side_effect=side_effect)
     return  mock_countries_dial_codes          
 
 def test_country(get_countries_mock):

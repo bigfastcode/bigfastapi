@@ -16,7 +16,7 @@ def get_countries():
         List[Country]: list of countries and their respective states
 
     """
-    with open("data/geo.json") as file:
+    with open("data/countries.json") as file:
         countries = json.load(file)
         for country in countries:
             del country["states"]
@@ -35,7 +35,7 @@ def get_country_states(country:str):
         List[State]: list of states and their respective cities
 
     """
-    with open("data/geo.json") as file:
+    with open("data/countries.json") as file:
         countries = json.load(file)
         country_data = list(filter(lambda data: data["name"].casefold() == country.casefold(), countries))
         if country_data:
@@ -54,7 +54,7 @@ def get_countries_dial_codes(country:str = None):
         List[Country]: list of countries and their respective dial codes
 
     """
-    with open("data/geo.json") as file:
+    with open("countries/geo.json") as file:
         countries = json.load(file)
         if country:
             country_search = list(filter(lambda data: data["name"].casefold() == country.casefold(), countries))
