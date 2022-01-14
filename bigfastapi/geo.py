@@ -5,7 +5,7 @@ import json
 
 app = APIRouter(tags=["Geo"])
 
-app.get("/countries", response_model=_schemas.Country, status_code=200)
+@app.get("/countries", response_model=_schemas.Country, status_code=200)
 def get_countries():
     """Get Countries and their respective states
 
@@ -24,7 +24,7 @@ def get_countries():
     return JSONResponse(status_code=status.HTTP_200_OK, content=countries)
 
 
-app.get("/countries/{country}/states", response_model=_schemas.State, status_code=200)
+@app.get("/countries/{country}/states", response_model=_schemas.State, status_code=200)
 def get_country_states(country:str):
     """Get states within a particular country
 
@@ -43,7 +43,7 @@ def get_country_states(country:str):
             return JSONResponse(status_code=status.HTTP_200_OK, content=country)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Country not found")
     
-app.get("/countries/dial-codes", response_model=_schemas.Country, status_code=200)
+@app.get("/countries/dial-codes", response_model=_schemas.Country, status_code=200)
 def get_countries_dial_codes(country:str = None):
     """Get Countries and their respective dial codes
 
