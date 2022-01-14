@@ -44,11 +44,11 @@ def get_country_states(country:str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Country not found")
     
 app.get("/countries/dial-codes", response_model=_schemas.Country, status_code=200)
-def get_countries_dial_Codes():
+def get_countries_dial_codes(country:str = None):
     """Get Countries and their respective dial codes
 
     Args:
-        country_name (str): serves as a filter for a particular country
+        country (str): serves as a filter for a particular country
 
     Returns:
         List[Country]: list of countries and their respective dial codes
@@ -56,8 +56,18 @@ def get_countries_dial_Codes():
     """
     with open("data/geo.json") as file:
         countries = json.load(file)
-        for country in countries:
-            if country["dial_code"] == "":
-                del country["dial_code"]
-            del country["states"]
-    return JSONResponse(status_code=status.HTTP_200_OK, content=countries)
+        if country:
+            country_search = list(filter(lambda data: data["name"].casefold() == country.casefold(), countries))
+            country_found = country_search[0] if country_search != [] else {}
+            if country_found:
+                if country_found["dial_code"] == "":
+                   raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="dial code not found")
+                del country_found["states"]
+                return JSONResponse(status_code=status.HTTP_200_OK, content=country_found)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Country not found")
+        
+        for country_data in countries:
+            if country_data["dial_code"] == "":
+                del country_data
+            del country_data["states"]
+        return JSONResponse(status_code=status.HTTP_200_OK, content=countries)

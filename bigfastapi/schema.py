@@ -2,7 +2,6 @@ import datetime as _dt
 
 import pydantic as _pydantic
 from pydantic import Field
-from fastapi_utils.guid_type import GUID
 from uuid import UUID
 from typing import List, Optional
 
