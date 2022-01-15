@@ -137,14 +137,16 @@
                 "state_code": "ZAB"
             }
         ],
-        "dial_code": "+93"
+        "dial_code": "+93",
+        "sample_phone_format": "701234567"
     },
     {
         "name": "Aland Islands",
         "iso3": "ALA",
         "iso2": "AX",
         "states": [],
-        "dial_code": ""
+        "dial_code": "358",
+        "sample_phone_format": "412345678"
     },
     {
         "name": "Albania",
@@ -340,7 +342,8 @@
                 "state_code": "VL"
             }
         ],
-        "dial_code": "+355"
+        "dial_code": "+355",
+        "sample_phone_format": "672123456"
     },
     {
         "name": "Algeria",
@@ -536,14 +539,16 @@
                 "state_code": "13"
             }
         ],
-        "dial_code": "+213"
+        "dial_code": "+213",
+        "sample_phone_format": "551234567"
     },
     {
         "name": "American Samoa",
         "iso3": "ASM",
         "iso2": "AS",
         "states": [],
-        "dial_code": ""
+        "dial_code": "1",
+        "sample_phone_format": "6847331234"
     },
     {
         "name": "Andorra",
@@ -579,7 +584,8 @@
                 "state_code": "06"
             }
         ],
-        "dial_code": "+376"
+        "dial_code": "+376",
+        "sample_phone_format": "312345"
     },
     {
         "name": "Angola",
@@ -655,21 +661,24 @@
                 "state_code": "ZAI"
             }
         ],
-        "dial_code": "+244"
+        "dial_code": "+244",
+        "sample_phone_format": "923123456"
     },
     {
         "name": "Anguilla",
         "iso3": "AIA",
         "iso2": "AI",
         "states": [],
-        "dial_code": "+1 264"
+        "dial_code": "+1 264",
+        "sample_phone_format": "2642351234"
     },
     {
         "name": "Antarctica",
         "iso3": "ATA",
         "iso2": "AQ",
         "states": [],
-        "dial_code": "+672"
+        "dial_code": "+672",
+        "sample_phone_format": "12 6521"
     },
     {
         "name": "Antigua And Barbuda",
@@ -709,7 +718,8 @@
                 "state_code": "08"
             }
         ],
-        "dial_code": "+1-268"
+        "dial_code": "+1-268",
+        "sample_phone_format": "2684641234"
     },
     {
         "name": "Argentina",
@@ -813,7 +823,8 @@
                 "state_code": "T"
             }
         ],
-        "dial_code": "+54"
+        "dial_code": "+54",
+        "sample_phone_format": "91123456789"
     },
     {
         "name": "Armenia",
@@ -865,14 +876,16 @@
                 "state_code": "ER"
             }
         ],
-        "dial_code": "+374"
+        "dial_code": "+374",
+        "sample_phone_format": "77123456"
     },
     {
         "name": "Aruba",
         "iso3": "ABW",
         "iso2": "AW",
         "states": [],
-        "dial_code": "+297"
+        "dial_code": "+297",
+        "sample_phone_format": "5601234"
     },
     {
         "name": "Australia",
@@ -912,7 +925,8 @@
                 "state_code": "WA"
             }
         ],
-        "dial_code": "+61"
+        "dial_code": "+61",
+        "sample_phone_format": "412345678"
     },
     {
         "name": "Austria",
@@ -956,7 +970,8 @@
                 "state_code": "8"
             }
         ],
-        "dial_code": "+43"
+        "dial_code": "+43",
+        "sample_phone_format": "664123456"
     },
     {
         "name": "Azerbaijan",
@@ -1264,7 +1279,8 @@
                 "state_code": "ZAR"
             }
         ],
-        "dial_code": "+994"
+        "dial_code": "+994",
+        "sample_phone_format": "401234567"
     },
     {
         "name": "Bahamas The",
@@ -1436,7 +1452,8 @@
                 "state_code": "WG"
             }
         ],
-        "dial_code": "+1-242"
+        "dial_code": "+1-242",
+        "sample_phone_format": "2423591234"
     },
     {
         "name": "Bahrain",
@@ -1464,7 +1481,8 @@
                 "state_code": "14"
             }
         ],
-        "dial_code": "+973"
+        "dial_code": "+973",
+        "sample_phone_format": "36001234"
     },
     {
         "name": "Bangladesh",
@@ -1752,7 +1770,8 @@
                 "state_code": "64"
             }
         ],
-        "dial_code": "+880"
+        "dial_code": "+880",
+        "sample_phone_format": "1812345678"
     },
     {
         "name": "Barbados",
@@ -1804,7 +1823,8 @@
                 "state_code": "11"
             }
         ],
-        "dial_code": "+1 246"
+        "dial_code": "+1 246",
+        "sample_phone_format": "2462501234"
     },
     {
         "name": "Belarus",
@@ -1840,7 +1860,8 @@
                 "state_code": "VI"
             }
         ],
-        "dial_code": "+375"
+        "dial_code": "+375",
+        "sample_phone_format": "294911911"
     },
     {
         "name": "Belgium",
@@ -1900,7 +1921,8 @@
                 "state_code": "VWV"
             }
         ],
-        "dial_code": "+32"
+        "dial_code": "+32",
+        "sample_phone_format": "470123456"
     },
     {
         "name": "Belize",
@@ -1932,7 +1954,8 @@
                 "state_code": "TOL"
             }
         ],
-        "dial_code": "+501"
+        "dial_code": "+501",
+        "sample_phone_format": "6221234"
     },
     {
         "name": "Benin",
@@ -1988,7 +2011,8 @@
                 "state_code": "ZO"
             }
         ],
-        "dial_code": "+229"
+        "dial_code": "+229",
+        "sample_phone_format": "90011234"
     },
     {
         "name": "Bermuda",
@@ -2040,7 +2064,8 @@
                 "state_code": "WAR"
             }
         ],
-        "dial_code": "+1 441"
+        "dial_code": "+1 441",
+        "sample_phone_format": "4413701234"
     },
     {
         "name": "Bhutan",
@@ -2124,7 +2149,8 @@
                 "state_code": "34"
             }
         ],
-        "dial_code": "+975"
+        "dial_code": "+975",
+        "sample_phone_format": "17123456"
     },
     {
         "name": "Bolivia",
@@ -2168,7 +2194,8 @@
                 "state_code": "T"
             }
         ],
-        "dial_code": ""
+        "dial_code": "591",
+        "sample_phone_format": "71234567"
     },
     {
         "name": "Bosnia and Herzegovina",
@@ -2228,7 +2255,8 @@
                 "state_code": "04"
             }
         ],
-        "dial_code": "+387"
+        "dial_code": "+387",
+        "sample_phone_format": "61123456"
     },
     {
         "name": "Botswana",
@@ -2276,14 +2304,16 @@
                 "state_code": "SO"
             }
         ],
-        "dial_code": "+267"
+        "dial_code": "+267",
+        "sample_phone_format": "71123456"
     },
     {
         "name": "Bouvet Island",
         "iso3": "BVT",
         "iso2": "BV",
         "states": [],
-        "dial_code": "+55"
+        "dial_code": "+47",
+        "sample_phone_format": "321455-6521"
     },
     {
         "name": "Brazil",
@@ -2399,14 +2429,16 @@
                 "state_code": "TO"
             }
         ],
-        "dial_code": "+55"
+        "dial_code": "+55",
+        "sample_phone_format": "11961234567"
     },
     {
         "name": "British Indian Ocean Territory",
         "iso3": "IOT",
         "iso2": "IO",
         "states": [],
-        "dial_code": "+246"
+        "dial_code": "+246",
+        "sample_phone_format": "3801234"
     },
     {
         "name": "Brunei",
@@ -2430,7 +2462,8 @@
                 "state_code": "TU"
             }
         ],
-        "dial_code": ""
+        "dial_code": "673",
+        "sample_phone_format": "7123456"
     },
     {
         "name": "Bulgaria",
@@ -2546,7 +2579,8 @@
                 "state_code": "28"
             }
         ],
-        "dial_code": "+359"
+        "dial_code": "+359",
+        "sample_phone_format": "48123456"
     },
     {
         "name": "Burkina Faso",
@@ -2782,7 +2816,8 @@
                 "state_code": "ZOU"
             }
         ],
-        "dial_code": "+226"
+        "dial_code": "+226",
+        "sample_phone_format": "70123456"
     },
     {
         "name": "Burundi",
@@ -2862,7 +2897,8 @@
                 "state_code": "RY"
             }
         ],
-        "dial_code": "+257"
+        "dial_code": "+257",
+        "sample_phone_format": "79561234"
     },
     {
         "name": "Cambodia",
@@ -2962,7 +2998,8 @@
                 "state_code": "21"
             }
         ],
-        "dial_code": "+855"
+        "dial_code": "+855",
+        "sample_phone_format": "91234567"
     },
     {
         "name": "Cameroon",
@@ -3010,7 +3047,8 @@
                 "state_code": "OU"
             }
         ],
-        "dial_code": "+237"
+        "dial_code": "+237",
+        "sample_phone_format": "671234567"
     },
     {
         "name": "Canada",
@@ -3070,7 +3108,8 @@
                 "state_code": "YT"
             }
         ],
-        "dial_code": "+1"
+        "dial_code": "+1",
+        "sample_phone_format": "5062345678"
     },
     {
         "name": "Cape Verde",
@@ -3170,14 +3209,16 @@
                 "state_code": "TS"
             }
         ],
-        "dial_code": "+238"
+        "dial_code": "+238",
+        "sample_phone_format": "9911234"
     },
     {
         "name": "Cayman Islands",
         "iso3": "CYM",
         "iso2": "KY",
         "states": [],
-        "dial_code": "+1345"
+        "dial_code": "+1345",
+        "sample_phone_format": "3453231234"
     },
     {
         "name": "Central African Republic",
@@ -3253,7 +3294,8 @@
                 "state_code": "VK"
             }
         ],
-        "dial_code": "+236"
+        "dial_code": "+236",
+        "sample_phone_format": "70012345"
     },
     {
         "name": "Chad",
@@ -3353,7 +3395,8 @@
                 "state_code": "WF"
             }
         ],
-        "dial_code": "+235"
+        "dial_code": "+235",
+        "sample_phone_format": "63012345"
     },
     {
         "name": "Chile",
@@ -3425,7 +3468,8 @@
                 "state_code": "VS"
             }
         ],
-        "dial_code": "+56"
+        "dial_code": "+56",
+        "sample_phone_format": "221234567"
     },
     {
         "name": "China",
@@ -3569,21 +3613,24 @@
                 "state_code": "ZJ"
             }
         ],
-        "dial_code": "+86"
+        "dial_code": "+86",
+        "sample_phone_format": "13123456789"
     },
     {
         "name": "Christmas Island",
         "iso3": "CXR",
         "iso2": "CX",
         "states": [],
-        "dial_code": "+61"
+        "dial_code": "+61",
+        "sample_phone_format": "412345678"
     },
     {
         "name": "Cocos (Keeling) Islands",
         "iso3": "CCK",
         "iso2": "CC",
         "states": [],
-        "dial_code": "+61"
+        "dial_code": "+61",
+        "sample_phone_format": "412345678"
     },
     {
         "name": "Colombia",
@@ -3719,7 +3766,8 @@
                 "state_code": "VID"
             }
         ],
-        "dial_code": "+57"
+        "dial_code": "+57",
+        "sample_phone_format": "3211234567"
     },
     {
         "name": "Comoros",
@@ -3739,7 +3787,8 @@
                 "state_code": "M"
             }
         ],
-        "dial_code": "+269"
+        "dial_code": "+269",
+        "sample_phone_format": "3212345"
     },
     {
         "name": "Congo",
@@ -3795,7 +3844,8 @@
                 "state_code": "13"
             }
         ],
-        "dial_code": "+242"
+        "dial_code": "+242",
+        "sample_phone_format": "061234567"
     },
     {
         "name": "Congo",
@@ -3915,14 +3965,16 @@
                 "state_code": "TU"
             }
         ],
-        "dial_code": "+242"
+        "dial_code": "+242",
+        "sample_phone_format": "991234567"
     },
     {
         "name": "Cook Islands",
         "iso3": "COK",
         "iso2": "CK",
         "states": [],
-        "dial_code": "+682"
+        "dial_code": "+682",
+        "sample_phone_format": "71234"
     },
     {
         "name": "Costa Rica",
@@ -3958,7 +4010,8 @@
                 "state_code": "SJ"
             }
         ],
-        "dial_code": "+506"
+        "dial_code": "+506",
+        "sample_phone_format": "83123456"
     },
     {
         "name": "Ivory Coast",
@@ -4090,7 +4143,8 @@
                 "state_code": "ZZ"
             }
         ],
-        "dial_code": "+225"
+        "dial_code": "+225",
+        "sample_phone_format": "01234567"
     },
     {
         "name": "Croatia (Hrvatska)",
@@ -4178,7 +4232,8 @@
                 "state_code": "01"
             }
         ],
-        "dial_code": ""
+        "dial_code": "385",
+        "sample_phone_format": "921234567"
     },
     {
         "name": "Cuba",
@@ -4250,7 +4305,8 @@
                 "state_code": "05"
             }
         ],
-        "dial_code": "+53"
+        "dial_code": "+53",
+        "sample_phone_format": "51234567"
     },
     {
         "name": "Cyprus",
@@ -4282,7 +4338,8 @@
                 "state_code": "05"
             }
         ],
-        "dial_code": "+357"
+        "dial_code": "+357",
+        "sample_phone_format": "96123456"
     },
     {
         "name": "Czech Republic",
@@ -4718,7 +4775,8 @@
                 "state_code": "647"
             }
         ],
-        "dial_code": "+420"
+        "dial_code": "+420",
+        "sample_phone_format": "601123456"
     },
     {
         "name": "Denmark",
@@ -4746,7 +4804,8 @@
                 "state_code": "85"
             }
         ],
-        "dial_code": "+45"
+        "dial_code": "+45",
+        "sample_phone_format": "32123456"
     },
     {
         "name": "Djibouti",
@@ -4778,7 +4837,8 @@
                 "state_code": "TA"
             }
         ],
-        "dial_code": "+253"
+        "dial_code": "+253",
+        "sample_phone_format": "77831001"
     },
     {
         "name": "Dominica",
@@ -4826,7 +4886,8 @@
                 "state_code": "11"
             }
         ],
-        "dial_code": "+1 767"
+        "dial_code": "+1 767",
+        "sample_phone_format": "7672251234"
     },
     {
         "name": "Dominican Republic",
@@ -4958,7 +5019,8 @@
                 "state_code": "27"
             }
         ],
-        "dial_code": "+1 849"
+        "dial_code": "+1 849",
+        "sample_phone_format": "8092345678"
     },
     {
         "name": "Timor-Leste",
@@ -5014,7 +5076,8 @@
                 "state_code": "VI"
             }
         ],
-        "dial_code": "+670"
+        "dial_code": "+670",
+        "sample_phone_format": "77212345"
     },
     {
         "name": "Ecuador",
@@ -5114,7 +5177,8 @@
                 "state_code": "Z"
             }
         ],
-        "dial_code": "+593"
+        "dial_code": "+593",
+        "sample_phone_format": "991234567"
     },
     {
         "name": "Egypt",
@@ -5226,7 +5290,8 @@
                 "state_code": "SUZ"
             }
         ],
-        "dial_code": "+20"
+        "dial_code": "+20",
+        "sample_phone_format": "1001234567"
     },
     {
         "name": "El Salvador",
@@ -5290,7 +5355,8 @@
                 "state_code": "US"
             }
         ],
-        "dial_code": "+503"
+        "dial_code": "+503",
+        "sample_phone_format": "70123456"
     },
     {
         "name": "Equatorial Guinea",
@@ -5334,7 +5400,8 @@
                 "state_code": "WN"
             }
         ],
-        "dial_code": "+240"
+        "dial_code": "+240",
+        "sample_phone_format": "222123456"
     },
     {
         "name": "Eritrea",
@@ -5366,7 +5433,8 @@
                 "state_code": "DK"
             }
         ],
-        "dial_code": "+291"
+        "dial_code": "+291",
+        "sample_phone_format": "7123456"
     },
     {
         "name": "Estonia",
@@ -5434,7 +5502,8 @@
                 "state_code": "86"
             }
         ],
-        "dial_code": "+372"
+        "dial_code": "+372",
+        "sample_phone_format": "51234567"
     },
     {
         "name": "Ethiopia",
@@ -5486,21 +5555,24 @@
                 "state_code": "TI"
             }
         ],
-        "dial_code": "+251"
+        "dial_code": "+251",
+        "sample_phone_format": "911234567"
     },
     {
         "name": "Falkland Islands",
         "iso3": "FLK",
         "iso2": "FK",
         "states": [],
-        "dial_code": "+500"
+        "dial_code": "+500",
+        "sample_phone_format": "51234"
     },
     {
         "name": "Faroe Islands",
         "iso3": "FRO",
         "iso2": "FO",
         "states": [],
-        "dial_code": "+298"
+        "dial_code": "+298",
+        "sample_phone_format": "211234"
     },
     {
         "name": "Fiji Islands",
@@ -5584,7 +5656,8 @@
                 "state_code": "W"
             }
         ],
-        "dial_code": ""
+        "dial_code": "679",
+        "sample_phone_format": "7012345"
     },
     {
         "name": "Finland",
@@ -5676,7 +5749,8 @@
                 "state_code": "18"
             }
         ],
-        "dial_code": "+358"
+        "dial_code": "+358",
+        "sample_phone_format": "412345678"
     },
     {
         "name": "France",
@@ -5852,21 +5926,24 @@
                 "state_code": "WF"
             }
         ],
-        "dial_code": "+33"
+        "dial_code": "+33",
+        "sample_phone_format": "612345678"
     },
     {
         "name": "French Polynesia",
         "iso3": "PYF",
         "iso2": "PF",
         "states": [],
-        "dial_code": "+689"
+        "dial_code": "+689",
+        "sample_phone_format": "87123456"
     },
     {
         "name": "French Southern Territories",
         "iso3": "ATF",
         "iso2": "TF",
         "states": [],
-        "dial_code": ""
+        "dial_code": "+262",
+        "sample_phone_format": null
     },
     {
         "name": "Gabon",
@@ -5910,7 +5987,8 @@
                 "state_code": "9"
             }
         ],
-        "dial_code": "+241"
+        "dial_code": "+241",
+        "sample_phone_format": "06031234"
     },
     {
         "name": "Gambia The",
@@ -5942,7 +6020,8 @@
                 "state_code": "W"
             }
         ],
-        "dial_code": ""
+        "dial_code": "220",
+        "sample_phone_format": "3012345"
     },
     {
         "name": "Georgia",
@@ -6006,7 +6085,8 @@
                 "state_code": "TB"
             }
         ],
-        "dial_code": "+995"
+        "dial_code": "+995",
+        "sample_phone_format": "555123456"
     },
     {
         "name": "Germany",
@@ -6078,7 +6158,8 @@
                 "state_code": "TH"
             }
         ],
-        "dial_code": "+49"
+        "dial_code": "+49",
+        "sample_phone_format": "15123456789"
     },
     {
         "name": "Ghana",
@@ -6126,14 +6207,16 @@
                 "state_code": "WP"
             }
         ],
-        "dial_code": "+233"
+        "dial_code": "+233",
+        "sample_phone_format": "231234567"
     },
     {
         "name": "Gibraltar",
         "iso3": "GIB",
         "iso2": "GI",
         "states": [],
-        "dial_code": "+350"
+        "dial_code": "+350",
+        "sample_phone_format": "57123456"
     },
     {
         "name": "Greece",
@@ -6293,14 +6376,16 @@
                 "state_code": "C"
             }
         ],
-        "dial_code": "+30"
+        "dial_code": "+30",
+        "sample_phone_format": "6912345678"
     },
     {
         "name": "Greenland",
         "iso3": "GRL",
         "iso2": "GL",
         "states": [],
-        "dial_code": "+299"
+        "dial_code": "+299",
+        "sample_phone_format": "221234"
     },
     {
         "name": "Grenada",
@@ -6336,21 +6421,24 @@
                 "state_code": "06"
             }
         ],
-        "dial_code": "+1 473"
+        "dial_code": "+1 473",
+        "sample_phone_format": "4734031234"
     },
     {
         "name": "Guadeloupe",
         "iso3": "GLP",
         "iso2": "GP",
         "states": [],
-        "dial_code": "+590"
+        "dial_code": "+590",
+        "sample_phone_format": "690001234"
     },
     {
         "name": "Guam",
         "iso3": "GUM",
         "iso2": "GU",
         "states": [],
-        "dial_code": "+1 671"
+        "dial_code": "+1 671",
+        "sample_phone_format": "6713001234"
     },
     {
         "name": "Guatemala",
@@ -6442,14 +6530,16 @@
                 "state_code": "TO"
             }
         ],
-        "dial_code": "+502"
+        "dial_code": "+502",
+        "sample_phone_format": "51234567"
     },
     {
         "name": "Guernsey",
         "iso3": "GGY",
         "iso2": "GG",
         "states": [],
-        "dial_code": "+44"
+        "dial_code": "+44",
+        "sample_phone_format": "7781123456"
     },
     {
         "name": "Guinea",
@@ -6617,7 +6707,8 @@
                 "state_code": "YO"
             }
         ],
-        "dial_code": "+224"
+        "dial_code": "+224",
+        "sample_phone_format": "601123456"
     },
     {
         "name": "Guinea-Bissau",
@@ -6669,7 +6760,8 @@
                 "state_code": "TO"
             }
         ],
-        "dial_code": "+245"
+        "dial_code": "+245",
+        "sample_phone_format": "955012345"
     },
     {
         "name": "Guyana",
@@ -6717,7 +6809,8 @@
                 "state_code": "UT"
             }
         ],
-        "dial_code": "+592"
+        "dial_code": "+592",
+        "sample_phone_format": "6091234"
     },
     {
         "name": "Haiti",
@@ -6765,14 +6858,16 @@
                 "state_code": "SE"
             }
         ],
-        "dial_code": "+509"
+        "dial_code": "+509",
+        "sample_phone_format": "34101234"
     },
     {
         "name": "Heard Island and McDonald Islands",
         "iso3": "HMD",
         "iso2": "HM",
         "states": [],
-        "dial_code": "+672"
+        "dial_code": "+672",
+        "sample_phone_format": null
     },
     {
         "name": "Honduras",
@@ -6852,14 +6947,16 @@
                 "state_code": "YO"
             }
         ],
-        "dial_code": "+504"
+        "dial_code": "+504",
+        "sample_phone_format": "91234567"
     },
     {
         "name": "Hong Kong S.A.R.",
         "iso3": "HKG",
         "iso2": "HK",
         "states": [],
-        "dial_code": ""
+        "dial_code": "852",
+        "sample_phone_format": "51234567"
     },
     {
         "name": "Hungary",
@@ -7035,7 +7132,8 @@
                 "state_code": "ZE"
             }
         ],
-        "dial_code": "+36"
+        "dial_code": "+36",
+        "sample_phone_format": "201234567"
     },
     {
         "name": "Iceland",
@@ -7075,7 +7173,8 @@
                 "state_code": "4"
             }
         ],
-        "dial_code": "+354"
+        "dial_code": "+354",
+        "sample_phone_format": "6111234"
     },
     {
         "name": "India",
@@ -7231,7 +7330,8 @@
                 "state_code": "WB"
             }
         ],
-        "dial_code": "+91"
+        "dial_code": "+91",
+        "sample_phone_format": "8123456789"
     },
     {
         "name": "Indonesia",
@@ -7391,7 +7491,8 @@
                 "state_code": "SB"
             }
         ],
-        "dial_code": "+62"
+        "dial_code": "+62",
+        "sample_phone_format": "812345678"
     },
     {
         "name": "Iran",
@@ -7519,7 +7620,8 @@
                 "state_code": "11"
             }
         ],
-        "dial_code": ""
+        "dial_code": "98",
+        "sample_phone_format": "9123456789"
     },
     {
         "name": "Iraq",
@@ -7599,7 +7701,8 @@
                 "state_code": "WA"
             }
         ],
-        "dial_code": "+964"
+        "dial_code": "+964",
+        "sample_phone_format": "7912345678"
     },
     {
         "name": "Ireland",
@@ -7723,7 +7826,8 @@
                 "state_code": "U"
             }
         ],
-        "dial_code": "+353"
+        "dial_code": "+353",
+        "sample_phone_format": "850123456"
     },
     {
         "name": "Israel",
@@ -7755,7 +7859,8 @@
                 "state_code": "TA"
             }
         ],
-        "dial_code": "+972"
+        "dial_code": "+972",
+        "sample_phone_format": "502345678"
     },
     {
         "name": "Italy",
@@ -8275,7 +8380,8 @@
                 "state_code": "34"
             }
         ],
-        "dial_code": "+39"
+        "dial_code": "+39",
+        "sample_phone_format": "3123456789"
     },
     {
         "name": "Jamaica",
@@ -8339,7 +8445,8 @@
                 "state_code": "10"
             }
         ],
-        "dial_code": "+1 876"
+        "dial_code": "+1 876",
+        "sample_phone_format": "8762101234"
     },
     {
         "name": "Japan",
@@ -8531,14 +8638,16 @@
                 "state_code": "19"
             }
         ],
-        "dial_code": "+81"
+        "dial_code": "+81",
+        "sample_phone_format": "9012345678"
     },
     {
         "name": "Jersey",
         "iso3": "JEY",
         "iso2": "JE",
         "states": [],
-        "dial_code": "+44"
+        "dial_code": "+44",
+        "sample_phone_format": "7797712345"
     },
     {
         "name": "Jordan",
@@ -8594,7 +8703,8 @@
                 "state_code": "AZ"
             }
         ],
-        "dial_code": "+962"
+        "dial_code": "+962",
+        "sample_phone_format": "790123456"
     },
     {
         "name": "Kazakhstan",
@@ -8670,7 +8780,8 @@
                 "state_code": "ZAP"
             }
         ],
-        "dial_code": "+7"
+        "dial_code": "+7",
+        "sample_phone_format": "7710009998"
     },
     {
         "name": "Kenya",
@@ -8894,7 +9005,8 @@
                 "state_code": "800"
             }
         ],
-        "dial_code": "+254"
+        "dial_code": "+254",
+        "sample_phone_format": "712123456"
     },
     {
         "name": "Kiribati",
@@ -8914,7 +9026,8 @@
                 "state_code": "P"
             }
         ],
-        "dial_code": "+686"
+        "dial_code": "+686",
+        "sample_phone_format": "72001234"
     },
     {
         "name": "North Korea",
@@ -8966,7 +9079,8 @@
                 "state_code": "02"
             }
         ],
-        "dial_code": "+850"
+        "dial_code": "+850",
+        "sample_phone_format": "1921234567"
     },
     {
         "name": "South Korea",
@@ -9042,7 +9156,8 @@
                 "state_code": "31"
             }
         ],
-        "dial_code": "+82"
+        "dial_code": "+82",
+        "sample_phone_format": "1020000000"
     },
     {
         "name": "Kosovo",
@@ -9078,7 +9193,8 @@
                 "state_code": null
             }
         ],
-        "dial_code": ""
+        "dial_code": "383",
+        "sample_phone_format": "43201234"
     },
     {
         "name": "Kuwait",
@@ -9110,7 +9226,8 @@
                 "state_code": "MU"
             }
         ],
-        "dial_code": "+965"
+        "dial_code": "+965",
+        "sample_phone_format": "50012345"
     },
     {
         "name": "Kyrgyzstan",
@@ -9154,7 +9271,8 @@
                 "state_code": "T"
             }
         ],
-        "dial_code": "+996"
+        "dial_code": "+996",
+        "sample_phone_format": "700123456"
     },
     {
         "name": "Laos",
@@ -9238,7 +9356,8 @@
                 "state_code": "XI"
             }
         ],
-        "dial_code": "+856"
+        "dial_code": "+856",
+        "sample_phone_format": "2023123456"
     },
     {
         "name": "Latvia",
@@ -9718,7 +9837,8 @@
                 "state_code": "110"
             }
         ],
-        "dial_code": "+371"
+        "dial_code": "+371",
+        "sample_phone_format": "21234567"
     },
     {
         "name": "Lebanon",
@@ -9758,7 +9878,8 @@
                 "state_code": "JA"
             }
         ],
-        "dial_code": "+961"
+        "dial_code": "+961",
+        "sample_phone_format": "71123456"
     },
     {
         "name": "Lesotho",
@@ -9806,7 +9927,8 @@
                 "state_code": "K"
             }
         ],
-        "dial_code": "+266"
+        "dial_code": "+266",
+        "sample_phone_format": "50123456"
     },
     {
         "name": "Liberia",
@@ -9874,7 +9996,8 @@
                 "state_code": "SI"
             }
         ],
-        "dial_code": "+231"
+        "dial_code": "+231",
+        "sample_phone_format": "770123456"
     },
     {
         "name": "Libya",
@@ -9966,7 +10089,8 @@
                 "state_code": "ZA"
             }
         ],
-        "dial_code": ""
+        "dial_code": "218",
+        "sample_phone_format": "912345678"
     },
     {
         "name": "Liechtenstein",
@@ -10018,7 +10142,8 @@
                 "state_code": "11"
             }
         ],
-        "dial_code": "+423"
+        "dial_code": "+423",
+        "sample_phone_format": "660234567"
     },
     {
         "name": "Lithuania",
@@ -10302,7 +10427,8 @@
                 "state_code": "60"
             }
         ],
-        "dial_code": "+370"
+        "dial_code": "+370",
+        "sample_phone_format": "61234567"
     },
     {
         "name": "Luxembourg",
@@ -10370,14 +10496,16 @@
                 "state_code": "L"
             }
         ],
-        "dial_code": "+352"
+        "dial_code": "+352",
+        "sample_phone_format": "628123456"
     },
     {
         "name": "Macau S.A.R.",
         "iso3": "MAC",
         "iso2": "MO",
         "states": [],
-        "dial_code": ""
+        "dial_code": "853",
+        "sample_phone_format": "66123456"
     },
     {
         "name": "Macedonia",
@@ -10721,7 +10849,8 @@
                 "state_code": "33"
             }
         ],
-        "dial_code": ""
+        "dial_code": "389",
+        "sample_phone_format": "72345678"
     },
     {
         "name": "Madagascar",
@@ -10753,7 +10882,8 @@
                 "state_code": "U"
             }
         ],
-        "dial_code": "+261"
+        "dial_code": "+261",
+        "sample_phone_format": "321234567"
     },
     {
         "name": "Malawi",
@@ -10881,7 +11011,8 @@
                 "state_code": "ZO"
             }
         ],
-        "dial_code": "+265"
+        "dial_code": "+265",
+        "sample_phone_format": "991234567"
     },
     {
         "name": "Malaysia",
@@ -10953,7 +11084,8 @@
                 "state_code": "11"
             }
         ],
-        "dial_code": "+60"
+        "dial_code": "+60",
+        "sample_phone_format": "123456789"
     },
     {
         "name": "Maldives",
@@ -11065,7 +11197,8 @@
                 "state_code": "04"
             }
         ],
-        "dial_code": "+960"
+        "dial_code": "+960",
+        "sample_phone_format": "7712345"
     },
     {
         "name": "Mali",
@@ -11117,7 +11250,8 @@
                 "state_code": "6"
             }
         ],
-        "dial_code": "+223"
+        "dial_code": "+223",
+        "sample_phone_format": "65012345"
     },
     {
         "name": "Malta",
@@ -11393,14 +11527,16 @@
                 "state_code": "68"
             }
         ],
-        "dial_code": "+356"
+        "dial_code": "+356",
+        "sample_phone_format": "96961234"
     },
     {
         "name": "Man (Isle of)",
         "iso3": "IMN",
         "iso2": "IM",
         "states": [],
-        "dial_code": ""
+        "dial_code": "44",
+        "sample_phone_format": "7924123456"
     },
     {
         "name": "Marshall Islands",
@@ -11416,14 +11552,16 @@
                 "state_code": "T"
             }
         ],
-        "dial_code": "+692"
+        "dial_code": "+692",
+        "sample_phone_format": "2351234"
     },
     {
         "name": "Martinique",
         "iso3": "MTQ",
         "iso2": "MQ",
         "states": [],
-        "dial_code": "+596"
+        "dial_code": "+596",
+        "sample_phone_format": "696201234"
     },
     {
         "name": "Mauritania",
@@ -11491,7 +11629,8 @@
                 "state_code": "06"
             }
         ],
-        "dial_code": "+222"
+        "dial_code": "+222",
+        "sample_phone_format": "22123456"
     },
     {
         "name": "Mauritius",
@@ -11567,14 +11706,16 @@
                 "state_code": "VP"
             }
         ],
-        "dial_code": "+230"
+        "dial_code": "+230",
+        "sample_phone_format": "52512345"
     },
     {
         "name": "Mayotte",
         "iso3": "MYT",
         "iso2": "YT",
         "states": [],
-        "dial_code": "+262"
+        "dial_code": "+262",
+        "sample_phone_format": "639012345"
     },
     {
         "name": "Mexico",
@@ -11710,7 +11851,8 @@
                 "state_code": "ZAC"
             }
         ],
-        "dial_code": "+52"
+        "dial_code": "+52",
+        "sample_phone_format": "12221234567"
     },
     {
         "name": "Micronesia",
@@ -11734,7 +11876,8 @@
                 "state_code": "YAP"
             }
         ],
-        "dial_code": ""
+        "dial_code": "691",
+        "sample_phone_format": "3501234"
     },
     {
         "name": "Moldova",
@@ -11886,14 +12029,16 @@
                 "state_code": "UN"
             }
         ],
-        "dial_code": ""
+        "dial_code": "373",
+        "sample_phone_format": "62112345"
     },
     {
         "name": "Monaco",
         "iso3": "MCO",
         "iso2": "MC",
         "states": [],
-        "dial_code": "+377"
+        "dial_code": "+377",
+        "sample_phone_format": "612345678"
     },
     {
         "name": "Mongolia",
@@ -11985,7 +12130,8 @@
                 "state_code": "057"
             }
         ],
-        "dial_code": "+976"
+        "dial_code": "+976",
+        "sample_phone_format": "88123456"
     },
     {
         "name": "Montenegro",
@@ -12081,14 +12227,16 @@
                 "state_code": "21"
             }
         ],
-        "dial_code": "+382"
+        "dial_code": "+382",
+        "sample_phone_format": "67622901"
     },
     {
         "name": "Montserrat",
         "iso3": "MSR",
         "iso2": "MS",
         "states": [],
-        "dial_code": "+1664"
+        "dial_code": "+1664",
+        "sample_phone_format": "6644923456"
     },
     {
         "name": "Morocco",
@@ -12344,7 +12492,8 @@
                 "state_code": "ZAG"
             }
         ],
-        "dial_code": "+212"
+        "dial_code": "+212",
+        "sample_phone_format": "650123456"
     },
     {
         "name": "Mozambique",
@@ -12396,7 +12545,8 @@
                 "state_code": "Q"
             }
         ],
-        "dial_code": "+258"
+        "dial_code": "+258",
+        "sample_phone_format": "821234567"
     },
     {
         "name": "Myanmar",
@@ -12464,7 +12614,8 @@
                 "state_code": "06"
             }
         ],
-        "dial_code": "+95"
+        "dial_code": "+95",
+        "sample_phone_format": "92123456"
     },
     {
         "name": "Namibia",
@@ -12528,7 +12679,8 @@
                 "state_code": "CA"
             }
         ],
-        "dial_code": "+264"
+        "dial_code": "+264",
+        "sample_phone_format": "811234567"
     },
     {
         "name": "Nauru",
@@ -12592,7 +12744,8 @@
                 "state_code": "14"
             }
         ],
-        "dial_code": "+674"
+        "dial_code": "+674",
+        "sample_phone_format": "5551234"
     },
     {
         "name": "Nepal",
@@ -12676,7 +12829,8 @@
                 "state_code": "3"
             }
         ],
-        "dial_code": "+977"
+        "dial_code": "+977",
+        "sample_phone_format": "9841234567"
     },
     {
         "name": "Netherlands Antilles",
@@ -12696,7 +12850,8 @@
                 "state_code": "BQ3"
             }
         ],
-        "dial_code": "+599"
+        "dial_code": "+599",
+        "sample_phone_format": "455-6521"
     },
     {
         "name": "Netherlands",
@@ -12752,14 +12907,16 @@
                 "state_code": "ZE"
             }
         ],
-        "dial_code": "+31"
+        "dial_code": "+31",
+        "sample_phone_format": "612345678"
     },
     {
         "name": "New Caledonia",
         "iso3": "NCL",
         "iso2": "NC",
         "states": [],
-        "dial_code": "+687"
+        "dial_code": "+687",
+        "sample_phone_format": "751234"
     },
     {
         "name": "New Zealand",
@@ -12835,7 +12992,8 @@
                 "state_code": "WTC"
             }
         ],
-        "dial_code": "+64"
+        "dial_code": "+64",
+        "sample_phone_format": "211234567"
     },
     {
         "name": "Nicaragua",
@@ -12907,7 +13065,8 @@
                 "state_code": "AS"
             }
         ],
-        "dial_code": "+505"
+        "dial_code": "+505",
+        "sample_phone_format": "81234567"
     },
     {
         "name": "Niger",
@@ -12943,7 +13102,8 @@
                 "state_code": "7"
             }
         ],
-        "dial_code": "+227"
+        "dial_code": "+227",
+        "sample_phone_format": "93123456"
     },
     {
         "name": "Nigeria",
@@ -13095,28 +13255,32 @@
                 "state_code": "ZA"
             }
         ],
-        "dial_code": "+234"
+        "dial_code": "+234",
+        "sample_phone_format": "8021234567"
     },
     {
         "name": "Niue",
         "iso3": "NIU",
         "iso2": "NU",
         "states": [],
-        "dial_code": "+683"
+        "dial_code": "+683",
+        "sample_phone_format": "8884012"
     },
     {
         "name": "Norfolk Island",
         "iso3": "NFK",
         "iso2": "NF",
         "states": [],
-        "dial_code": "+672"
+        "dial_code": "+672",
+        "sample_phone_format": "381234"
     },
     {
         "name": "Northern Mariana Islands",
         "iso3": "MNP",
         "iso2": "MP",
         "states": [],
-        "dial_code": "+1 670"
+        "dial_code": "+1 670",
+        "sample_phone_format": "6702345678"
     },
     {
         "name": "Norway",
@@ -13208,7 +13372,8 @@
                 "state_code": "07"
             }
         ],
-        "dial_code": "+47"
+        "dial_code": "+47",
+        "sample_phone_format": "40612345"
     },
     {
         "name": "Oman",
@@ -13268,7 +13433,8 @@
                 "state_code": "MA"
             }
         ],
-        "dial_code": "+968"
+        "dial_code": "+968",
+        "sample_phone_format": "92123456"
     },
     {
         "name": "Pakistan",
@@ -13308,7 +13474,8 @@
                 "state_code": "SD"
             }
         ],
-        "dial_code": "+92"
+        "dial_code": "+92",
+        "sample_phone_format": "3012345678"
     },
     {
         "name": "Palau",
@@ -13380,14 +13547,16 @@
                 "state_code": "370"
             }
         ],
-        "dial_code": "+680"
+        "dial_code": "+680",
+        "sample_phone_format": "6201234"
     },
     {
         "name": "Palestinian Territory Occupied",
         "iso3": "PSE",
         "iso2": "PS",
         "states": [],
-        "dial_code": ""
+        "dial_code": "970",
+        "sample_phone_format": "599123456"
     },
     {
         "name": "Panama",
@@ -13447,7 +13616,8 @@
                 "state_code": "9"
             }
         ],
-        "dial_code": "+507"
+        "dial_code": "+507",
+        "sample_phone_format": "61234567"
     },
     {
         "name": "Papua new Guinea",
@@ -13539,7 +13709,8 @@
                 "state_code": "WPD"
             }
         ],
-        "dial_code": ""
+        "dial_code": "675",
+        "sample_phone_format": "70123456"
     },
     {
         "name": "Paraguay",
@@ -13615,7 +13786,8 @@
                 "state_code": "2"
             }
         ],
-        "dial_code": "+595"
+        "dial_code": "+595",
+        "sample_phone_format": "961456789"
     },
     {
         "name": "Peru",
@@ -13719,7 +13891,8 @@
                 "state_code": "UCA"
             }
         ],
-        "dial_code": "+51"
+        "dial_code": "+51",
+        "sample_phone_format": "912345678"
     },
     {
         "name": "Philippines",
@@ -14115,14 +14288,16 @@
                 "state_code": "ZSI"
             }
         ],
-        "dial_code": "+63"
+        "dial_code": "+63",
+        "sample_phone_format": "9051234567"
     },
     {
         "name": "Pitcairn Island",
         "iso3": "PCN",
         "iso2": "PN",
         "states": [],
-        "dial_code": ""
+        "dial_code": "+64",
+        "sample_phone_format": "762337766"
     },
     {
         "name": "Poland",
@@ -14198,7 +14373,8 @@
                 "state_code": "ZP"
             }
         ],
-        "dial_code": "+48"
+        "dial_code": "+48",
+        "sample_phone_format": "512345678"
     },
     {
         "name": "Portugal",
@@ -14286,14 +14462,16 @@
                 "state_code": "18"
             }
         ],
-        "dial_code": "+351"
+        "dial_code": "+351",
+        "sample_phone_format": "912345678"
     },
     {
         "name": "Puerto Rico",
         "iso3": "PRI",
         "iso2": "PR",
         "states": [],
-        "dial_code": "+1 939"
+        "dial_code": "+1 939",
+        "sample_phone_format": "7872345678"
     },
     {
         "name": "Qatar",
@@ -14333,14 +14511,16 @@
                 "state_code": "US"
             }
         ],
-        "dial_code": "+974"
+        "dial_code": "+974",
+        "sample_phone_format": "33123456"
     },
     {
         "name": "R\u00e9union",
         "iso3": "REU",
         "iso2": "RE",
         "states": [],
-        "dial_code": "+262"
+        "dial_code": "+262",
+        "sample_phone_format": "692123456"
     },
     {
         "name": "Romania",
@@ -14512,7 +14692,8 @@
                 "state_code": "VN"
             }
         ],
-        "dial_code": "+40"
+        "dial_code": "+40",
+        "sample_phone_format": "712034567"
     },
     {
         "name": "Russia",
@@ -14852,7 +15033,8 @@
                 "state_code": "ZAB"
             }
         ],
-        "dial_code": "+7"
+        "dial_code": "+7",
+        "sample_phone_format": "9123456789"
     },
     {
         "name": "Rwanda",
@@ -14880,14 +15062,16 @@
                 "state_code": "04"
             }
         ],
-        "dial_code": "+250"
+        "dial_code": "+250",
+        "sample_phone_format": "720123456"
     },
     {
         "name": "Saint Helena",
         "iso3": "SHN",
         "iso2": "SH",
         "states": [],
-        "dial_code": ""
+        "dial_code": "290",
+        "sample_phone_format": "51234"
     },
     {
         "name": "Saint Kitts And Nevis",
@@ -14955,7 +15139,8 @@
                 "state_code": "15"
             }
         ],
-        "dial_code": ""
+        "dial_code": "1",
+        "sample_phone_format": "8697652917"
     },
     {
         "name": "Saint Lucia",
@@ -15011,14 +15196,16 @@
                 "state_code": "11"
             }
         ],
-        "dial_code": "+1 758"
+        "dial_code": "+1 758",
+        "sample_phone_format": "7582845678"
     },
     {
         "name": "Saint Pierre and Miquelon",
         "iso3": "SPM",
         "iso2": "PM",
         "states": [],
-        "dial_code": "+508"
+        "dial_code": "+508",
+        "sample_phone_format": "551234"
     },
     {
         "name": "Saint Vincent And The Grenadines",
@@ -15050,21 +15237,24 @@
                 "state_code": "05"
             }
         ],
-        "dial_code": ""
+        "dial_code": "1",
+        "sample_phone_format": "7844301234"
     },
     {
         "name": "Saint-Barthelemy",
         "iso3": "BLM",
         "iso2": "BL",
         "states": [],
-        "dial_code": ""
+        "dial_code": "590",
+        "sample_phone_format": "690001234"
     },
     {
         "name": "Saint-Martin (French part)",
         "iso3": "MAF",
         "iso2": "MF",
         "states": [],
-        "dial_code": ""
+        "dial_code": "590",
+        "sample_phone_format": "690001234"
     },
     {
         "name": "Samoa",
@@ -15116,7 +15306,8 @@
                 "state_code": "VS"
             }
         ],
-        "dial_code": "+685"
+        "dial_code": "+685",
+        "sample_phone_format": "7212345"
     },
     {
         "name": "San Marino",
@@ -15160,7 +15351,8 @@
                 "state_code": "09"
             }
         ],
-        "dial_code": "+378"
+        "dial_code": "+378",
+        "sample_phone_format": "66661212"
     },
     {
         "name": "Sao Tome and Principe",
@@ -15176,7 +15368,8 @@
                 "state_code": "S"
             }
         ],
-        "dial_code": "+239"
+        "dial_code": "+239",
+        "sample_phone_format": "9812345"
     },
     {
         "name": "Saudi Arabia",
@@ -15236,7 +15429,8 @@
                 "state_code": "07"
             }
         ],
-        "dial_code": "+966"
+        "dial_code": "+966",
+        "sample_phone_format": "512345678"
     },
     {
         "name": "Senegal",
@@ -15300,7 +15494,8 @@
                 "state_code": "ZG"
             }
         ],
-        "dial_code": "+221"
+        "dial_code": "+221",
+        "sample_phone_format": "701234567"
     },
     {
         "name": "Serbia",
@@ -15412,7 +15607,8 @@
                 "state_code": "16"
             }
         ],
-        "dial_code": "+381"
+        "dial_code": "+381",
+        "sample_phone_format": "601234567"
     },
     {
         "name": "Seychelles",
@@ -15516,7 +15712,8 @@
                 "state_code": "23"
             }
         ],
-        "dial_code": "+248"
+        "dial_code": "+248",
+        "sample_phone_format": "2510123"
     },
     {
         "name": "Sierra Leone",
@@ -15540,7 +15737,8 @@
                 "state_code": "W"
             }
         ],
-        "dial_code": "+232"
+        "dial_code": "+232",
+        "sample_phone_format": "25123456"
     },
     {
         "name": "Singapore",
@@ -15568,7 +15766,8 @@
                 "state_code": "05"
             }
         ],
-        "dial_code": "+65"
+        "dial_code": "+65",
+        "sample_phone_format": "81234567"
     },
     {
         "name": "Slovakia",
@@ -15608,7 +15807,8 @@
                 "state_code": "ZI"
             }
         ],
-        "dial_code": "+421"
+        "dial_code": "+421",
+        "sample_phone_format": "912123456"
     },
     {
         "name": "Slovenia",
@@ -16460,7 +16660,8 @@
                 "state_code": "193"
             }
         ],
-        "dial_code": "+386"
+        "dial_code": "+386",
+        "sample_phone_format": "31234567"
     },
     {
         "name": "Solomon Islands",
@@ -16508,7 +16709,8 @@
                 "state_code": "WE"
             }
         ],
-        "dial_code": "+677"
+        "dial_code": "+677",
+        "sample_phone_format": "7421234"
     },
     {
         "name": "Somalia",
@@ -16580,7 +16782,8 @@
                 "state_code": "TO"
             }
         ],
-        "dial_code": "+252"
+        "dial_code": "+252",
+        "sample_phone_format": "71123456"
     },
     {
         "name": "South Africa",
@@ -16624,14 +16827,16 @@
                 "state_code": "WC"
             }
         ],
-        "dial_code": "+27"
+        "dial_code": "+27",
+        "sample_phone_format": "711234567"
     },
     {
         "name": "South Georgia and the South Sandwich Islands",
         "iso3": "SGS",
         "iso2": "GS",
         "states": [],
-        "dial_code": "+500"
+        "dial_code": "+500",
+        "sample_phone_format": "65217"
     },
     {
         "name": "South Sudan",
@@ -16679,7 +16884,8 @@
                 "state_code": "EW"
             }
         ],
-        "dial_code": ""
+        "dial_code": "211",
+        "sample_phone_format": "977123456"
     },
     {
         "name": "Spain",
@@ -16943,7 +17149,8 @@
                 "state_code": "Z"
             }
         ],
-        "dial_code": "+34"
+        "dial_code": "+34",
+        "sample_phone_format": "612345678"
     },
     {
         "name": "Sri Lanka",
@@ -17083,7 +17290,8 @@
                 "state_code": "1"
             }
         ],
-        "dial_code": "+94"
+        "dial_code": "+94",
+        "sample_phone_format": "712345678"
     },
     {
         "name": "Sudan",
@@ -17163,7 +17371,8 @@
                 "state_code": "NW"
             }
         ],
-        "dial_code": "+249"
+        "dial_code": "+249",
+        "sample_phone_format": "911231234"
     },
     {
         "name": "Suriname",
@@ -17211,14 +17420,16 @@
                 "state_code": "WA"
             }
         ],
-        "dial_code": "+597"
+        "dial_code": "+597",
+        "sample_phone_format": "7412345"
     },
     {
         "name": "Svalbard And Jan Mayen Islands",
         "iso3": "SJM",
         "iso2": "SJ",
         "states": [],
-        "dial_code": ""
+        "dial_code": "47",
+        "sample_phone_format": "41234567"
     },
     {
         "name": "Swaziland",
@@ -17242,7 +17453,8 @@
                 "state_code": "SH"
             }
         ],
-        "dial_code": "+268"
+        "dial_code": "+268",
+        "sample_phone_format": "76123456"
     },
     {
         "name": "Sweden",
@@ -17330,7 +17542,8 @@
                 "state_code": "O"
             }
         ],
-        "dial_code": "+46"
+        "dial_code": "+46",
+        "sample_phone_format": "701234567"
     },
     {
         "name": "Switzerland",
@@ -17438,7 +17651,8 @@
                 "state_code": "UR"
             }
         ],
-        "dial_code": "+41"
+        "dial_code": "+41",
+        "sample_phone_format": "781234567"
     },
     {
         "name": "Syria",
@@ -17502,7 +17716,8 @@
                 "state_code": "TA"
             }
         ],
-        "dial_code": "+963"
+        "dial_code": "+963",
+        "sample_phone_format": "944567890"
     },
     {
         "name": "Taiwan",
@@ -17602,7 +17817,8 @@
                 "state_code": "YUN"
             }
         ],
-        "dial_code": "+886"
+        "dial_code": "+886",
+        "sample_phone_format": "912345678"
     },
     {
         "name": "Tajikistan",
@@ -17626,7 +17842,8 @@
                 "state_code": "SU"
             }
         ],
-        "dial_code": "+992"
+        "dial_code": "+992",
+        "sample_phone_format": "917123456"
     },
     {
         "name": "Tanzania",
@@ -17750,7 +17967,8 @@
                 "state_code": "15"
             }
         ],
-        "dial_code": ""
+        "dial_code": "255",
+        "sample_phone_format": "621234567"
     },
     {
         "name": "Thailand",
@@ -18066,7 +18284,8 @@
                 "state_code": "35"
             }
         ],
-        "dial_code": "+66"
+        "dial_code": "+66",
+        "sample_phone_format": "812345678"
     },
     {
         "name": "Togo",
@@ -18094,14 +18313,16 @@
                 "state_code": "S"
             }
         ],
-        "dial_code": "+228"
+        "dial_code": "+228",
+        "sample_phone_format": "90112345"
     },
     {
         "name": "Tokelau",
         "iso3": "TKL",
         "iso2": "TK",
         "states": [],
-        "dial_code": "+690"
+        "dial_code": "+690",
+        "sample_phone_format": "7290"
     },
     {
         "name": "Tonga",
@@ -18129,7 +18350,8 @@
                 "state_code": "05"
             }
         ],
-        "dial_code": "+676"
+        "dial_code": "+676",
+        "sample_phone_format": "7715123"
     },
     {
         "name": "Trinidad And Tobago",
@@ -18201,7 +18423,8 @@
                 "state_code": "WTO"
             }
         ],
-        "dial_code": ""
+        "dial_code": "1",
+        "sample_phone_format": "8682911234"
     },
     {
         "name": "Tunisia",
@@ -18301,7 +18524,8 @@
                 "state_code": "22"
             }
         ],
-        "dial_code": "+216"
+        "dial_code": "+216",
+        "sample_phone_format": "20123456"
     },
     {
         "name": "Turkey",
@@ -18633,7 +18857,8 @@
                 "state_code": "67"
             }
         ],
-        "dial_code": "+90"
+        "dial_code": "+90",
+        "sample_phone_format": "5012345678"
     },
     {
         "name": "Turkmenistan",
@@ -18665,14 +18890,16 @@
                 "state_code": "M"
             }
         ],
-        "dial_code": "+993"
+        "dial_code": "+993",
+        "sample_phone_format": "66123456"
     },
     {
         "name": "Turks And Caicos Islands",
         "iso3": "TCA",
         "iso2": "TC",
         "states": [],
-        "dial_code": ""
+        "dial_code": "1",
+        "sample_phone_format": "6492311234"
     },
     {
         "name": "Tuvalu",
@@ -18712,7 +18939,8 @@
                 "state_code": "VAI"
             }
         ],
-        "dial_code": "+688"
+        "dial_code": "+688",
+        "sample_phone_format": "901234"
     },
     {
         "name": "Uganda",
@@ -19220,7 +19448,8 @@
                 "state_code": "330"
             }
         ],
-        "dial_code": "+256"
+        "dial_code": "+256",
+        "sample_phone_format": "712345678"
     },
     {
         "name": "Ukraine",
@@ -19328,7 +19557,8 @@
                 "state_code": "18"
             }
         ],
-        "dial_code": "+380"
+        "dial_code": "+380",
+        "sample_phone_format": "501234567"
     },
     {
         "name": "United Arab Emirates",
@@ -19364,7 +19594,8 @@
                 "state_code": "UQ"
             }
         ],
-        "dial_code": "+971"
+        "dial_code": "+971",
+        "sample_phone_format": "501234567"
     },
     {
         "name": "United Kingdom",
@@ -20360,7 +20591,8 @@
                 "state_code": "WRX"
             }
         ],
-        "dial_code": "+44"
+        "dial_code": "+44",
+        "sample_phone_format": "7400123456"
     },
     {
         "name": "United States",
@@ -20632,14 +20864,16 @@
                 "state_code": "WY"
             }
         ],
-        "dial_code": "+1"
+        "dial_code": "+1",
+        "sample_phone_format": "2015550123"
     },
     {
         "name": "United States Minor Outlying Islands",
         "iso3": "UMI",
         "iso2": "UM",
         "states": [],
-        "dial_code": "+1581"
+        "dial_code": "+1 581",
+        "sample_phone_format": "156331-5412"
     },
     {
         "name": "Uruguay",
@@ -20723,7 +20957,8 @@
                 "state_code": "TT"
             }
         ],
-        "dial_code": "+598"
+        "dial_code": "+598",
+        "sample_phone_format": "94231234"
     },
     {
         "name": "Uzbekistan",
@@ -20787,7 +21022,8 @@
                 "state_code": "XO"
             }
         ],
-        "dial_code": "+998"
+        "dial_code": "+998",
+        "sample_phone_format": "912345678"
     },
     {
         "name": "Vanuatu",
@@ -20819,14 +21055,16 @@
                 "state_code": "TOB"
             }
         ],
-        "dial_code": "+678"
+        "dial_code": "+678",
+        "sample_phone_format": "5912345"
     },
     {
         "name": "Vatican City State (Holy See)",
         "iso3": "VAT",
         "iso2": "VA",
         "states": [],
-        "dial_code": "+379"
+        "dial_code": "+379",
+        "sample_phone_format": "3123456789"
     },
     {
         "name": "Venezuela",
@@ -20934,7 +21172,8 @@
                 "state_code": "V"
             }
         ],
-        "dial_code": ""
+        "dial_code": "58",
+        "sample_phone_format": "4121234567"
     },
     {
         "name": "Vietnam",
@@ -21194,35 +21433,40 @@
                 "state_code": "06"
             }
         ],
-        "dial_code": "+84"
+        "dial_code": "+84",
+        "sample_phone_format": "912345678"
     },
     {
         "name": "Virgin Islands (British)",
         "iso3": "VGB",
         "iso2": "VG",
         "states": [],
-        "dial_code": ""
+        "dial_code": "1",
+        "sample_phone_format": "2843001234"
     },
     {
         "name": "Virgin Islands (US)",
         "iso3": "VIR",
         "iso2": "VI",
         "states": [],
-        "dial_code": ""
+        "dial_code": "1",
+        "sample_phone_format": "3406421234"
     },
     {
         "name": "Wallis And Futuna",
         "iso3": "WLF",
         "iso2": "WF",
         "states": [],
-        "dial_code": ""
+        "dial_code": "681",
+        "sample_phone_format": "501234"
     },
     {
         "name": "Western Sahara",
         "iso3": "ESH",
         "iso2": "EH",
         "states": [],
-        "dial_code": "+732"
+        "dial_code": "+732",
+        "sample_phone_format": "650123456"
     },
     {
         "name": "Yemen",
@@ -21314,7 +21558,8 @@
                 "state_code": "TA"
             }
         ],
-        "dial_code": "+967"
+        "dial_code": "+967",
+        "sample_phone_format": "712345678"
     },
     {
         "name": "Zambia",
@@ -21362,7 +21607,8 @@
                 "state_code": "01"
             }
         ],
-        "dial_code": "+260"
+        "dial_code": "+260",
+        "sample_phone_format": "955123456"
     },
     {
         "name": "Zimbabwe",
@@ -21410,6 +21656,7 @@
                 "state_code": "MI"
             }
         ],
-        "dial_code": "+263"
+        "dial_code": "+263",
+        "sample_phone_format": "712345678"
     }
 ]

@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from . import schema as _schemas
 import json
 
-app = APIRouter(tags=["Geo"])
+app = APIRouter(tags=["Countries"])
 
 @app.get("/countries", response_model=_schemas.Country, status_code=200)
 def get_countries():
@@ -21,6 +21,7 @@ def get_countries():
         for country in countries:
             del country["states"]
             del country["dial_code"]
+            del country['sample_phone_format']
     return JSONResponse(status_code=status.HTTP_200_OK, content=countries)
 
 
@@ -40,12 +41,14 @@ def get_country_states(country:str):
         country_data = list(filter(lambda data: data["name"].casefold() == country.casefold(), countries))
         if country_data:
             del country_data['dial_code']
+            del country['sample_phone_format']
             return JSONResponse(status_code=status.HTTP_200_OK, content=country)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Country not found")
     
-@app.get("/countries/dial-codes", response_model=_schemas.Country, status_code=200)
+@app.get("/countries/codes", response_model=_schemas.Country, status_code=200)
 def get_countries_dial_codes(country:str = None):
-    """Get Countries and their respective dial codes
+    """Get Countries and their respective codes
+        including dial codes and sample phone formats
 
     Args:
         country (str): serves as a filter for a particular country
@@ -54,7 +57,7 @@ def get_countries_dial_codes(country:str = None):
         List[Country]: list of countries and their respective dial codes
 
     """
-    with open("countries/geo.json") as file:
+    with open("data/countries.json") as file:
         countries = json.load(file)
         if country:
             country_search = list(filter(lambda data: data["name"].casefold() == country.casefold(), countries))
