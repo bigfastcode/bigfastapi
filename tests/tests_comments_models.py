@@ -2,8 +2,11 @@ import unittest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import datetime as _dt
-from bigfastapi.comments.internal import fixtures as _fixtures
+from bigfastapi.models import Comment
 import bigfastapi.database as _db 
+
+# Write tests to confirm Backrefs on FK Parent IDs
+# Write tests to confirm deleting FK results in deleting Children
 
 class TestModels(unittest.TestCase):
 

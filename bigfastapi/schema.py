@@ -4,7 +4,7 @@ import pydantic as _pydantic
 from pydantic import Field
 from fastapi_utils.guid_type import GUID
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 
 class AuthToken(_pydantic.BaseModel):
     id: str
@@ -86,3 +86,28 @@ class Organization(_OrganizationBase):
 
     class Config:
         orm_mode = True
+
+
+
+
+class _CommentBase(_pydantic.BaseModel):
+    text : str 
+    name : str
+    email : str
+
+class Comment(_CommentBase):
+    id : int
+    rel_id : str
+    downvotes : int
+    upvotes : int
+    time_created : _dt.datetime
+    time_updated : _dt.datetime
+    replies : List["Comment"]
+    class Config:
+        orm_mode = True
+
+class CommentCreate(_CommentBase):
+    pass
+
+class CommentUpdate(_CommentBase):
+    pass

@@ -1,20 +1,22 @@
 from fastapi import FastAPI
 from bigfastapi import database as _db
-from bigfastapi import organization
-from bigfastapi import cs_token
+from bigfastapi import organization, comments, accounts
+from bigfastapi import token
 
-print(cs_token)
-
-
+_db.create_database()
 app = FastAPI(
     # dependencies=[Depends(_db.get_db)]
     )
 
-
+app.include_router(accounts.app)
 app.include_router(organization.app)
-# app.include_router(cs_accounts)
+app.include_router(comments.app)
 
 
 @app.get("/")
 async def root():
     return {"message": "Hello Bigger Applications!"}
+
+@app.get("/schema")
+async def schema():
+    return app.openapi()
