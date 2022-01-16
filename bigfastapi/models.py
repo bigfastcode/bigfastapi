@@ -99,7 +99,7 @@ class Comment(_database.Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self.model_type = kwargs["model_name"], 
+        self.model_type = kwargs["model_name"] 
         self.rel_id = kwargs["rel_id"]
         self.email = kwargs["email"] 
         self.name = kwargs["name"] 
