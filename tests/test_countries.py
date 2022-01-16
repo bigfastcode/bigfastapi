@@ -43,7 +43,7 @@ def get_country_states_mock(mocker):
     return mock_country_states
 
 @pytest.fixture
-def get_countries_dial_codes_mock(mocker):
+def get_countries_codes_mock(mocker):
     
     def side_effect(country:str = None):
         data = get_JSON_data()
@@ -77,6 +77,8 @@ def test_geo_data():
     assert data[0].get("states", False)
     assert data[0].get("dial_code", False)
     assert data[0].get('sample_phone_format',False)
+    assert data[0].get("flag_url")
+    assert data[0].get("flag_unicode")
     
 def test_country(get_countries_mock):
     response = get_countries_mock()
@@ -85,6 +87,8 @@ def test_country(get_countries_mock):
     assert response[0].get("sample_phone_format",None) == None
     assert response[0].get("states",None) == None
     assert response[0].get("name")
+    assert response[0].get("flag_url")
+    assert response[0].get("flag_unicode")
     
     
 def test_country_states(get_country_states_mock):
@@ -93,16 +97,19 @@ def test_country_states(get_country_states_mock):
     assert response.get("name") == "Nigeria"
     assert response.get("dial_code",None) == None
     assert type(response.get("states")) == list
+    assert response.get("flag_url")
+    assert response.get("flag_unicode")
     
-def test_countries_dial_codes(get_countries_dial_codes_mock):
-    response = get_countries_dial_codes_mock()
+def test_countries_codes(get_countries_codes_mock):
+    response = get_countries_codes_mock()
     assert type(response) == list
     assert response[0].get("dial_code")
     assert response[0].get("states",None) == None
     assert response[0].get("name")
     
-def test_country_dial_code(get_countries_dial_codes_mock):
-    response = get_countries_dial_codes_mock("Nigeria")
+    
+def test_country_dial_code(get_countries_codes_mock):
+    response = get_countries_codes_mock("Nigeria")
     assert type(response) == dict
     assert response.get("name") == "Nigeria"
     assert response.get("dial_code") == "+234"
