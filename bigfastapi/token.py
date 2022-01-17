@@ -14,10 +14,19 @@ from fastapi.security import HTTPBearer
 bearerSchema = HTTPBearer()
 import re
 from uuid import uuid4
+import validators
 
 JWT_SECRET = settings.JWT_SECRET
 JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 60 * 60 * 24
+
+def ValidateUrl(url):
+    valid=validators.url(url)
+    if valid==True:
+        return True
+    else:
+        return False
+
 
 
 async def get_token_from_db(token: str, db: _orm.Session):

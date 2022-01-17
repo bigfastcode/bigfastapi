@@ -12,6 +12,15 @@ app = APIRouter(tags=["Auth",])
 
 @app.post("/users", status_code=201)
 async def create_user(user: _schemas.UserCreate, db: _orm.Session = _fastapi.Depends(get_db)):
+    verification_method = ""
+    if user.verification_method.lower() != "code" and user.verification_method != "token".lower():
+        raise _fastapi.HTTPException(status_code=400, detail="use a valid verification method, either code or token")
+    
+    verification_method = user.verification_method.lower()
+    if verification_method == "token":
+        if  not _services.ValidateUrl(user.verification_redirect_url):
+            raise _fastapi.HTTPException(status_code=400, detail="Enter a valid redirect url")
+
     db_user = await _services.get_user_by_email(user.email, db)
     if db_user:
         raise _fastapi.HTTPException(status_code=400, detail="Email already in use")
@@ -20,10 +29,9 @@ async def create_user(user: _schemas.UserCreate, db: _orm.Session = _fastapi.Dep
     if not is_valid["status"]:
         raise _fastapi.HTTPException(status_code=400, detail=is_valid["message"])
 
-    user = await _services.create_user(user, db)
-    access_token = await _services.create_token(user)
-    verification_token = await _services.create_verification_token(user)
-    return {"access_token": access_token, "verification_token": verification_token}
+    userDict = await _services.create_user(verification_method, user, db)
+    access_token = await _services.create_token(userDict["user"])
+    return {"access_token": access_token, "verification_info": userDict["verification_info"]}
 
 
 @app.post("/login")
@@ -35,17 +43,17 @@ async def login_user(
 
     if not user:
         raise _fastapi.HTTPException(status_code=401, detail="Invalid Credentials")
+    else:
+        user_info = await _services.get_user_by_email(user.email, db)
 
-    user_info = await _services.get_user_by_email(user.email, db)
-
-    if not user_info.is_active:
-        raise _fastapi.HTTPException(status_code=401, detail="Your account is inactive")
-
-    if not user_info.password == "":
-        raise _fastapi.HTTPException(status_code=401, detail="This account can only be logged in through social auth")
-
-    if not user_info.is_verified:
-        raise _fastapi.HTTPException(status_code=401, detail="Your account is not verified")
+        if user_info.password == "":
+            raise _fastapi.HTTPException(status_code=401, detail="This account can only be logged in through social auth")
+        elif not user_info.is_active:
+            raise _fastapi.HTTPException(status_code=401, detail="Your account is inactive")
+        elif not user_info.is_verified:
+            raise _fastapi.HTTPException(status_code=401, detail="Your account is not verified")
+        else:
+            return await _services.create_token(user_info)
 
 
 
@@ -92,35 +100,73 @@ async def update_user(
     ):
     await _services.user_update(user_update, user, db)
 
-
-@app.post("/users/resend-verification")
-async def resend_verification(
-    email : _schemas.UserVerification,
+# ////////////////////////////////////////////////////CODE ////////////////////////////////////////////////////////////// 
+@app.post("/users/resend-verification/code")
+async def resend_code_verification(
+    email : _schemas.UserCodeVerification,
     db: _orm.Session = _fastapi.Depends(get_db),
     ):
-    return await _services.resend_verification_mail(email.email, email.redirect_url, db)
+    return await _services.resend_code_verification_mail(email.email, db, email.code_length)
 
-@app.post("/users/verify/{token}")
-async def verify_user(
+@app.post("/users/verify/code/{code}")
+async def verify_user_with_code(
+    code: str,
+    db: _orm.Session = _fastapi.Depends(get_db),
+    ):
+    return await _services.verify_user_code(code)
+
+
+@app.post("/users/forgot-password/code")
+async def send_code_password_reset_email(
+    email : _schemas.UserCodeVerification,
+    db: _orm.Session = _fastapi.Depends(get_db),
+    ):
+    return await _services.send_code_password_reset_email(email.email, db, email.code_length)
+
+
+@app.put("/users/password-change/code/{code}")
+async def password_change_with_code(
+    password : _schemas.UserPasswordUpdate,
+    code: str,
+    db: _orm.Session = _fastapi.Depends(get_db),
+    ):
+    return await _services.password_change_code(password, code, db)
+
+# ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
+
+
+
+# ////////////////////////////////////////////////////TOKEN ////////////////////////////////////////////////////////////// 
+@app.post("/users/resend-verification/token")
+async def resend_token_verification(
+    email : _schemas.UserTokenVerification,
+    db: _orm.Session = _fastapi.Depends(get_db),
+    ):
+    return await _services.resend_token_verification_mail(email.email, email.redirect_url, db)
+
+@app.post("/users/verify/token/{token}")
+async def verify_user_with_token(
     token: str,
     db: _orm.Session = _fastapi.Depends(get_db),
     ):
-    return await _services.verify_user(token)
+    return await _services.verify_user_token(token)
 
 
-@app.post("/users/forgot-password")
-async def send_password_rest_email(
-    email : _schemas.UserVerification,
+@app.post("/users/forgot-password/token")
+async def send_token_password_reset_email(
+    email : _schemas.UserTokenVerification,
     db: _orm.Session = _fastapi.Depends(get_db),
     ):
-    return await _services.send_password_reset_email(email.email, email.redirect_url,db)
+    return await _services.send_token_password_reset_email(email.email, email.redirect_url,db)
 
 
-@app.put("/users/password-change/{token}")
-async def password_change(
+@app.put("/users/password-change/token/{token}")
+async def password_change_with_token(
     password : _schemas.UserPasswordUpdate,
     token: str,
     db: _orm.Session = _fastapi.Depends(get_db),
     ):
-    return await _services.password_change(password, token, db)
+    return await _services.password_change_token(password, token, db)
+
+# ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
