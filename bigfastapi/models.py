@@ -3,7 +3,7 @@ import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY
+from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean
 from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
@@ -33,7 +33,7 @@ class Organization(_database.Base):
     creator = Column(String(255), ForeignKey("users.id"))
     mission = Column(String(255), index=True)
     vision = Column(String(255), index=True)
-    values = Column(ARRAY(String(255)), index=True)
+    values = Column(String(255), index=True)
     name = Column(String(255),unique= True, index=True, default="")
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
