@@ -2,9 +2,8 @@ import datetime as _dt
 
 import pydantic as _pydantic
 from pydantic import Field
-from fastapi_utils.guid_type import GUID
 from uuid import UUID
-from typing import Optional
+from typing import List, Optional
 
 class AuthToken(_pydantic.BaseModel):
     id: str
@@ -86,3 +85,15 @@ class Organization(_OrganizationBase):
 
     class Config:
         orm_mode = True
+        
+
+class State(_pydantic.BaseModel):
+    name:str
+    state_code:str
+
+class Country(_pydantic.BaseModel):
+    name:str
+    iso3:str
+    iso2:str
+    dial_code:str
+    states: List[State]

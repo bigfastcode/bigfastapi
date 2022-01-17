@@ -13,6 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/rijentech/bigfastapi",
     packages=["bigfastapi"],
+    package_data={"":["data/*.json"]},
     install_requires=[
         "aioredis",
         "aiosmtplib>=1.1.6",
@@ -42,6 +43,9 @@ setuptools.setup(
         "pydantic>=1.8.2",
         "PyJWT>=2.3.0",
         "pyparsing>=3.0.6",
+        "pytest>=5.4.3",
+        "pytest-mock>=3.2.0",
+        "pytest-asyncio>=0.10.0",
         "python-decouple>=3.5",
         "python-dotenv>=0.19.2",
         "python-multipart>=0.0.5",
