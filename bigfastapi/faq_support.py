@@ -9,7 +9,7 @@ from .database import create_database
 
 
 
-app = APIRouter(tags=["FAQ and Support"])
+app = APIRouter(tags=["FAQ and Support ❓"])
 
 
 @app.post('/faqs/create')
