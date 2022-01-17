@@ -137,3 +137,8 @@ dmypy.json
 
 #server
 server.py
+
+#data
+data/27017
+data/27018
+data/27019
