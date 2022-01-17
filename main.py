@@ -4,6 +4,7 @@ from bigfastapi.database import create_database
 from bigfastapi.accounts import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.countries import app as countries
+from bigfastapi.faq_support import app as faq
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -23,6 +24,7 @@ app.add_middleware(
 app.include_router(accounts_router, tags=["Auth"])
 app.include_router(organization_router, tags=["Organization"])
 app.include_router(countries, tags=["Countries"])
+app.include_router(faq)
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
