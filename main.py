@@ -27,7 +27,7 @@ app.include_router(countries, tags=["Countries"])
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
     return {
-        "message": "Welcome to Bigfast API."
+        "message": "Welcome to BigFastAPI."
     }
 
 if __name__ == "__main__":
