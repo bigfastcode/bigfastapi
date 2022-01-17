@@ -8,6 +8,7 @@ from uuid import uuid4
 from fastapi import BackgroundTasks
 from .token import create_passwordreset_token, create_verification_token
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from .code import create_forgot_pasword_code, create_verification_code
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -27,7 +28,47 @@ async def get_user_by_email(email: str, db: _orm.Session):
     return db.query(_models.User).filter(_models.User.email == email).first()
 
 
-async def send_password_reset_email(email: str,redirect_url: str, db: _orm.Session):
+
+async def send_code_password_reset_email(email: str, db: _orm.Session, codelength:int=None):
+    user = await get_user_by_email(email, db)
+    if user:
+        code = await create_forgot_pasword_code(user, codelength)
+        message = MessageSchema(
+            subject="Password Reset",
+            recipients=[email],
+            template_body={
+                "title": "Change your password",
+                "first_name": user.first_name,
+                "code": code["code"],
+            },
+            subtype="html",
+        )
+        await send_email_async(message, settings.PASSWORD_RESET_TEMPLATE)
+        return {"code": code["code"]}
+    else:
+        raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
+
+async def resend_code_verification_mail(email: str, db: _orm.Session, codelength:int=None):
+    user = await get_user_by_email(email, db)
+    if user:
+        code = await create_verification_code(user, codelength)
+        message = MessageSchema(
+            subject="Email Verification",
+            recipients=[email],
+            template_body={
+                "title": "Verify Your Account",
+                "first_name": user.first_name,
+                "code": code["code"],
+            },
+            subtype="html",
+        )
+        await send_email_async(message, settings.EMAIL_VERIFICATION_TEMPLATE)
+        return {"code": code["code"]}
+    else:
+        raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
+
+
+async def send_token_password_reset_email(email: str,redirect_url: str, db: _orm.Session):
     user = await get_user_by_email(email, db)
     if user:
         token = await create_passwordreset_token(user)
@@ -48,7 +89,8 @@ async def send_password_reset_email(email: str,redirect_url: str, db: _orm.Sessi
         raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
 
 
-async def resend_verification_mail(email: str,redirect_url: str, db: _orm.Session):
+
+async def resend_token_verification_mail(email: str,redirect_url: str, db: _orm.Session):
     user = await get_user_by_email(email, db)
     if user:
         token = await create_verification_token(user)
