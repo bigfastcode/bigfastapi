@@ -43,3 +43,4 @@ uvicorn
 # uvloop
 watchgod
 websockets
+validators

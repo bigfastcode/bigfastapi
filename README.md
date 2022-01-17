@@ -35,7 +35,10 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 4. run "pip install -r requirements.txt"
    - On Windows be sure to install microsoft visual c++ build tools https://go.microsoft.com/fwlink/?LinkId=691126
    - Install PostgresQL before
-5. Create a .env file and add following DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+5. Create a .env file by copying the .env.sample file
+6. Run python main.py. This will show you how the libary can be used
+7. Create your own app in another folder and import the bigfastapi folder
+
 
 ## License
 
