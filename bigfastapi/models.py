@@ -4,11 +4,7 @@ import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from sqlalchemy.schema import Column
-<<<<<<< HEAD
-from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, DateTime
-=======
 from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean
->>>>>>> 92c559f02da3bafee25bac7c65503b2de554432b
 from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
