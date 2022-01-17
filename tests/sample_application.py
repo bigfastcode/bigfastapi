@@ -15,6 +15,7 @@ app.include_router(comments.app)
 async def root():
     return {"message": "Hello Bigger Applications!"}
 
+
 @app.get("/schema")
 async def schema():
     return app.openapi()
