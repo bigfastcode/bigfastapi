@@ -9,12 +9,9 @@ __pycache__/
 _ignored/
 accounts_copy/
 BigFastAPI.egg-info
-template/
-api.py
-main.py
-example.env
-loop.py
-requirements.txt
+
+database.db
+
 .vscode/
 # Distribution / packaging
 .Python

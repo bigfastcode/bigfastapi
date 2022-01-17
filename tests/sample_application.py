@@ -6,14 +6,14 @@ from bigfastapi import token
 _db.create_database()
 app = FastAPI()
 
-app.include_router(accounts.app)
-app.include_router(organization.app)
+# app.include_router(accounts.app)
+# app.include_router(organization.app)
 app.include_router(comments.app)
 
 
 @app.get("/")
 async def root():
-    return {"message": "Hello Bigger Applications!"}
+    return {"message": "Hello World!"}
 
 
 @app.get("/schema")
