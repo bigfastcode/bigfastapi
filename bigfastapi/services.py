@@ -309,7 +309,7 @@ async def db_reply_to_comment(model_name:str, comment_id:int, comment: _schemas.
         return reply
     return None
 
-async def db_delete_comment(object_id: str|int, model_name:str, db: _orm.Session):
+async def db_delete_comment(object_id: int, model_name:str, db: _orm.Session):
     object = await db_retrieve_comment_by_id(object_id=object_id, model_name=model_name, db=db)
     db.delete(object)
     db.commit()

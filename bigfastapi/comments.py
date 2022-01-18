@@ -59,7 +59,7 @@ async def create_new_comment_for_object(
 @app.put("/comments/{model_name}/{comment_id}/update")
 async def update_comment_by_id(
     model_name: str,
-    comment_id: str | int,
+    comment_id: int,
     comment: _schemas.CommentUpdate,
     db_Session=Depends(get_db),
 ):
@@ -71,7 +71,7 @@ async def update_comment_by_id(
 
 @app.delete("/comments/{model_name}/{comment_id}/delete")
 async def delete_comment_by_id(
-    model_name: str, comment_id: str | int, db_Session=Depends(get_db)
+    model_name: str, comment_id: int, db_Session=Depends(get_db)
 ):
     obj = await _services.db_delete_comment(
         object_id=comment_id, model_name=model_name, db=db_Session
@@ -81,7 +81,7 @@ async def delete_comment_by_id(
 
 @app.post("/comments/{model_name}/{comment_id}/vote")
 async def vote_on_comment(
-    model_name: str, comment_id: str | int, action: str, db_Session=Depends(get_db)
+    model_name: str, comment_id: int, action: str, db_Session=Depends(get_db)
 ):
     if action not in ["upvote", "downvote"]:
         return {
