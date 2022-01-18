@@ -1,117 +1,64 @@
+from unittest import result
 import pytest
 import os
 import json
+from fastapi.testclient import TestClient
+from main import app
 
-def get_JSON_data():
-    with open("data/countries.json") as file:
-        data = json.load(file)
-        return data
+client = TestClient(app)
 
-def test_geo_file():
-    assert os.path.isfile("data/countries.json")
-    try:
-        get_JSON_data()
-    except Exception as e:
-        print(e)
-        assert False
-        
-        
-@pytest.fixture
-def get_countries_mock(mocker):
-    mock_countries = mocker.patch("bigfastapi.countries.get_countries")
-    data = get_JSON_data()
-    for country in data:
-        del country["states"]
-        del country["dial_code"]
-        del country['sample_phone_format']
-    mock_countries.return_value = data
-    return  mock_countries
+def test_get_all_countries():
+    response = client.get("/countries")
+    assert response.status_code == 200
+    assert type(response.json()) == list
+    assert response.json()[0].get("dial_code",None) == None
+    assert response.json()[0].get("sample_phone_format",None) == None
+    assert response.json()[0].get("states",None) == None
+    assert response.json()[0].get("name")
+    assert response.json()[0].get("flag_url")
+    assert response.json()[0].get("flag_unicode")
+    
+    
+def test_country_states_success():
+    response = client.get("/countries/Ng/states")
+    assert response.status_code == 200
+    result = response.json()
+    assert type(result) == dict
+    assert result.get("name") == "Nigeria"
+    assert result.get("dial_code",None) == None
+    assert type(result.get("states")) == list
+    assert result.get("flag_url")
+    assert result.get("flag_unicode")
 
 
-@pytest.fixture
-def get_country_states_mock(mocker):
-    
-    def side_effect(country:str):
-        data = get_JSON_data()
-        data_search = [country_data for country_data in data if country_data['name'].casefold() == country.casefold()]
-        country_found = data_search[0] if data_search != [] else {}
-        if country_found:
-            del country_found["dial_code"]
-        return country_found
-    
-    mock_country_states = mocker.patch("bigfastapi.countries.get_country_states", side_effect=side_effect)             
-    return mock_country_states
+def test_country_states_failure():
+    response = client.get("/countries/Ngl/states")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Country not found"}
 
-@pytest.fixture
-def get_countries_codes_mock(mocker):
+def test_countries_codes():
+    response = client.get("/countries/codes")
+    result = response.json()
+    assert type(result) == list
+    assert result[0].get("dial_code")
+    assert result[0].get("states",None) == None
+    assert result[0].get("name")
+    assert result[0].get("flag_url") == None
+    assert result[0].get("flag_unicode") == None
     
-    def side_effect(country:str = None):
-        data = get_JSON_data()
-        if country:
-            data_search = [country_data for country_data in data if country_data['name'].casefold() == country.casefold()]
-            country_found = data_search[0] if data_search != [] else {}
-            if country_found:
-                if country_found["dial_code"] == "":
-                    return {}
-                del country_found["states"]
-            return country_found
-        
-        for elem in data:
-            if elem["dial_code"] == "":
-                del elem["dial_code"]
-            del elem["states"]
-        return data
     
-    mock_countries_dial_codes = mocker.patch("bigfastapi.countries.get_countries_dial_codes", side_effect=side_effect)
-    return  mock_countries_dial_codes          
+def test_country_codes_success():
+    response = client.get("/countries/codes?country_code=Ng")
+    result =  response.json()
+    assert type(result) == dict
+    assert result.get("name") == "Nigeria"
+    assert result.get("dial_code") == "+234"
+    assert result.get("states",None) == None
+    assert len(result.get('sample_phone_format')) == 10
+    assert result.get("flag_url") == None
+    assert result.get("flag_unicode") == None
 
-def test_geo_data():
-    try:
-       data = get_JSON_data()
-    except Exception as e:
-        print(e)
-        assert False
-    assert data[0].get("name", False)
-    assert data[0].get("iso3", False)
-    assert data[0].get("iso2", False)
-    assert data[0].get("states", False)
-    assert data[0].get("dial_code", False)
-    assert data[0].get('sample_phone_format',False)
-    assert data[0].get("flag_url")
-    assert data[0].get("flag_unicode")
-    
-def test_country(get_countries_mock):
-    response = get_countries_mock()
-    assert type(response) == list 
-    assert response[0].get("dial_code",None) == None
-    assert response[0].get("sample_phone_format",None) == None
-    assert response[0].get("states",None) == None
-    assert response[0].get("name")
-    assert response[0].get("flag_url")
-    assert response[0].get("flag_unicode")
-    
-    
-def test_country_states(get_country_states_mock):
-    response = get_country_states_mock("Nigeria")
-    assert type(response) == dict
-    assert response.get("name") == "Nigeria"
-    assert response.get("dial_code",None) == None
-    assert type(response.get("states")) == list
-    assert response.get("flag_url")
-    assert response.get("flag_unicode")
-    
-def test_countries_codes(get_countries_codes_mock):
-    response = get_countries_codes_mock()
-    assert type(response) == list
-    assert response[0].get("dial_code")
-    assert response[0].get("states",None) == None
-    assert response[0].get("name")
-    
-    
-def test_country_dial_code(get_countries_codes_mock):
-    response = get_countries_codes_mock("Nigeria")
-    assert type(response) == dict
-    assert response.get("name") == "Nigeria"
-    assert response.get("dial_code") == "+234"
-    assert response.get("states",None) == None
-    assert len(response.get('sample_phone_format')) == 10
+def test_country_codes_failure():
+    response = client.get("/countries/codes?country_code=Ngl")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Country not found"}
