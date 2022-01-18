@@ -29,6 +29,10 @@ async def get_blog(
     return await _services._blog_selector(user=user, blog_id=blog_id, db=db)
 
 @app.get("/blogs", response_model=List[_schemas.Blog])
+async def get_all_blogs(db: _orm.Session = _fastapi.Depends(get_db)):
+    return await _services.get_all_blogs(db=db)
+
+@app.get("/blog", response_model=List[_schemas.Blog])
 async def get_blogs(
     db: _orm.Session = _fastapi.Depends(get_db), 
     user: _schemas.User = _fastapi.Depends(_services.is_authenticated)

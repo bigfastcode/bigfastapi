@@ -277,7 +277,9 @@ async def get_user_blogs(user: _schemas.User, db: _orm.Session):
     user_blogs = db.query(_models.Blog).filter_by(_models.Blog.creator == user.id)
     return list(map(_schemas.Blog.from_orm, user_blogs))
 
-
+async def get_all_blogs(db: _orm.Session):
+    blogs = db.query(_models.Blog).all()
+    return list(map(_schemas.Blog.from_orm, blogs))
 
 async def create_blog(blog: _schemas.BlogCreate, user: _schemas.User, db:_orm.Session):
     blog = _models.Blog(id=uuid4.hex(), title=blog.title, content=blog.content, creator=user.id)

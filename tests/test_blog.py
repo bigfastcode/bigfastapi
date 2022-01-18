@@ -6,10 +6,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from bigfastapi import database as _database, main as _main, services as _services, models as _models
-
+from bigfastapi import database as _database, services as _services, models as _models
+from bigfastapi.blog import app as Router
+import main as _main
 
 app = FastAPI()
+app.include_router(Router)
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -18,8 +20,18 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-_db = TestingSessionLocal()
 
+def override_is_authenticated():
+    user_obj = {
+        "id": "123456789",
+        "email": "test@admin.com",
+        "password": "test1234",
+        "firstname": "Test",
+        "lastname": "Test",
+        "is_active": "true",
+        "is_verified": "false",
+    }
+    return user_obj
 
 def override_get_db():
     try:
@@ -35,36 +47,15 @@ user_data = {"firstname": "John", "lastname": "Doe", "email": "test@admin.com", 
 
 
 @pytest.fixture
-def setUp(mocker):
+def set_up():
     _database.Base.metadata.create_all(engine)
     _main.app.dependency_overrides[_database.get_db] = override_get_db
-
-    # user_obj = _models.User(
-    #     id = "123456789",email=user_data["email"], password=user_data["password"],
-    #     first_name=user_data["firstname"], last_name=user_data["lastname"],
-    #     is_active=True, is_verified = False, phone_number="1234567890", is_superuser=False, organization="asdf"
-    # )
-    # _db.add(user_obj)
-    # _db.commit()
-    # _db.refresh(user_obj)
-
-    # _main.app.dependency_overrides[_services.is_authenticated] = _services.get_user_by_id(id="123456789", db=_db)
-    mock_is_authenticated = mocker.patch("bigfastapi.services.is_authenticated")
-    mock_is_authenticated.return_value = {
-        "id": "123456789",
-        "email": "test@admin.com",
-        "password": "test1234",
-        "firstname": "Test",
-        "lastname": "Test",
-        "is_active": "true",
-        "is_verified": "false",
-    }
-
-    yield
+    _main.app.dependency_overrides[_services.is_authenticated] = override_is_authenticated
     
+    yield
     _database.Base.metadata.drop_all(engine)
 
 
-def test_create_blog(setUp):
+def test_create_blog(set_up):
     response = client.post("/blog", json=blog_data)
     assert response.status_code == 200
