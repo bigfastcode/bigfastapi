@@ -29,7 +29,8 @@ app.include_router(comments, tags=["Comments"])
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
     return {
-        "message": "Welcome to BigFastAPI."
+        "message": "Welcome to BigFastAPI. This is an example of an API built using BigFastAPI. Please visit here to view the docs:",
+        "url": "http://127.0.0.1:7001/docs"
     }
 
 if __name__ == "__main__":
