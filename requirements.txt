@@ -1,0 +1,47 @@
+wheel
+uvicorn       
+aioredis
+aiosmtplib
+anyio
+asgiref
+async-timeout
+# bcrypt
+blinker
+certifi
+cffi
+charset-normalizer
+click
+dnspython
+email-validator
+fastapi
+fastapi-mail
+fastapi-utils
+greenlet
+h11
+idna
+Jinja2
+MarkupSafe
+packaging
+passlib
+# psycopg2-binary
+pycparser
+pydantic
+PyJWT
+pyparsing
+python-decouple
+python-dotenv
+python-multipart
+PyYAML
+requests
+rfc3986
+six
+sniffio
+sortedcontainers
+SQLAlchemy
+starlette
+typing-extensions
+uvicorn
+# uvloop
+watchgod
+websockets
+validators
