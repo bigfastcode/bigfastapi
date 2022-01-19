@@ -260,7 +260,7 @@ async def update_organization(organization_id: int, organization: _schemas.Organ
 
     return _schemas.Organization.from_orm(organization_db)
 
-
+#=================================== BLOGS =================================#
 
 async def _blog_selector(user: _schemas.User, id: str, db: _orm.Session):
     blog = db.query(_models.Blog).filter_by(creator=user.id).filter(_models.Blog.id == id).first()
