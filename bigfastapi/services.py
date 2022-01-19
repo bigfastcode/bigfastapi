@@ -262,20 +262,23 @@ async def update_organization(organization_id: int, organization: _schemas.Organ
 
 
 
-async def _blog_selector(user: _schemas.User, blog_id: str, db: _orm.Session):
-    blog = db.query(_models.Blog).filter_by(creator=user.id).filter(_models.Blog.id == blog_id).first()
+async def _blog_selector(user: _schemas.User, id: str, db: _orm.Session):
+    blog = db.query(_models.Blog).filter_by(creator=user.id).filter(_models.Blog.id == id).first()
 
     if blog is None:
         raise _fastapi.HTTPException(status_code=404, detail="Blog does not exist")
 
     return blog
 
+async def get_blog_by_id(id: str, db: _orm.Session):
+    return db.query(_models.Blog).filter(_models.Blog.id == id).first()
+
 async def get_blog_by_title(title: str, db: _orm.Session):
     return db.query(_models.Blog).filter(_models.Blog.title == title).first()
 
 
-async def get_user_blogs(user: _schemas.User, db: _orm.Session):
-    user_blogs = db.query(_models.Blog).filter_by(_models.Blog.creator == user.id)
+async def get_user_blogs(user_id: str, db: _orm.Session):
+    user_blogs = db.query(_models.Blog).filter(_models.Blog.creator == user_id).all()
     return list(map(_schemas.Blog.from_orm, user_blogs))
 
 async def get_all_blogs(db: _orm.Session):
@@ -283,14 +286,14 @@ async def get_all_blogs(db: _orm.Session):
     return list(map(_schemas.Blog.from_orm, blogs))
 
 async def create_blog(blog: _schemas.BlogCreate, user: _schemas.User, db:_orm.Session):
-    blog = _models.Blog(id=uuid4.hex(), title=blog.title, content=blog.content, creator=user.id)
+    blog = _models.Blog(id=uuid4().hex, title=blog.title, content=blog.content, creator=user.id)
     db.add(blog)
     db.commit()
     db.refresh(blog)
     return _schemas.Blog.from_orm(blog)
 
-async def update_blog(blog: _schemas.BlogUpdate, blog_id: str, db: _orm.Session, user: _schemas.User):
-    blog_db = await _blog_selector(user=user, blog_id=blog_id, db=db)
+async def update_blog(blog: _schemas.BlogUpdate, id: str, db: _orm.Session, user: _schemas.User):
+    blog_db = await _blog_selector(user=user, id=id, db=db)
 
     if blog.content != "":
         blog_db.content = blog.content
@@ -310,11 +313,14 @@ async def update_blog(blog: _schemas.BlogUpdate, blog_id: str, db: _orm.Session,
 
     return _schemas.Blog.from_orm(blog_db)
 
-async def delete_blog(blog_id: int, db: _orm.Session, user: _schemas.User):
-    blog = await _blog_selector(user=user, blog_id=blog_id, db=db)
+async def delete_blog(id: str, db: _orm.Session, user: _schemas.User):
+    blog = await _blog_selector(user=user, id=id, db=db)
 
     db.delete(blog)
     db.commit()
+
+    return {"message":"successfully deleted"}
+
 #=================================== COMMENTS =================================#
 
 async def db_vote_for_comments(comment_id: int, model_name:str, action: str, db: _orm.Session):
