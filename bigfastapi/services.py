@@ -375,7 +375,7 @@ async def db_delete_comment(object_id: int, model_name:str, db: _orm.Session):
     db.commit()
     return _schemas.Comment.from_orm(object)
     
-def db_create_comment_for_object(object_id: int, comment: _schemas.CommentCreate, db: _orm.Session, model_name:str = None):
+async def db_create_comment_for_object(object_id: str, comment: _schemas.CommentCreate, db: _orm.Session, model_name:str = None):
     obj = _models.Comment(rel_id=object_id, model_name=model_name, text=comment.text, name=comment.name, email=comment.email)
     db.add(obj)
     db.commit()
