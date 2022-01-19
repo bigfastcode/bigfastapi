@@ -10,6 +10,7 @@ accounts_copy/
 BigFastAPI.egg-info
 
 database.db
+test.db
 
 .vscode/
 # Distribution / packaging

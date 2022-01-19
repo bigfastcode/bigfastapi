@@ -120,6 +120,7 @@ class Faq(_pydantic.BaseModel):
         orm_mode = True
 
 class FaqInDB(Faq):
+    created_by: str
     date_created: _dt.datetime
 
 
@@ -135,11 +136,5 @@ class Country(_pydantic.BaseModel):
     states: List[State]
 
 
-class FakeUserSchema(_pydantic.BaseModel):
-    email: str
-    first_name: str
-    password: str
 
-    class Config:
-        orm_mode = True
 

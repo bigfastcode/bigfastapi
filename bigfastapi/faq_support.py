@@ -18,8 +18,11 @@ class CreateFaqRes(_pydantic.BaseModel):
     message: str
     faq: _schemas.Faq
 @app.post('/support/faqs', response_model=CreateFaqRes)
-async def create_faq(faq: faqschema, db: _orm.Session = _fastapi.Depends(get_db)):
-    return await _faq_services.create_faq(faq=faq, db=db)
+async def create_faq(
+    faq: faqschema, 
+    db: _orm.Session = _fastapi.Depends(get_db), 
+    user: _schemas.User = _fastapi.Depends(_services.is_authenticated)):
+    return await _faq_services.create_faq(faq=faq, db=db, user=user)
 
 
 @app.get('/support/faqs', response_model=List[_schemas.FaqInDB])
@@ -29,7 +32,7 @@ async def get_faqs(db: _orm.Session = _fastapi.Depends(get_db)):
 
 class CreateTicketRes(_pydantic.BaseModel):
     message: str
-    ticket: _schemas.Ticket
+    ticket: _schemas.TicketInDB
 @app.post('/support/tickets', response_model=CreateTicketRes)
 async def create_ticket(
     ticket: ticketschema, 
@@ -84,13 +87,7 @@ async def get_open_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
 async def get_closed_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
     return await _faq_services.get_closed_tickets(db=db)
 
-# @app.post('/createfakeuser')
-# async def create_fake_user(user: _schemas.FakeUserSchema, db: _orm.Session = _fastapi.Depends(get_db)):
-#     return await _faq_services.create_fake_user(user=user, db=db)
 
-# @app.post('/createfakesuperuser')
-# async def create_fake_superuser(user: _schemas.FakeUserSchema, db: _orm.Session = _fastapi.Depends(get_db)):
-#     return await _faq_services.create_fake_super_user(user=user, db=db)
 
 
 
