@@ -139,7 +139,7 @@
         ],
         "dial_code": "+93",
         "sample_phone_format": "701234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Afghanistan.svg",
+        "flag_url": "https://flagcdn.com/w320/af.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddeb"
     },
     {
@@ -149,7 +149,7 @@
         "states": [],
         "dial_code": "358",
         "sample_phone_format": "412345678",
-        "flag_url": "https://flagcdn.com/ax.svg",
+        "flag_url": "https://flagcdn.com/w320/ax.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddfd"
     },
     {
@@ -348,7 +348,7 @@
         ],
         "dial_code": "+355",
         "sample_phone_format": "672123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/36/Flag_of_Albania.svg",
+        "flag_url": "https://flagcdn.com/w320/al.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddf1"
     },
     {
@@ -547,7 +547,7 @@
         ],
         "dial_code": "+213",
         "sample_phone_format": "551234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/77/Flag_of_Algeria.svg",
+        "flag_url": "https://flagcdn.com/w320/dz.png",
         "flag_unicode": "\ud83c\udde9\ud83c\uddff"
     },
     {
@@ -557,7 +557,7 @@
         "states": [],
         "dial_code": "1",
         "sample_phone_format": "6847331234",
-        "flag_url": "https://flagcdn.com/as.svg",
+        "flag_url": "https://flagcdn.com/w320/as.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddf8"
     },
     {
@@ -596,7 +596,7 @@
         ],
         "dial_code": "+376",
         "sample_phone_format": "312345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Andorra.svg",
+        "flag_url": "https://flagcdn.com/w320/ad.png",
         "flag_unicode": "\ud83c\udde6\ud83c\udde9"
     },
     {
@@ -675,7 +675,7 @@
         ],
         "dial_code": "+244",
         "sample_phone_format": "923123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Flag_of_Angola.svg",
+        "flag_url": "https://flagcdn.com/w320/ao.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddf4"
     },
     {
@@ -685,7 +685,7 @@
         "states": [],
         "dial_code": "+1 264",
         "sample_phone_format": "2642351234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Anguilla.svg",
+        "flag_url": "https://flagcdn.com/w320/ai.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddee"
     },
     {
@@ -695,7 +695,7 @@
         "states": [],
         "dial_code": "+672",
         "sample_phone_format": "12 6521",
-        "flag_url": "https://flagcdn.com/aq.svg",
+        "flag_url": "https://flagcdn.com/w320/aq.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddf6"
     },
     {
@@ -738,7 +738,7 @@
         ],
         "dial_code": "+1-268",
         "sample_phone_format": "2684641234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/89/Flag_of_Antigua_and_Barbuda.svg",
+        "flag_url": "https://flagcdn.com/w320/ag.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddec"
     },
     {
@@ -845,7 +845,7 @@
         ],
         "dial_code": "+54",
         "sample_phone_format": "91123456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Flag_of_Argentina.svg",
+        "flag_url": "https://flagcdn.com/w320/ar.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddf7"
     },
     {
@@ -900,7 +900,7 @@
         ],
         "dial_code": "+374",
         "sample_phone_format": "77123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Flag_of_Armenia.svg",
+        "flag_url": "https://flagcdn.com/w320/am.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddf2"
     },
     {
@@ -910,7 +910,7 @@
         "states": [],
         "dial_code": "+297",
         "sample_phone_format": "5601234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Flag_of_Aruba.svg",
+        "flag_url": "https://flagcdn.com/w320/aw.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddfc"
     },
     {
@@ -953,7 +953,7 @@
         ],
         "dial_code": "+61",
         "sample_phone_format": "412345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/88/Flag_of_Australia_%28converted%29.svg",
+        "flag_url": "https://flagcdn.com/w320/au.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddfa"
     },
     {
@@ -1000,7 +1000,7 @@
         ],
         "dial_code": "+43",
         "sample_phone_format": "664123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/41/Flag_of_Austria.svg",
+        "flag_url": "https://flagcdn.com/w320/at.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddf9"
     },
     {
@@ -1311,7 +1311,7 @@
         ],
         "dial_code": "+994",
         "sample_phone_format": "401234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Flag_of_Azerbaijan.svg",
+        "flag_url": "https://flagcdn.com/w320/az.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddff"
     },
     {
@@ -1486,7 +1486,7 @@
         ],
         "dial_code": "+1-242",
         "sample_phone_format": "2423591234",
-        "flag_url": "https://flagcdn.com/bs.svg",
+        "flag_url": "https://flagcdn.com/w320/bs.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddf8"
     },
     {
@@ -1517,7 +1517,7 @@
         ],
         "dial_code": "+973",
         "sample_phone_format": "36001234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Bahrain.svg",
+        "flag_url": "https://flagcdn.com/w320/bh.png",
         "flag_unicode": "\ud83c\udde7\ud83c\udded"
     },
     {
@@ -1808,7 +1808,7 @@
         ],
         "dial_code": "+880",
         "sample_phone_format": "1812345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Flag_of_Bangladesh.svg",
+        "flag_url": "https://flagcdn.com/w320/bd.png",
         "flag_unicode": "\ud83c\udde7\ud83c\udde9"
     },
     {
@@ -1863,7 +1863,7 @@
         ],
         "dial_code": "+1 246",
         "sample_phone_format": "2462501234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Flag_of_Barbados.svg",
+        "flag_url": "https://flagcdn.com/w320/bb.png",
         "flag_unicode": "\ud83c\udde7\ud83c\udde7"
     },
     {
@@ -1902,7 +1902,7 @@
         ],
         "dial_code": "+375",
         "sample_phone_format": "294911911",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Flag_of_Belarus.svg",
+        "flag_url": "https://flagcdn.com/w320/by.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddfe"
     },
     {
@@ -1965,7 +1965,7 @@
         ],
         "dial_code": "+32",
         "sample_phone_format": "470123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Flag_of_Belgium.svg",
+        "flag_url": "https://flagcdn.com/w320/be.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddea"
     },
     {
@@ -2000,7 +2000,7 @@
         ],
         "dial_code": "+501",
         "sample_phone_format": "6221234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Flag_of_Belize.svg",
+        "flag_url": "https://flagcdn.com/w320/bz.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddff"
     },
     {
@@ -2059,7 +2059,7 @@
         ],
         "dial_code": "+229",
         "sample_phone_format": "90011234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Flag_of_Benin.svg",
+        "flag_url": "https://flagcdn.com/w320/bj.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddef"
     },
     {
@@ -2114,7 +2114,7 @@
         ],
         "dial_code": "+1 441",
         "sample_phone_format": "4413701234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Flag_of_Bermuda.svg",
+        "flag_url": "https://flagcdn.com/w320/bm.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddf2"
     },
     {
@@ -2201,7 +2201,7 @@
         ],
         "dial_code": "+975",
         "sample_phone_format": "17123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Flag_of_Bhutan.svg",
+        "flag_url": "https://flagcdn.com/w320/bt.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddf9"
     },
     {
@@ -2248,7 +2248,7 @@
         ],
         "dial_code": "591",
         "sample_phone_format": "71234567",
-        "flag_url": "https://flagcdn.com/bo.svg",
+        "flag_url": "https://flagcdn.com/w320/bo.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddf4"
     },
     {
@@ -2311,7 +2311,7 @@
         ],
         "dial_code": "+387",
         "sample_phone_format": "61123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Flag_of_Bosnia_and_Herzegovina.svg",
+        "flag_url": "https://flagcdn.com/w320/ba.png",
         "flag_unicode": "\ud83c\udde7\ud83c\udde6"
     },
     {
@@ -2362,7 +2362,7 @@
         ],
         "dial_code": "+267",
         "sample_phone_format": "71123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_Botswana.svg",
+        "flag_url": "https://flagcdn.com/w320/bw.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddfc"
     },
     {
@@ -2372,7 +2372,7 @@
         "states": [],
         "dial_code": "+47",
         "sample_phone_format": "321455-6521",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg",
+        "flag_url": "https://flagcdn.com/w320/bv.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddfb"
     },
     {
@@ -2491,7 +2491,7 @@
         ],
         "dial_code": "+55",
         "sample_phone_format": "11961234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg",
+        "flag_url": "https://flagcdn.com/w320/br.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddf7"
     },
     {
@@ -2501,7 +2501,7 @@
         "states": [],
         "dial_code": "+246",
         "sample_phone_format": "3801234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Flag_of_the_Commissioner_of_the_British_Indian_Ocean_Territory.svg",
+        "flag_url": "https://flagcdn.com/w320/io.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf4"
     },
     {
@@ -2528,7 +2528,7 @@
         ],
         "dial_code": "673",
         "sample_phone_format": "7123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Flag_of_Brunei.svg",
+        "flag_url": "https://flagcdn.com/w320/bn.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddf3"
     },
     {
@@ -2647,7 +2647,7 @@
         ],
         "dial_code": "+359",
         "sample_phone_format": "48123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Bulgaria.svg",
+        "flag_url": "https://flagcdn.com/w320/bg.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddec"
     },
     {
@@ -2886,7 +2886,7 @@
         ],
         "dial_code": "+226",
         "sample_phone_format": "70123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Flag_of_Burkina_Faso.svg",
+        "flag_url": "https://flagcdn.com/w320/bf.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddeb"
     },
     {
@@ -2969,7 +2969,7 @@
         ],
         "dial_code": "+257",
         "sample_phone_format": "79561234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/5/50/Flag_of_Burundi.svg",
+        "flag_url": "https://flagcdn.com/w320/bi.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddee"
     },
     {
@@ -3072,7 +3072,7 @@
         ],
         "dial_code": "+855",
         "sample_phone_format": "91234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_Cambodia.svg",
+        "flag_url": "https://flagcdn.com/w320/kh.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\udded"
     },
     {
@@ -3123,7 +3123,7 @@
         ],
         "dial_code": "+237",
         "sample_phone_format": "671234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Flag_of_Cameroon.svg",
+        "flag_url": "https://flagcdn.com/w320/cm.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddf2"
     },
     {
@@ -3186,7 +3186,7 @@
         ],
         "dial_code": "+1",
         "sample_phone_format": "5062345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/c/cf/Flag_of_Canada.svg",
+        "flag_url": "https://flagcdn.com/w320/ca.png",
         "flag_unicode": "\ud83c\udde8\ud83c\udde6"
     },
     {
@@ -3289,7 +3289,7 @@
         ],
         "dial_code": "+238",
         "sample_phone_format": "9911234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Flag_of_Cape_Verde.svg",
+        "flag_url": "https://flagcdn.com/w320/cv.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddfb"
     },
     {
@@ -3299,7 +3299,7 @@
         "states": [],
         "dial_code": "+1345",
         "sample_phone_format": "3453231234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_the_Cayman_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/ky.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddfe"
     },
     {
@@ -3378,7 +3378,7 @@
         ],
         "dial_code": "+236",
         "sample_phone_format": "70012345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Flag_of_the_Central_African_Republic.svg",
+        "flag_url": "https://flagcdn.com/w320/cf.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddeb"
     },
     {
@@ -3481,7 +3481,7 @@
         ],
         "dial_code": "+235",
         "sample_phone_format": "63012345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Flag_of_Chad.svg",
+        "flag_url": "https://flagcdn.com/w320/td.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\udde9"
     },
     {
@@ -3556,7 +3556,7 @@
         ],
         "dial_code": "+56",
         "sample_phone_format": "221234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/78/Flag_of_Chile.svg",
+        "flag_url": "https://flagcdn.com/w320/cl.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddf1"
     },
     {
@@ -3703,7 +3703,7 @@
         ],
         "dial_code": "+86",
         "sample_phone_format": "13123456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg",
+        "flag_url": "https://flagcdn.com/w320/cn.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddf3"
     },
     {
@@ -3713,7 +3713,7 @@
         "states": [],
         "dial_code": "+61",
         "sample_phone_format": "412345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/67/Flag_of_Christmas_Island.svg",
+        "flag_url": "https://flagcdn.com/w320/cx.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddfd"
     },
     {
@@ -3723,7 +3723,7 @@
         "states": [],
         "dial_code": "+61",
         "sample_phone_format": "412345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Flag_of_the_Cocos_%28Keeling%29_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/cc.png",
         "flag_unicode": "\ud83c\udde8\ud83c\udde8"
     },
     {
@@ -3862,7 +3862,7 @@
         ],
         "dial_code": "+57",
         "sample_phone_format": "3211234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Colombia.svg",
+        "flag_url": "https://flagcdn.com/w320/co.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddf4"
     },
     {
@@ -3885,7 +3885,7 @@
         ],
         "dial_code": "+269",
         "sample_phone_format": "3212345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/94/Flag_of_the_Comoros.svg",
+        "flag_url": "https://flagcdn.com/w320/km.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddf2"
     },
     {
@@ -3944,7 +3944,7 @@
         ],
         "dial_code": "+242",
         "sample_phone_format": "061234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/92/Flag_of_the_Republic_of_the_Congo.svg",
+        "flag_url": "https://flagcdn.com/w320/cg.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddec"
     },
     {
@@ -4067,7 +4067,7 @@
         ],
         "dial_code": "+242",
         "sample_phone_format": "991234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/92/Flag_of_the_Republic_of_the_Congo.svg",
+        "flag_url": "https://flagcdn.com/w320/cd.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddec"
     },
     {
@@ -4077,7 +4077,7 @@
         "states": [],
         "dial_code": "+682",
         "sample_phone_format": "71234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/35/Flag_of_the_Cook_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/ck.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddf0"
     },
     {
@@ -4116,7 +4116,7 @@
         ],
         "dial_code": "+506",
         "sample_phone_format": "83123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Costa_Rica_%28state%29.svg",
+        "flag_url": "https://flagcdn.com/w320/cr.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddf7"
     },
     {
@@ -4251,7 +4251,7 @@
         ],
         "dial_code": "+225",
         "sample_phone_format": "01234567",
-        "flag_url": "https://flagcdn.com/ci.svg",
+        "flag_url": "https://flagcdn.com/w320/ci.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddee"
     },
     {
@@ -4342,7 +4342,7 @@
         ],
         "dial_code": "385",
         "sample_phone_format": "921234567",
-        "flag_url": "https://flagcdn.com/hr.svg",
+        "flag_url": "https://flagcdn.com/w320/hr.png",
         "flag_unicode": "\ud83c\udded\ud83c\uddf7"
     },
     {
@@ -4417,7 +4417,7 @@
         ],
         "dial_code": "+53",
         "sample_phone_format": "51234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Flag_of_Cuba.svg",
+        "flag_url": "https://flagcdn.com/w320/cu.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddfa"
     },
     {
@@ -4452,7 +4452,7 @@
         ],
         "dial_code": "+357",
         "sample_phone_format": "96123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Cyprus.svg",
+        "flag_url": "https://flagcdn.com/w320/cy.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddfe"
     },
     {
@@ -4891,7 +4891,7 @@
         ],
         "dial_code": "+420",
         "sample_phone_format": "601123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Flag_of_the_Czech_Republic.svg",
+        "flag_url": "https://flagcdn.com/w320/cz.png",
         "flag_unicode": "\ud83c\udde8\ud83c\uddff"
     },
     {
@@ -4922,7 +4922,7 @@
         ],
         "dial_code": "+45",
         "sample_phone_format": "32123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Flag_of_Denmark.svg",
+        "flag_url": "https://flagcdn.com/w320/dk.png",
         "flag_unicode": "\ud83c\udde9\ud83c\uddf0"
     },
     {
@@ -4957,7 +4957,7 @@
         ],
         "dial_code": "+253",
         "sample_phone_format": "77831001",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/34/Flag_of_Djibouti.svg",
+        "flag_url": "https://flagcdn.com/w320/dj.png",
         "flag_unicode": "\ud83c\udde9\ud83c\uddef"
     },
     {
@@ -5008,7 +5008,7 @@
         ],
         "dial_code": "+1 767",
         "sample_phone_format": "7672251234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/c4/Flag_of_Dominica.svg",
+        "flag_url": "https://flagcdn.com/w320/dm.png",
         "flag_unicode": "\ud83c\udde9\ud83c\uddf2"
     },
     {
@@ -5143,7 +5143,7 @@
         ],
         "dial_code": "+1 849",
         "sample_phone_format": "8092345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_the_Dominican_Republic.svg",
+        "flag_url": "https://flagcdn.com/w320/do.png",
         "flag_unicode": "\ud83c\udde9\ud83c\uddf4"
     },
     {
@@ -5202,7 +5202,7 @@
         ],
         "dial_code": "+670",
         "sample_phone_format": "77212345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/26/Flag_of_East_Timor.svg",
+        "flag_url": "https://flagcdn.com/w320/tl.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddf1"
     },
     {
@@ -5305,7 +5305,7 @@
         ],
         "dial_code": "+593",
         "sample_phone_format": "991234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Flag_of_Ecuador.svg",
+        "flag_url": "https://flagcdn.com/w320/ec.png",
         "flag_unicode": "\ud83c\uddea\ud83c\udde8"
     },
     {
@@ -5420,7 +5420,7 @@
         ],
         "dial_code": "+20",
         "sample_phone_format": "1001234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Egypt.svg",
+        "flag_url": "https://flagcdn.com/w320/eg.png",
         "flag_unicode": "\ud83c\uddea\ud83c\uddec"
     },
     {
@@ -5487,7 +5487,7 @@
         ],
         "dial_code": "+503",
         "sample_phone_format": "70123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/34/Flag_of_El_Salvador.svg",
+        "flag_url": "https://flagcdn.com/w320/sv.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddfb"
     },
     {
@@ -5534,7 +5534,7 @@
         ],
         "dial_code": "+240",
         "sample_phone_format": "222123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Flag_of_Equatorial_Guinea.svg",
+        "flag_url": "https://flagcdn.com/w320/gq.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf6"
     },
     {
@@ -5569,7 +5569,7 @@
         ],
         "dial_code": "+291",
         "sample_phone_format": "7123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/29/Flag_of_Eritrea.svg",
+        "flag_url": "https://flagcdn.com/w320/er.png",
         "flag_unicode": "\ud83c\uddea\ud83c\uddf7"
     },
     {
@@ -5640,7 +5640,7 @@
         ],
         "dial_code": "+372",
         "sample_phone_format": "51234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Flag_of_Estonia.svg",
+        "flag_url": "https://flagcdn.com/w320/ee.png",
         "flag_unicode": "\ud83c\uddea\ud83c\uddea"
     },
     {
@@ -5695,7 +5695,7 @@
         ],
         "dial_code": "+251",
         "sample_phone_format": "911234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/71/Flag_of_Ethiopia.svg",
+        "flag_url": "https://flagcdn.com/w320/et.png",
         "flag_unicode": "\ud83c\uddea\ud83c\uddf9"
     },
     {
@@ -5705,7 +5705,7 @@
         "states": [],
         "dial_code": "+500",
         "sample_phone_format": "51234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/83/Flag_of_the_Falkland_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/fk.png",
         "flag_unicode": "\ud83c\uddeb\ud83c\uddf0"
     },
     {
@@ -5715,7 +5715,7 @@
         "states": [],
         "dial_code": "+298",
         "sample_phone_format": "211234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Flag_of_the_Faroe_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/fo.png",
         "flag_unicode": "\ud83c\uddeb\ud83c\uddf4"
     },
     {
@@ -5802,7 +5802,7 @@
         ],
         "dial_code": "679",
         "sample_phone_format": "7012345",
-        "flag_url": "https://flagcdn.com/fj.svg",
+        "flag_url": "https://flagcdn.com/w320/fj.png",
         "flag_unicode": "\ud83c\uddeb\ud83c\uddef"
     },
     {
@@ -5897,7 +5897,7 @@
         ],
         "dial_code": "+358",
         "sample_phone_format": "412345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Finland.svg",
+        "flag_url": "https://flagcdn.com/w320/fi.png",
         "flag_unicode": "\ud83c\uddeb\ud83c\uddee"
     },
     {
@@ -6076,7 +6076,7 @@
         ],
         "dial_code": "+33",
         "sample_phone_format": "612345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg",
+        "flag_url": "https://flagcdn.com/w320/fr.png",
         "flag_unicode": "\ud83c\uddeb\ud83c\uddf7"
     },
     {
@@ -6086,7 +6086,7 @@
         "states": [],
         "dial_code": "+689",
         "sample_phone_format": "87123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Flag_of_French_Polynesia.svg",
+        "flag_url": "https://flagcdn.com/w320/pf.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddeb"
     },
     {
@@ -6096,7 +6096,7 @@
         "states": [],
         "dial_code": "+262",
         "sample_phone_format": null,
-        "flag_url": "https://flagcdn.com/tf.svg",
+        "flag_url": "https://flagcdn.com/w320/tf.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddeb"
     },
     {
@@ -6143,7 +6143,7 @@
         ],
         "dial_code": "+241",
         "sample_phone_format": "06031234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Flag_of_Gabon.svg",
+        "flag_url": "https://flagcdn.com/w320/ga.png",
         "flag_unicode": "\ud83c\uddec\ud83c\udde6"
     },
     {
@@ -6178,7 +6178,7 @@
         ],
         "dial_code": "220",
         "sample_phone_format": "3012345",
-        "flag_url": "https://flagcdn.com/gm.svg",
+        "flag_url": "https://flagcdn.com/w320/gm.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf2"
     },
     {
@@ -6245,7 +6245,7 @@
         ],
         "dial_code": "+995",
         "sample_phone_format": "555123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_Georgia.svg",
+        "flag_url": "https://flagcdn.com/w320/ge.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddea"
     },
     {
@@ -6320,7 +6320,7 @@
         ],
         "dial_code": "+49",
         "sample_phone_format": "15123456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/b/ba/Flag_of_Germany.svg",
+        "flag_url": "https://flagcdn.com/w320/de.png",
         "flag_unicode": "\ud83c\udde9\ud83c\uddea"
     },
     {
@@ -6371,7 +6371,7 @@
         ],
         "dial_code": "+233",
         "sample_phone_format": "231234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Ghana.svg",
+        "flag_url": "https://flagcdn.com/w320/gh.png",
         "flag_unicode": "\ud83c\uddec\ud83c\udded"
     },
     {
@@ -6381,7 +6381,7 @@
         "states": [],
         "dial_code": "+350",
         "sample_phone_format": "57123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Flag_of_Gibraltar.svg",
+        "flag_url": "https://flagcdn.com/w320/gi.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddee"
     },
     {
@@ -6544,7 +6544,7 @@
         ],
         "dial_code": "+30",
         "sample_phone_format": "6912345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Greece.svg",
+        "flag_url": "https://flagcdn.com/w320/gr.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf7"
     },
     {
@@ -6554,7 +6554,7 @@
         "states": [],
         "dial_code": "+299",
         "sample_phone_format": "221234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_Greenland.svg",
+        "flag_url": "https://flagcdn.com/w320/gl.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf1"
     },
     {
@@ -6593,7 +6593,7 @@
         ],
         "dial_code": "+1 473",
         "sample_phone_format": "4734031234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Grenada.svg",
+        "flag_url": "https://flagcdn.com/w320/gd.png",
         "flag_unicode": "\ud83c\uddec\ud83c\udde9"
     },
     {
@@ -6603,7 +6603,7 @@
         "states": [],
         "dial_code": "+590",
         "sample_phone_format": "690001234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/Flag_of_Guadeloupe_%28local%29_variant.svg",
+        "flag_url": "https://flagcdn.com/w320/gp.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf5"
     },
     {
@@ -6613,7 +6613,7 @@
         "states": [],
         "dial_code": "+1 671",
         "sample_phone_format": "6713001234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/07/Flag_of_Guam.svg",
+        "flag_url": "https://flagcdn.com/w320/gu.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddfa"
     },
     {
@@ -6708,7 +6708,7 @@
         ],
         "dial_code": "+502",
         "sample_phone_format": "51234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Flag_of_Guatemala.svg",
+        "flag_url": "https://flagcdn.com/w320/gt.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf9"
     },
     {
@@ -6718,7 +6718,7 @@
         "states": [],
         "dial_code": "+44",
         "sample_phone_format": "7781123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_Guernsey.svg",
+        "flag_url": "https://flagcdn.com/w320/gg.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddec"
     },
     {
@@ -6889,7 +6889,7 @@
         ],
         "dial_code": "+224",
         "sample_phone_format": "601123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Flag_of_Guinea.svg",
+        "flag_url": "https://flagcdn.com/w320/gn.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf3"
     },
     {
@@ -6944,7 +6944,7 @@
         ],
         "dial_code": "+245",
         "sample_phone_format": "955012345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/01/Flag_of_Guinea-Bissau.svg",
+        "flag_url": "https://flagcdn.com/w320/gw.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddfc"
     },
     {
@@ -6995,7 +6995,7 @@
         ],
         "dial_code": "+592",
         "sample_phone_format": "6091234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/99/Flag_of_Guyana.svg",
+        "flag_url": "https://flagcdn.com/w320/gy.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddfe"
     },
     {
@@ -7046,7 +7046,7 @@
         ],
         "dial_code": "+509",
         "sample_phone_format": "34101234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/5/56/Flag_of_Haiti.svg",
+        "flag_url": "https://flagcdn.com/w320/ht.png",
         "flag_unicode": "\ud83c\udded\ud83c\uddf9"
     },
     {
@@ -7056,7 +7056,7 @@
         "states": [],
         "dial_code": "+672",
         "sample_phone_format": null,
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/88/Flag_of_Australia_%28converted%29.svg",
+        "flag_url": "https://flagcdn.com/w320/hm.png",
         "flag_unicode": "\ud83c\udded\ud83c\uddf2"
     },
     {
@@ -7139,7 +7139,7 @@
         ],
         "dial_code": "+504",
         "sample_phone_format": "91234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Naval_Ensign_of_Honduras.svg",
+        "flag_url": "https://flagcdn.com/w320/hn.png",
         "flag_unicode": "\ud83c\udded\ud83c\uddf3"
     },
     {
@@ -7149,7 +7149,7 @@
         "states": [],
         "dial_code": "852",
         "sample_phone_format": "51234567",
-        "flag_url": "https://flagcdn.com/hk.svg",
+        "flag_url": "https://flagcdn.com/w320/hk.png",
         "flag_unicode": "\ud83c\udded\ud83c\uddf0"
     },
     {
@@ -7328,7 +7328,7 @@
         ],
         "dial_code": "+36",
         "sample_phone_format": "201234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Flag_of_Hungary.svg",
+        "flag_url": "https://flagcdn.com/w320/hu.png",
         "flag_unicode": "\ud83c\udded\ud83c\uddfa"
     },
     {
@@ -7371,7 +7371,7 @@
         ],
         "dial_code": "+354",
         "sample_phone_format": "6111234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Iceland.svg",
+        "flag_url": "https://flagcdn.com/w320/is.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf8"
     },
     {
@@ -7530,7 +7530,7 @@
         ],
         "dial_code": "+91",
         "sample_phone_format": "8123456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg",
+        "flag_url": "https://flagcdn.com/w320/in.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf3"
     },
     {
@@ -7693,7 +7693,7 @@
         ],
         "dial_code": "+62",
         "sample_phone_format": "812345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg",
+        "flag_url": "https://flagcdn.com/w320/id.png",
         "flag_unicode": "\ud83c\uddee\ud83c\udde9"
     },
     {
@@ -7824,7 +7824,7 @@
         ],
         "dial_code": "98",
         "sample_phone_format": "9123456789",
-        "flag_url": " https://upload.wikimedia.org/wikipedia/commons/c/ca/Flag_of_Iran.svg",
+        "flag_url": "https://flagcdn.com/w320/ir.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf7"
     },
     {
@@ -7907,7 +7907,7 @@
         ],
         "dial_code": "+964",
         "sample_phone_format": "7912345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Flag_of_Iraq.svg",
+        "flag_url": "https://flagcdn.com/w320/iq.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf6"
     },
     {
@@ -8034,7 +8034,7 @@
         ],
         "dial_code": "+353",
         "sample_phone_format": "850123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/45/Flag_of_Ireland.svg",
+        "flag_url": "https://flagcdn.com/w320/ie.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddea"
     },
     {
@@ -8069,7 +8069,7 @@
         ],
         "dial_code": "+972",
         "sample_phone_format": "502345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Flag_of_Israel.svg",
+        "flag_url": "https://flagcdn.com/w320/il.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf1"
     },
     {
@@ -8592,7 +8592,7 @@
         ],
         "dial_code": "+39",
         "sample_phone_format": "3123456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/0/03/Flag_of_Italy.svg",
+        "flag_url": "https://flagcdn.com/w320/it.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf9"
     },
     {
@@ -8659,7 +8659,7 @@
         ],
         "dial_code": "+1 876",
         "sample_phone_format": "8762101234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Flag_of_Jamaica.svg",
+        "flag_url": "https://flagcdn.com/w320/jm.png",
         "flag_unicode": "\ud83c\uddef\ud83c\uddf2"
     },
     {
@@ -8854,7 +8854,7 @@
         ],
         "dial_code": "+81",
         "sample_phone_format": "9012345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg",
+        "flag_url": "https://flagcdn.com/w320/jp.png",
         "flag_unicode": "\ud83c\uddef\ud83c\uddf5"
     },
     {
@@ -8864,7 +8864,7 @@
         "states": [],
         "dial_code": "+44",
         "sample_phone_format": "7797712345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Flag_of_Jersey.svg",
+        "flag_url": "https://flagcdn.com/w320/je.png",
         "flag_unicode": "\ud83c\uddef\ud83c\uddea"
     },
     {
@@ -8923,7 +8923,7 @@
         ],
         "dial_code": "+962",
         "sample_phone_format": "790123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Flag_of_Jordan.svg",
+        "flag_url": "https://flagcdn.com/w320/jo.png",
         "flag_unicode": "\ud83c\uddef\ud83c\uddf4"
     },
     {
@@ -9002,7 +9002,7 @@
         ],
         "dial_code": "+7",
         "sample_phone_format": "7710009998",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Flag_of_Kazakhstan.svg",
+        "flag_url": "https://flagcdn.com/w320/kz.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddff"
     },
     {
@@ -9229,7 +9229,7 @@
         ],
         "dial_code": "+254",
         "sample_phone_format": "712123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Kenya.svg",
+        "flag_url": "https://flagcdn.com/w320/ke.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddea"
     },
     {
@@ -9252,7 +9252,7 @@
         ],
         "dial_code": "+686",
         "sample_phone_format": "72001234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Flag_of_Kiribati.svg",
+        "flag_url": "https://flagcdn.com/w320/ki.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddee"
     },
     {
@@ -9307,7 +9307,7 @@
         ],
         "dial_code": "+850",
         "sample_phone_format": "1921234567",
-        "flag_url": "https://flagcdn.com/kp.svg",
+        "flag_url": "https://flagcdn.com/w320/kp.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddf5"
     },
     {
@@ -9386,7 +9386,7 @@
         ],
         "dial_code": "+82",
         "sample_phone_format": "1020000000",
-        "flag_url": "https://flagcdn.com/kr.svg",
+        "flag_url": "https://flagcdn.com/w320/kr.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddf7"
     },
     {
@@ -9425,7 +9425,7 @@
         ],
         "dial_code": "383",
         "sample_phone_format": "43201234",
-        "flag_url": "https://flagcdn.com/xk.svg",
+        "flag_url": "https://flagcdn.com/w320/xk.png",
         "flag_unicode": "\ud83c\uddfd\ud83c\uddf0"
     },
     {
@@ -9460,7 +9460,7 @@
         ],
         "dial_code": "+965",
         "sample_phone_format": "50012345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Flag_of_Kuwait.svg",
+        "flag_url": "https://flagcdn.com/w320/kw.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddfc"
     },
     {
@@ -9507,7 +9507,7 @@
         ],
         "dial_code": "+996",
         "sample_phone_format": "700123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Flag_of_Kyrgyzstan.svg",
+        "flag_url": "https://flagcdn.com/w320/kg.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddec"
     },
     {
@@ -9594,7 +9594,7 @@
         ],
         "dial_code": "+856",
         "sample_phone_format": "2023123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/5/56/Flag_of_Laos.svg",
+        "flag_url": "https://flagcdn.com/w320/la.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\udde6"
     },
     {
@@ -10077,7 +10077,7 @@
         ],
         "dial_code": "+371",
         "sample_phone_format": "21234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Latvia.svg",
+        "flag_url": "https://flagcdn.com/w320/lv.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddfb"
     },
     {
@@ -10120,7 +10120,7 @@
         ],
         "dial_code": "+961",
         "sample_phone_format": "71123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/5/59/Flag_of_Lebanon.svg",
+        "flag_url": "https://flagcdn.com/w320/lb.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\udde7"
     },
     {
@@ -10171,7 +10171,7 @@
         ],
         "dial_code": "+266",
         "sample_phone_format": "50123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Flag_of_Lesotho.svg",
+        "flag_url": "https://flagcdn.com/w320/ls.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddf8"
     },
     {
@@ -10242,7 +10242,7 @@
         ],
         "dial_code": "+231",
         "sample_phone_format": "770123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Flag_of_Liberia.svg",
+        "flag_url": "https://flagcdn.com/w320/lr.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddf7"
     },
     {
@@ -10337,7 +10337,7 @@
         ],
         "dial_code": "218",
         "sample_phone_format": "912345678",
-        "flag_url": "https://flagcdn.com/ly.svg",
+        "flag_url": "https://flagcdn.com/w320/ly.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddfe"
     },
     {
@@ -10392,7 +10392,7 @@
         ],
         "dial_code": "+423",
         "sample_phone_format": "660234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/47/Flag_of_Liechtenstein.svg",
+        "flag_url": "https://flagcdn.com/w320/li.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddee"
     },
     {
@@ -10679,7 +10679,7 @@
         ],
         "dial_code": "+370",
         "sample_phone_format": "61234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Lithuania.svg",
+        "flag_url": "https://flagcdn.com/w320/lt.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddf9"
     },
     {
@@ -10750,7 +10750,7 @@
         ],
         "dial_code": "+352",
         "sample_phone_format": "628123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/da/Flag_of_Luxembourg.svg",
+        "flag_url": "https://flagcdn.com/w320/lu.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddfa"
     },
     {
@@ -10760,7 +10760,7 @@
         "states": [],
         "dial_code": "853",
         "sample_phone_format": "66123456",
-        "flag_url": "https://flagcdn.com/mo.svg",
+        "flag_url": "https://flagcdn.com/w320/mo.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf4"
     },
     {
@@ -11107,7 +11107,7 @@
         ],
         "dial_code": "389",
         "sample_phone_format": "72345678",
-        "flag_url": "https://flagcdn.com/mk.svg",
+        "flag_url": "https://flagcdn.com/w320/mk.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf0"
     },
     {
@@ -11142,7 +11142,7 @@
         ],
         "dial_code": "+261",
         "sample_phone_format": "321234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Madagascar.svg",
+        "flag_url": "https://flagcdn.com/w320/mg.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddec"
     },
     {
@@ -11273,7 +11273,7 @@
         ],
         "dial_code": "+265",
         "sample_phone_format": "991234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d1/Flag_of_Malawi.svg",
+        "flag_url": "https://flagcdn.com/w320/mw.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddfc"
     },
     {
@@ -11348,7 +11348,7 @@
         ],
         "dial_code": "+60",
         "sample_phone_format": "123456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Flag_of_Malaysia.svg",
+        "flag_url": "https://flagcdn.com/w320/my.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddfe"
     },
     {
@@ -11463,7 +11463,7 @@
         ],
         "dial_code": "+960",
         "sample_phone_format": "7712345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_Maldives.svg",
+        "flag_url": "https://flagcdn.com/w320/mv.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddfb"
     },
     {
@@ -11518,7 +11518,7 @@
         ],
         "dial_code": "+223",
         "sample_phone_format": "65012345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/92/Flag_of_Mali.svg",
+        "flag_url": "https://flagcdn.com/w320/ml.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf1"
     },
     {
@@ -11797,7 +11797,7 @@
         ],
         "dial_code": "+356",
         "sample_phone_format": "96961234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Flag_of_Malta.svg",
+        "flag_url": "https://flagcdn.com/w320/mt.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf9"
     },
     {
@@ -11807,7 +11807,7 @@
         "states": [],
         "dial_code": "44",
         "sample_phone_format": "7924123456",
-        "flag_url": "https://flagcdn.com/im.svg",
+        "flag_url": "https://flagcdn.com/w320/im.png",
         "flag_unicode": "\ud83c\uddee\ud83c\uddf2"
     },
     {
@@ -11826,7 +11826,7 @@
         ],
         "dial_code": "+692",
         "sample_phone_format": "2351234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flag_of_the_Marshall_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/mh.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\udded"
     },
     {
@@ -11836,7 +11836,7 @@
         "states": [],
         "dial_code": "+596",
         "sample_phone_format": "696201234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/64/Snake_Flag_of_Martinique.svg",
+        "flag_url": "https://flagcdn.com/w320/mq.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf6"
     },
     {
@@ -11907,7 +11907,7 @@
         ],
         "dial_code": "+222",
         "sample_phone_format": "22123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/43/Flag_of_Mauritania.svg",
+        "flag_url": "https://flagcdn.com/w320/mr.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf7"
     },
     {
@@ -11986,7 +11986,7 @@
         ],
         "dial_code": "+230",
         "sample_phone_format": "52512345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/77/Flag_of_Mauritius.svg",
+        "flag_url": "https://flagcdn.com/w320/mu.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddfa"
     },
     {
@@ -11996,7 +11996,7 @@
         "states": [],
         "dial_code": "+262",
         "sample_phone_format": "639012345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg",
+        "flag_url": "https://flagcdn.com/w320/yt.png",
         "flag_unicode": "\ud83c\uddfe\ud83c\uddf9"
     },
     {
@@ -12135,7 +12135,7 @@
         ],
         "dial_code": "+52",
         "sample_phone_format": "12221234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Flag_of_Mexico.svg",
+        "flag_url": "https://flagcdn.com/w320/mx.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddfd"
     },
     {
@@ -12162,7 +12162,7 @@
         ],
         "dial_code": "691",
         "sample_phone_format": "3501234",
-        "flag_url": "https://flagcdn.com/fm.svg",
+        "flag_url": "https://flagcdn.com/w320/fm.png",
         "flag_unicode": "\ud83c\uddeb\ud83c\uddf2"
     },
     {
@@ -12317,7 +12317,7 @@
         ],
         "dial_code": "373",
         "sample_phone_format": "62112345",
-        "flag_url": "https://flagcdn.com/md.svg",
+        "flag_url": "https://flagcdn.com/w320/md.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\udde9"
     },
     {
@@ -12327,7 +12327,7 @@
         "states": [],
         "dial_code": "+377",
         "sample_phone_format": "612345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Flag_of_Monaco.svg",
+        "flag_url": "https://flagcdn.com/w320/mc.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\udde8"
     },
     {
@@ -12422,7 +12422,7 @@
         ],
         "dial_code": "+976",
         "sample_phone_format": "88123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Flag_of_Mongolia.svg",
+        "flag_url": "https://flagcdn.com/w320/mn.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf3"
     },
     {
@@ -12521,7 +12521,7 @@
         ],
         "dial_code": "+382",
         "sample_phone_format": "67622901",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/64/Flag_of_Montenegro.svg",
+        "flag_url": "https://flagcdn.com/w320/me.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddea"
     },
     {
@@ -12531,7 +12531,7 @@
         "states": [],
         "dial_code": "+1664",
         "sample_phone_format": "6644923456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Flag_of_Montserrat.svg",
+        "flag_url": "https://flagcdn.com/w320/ms.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf8"
     },
     {
@@ -12790,7 +12790,7 @@
         ],
         "dial_code": "+212",
         "sample_phone_format": "650123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg",
+        "flag_url": "https://flagcdn.com/w320/ma.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\udde6"
     },
     {
@@ -12845,7 +12845,7 @@
         ],
         "dial_code": "+258",
         "sample_phone_format": "821234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Flag_of_Mozambique.svg",
+        "flag_url": "https://flagcdn.com/w320/mz.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddff"
     },
     {
@@ -12916,7 +12916,7 @@
         ],
         "dial_code": "+95",
         "sample_phone_format": "92123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Flag_of_Myanmar.svg",
+        "flag_url": "https://flagcdn.com/w320/mm.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf2"
     },
     {
@@ -12983,7 +12983,7 @@
         ],
         "dial_code": "+264",
         "sample_phone_format": "811234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_Namibia.svg",
+        "flag_url": "https://flagcdn.com/w320/na.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\udde6"
     },
     {
@@ -13050,7 +13050,7 @@
         ],
         "dial_code": "+674",
         "sample_phone_format": "5551234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/30/Flag_of_Nauru.svg",
+        "flag_url": "https://flagcdn.com/w320/nr.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddf7"
     },
     {
@@ -13137,7 +13137,7 @@
         ],
         "dial_code": "+977",
         "sample_phone_format": "9841234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Flag_of_Nepal.svg",
+        "flag_url": "https://flagcdn.com/w320/np.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddf5"
     },
     {
@@ -13160,7 +13160,7 @@
         ],
         "dial_code": "+599",
         "sample_phone_format": "455-6521",
-        "flag_url": "https://flagcdn.com/nl.svg",
+        "flag_url": "https://flagcdn.com/w320/an.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddf1"
     },
     {
@@ -13219,7 +13219,7 @@
         ],
         "dial_code": "+31",
         "sample_phone_format": "612345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/20/Flag_of_the_Netherlands.svg",
+        "flag_url": "https://flagcdn.com/w320/nl.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddf1"
     },
     {
@@ -13229,7 +13229,7 @@
         "states": [],
         "dial_code": "+687",
         "sample_phone_format": "751234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/26/Flags_of_New_Caledonia.svg",
+        "flag_url": "https://flagcdn.com/w320/nc.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\udde8"
     },
     {
@@ -13308,7 +13308,7 @@
         ],
         "dial_code": "+64",
         "sample_phone_format": "211234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Flag_of_New_Zealand.svg",
+        "flag_url": "https://flagcdn.com/w320/nz.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddff"
     },
     {
@@ -13383,7 +13383,7 @@
         ],
         "dial_code": "+505",
         "sample_phone_format": "81234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Nicaragua.svg",
+        "flag_url": "https://flagcdn.com/w320/ni.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddee"
     },
     {
@@ -13422,7 +13422,7 @@
         ],
         "dial_code": "+227",
         "sample_phone_format": "93123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Flag_of_Niger.svg",
+        "flag_url": "https://flagcdn.com/w320/ne.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddea"
     },
     {
@@ -13577,7 +13577,7 @@
         ],
         "dial_code": "+234",
         "sample_phone_format": "8021234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/79/Flag_of_Nigeria.svg",
+        "flag_url": "https://flagcdn.com/w320/ng.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddec"
     },
     {
@@ -13587,7 +13587,7 @@
         "states": [],
         "dial_code": "+683",
         "sample_phone_format": "8884012",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/01/Flag_of_Niue.svg",
+        "flag_url": "https://flagcdn.com/w320/nu.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddfa"
     },
     {
@@ -13597,7 +13597,7 @@
         "states": [],
         "dial_code": "+672",
         "sample_phone_format": "381234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Norfolk_Island.svg",
+        "flag_url": "https://flagcdn.com/w320/nf.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddeb"
     },
     {
@@ -13607,7 +13607,7 @@
         "states": [],
         "dial_code": "+1 670",
         "sample_phone_format": "6702345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Flag_of_the_Northern_Mariana_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/mp.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddf5"
     },
     {
@@ -13702,7 +13702,7 @@
         ],
         "dial_code": "+47",
         "sample_phone_format": "40612345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Flag_of_Norway.svg",
+        "flag_url": "https://flagcdn.com/w320/no.png",
         "flag_unicode": "\ud83c\uddf3\ud83c\uddf4"
     },
     {
@@ -13765,7 +13765,7 @@
         ],
         "dial_code": "+968",
         "sample_phone_format": "92123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Flag_of_Oman.svg",
+        "flag_url": "https://flagcdn.com/w320/om.png",
         "flag_unicode": "\ud83c\uddf4\ud83c\uddf2"
     },
     {
@@ -13808,7 +13808,7 @@
         ],
         "dial_code": "+92",
         "sample_phone_format": "3012345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Flag_of_Pakistan.svg",
+        "flag_url": "https://flagcdn.com/w320/pk.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddf0"
     },
     {
@@ -13883,7 +13883,7 @@
         ],
         "dial_code": "+680",
         "sample_phone_format": "6201234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Palau.svg",
+        "flag_url": "https://flagcdn.com/w320/pw.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddfc"
     },
     {
@@ -13893,7 +13893,7 @@
         "states": [],
         "dial_code": "970",
         "sample_phone_format": "599123456",
-        "flag_url": "https://flagcdn.com/ps.svg",
+        "flag_url": "https://flagcdn.com/w320/ps.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddf8"
     },
     {
@@ -13956,7 +13956,7 @@
         ],
         "dial_code": "+507",
         "sample_phone_format": "61234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Flag_of_Panama.svg",
+        "flag_url": "https://flagcdn.com/w320/pa.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\udde6"
     },
     {
@@ -14051,7 +14051,7 @@
         ],
         "dial_code": "675",
         "sample_phone_format": "70123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Flag_of_Papua_New_Guinea.svg",
+        "flag_url": "https://flagcdn.com/w320/pg.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddec"
     },
     {
@@ -14130,7 +14130,7 @@
         ],
         "dial_code": "+595",
         "sample_phone_format": "961456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/27/Flag_of_Paraguay.svg",
+        "flag_url": "https://flagcdn.com/w320/py.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddfe"
     },
     {
@@ -14237,7 +14237,7 @@
         ],
         "dial_code": "+51",
         "sample_phone_format": "912345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Peru.svg",
+        "flag_url": "https://flagcdn.com/w320/pe.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddea"
     },
     {
@@ -14636,7 +14636,7 @@
         ],
         "dial_code": "+63",
         "sample_phone_format": "9051234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/99/Flag_of_the_Philippines.svg",
+        "flag_url": "https://flagcdn.com/w320/ph.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\udded"
     },
     {
@@ -14646,7 +14646,7 @@
         "states": [],
         "dial_code": "+64",
         "sample_phone_format": "762337766",
-        "flag_url": "https://flagcdn.com/pn.svg",
+        "flag_url": "https://flagcdn.com/w320/pn.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddf3"
     },
     {
@@ -14725,7 +14725,7 @@
         ],
         "dial_code": "+48",
         "sample_phone_format": "512345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/1/12/Flag_of_Poland.svg",
+        "flag_url": "https://flagcdn.com/w320/pl.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddf1"
     },
     {
@@ -14816,7 +14816,7 @@
         ],
         "dial_code": "+351",
         "sample_phone_format": "912345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Portugal.svg",
+        "flag_url": "https://flagcdn.com/w320/pt.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddf9"
     },
     {
@@ -14826,7 +14826,7 @@
         "states": [],
         "dial_code": "+1 939",
         "sample_phone_format": "7872345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/28/Flag_of_Puerto_Rico.svg",
+        "flag_url": "https://flagcdn.com/w320/pr.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddf7"
     },
     {
@@ -14869,7 +14869,7 @@
         ],
         "dial_code": "+974",
         "sample_phone_format": "33123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Flag_of_Qatar.svg",
+        "flag_url": "https://flagcdn.com/w320/qa.png",
         "flag_unicode": "\ud83c\uddf6\ud83c\udde6"
     },
     {
@@ -14879,7 +14879,7 @@
         "states": [],
         "dial_code": "+262",
         "sample_phone_format": "692123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg",
+        "flag_url": "https://flagcdn.com/w320/re.png",
         "flag_unicode": "\ud83c\uddf7\ud83c\uddea"
     },
     {
@@ -15054,7 +15054,7 @@
         ],
         "dial_code": "+40",
         "sample_phone_format": "712034567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Flag_of_Romania.svg",
+        "flag_url": "https://flagcdn.com/w320/ro.png",
         "flag_unicode": "\ud83c\uddf7\ud83c\uddf4"
     },
     {
@@ -15397,7 +15397,7 @@
         ],
         "dial_code": "+7",
         "sample_phone_format": "9123456789",
-        "flag_url": "https://flagcdn.com/ru.svg",
+        "flag_url": "https://flagcdn.com/w320/ru.png",
         "flag_unicode": "\ud83c\uddf7\ud83c\uddfa"
     },
     {
@@ -15428,7 +15428,7 @@
         ],
         "dial_code": "+250",
         "sample_phone_format": "720123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/17/Flag_of_Rwanda.svg",
+        "flag_url": "https://flagcdn.com/w320/rw.png",
         "flag_unicode": "\ud83c\uddf7\ud83c\uddfc"
     },
     {
@@ -15438,7 +15438,7 @@
         "states": [],
         "dial_code": "290",
         "sample_phone_format": "51234",
-        "flag_url": "https://flagcdn.com/sh.svg",
+        "flag_url": "https://flagcdn.com/w320/sh.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\udded"
     },
     {
@@ -15509,7 +15509,7 @@
         ],
         "dial_code": "1",
         "sample_phone_format": "8697652917",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Saint_Kitts_and_Nevis.svg",
+        "flag_url": "https://flagcdn.com/w320/kn.png",
         "flag_unicode": "\ud83c\uddf0\ud83c\uddf3"
     },
     {
@@ -15568,7 +15568,7 @@
         ],
         "dial_code": "+1 758",
         "sample_phone_format": "7582845678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Saint_Lucia.svg",
+        "flag_url": "https://flagcdn.com/w320/lc.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\udde8"
     },
     {
@@ -15578,7 +15578,7 @@
         "states": [],
         "dial_code": "+508",
         "sample_phone_format": "551234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Flag_of_Saint-Pierre_and_Miquelon.svg",
+        "flag_url": "https://flagcdn.com/w320/pm.png",
         "flag_unicode": "\ud83c\uddf5\ud83c\uddf2"
     },
     {
@@ -15613,7 +15613,7 @@
         ],
         "dial_code": "1",
         "sample_phone_format": "7844301234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Flag_of_Saint_Vincent_and_the_Grenadines.svg",
+        "flag_url": "https://flagcdn.com/w320/vc.png",
         "flag_unicode": "\ud83c\uddfb\ud83c\udde8"
     },
     {
@@ -15623,7 +15623,7 @@
         "states": [],
         "dial_code": "590",
         "sample_phone_format": "690001234",
-        "flag_url": "https://flagcdn.com/bl.svg",
+        "flag_url": "https://flagcdn.com/w320/bl.png",
         "flag_unicode": "\ud83c\udde7\ud83c\uddf1"
     },
     {
@@ -15633,7 +15633,7 @@
         "states": [],
         "dial_code": "590",
         "sample_phone_format": "690001234",
-        "flag_url": "https://flagcdn.com/mf.svg",
+        "flag_url": "https://flagcdn.com/w320/mf.png",
         "flag_unicode": "\ud83c\uddf2\ud83c\uddeb"
     },
     {
@@ -15688,7 +15688,7 @@
         ],
         "dial_code": "+685",
         "sample_phone_format": "7212345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Flag_of_Samoa.svg",
+        "flag_url": "https://flagcdn.com/w320/ws.png",
         "flag_unicode": "\ud83c\uddfc\ud83c\uddf8"
     },
     {
@@ -15735,7 +15735,7 @@
         ],
         "dial_code": "+378",
         "sample_phone_format": "66661212",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Flag_of_San_Marino.svg",
+        "flag_url": "https://flagcdn.com/w320/sm.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf2"
     },
     {
@@ -15754,7 +15754,7 @@
         ],
         "dial_code": "+239",
         "sample_phone_format": "9812345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Flag_of_Sao_Tome_and_Principe.svg",
+        "flag_url": "https://flagcdn.com/w320/st.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf9"
     },
     {
@@ -15817,7 +15817,7 @@
         ],
         "dial_code": "+966",
         "sample_phone_format": "512345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Flag_of_Saudi_Arabia.svg",
+        "flag_url": "https://flagcdn.com/w320/sa.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\udde6"
     },
     {
@@ -15884,7 +15884,7 @@
         ],
         "dial_code": "+221",
         "sample_phone_format": "701234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Flag_of_Senegal.svg",
+        "flag_url": "https://flagcdn.com/w320/sn.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf3"
     },
     {
@@ -15999,7 +15999,7 @@
         ],
         "dial_code": "+381",
         "sample_phone_format": "601234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Flag_of_Serbia.svg",
+        "flag_url": "https://flagcdn.com/w320/rs.png",
         "flag_unicode": "\ud83c\uddf7\ud83c\uddf8"
     },
     {
@@ -16106,7 +16106,7 @@
         ],
         "dial_code": "+248",
         "sample_phone_format": "2510123",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Flag_of_Seychelles.svg",
+        "flag_url": "https://flagcdn.com/w320/sc.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\udde8"
     },
     {
@@ -16133,7 +16133,7 @@
         ],
         "dial_code": "+232",
         "sample_phone_format": "25123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/17/Flag_of_Sierra_Leone.svg",
+        "flag_url": "https://flagcdn.com/w320/sl.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf1"
     },
     {
@@ -16164,7 +16164,7 @@
         ],
         "dial_code": "+65",
         "sample_phone_format": "81234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/48/Flag_of_Singapore.svg",
+        "flag_url": "https://flagcdn.com/w320/sg.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddec"
     },
     {
@@ -16207,7 +16207,7 @@
         ],
         "dial_code": "+421",
         "sample_phone_format": "912123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Flag_of_Slovakia.svg",
+        "flag_url": "https://flagcdn.com/w320/sk.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf0"
     },
     {
@@ -17062,7 +17062,7 @@
         ],
         "dial_code": "+386",
         "sample_phone_format": "31234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Flag_of_Slovenia.svg",
+        "flag_url": "https://flagcdn.com/w320/si.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddee"
     },
     {
@@ -17113,7 +17113,7 @@
         ],
         "dial_code": "+677",
         "sample_phone_format": "7421234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Flag_of_the_Solomon_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/sb.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\udde7"
     },
     {
@@ -17188,7 +17188,7 @@
         ],
         "dial_code": "+252",
         "sample_phone_format": "71123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Flag_of_Somalia.svg",
+        "flag_url": "https://flagcdn.com/w320/so.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf4"
     },
     {
@@ -17235,7 +17235,7 @@
         ],
         "dial_code": "+27",
         "sample_phone_format": "711234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/a/af/Flag_of_South_Africa.svg",
+        "flag_url": "https://flagcdn.com/w320/za.png",
         "flag_unicode": "\ud83c\uddff\ud83c\udde6"
     },
     {
@@ -17245,7 +17245,7 @@
         "states": [],
         "dial_code": "+500",
         "sample_phone_format": "65217",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Flag_of_South_Georgia_and_the_South_Sandwich_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/gs.png",
         "flag_unicode": "\ud83c\uddec\ud83c\uddf8"
     },
     {
@@ -17296,7 +17296,7 @@
         ],
         "dial_code": "211",
         "sample_phone_format": "977123456",
-        "flag_url": "https://flagcdn.com/ss.svg",
+        "flag_url": "https://flagcdn.com/w320/ss.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf8"
     },
     {
@@ -17563,7 +17563,7 @@
         ],
         "dial_code": "+34",
         "sample_phone_format": "612345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/9/9a/Flag_of_Spain.svg",
+        "flag_url": "https://flagcdn.com/w320/es.png",
         "flag_unicode": "\ud83c\uddea\ud83c\uddf8"
     },
     {
@@ -17706,7 +17706,7 @@
         ],
         "dial_code": "+94",
         "sample_phone_format": "712345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg",
+        "flag_url": "https://flagcdn.com/w320/lk.png",
         "flag_unicode": "\ud83c\uddf1\ud83c\uddf0"
     },
     {
@@ -17789,7 +17789,7 @@
         ],
         "dial_code": "+249",
         "sample_phone_format": "911231234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/01/Flag_of_Sudan.svg",
+        "flag_url": "https://flagcdn.com/w320/sd.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\udde9"
     },
     {
@@ -17840,7 +17840,7 @@
         ],
         "dial_code": "+597",
         "sample_phone_format": "7412345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/60/Flag_of_Suriname.svg",
+        "flag_url": "https://flagcdn.com/w320/sr.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddf7"
     },
     {
@@ -17850,7 +17850,7 @@
         "states": [],
         "dial_code": "47",
         "sample_phone_format": "41234567",
-        "flag_url": "https://flagcdn.com/sj.svg",
+        "flag_url": "https://flagcdn.com/w320/sj.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddef"
     },
     {
@@ -17877,7 +17877,7 @@
         ],
         "dial_code": "+268",
         "sample_phone_format": "76123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Flag_of_Eswatini.svg",
+        "flag_url": "https://flagcdn.com/w320/sz.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddff"
     },
     {
@@ -17968,7 +17968,7 @@
         ],
         "dial_code": "+46",
         "sample_phone_format": "701234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/4/4c/Flag_of_Sweden.svg",
+        "flag_url": "https://flagcdn.com/w320/se.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddea"
     },
     {
@@ -18079,7 +18079,7 @@
         ],
         "dial_code": "+41",
         "sample_phone_format": "781234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/08/Flag_of_Switzerland_%28Pantone%29.svg",
+        "flag_url": "https://flagcdn.com/w320/ch.png",
         "flag_unicode": "\ud83c\udde8\ud83c\udded"
     },
     {
@@ -18146,7 +18146,7 @@
         ],
         "dial_code": "+963",
         "sample_phone_format": "944567890",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Flag_of_Syria.svg",
+        "flag_url": "https://flagcdn.com/w320/sy.png",
         "flag_unicode": "\ud83c\uddf8\ud83c\uddfe"
     },
     {
@@ -18249,7 +18249,7 @@
         ],
         "dial_code": "+886",
         "sample_phone_format": "912345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/7/72/Flag_of_the_Republic_of_China.svg",
+        "flag_url": "https://flagcdn.com/w320/tw.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddfc"
     },
     {
@@ -18276,7 +18276,7 @@
         ],
         "dial_code": "+992",
         "sample_phone_format": "917123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Flag_of_Tajikistan.svg",
+        "flag_url": "https://flagcdn.com/w320/tj.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddef"
     },
     {
@@ -18403,7 +18403,7 @@
         ],
         "dial_code": "255",
         "sample_phone_format": "621234567",
-        "flag_url": "https://flagcdn.com/tz.svg",
+        "flag_url": "https://flagcdn.com/w320/tz.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddff"
     },
     {
@@ -18722,7 +18722,7 @@
         ],
         "dial_code": "+66",
         "sample_phone_format": "812345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Flag_of_Thailand.svg",
+        "flag_url": "https://flagcdn.com/w320/th.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\udded"
     },
     {
@@ -18753,7 +18753,7 @@
         ],
         "dial_code": "+228",
         "sample_phone_format": "90112345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Flag_of_Togo.svg",
+        "flag_url": "https://flagcdn.com/w320/tg.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddec"
     },
     {
@@ -18763,7 +18763,7 @@
         "states": [],
         "dial_code": "+690",
         "sample_phone_format": "7290",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_of_Tokelau.svg",
+        "flag_url": "https://flagcdn.com/w320/tk.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddf0"
     },
     {
@@ -18794,7 +18794,7 @@
         ],
         "dial_code": "+676",
         "sample_phone_format": "7715123",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Tonga.svg",
+        "flag_url": "https://flagcdn.com/w320/to.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddf4"
     },
     {
@@ -18869,7 +18869,7 @@
         ],
         "dial_code": "1",
         "sample_phone_format": "8682911234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/64/Flag_of_Trinidad_and_Tobago.svg",
+        "flag_url": "https://flagcdn.com/w320/tt.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddf9"
     },
     {
@@ -18972,7 +18972,7 @@
         ],
         "dial_code": "+216",
         "sample_phone_format": "20123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg",
+        "flag_url": "https://flagcdn.com/w320/tn.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddf3"
     },
     {
@@ -19307,7 +19307,7 @@
         ],
         "dial_code": "+90",
         "sample_phone_format": "5012345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Turkey.svg",
+        "flag_url": "https://flagcdn.com/w320/tr.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddf7"
     },
     {
@@ -19342,7 +19342,7 @@
         ],
         "dial_code": "+993",
         "sample_phone_format": "66123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Flag_of_Turkmenistan.svg",
+        "flag_url": "https://flagcdn.com/w320/tm.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddf2"
     },
     {
@@ -19352,7 +19352,7 @@
         "states": [],
         "dial_code": "1",
         "sample_phone_format": "6492311234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Flag_of_the_Turks_and_Caicos_Islands.svg",
+        "flag_url": "https://flagcdn.com/w320/tc.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\udde8"
     },
     {
@@ -19395,7 +19395,7 @@
         ],
         "dial_code": "+688",
         "sample_phone_format": "901234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Flag_of_Tuvalu.svg",
+        "flag_url": "https://flagcdn.com/w320/tv.png",
         "flag_unicode": "\ud83c\uddf9\ud83c\uddfb"
     },
     {
@@ -19906,7 +19906,7 @@
         ],
         "dial_code": "+256",
         "sample_phone_format": "712345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Flag_of_Uganda.svg",
+        "flag_url": "https://flagcdn.com/w320/ug.png",
         "flag_unicode": "\ud83c\uddfa\ud83c\uddec"
     },
     {
@@ -20017,7 +20017,7 @@
         ],
         "dial_code": "+380",
         "sample_phone_format": "501234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg",
+        "flag_url": "https://flagcdn.com/w320/ua.png",
         "flag_unicode": "\ud83c\uddfa\ud83c\udde6"
     },
     {
@@ -20056,7 +20056,7 @@
         ],
         "dial_code": "+971",
         "sample_phone_format": "501234567",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Flag_of_the_United_Arab_Emirates.svg",
+        "flag_url": "https://flagcdn.com/w320/ae.png",
         "flag_unicode": "\ud83c\udde6\ud83c\uddea"
     },
     {
@@ -21055,7 +21055,7 @@
         ],
         "dial_code": "+44",
         "sample_phone_format": "7400123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg",
+        "flag_url": "https://flagcdn.com/w320/gb.png",
         "flag_unicode": "\ud83c\uddec\ud83c\udde7"
     },
     {
@@ -21330,7 +21330,7 @@
         ],
         "dial_code": "+1",
         "sample_phone_format": "2015550123",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
+        "flag_url": "https://flagcdn.com/w320/us.png",
         "flag_unicode": "\ud83c\uddfa\ud83c\uddf8"
     },
     {
@@ -21340,7 +21340,7 @@
         "states": [],
         "dial_code": "+1 581",
         "sample_phone_format": "156331-5412",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg",
+        "flag_url": "https://flagcdn.com/w320/um.png",
         "flag_unicode": "\ud83c\uddfa\ud83c\uddf2"
     },
     {
@@ -21427,7 +21427,7 @@
         ],
         "dial_code": "+598",
         "sample_phone_format": "94231234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Uruguay.svg",
+        "flag_url": "https://flagcdn.com/w320/uy.png",
         "flag_unicode": "\ud83c\uddfa\ud83c\uddfe"
     },
     {
@@ -21494,7 +21494,7 @@
         ],
         "dial_code": "+998",
         "sample_phone_format": "912345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Flag_of_Uzbekistan.svg",
+        "flag_url": "https://flagcdn.com/w320/uz.png",
         "flag_unicode": "\ud83c\uddfa\ud83c\uddff"
     },
     {
@@ -21529,7 +21529,7 @@
         ],
         "dial_code": "+678",
         "sample_phone_format": "5912345",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Flag_of_Vanuatu.svg",
+        "flag_url": "https://flagcdn.com/w320/vu.png",
         "flag_unicode": "\ud83c\uddfb\ud83c\uddfa"
     },
     {
@@ -21539,7 +21539,7 @@
         "states": [],
         "dial_code": "+379",
         "sample_phone_format": "3123456789",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/00/Flag_of_the_Vatican_City.svg",
+        "flag_url": "https://flagcdn.com/w320/va.png",
         "flag_unicode": "\ud83c\uddfb\ud83c\udde6"
     },
     {
@@ -21650,7 +21650,7 @@
         ],
         "dial_code": "58",
         "sample_phone_format": "4121234567",
-        "flag_url": "https://flagcdn.com/ve.svg",
+        "flag_url": "https://flagcdn.com/w320/ve.png",
         "flag_unicode": "\ud83c\uddfb\ud83c\uddea"
     },
     {
@@ -21913,7 +21913,7 @@
         ],
         "dial_code": "+84",
         "sample_phone_format": "912345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg",
+        "flag_url": "https://flagcdn.com/w320/vn.png",
         "flag_unicode": "\ud83c\uddfb\ud83c\uddf3"
     },
     {
@@ -21923,7 +21923,7 @@
         "states": [],
         "dial_code": "1",
         "sample_phone_format": "2843001234",
-        "flag_url": "https://flagcdn.com/vg.svg",
+        "flag_url": "https://flagcdn.com/w320/vg.png",
         "flag_unicode": "\ud83c\uddfb\ud83c\uddec"
     },
     {
@@ -21933,7 +21933,7 @@
         "states": [],
         "dial_code": "1",
         "sample_phone_format": "3406421234",
-        "flag_url": "https://flagcdn.com/vg.svg",
+        "flag_url": "https://flagcdn.com/w320/vi.png",
         "flag_unicode": "\ud83c\uddfb\ud83c\uddec"
     },
     {
@@ -21943,7 +21943,7 @@
         "states": [],
         "dial_code": "681",
         "sample_phone_format": "501234",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Flag_of_Wallis_and_Futuna.svg",
+        "flag_url": "https://flagcdn.com/w320/wf.png",
         "flag_unicode": "\ud83c\uddfc\ud83c\uddeb"
     },
     {
@@ -21953,7 +21953,7 @@
         "states": [],
         "dial_code": "+732",
         "sample_phone_format": "650123456",
-        "flag_url": "https://flagcdn.com/eh.svg",
+        "flag_url": "https://flagcdn.com/w320/eh.png",
         "flag_unicode": "\ud83c\uddea\ud83c\udded"
     },
     {
@@ -22048,7 +22048,7 @@
         ],
         "dial_code": "+967",
         "sample_phone_format": "712345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/8/89/Flag_of_Yemen.svg",
+        "flag_url": "https://flagcdn.com/w320/ye.png",
         "flag_unicode": "\ud83c\uddfe\ud83c\uddea"
     },
     {
@@ -22099,7 +22099,7 @@
         ],
         "dial_code": "+260",
         "sample_phone_format": "955123456",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/0/06/Flag_of_Zambia.svg",
+        "flag_url": "https://flagcdn.com/w320/zm.png",
         "flag_unicode": "\ud83c\uddff\ud83c\uddf2"
     },
     {
@@ -22150,7 +22150,7 @@
         ],
         "dial_code": "+263",
         "sample_phone_format": "712345678",
-        "flag_url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Flag_of_Zimbabwe.svg",
+        "flag_url": "https://flagcdn.com/w320/zw.png",
         "flag_unicode": "\ud83c\uddff\ud83c\uddfc"
     }
 ]

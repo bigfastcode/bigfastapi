@@ -39,6 +39,9 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 6. Run python main.py. This will show you how the libary can be used
 7. Create your own app in another folder and import the bigfastapi folder
 
+# Documentation
+
+When you run the sample code, visit http://127.0.0.1:7001/docs to view the documentation for all endpoints
 
 ## License
 
