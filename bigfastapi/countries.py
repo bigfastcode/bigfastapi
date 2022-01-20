@@ -1,13 +1,29 @@
-from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import JSONResponse
-# from . import schema as _schemas
-from .schemas import countries_schemas as _schemas
+
+"""Countries
+
+This file will list out all the countries in the world. You can
+also retrieve the states and the phonecodes for all the countries.
+
+Import it like this app.include_router(countries, tags=["Countries"])
+After that, the following endpoints will become available:
+
+ * /countries
+ * /countries/{country_code}/states
+ * /countries/codes
+
+"""
+
+
 import json
+from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, status
+from .schemas.countries_schemas import Country, State
+
 
 app = APIRouter(tags=["Countries"])
 
 
-@app.get("/countries", response_model=_schemas.Country, status_code=200)
+@app.get("/countries", response_model=Country, status_code=200)
 def get_countries():
     """Get Countries and their respective states
 
@@ -27,7 +43,7 @@ def get_countries():
     return JSONResponse(status_code=status.HTTP_200_OK, content=countries)
 
 
-@app.get("/countries/{country_code}/states", response_model=_schemas.State, status_code=200)
+@app.get("/countries/{country_code}/states", response_model=State, status_code=200)
 def get_country_states(country_code: str):
     """Get states within a particular country
 
@@ -57,7 +73,7 @@ def get_country_states(country_code: str):
         )
 
 
-@app.get("/countries/codes", response_model=_schemas.Country, status_code=200)
+@app.get("/countries/codes", response_model=Country, status_code=200)
 def get_countries_dial_codes(country_code: str = None):
     """Get Countries and their respective codes
         including dial codes and sample phone formats

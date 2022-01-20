@@ -48,4 +48,7 @@ Underscores should not be used to name any variables.
 Check for all possible errors and raise a FastAPI errors
 
 
-# 
+# Documentation
+
+All API functions should be documented in the controller file. Each controller file should have a summary
+section at the top.
