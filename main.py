@@ -4,6 +4,8 @@ from bigfastapi.database import create_database
 from bigfastapi.accounts import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.countries import app as countries
+from bigfastapi.blog import app as blog
+from bigfastapi.comments import app as comments
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -23,11 +25,14 @@ app.add_middleware(
 app.include_router(accounts_router, tags=["Auth"])
 app.include_router(organization_router, tags=["Organization"])
 app.include_router(countries, tags=["Countries"])
+app.include_router(blog, tags=["Blog"])
+app.include_router(comments, tags=["Comments"])
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
     return {
-        "message": "Welcome to BigFastAPI."
+        "message": "Welcome to BigFastAPI. This is an example of an API built using BigFastAPI. Please visit here to view the docs:",
+        "url": "http://127.0.0.1:7001/docs"
     }
 
 if __name__ == "__main__":

@@ -44,13 +44,13 @@ async def reply_to_comment(
 
 
 @app.post("/comments/{model_name}/{object_id}")
-async def create_new_comment_for_object(
+def create_new_comment_for_object(
     model_name: str,
     object_id: int,
     comment: _schemas.CommentCreate,
     db_Session=Depends(get_db),
 ):
-    obj = await _services.db_create_comment_for_object(
+    obj = _services.db_create_comment_for_object(
         object_id=object_id, comment=comment, model_name=model_name, db=db_Session
     )
     return {"status": True, "data": obj}
@@ -63,7 +63,7 @@ async def update_comment_by_id(
     comment: _schemas.CommentUpdate,
     db_Session=Depends(get_db),
 ):
-    obj = await _services.db_update_comment(
+    obj = _services.db_update_comment(
         object_id=comment_id, model_name=model_name, comment=comment, db=db_Session
     )
     return {"status": True, "data": obj}
