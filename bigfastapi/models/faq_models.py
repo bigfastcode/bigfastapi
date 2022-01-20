@@ -12,7 +12,7 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as _database
-from utils import utils
+from bigfastapi.utils import utils
 
 class Ticket(_database.Base):
     __tablename__ = "ticket"
