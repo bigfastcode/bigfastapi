@@ -46,35 +46,40 @@ async def get_root() -> dict:
 @app.get("/test", tags=["Test"])
 async def run_test() -> dict:
 
+    # This function shows you how to use each of the APIs in a practical way
     print("Testing BigFastAPI")
-
-    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-
-    user_payload = {
-        "email": "string",
-        "password": "string",
-        "first_name": "string",
-        "last_name": "string",
-        "verification_method": "code",
-        "verification_redirect_url": "https://example.com/verify",
-        "verification_code_length": 5
-        }
 
     # Retrieve all countries in the world
     print("Testing Countries - get all countries")
     response = client.get('/countries')
+    # print(response.text)
     assert response.status_code == 200, response.text
-    print(response.text)
+    
 
     # Get the states in a particular country
     response = client.get('/countries/AF/states')
+    # print(response.text)
     assert response.status_code == 200, response.text
-    print(response.text)
+    
 
     # Get the phone codes of all countries
     response = client.get('/countries/codes')
+    # print(response.text)
     assert response.status_code == 200, response.text
-    print(response.text)
+    
+
+    # Create a new user
+    response = client.post("/users", json={ "email": "user@example.com",
+                                            "password": "password",
+                                            "first_name": "John",
+                                            "last_name": "Doe",
+                                            "verification_method": "code",
+                                            "verification_redirect_url": "https://example.com/verify",
+                                            "verification_code_length": 5
+                                            })
+    print(response)
+    assert response.status_code == 200
+    
 
     return {
         "message": "Test Results:"

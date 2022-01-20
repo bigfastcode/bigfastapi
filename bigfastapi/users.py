@@ -2,6 +2,7 @@
 from uuid import uuid4
 import fastapi as fastapi
 
+import passlib.hash as _hash
 from bigfastapi.models import user_models
 from .utils import utils
 from fastapi import APIRouter
@@ -183,7 +184,7 @@ async def get_user_by_id(id: str, db: orm.Session):
 async def create_user(verification_method: str, user: _schemas.UserCreate, db: orm.Session):
     verification_info = ""
     user_obj = user_models.User(
-        id = uuid4().hex,email=user.email, password=_Hash.bcrypt.hash(user.password),
+        id = uuid4().hex,email=user.email, password=_hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name,
         is_active=True, is_verified = False
     )
