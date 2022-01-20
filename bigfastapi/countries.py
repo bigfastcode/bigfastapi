@@ -34,7 +34,7 @@ def get_countries():
         List[Country]: list of countries and their respective states
 
     """
-    with open("data/countries.json") as file:
+    with open("bigfastapi/data/countries.json") as file:
         countries = json.load(file)
         for country in countries:
             del country["states"]
@@ -54,7 +54,7 @@ def get_country_states(country_code: str):
         List[State]: list of states and their respective cities
 
     """
-    with open("data/countries.json") as file:
+    with open("bigfastapi/data/countries.json") as file:
         countries = json.load(file)
         country_data = list(
             filter(
@@ -85,7 +85,7 @@ def get_countries_dial_codes(country_code: str = None):
         List[Country]: list of countries and their respective dial codes
 
     """
-    with open("data/countries.json") as file:
+    with open("bigfastapi/data/countries.json") as file:
         countries = json.load(file)
         if country_code:
             country_search = list(

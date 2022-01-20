@@ -1,4 +1,4 @@
-import imp
+
 from uuid import uuid4
 from fastapi import APIRouter, Request
 from typing import List
@@ -6,7 +6,6 @@ import fastapi as _fastapi
 from fastapi.param_functions import Depends
 import fastapi.security as _security
 import sqlalchemy.orm as _orm
-# from . import services as _services, schema as _schemas
 from .auth import is_authenticated
 from .schemas import users_schemas
 from .schemas import blog_schemas
