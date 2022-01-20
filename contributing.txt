@@ -4,7 +4,9 @@
 
 The main file of an endpoint has to contain all the endpoints and external items related
 to that. For example, comments.py has to contain the definitation of all GET and POST that
-have to do with comments.
+have to do with comments. The parts that handle the API are at the top of the file, and the
+parts that are API independent (the services) are at the bottom of the file, with a comment
+separating them
 
 Inside the models folder, a corresponding file with the models for that endpoint should belong
 created that contains the model. For example, we have a comments_model.py file in the models
@@ -26,6 +28,9 @@ All other functionality related to the endpoint has to be in the other file. Tha
 files for each functionality - the main file and the models file. These files should not import any other
 files so far as possible.
 
+A schemas folder for all the pydantic schemas.
+
+
 
 # Naming Variables
 ---
@@ -41,3 +46,6 @@ Underscores should not be used to name any variables.
 ---
 
 Check for all possible errors and raise a FastAPI errors
+
+
+# 

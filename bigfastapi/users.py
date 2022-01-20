@@ -6,7 +6,7 @@ import fastapi.security as _security
 import sqlalchemy.orm as _orm
 from . import services as _services, schema as _schemas
 from fastapi import BackgroundTasks
-from bigfastapi.database import get_db
+from bigfastapi.db.database import get_db
 
 app = APIRouter(tags=["Auth",])
 
@@ -170,3 +170,48 @@ async def password_change_with_token(
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
+async def get_user_by_email(email: str, db: _orm.Session):
+    return db.query(_models.User).filter(_models.User.email == email).first()
+
+async def get_user_by_id(id: str, db: _orm.Session):
+    return db.query(_models.User).filter(_models.User.id == id).first()
+
+
+async def create_user(verification_method: str, user: _schemas.UserCreate, db: _orm.Session):
+    verification_info = ""
+    user_obj = _models.User(
+        id = uuid4().hex,email=user.email, password=_hash.bcrypt.hash(user.password),
+        first_name=user.first_name, last_name=user.last_name,
+        is_active=True, is_verified = False
+    )
+    db.add(user_obj)
+    db.commit()
+    if verification_method == "code":
+        code = await resend_code_verification_mail(user_obj.email, db, user.verification_code_length)
+        verification_info = code["code"]
+    elif verification_method == "token":
+        token = await resend_token_verification_mail(user_obj.email,user.verification_redirect_url, db)
+        verification_info = token["token"]
+    db.refresh(user_obj)
+    return {"user":user_obj, "verification_info": verification_info}
+
+
+async def user_update(user_update: _schemas.UserUpdate, user:_schemas.User, db: _orm.Session):
+    user = await get_user_by_id(id = user.id, db=db)
+
+    if user_update.first_name != "":
+        user.first_name = user_update.first_name
+
+    if user_update.last_name != "":
+        user.last_name = user_update.last_name
+
+    if user_update.phone_number != "":
+        user.phone_number = user_update.phone_number
+        
+    if user_update.organization != "":
+        user.organization = user_update.organization
+
+    db.commit()
+    db.refresh(user)
+
+    return _schemas.User.from_orm(user)
