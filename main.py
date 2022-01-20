@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 import uvicorn
 from fastapi import FastAPI
 from bigfastapi.db.database import create_database
@@ -46,38 +47,45 @@ async def get_root() -> dict:
 @app.get("/test", tags=["Test"])
 async def run_test() -> dict:
 
+    # This function shows you how to use each of the APIs in a practical way
     print("Testing BigFastAPI")
-
-    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-
-    user_payload = {
-        "email": "string",
-        "password": "string",
-        "first_name": "string",
-        "last_name": "string",
-        "verification_method": "code",
-        "verification_redirect_url": "https://example.com/verify",
-        "verification_code_length": 5
-        }
 
     # Retrieve all countries in the world
     print("Testing Countries - get all countries")
     response = client.get('/countries')
+    # print(response.text)
     assert response.status_code == 200, response.text
-    print(response.text)
+    
 
     # Get the states in a particular country
     response = client.get('/countries/AF/states')
+    # print(response.text)
     assert response.status_code == 200, response.text
-    print(response.text)
+    
 
     # Get the phone codes of all countries
     response = client.get('/countries/codes')
+    # print(response.text)
     assert response.status_code == 200, response.text
-    print(response.text)
+    
+
+    # Create a new user
+    user_create_response = client.post("/users", json={ "email": uuid4().hex + "user@example.com",
+                                            "password": "password",
+                                            "first_name": "John",
+                                            "last_name": "Doe",
+                                            "verification_method": "code",
+                                            "verification_redirect_url": "https://example.com/verify",
+                                            "verification_code_length": 5
+                                            })
+    auth_json = user_create_response.json()
+    print("Code: " + str(user_create_response.status_code))
+    assert user_create_response.status_code == 201
+    
 
     return {
-        "message": "Test Results:"
+        "message": "Test Results:",
+        "auth_token" : auth_json["access_token"]
     }
 
 

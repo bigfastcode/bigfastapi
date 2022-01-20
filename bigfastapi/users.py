@@ -2,6 +2,7 @@
 from uuid import uuid4
 import fastapi as fastapi
 
+import passlib.hash as _hash
 from bigfastapi.models import user_models
 from .utils import utils
 from fastapi import APIRouter
@@ -183,18 +184,21 @@ async def get_user_by_id(id: str, db: orm.Session):
 async def create_user(verification_method: str, user: _schemas.UserCreate, db: orm.Session):
     verification_info = ""
     user_obj = user_models.User(
-        id = uuid4().hex,email=user.email, password=_Hash.bcrypt.hash(user.password),
+        id = uuid4().hex,email=user.email, password=_hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name,
         is_active=True, is_verified = False
     )
     db.add(user_obj)
     db.commit()
-    if verification_method == "code":
-        code = await resend_code_verification_mail(user_obj.email, db, user.verification_code_length)
-        verification_info = code["code"]
-    elif verification_method == "token":
-        token = await resend_token_verification_mail(user_obj.email,user.verification_redirect_url, db)
-        verification_info = token["token"]
+
+    # This all needs to be done async in a queue
+    # if verification_method == "code":
+    #     code = await resend_code_verification_mail(user_obj.email, db, user.verification_code_length)
+    #     verification_info = code["code"]
+    # elif verification_method == "token":
+    #     token = await resend_token_verification_mail(user_obj.email,user.verification_redirect_url, db)
+    #     verification_info = token["token"]
+    
     db.refresh(user_obj)
     return {"user":user_obj, "verification_info": verification_info}
 

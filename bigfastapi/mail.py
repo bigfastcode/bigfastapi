@@ -5,6 +5,7 @@ import sqlalchemy.orm as _orm
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database as _database
 from . import models as _models
+from .models import user_models
 from uuid import uuid4
 from fastapi import BackgroundTasks
 from .auth import create_passwordreset_token, create_verification_token
@@ -26,7 +27,7 @@ conf = ConnectionConfig(
 
 
 async def get_user_by_email(email: str, db: _orm.Session):
-    return db.query(_models.User).filter(_models.User.email == email).first()
+    return db.query(user_models.User).filter(user_models.User.email == email).first()
 
 
 
