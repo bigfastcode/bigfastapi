@@ -6,7 +6,6 @@ from uuid import UUID
 from typing import List, Optional
 
 
-
 class AuthToken(_pydantic.BaseModel):
     id: str
     user_id: str
