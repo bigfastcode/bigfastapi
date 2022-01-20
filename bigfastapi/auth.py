@@ -8,9 +8,12 @@ import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from datetime import datetime, timedelta
 
+from .models import auth_models as auth_models
+from .models import user_models as user_models
+
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database as _database
-from . import models as _models, schema as _schemas
+# from . import models as _models, schema as _schemas
 from fastapi.security import HTTPBearer
 bearerSchema = HTTPBearer()
 import re
@@ -30,7 +33,7 @@ from datetime import datetime, timedelta
 
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database as _database
-from . import models as _models, schema as _schemas
+# from . import models as _models, schema as _schemas
 from fastapi.security import HTTPBearer
 bearerSchema = HTTPBearer()
 import re
@@ -48,15 +51,15 @@ JWT_EXP_DELTA_SECONDS = 60 * 60 * 24
 
 
 async def get_code_from_db(code: str, db: _orm.Session):
-    return db.query(_models.VerificationCode).filter(_models.VerificationCode.code == code).first()
+    return db.query(auth_models.VerificationCode).filter(auth_models.VerificationCode.code == code).first()
 
 async def get_code_by_userid(user_id: str, db: _orm.Session):
-    return db.query(_models.VerificationCode).filter(_models.VerificationCode.user_id == user_id).first()
+    return db.query(auth_models.VerificationCode).filter(auth_models.VerificationCode.user_id == user_id).first()
 async def get_password_reset_code_from_db(code: str, db: _orm.Session):
-    return db.query(_models.PasswordResetCode).filter(_models.PasswordResetCode.code == code).first()
+    return db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.code == code).first()
 
 async def get_password_reset_code_by_userid(user_id: str, db: _orm.Session):
-    return db.query(_models.PasswordResetCode).filter(_models.PasswordResetCode.user_id == user_id).first()
+    return db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.user_id == user_id).first()
 
 def generate_code(new_length:int= None):
     length = 6
@@ -70,7 +73,7 @@ def generate_code(new_length:int= None):
     return code
 
 
-async def create_verification_code(user: _models.User, length:int=None):
+async def create_verification_code(user: user_models.User, length:int=None):
     user_obj = _schemas.User.from_orm(user)
     db = _database.SessionLocal()
     code = ""
@@ -80,20 +83,20 @@ async def create_verification_code(user: _models.User, length:int=None):
         db.delete(db_code)
         db.commit()
         code = generate_code(length)
-        code_obj = _models.VerificationCode(id = uuid4().hex, user_id=user_obj.id, code=code)
+        code_obj = auth_models.VerificationCode(id = uuid4().hex, user_id=user_obj.id, code=code)
         db.add(code_obj)
         db.commit()
         db.refresh(code_obj)
     else:
         code = generate_code(length)
-        code_obj = _models.VerificationCode(id = uuid4().hex, user_id=user_obj.id, code=code)
+        code_obj = auth_models.VerificationCode(id = uuid4().hex, user_id=user_obj.id, code=code)
         db.add(code_obj)
         db.commit()
         db.refresh(code_obj)
 
     return {"code":code}
 
-async def create_forgot_pasword_code(user: _models.User, length:int=None):
+async def create_forgot_pasword_code(user: user_models.User, length:int=None):
     user_obj = _schemas.User.from_orm(user)
     db = _database.SessionLocal()
     code = ""
@@ -115,16 +118,6 @@ async def create_forgot_pasword_code(user: _models.User, length:int=None):
         db.refresh(code_obj)
 
     return {"code":code}
-
-
-
-def ValidateUrl(url):
-    valid=validators.url(url)
-    if valid==True:
-        return True
-    else:
-        return False
-
 
 
 async def get_token_from_db(token: str, db: _orm.Session):
@@ -171,7 +164,7 @@ async def generate_token(user_id:str, db: _orm.Session):
     db.refresh(token_obj)
     return token
 
-async def create_token(user: _models.User):
+async def create_token(user: user_models.User):
     user_obj = _schemas.User.from_orm(user)
     db = _database.SessionLocal()
     token = ""
@@ -203,7 +196,7 @@ async def generate_verification_token(user_id:str, db: _orm.Session):
 
 
 
-async def create_verification_token(user: _models.User):
+async def create_verification_token(user: user_models.User):
     user_obj = _schemas.User.from_orm(user)
     db = _database.SessionLocal()
     token = ""
@@ -234,7 +227,7 @@ async def generate_passwordreset_token(user_id:str, db: _orm.Session):
     return token
 
 
-async def create_passwordreset_token(user: _models.User):
+async def create_passwordreset_token(user: user_models.User):
     user_obj = _schemas.User.from_orm(user)
     db = _database.SessionLocal()
     token = ""

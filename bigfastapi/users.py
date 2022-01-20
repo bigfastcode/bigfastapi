@@ -1,10 +1,10 @@
 import fastapi as fastapi
-from utils import utils
+from .utils import utils
 from fastapi import APIRouter
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
-from schemas.users_schemas import schema as _schemas
-
+from .schemas import users_schemas as _schemas
+from .auth import is_authenticated
 
 app = APIRouter(tags=["Auth",])
 
