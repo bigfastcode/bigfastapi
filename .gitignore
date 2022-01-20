@@ -11,6 +11,7 @@ accounts_copy/
 BigFastAPI.egg-info
 
 database.db
+test.db
 
 .vscode/
 # Distribution / packaging
@@ -134,3 +135,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+#server
+server.py
+
+#data
+data/27017
+data/27018
+data/27019
