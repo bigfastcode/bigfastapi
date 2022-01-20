@@ -1,7 +1,6 @@
 from http import client
 import json
 from urllib import response
-# from bigfastapi.faq_support import app
 from main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
