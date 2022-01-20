@@ -4,7 +4,7 @@ import fastapi as _fastapi
 from fastapi.param_functions import Depends
 import fastapi.security as _security
 import sqlalchemy.orm as _orm
-from . import services as _services, schema as _schemas
+# from . import services as _services, schema as _schemas
 from bigfastapi.db.database import get_db
 
 from pyexpat import model
@@ -20,8 +20,9 @@ from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database as _database
-from . import models as _models, schema as _schemas
-from .token import *
+from .schemas import comments_schemas
+# from . import models as _models, schema as _schemas
+# from .token import *
 from .auth import *
 from .mail import *
 
@@ -43,7 +44,7 @@ app = APIRouter(tags=["Comments"])
 async def get_all_comments_related_to_model(
     model_name: str, db_Session: _orm.Session = Depends(get_db)
 ):
-    qs = await _services.db_retrieve_all_model_comments(
+    qs = await db_retrieve_all_model_comments(
         model_name=model_name, db=db_Session
     )
     return {"status": True, "data": qs}
@@ -53,7 +54,7 @@ async def get_all_comments_related_to_model(
 async def get_all_comments_for_object(
     model_name: str, object_id: str, db_Session=Depends(get_db)
 ):
-    qs = await _services.db_retrieve_all_comments_for_object(
+    qs = await db_retrieve_all_comments_for_object(
         object_id=object_id, model_name=model_name, db=db_Session
     )
     return {"status": True, "data": qs}
@@ -63,10 +64,10 @@ async def get_all_comments_for_object(
 async def reply_to_comment(
     model_name: str,
     comment_id: int,
-    comment: _schemas.CommentCreate,
+    comment: comments_schemas.CommentCreate,
     db_Session=Depends(get_db),
 ):
-    obj = await _services.db_reply_to_comment(
+    obj = await db_reply_to_comment(
         comment_id=comment_id, comment=comment, model_name=model_name, db=db_Session
     )
     return {"status": True, "data": obj}
@@ -76,10 +77,10 @@ async def reply_to_comment(
 def create_new_comment_for_object(
     model_name: str,
     object_id: int,
-    comment: _schemas.CommentCreate,
+    comment: comments_schemas.CommentCreate,
     db_Session=Depends(get_db),
 ):
-    obj = _services.db_create_comment_for_object(
+    obj = db_create_comment_for_object(
         object_id=object_id, comment=comment, model_name=model_name, db=db_Session
     )
     return {"status": True, "data": obj}
@@ -89,10 +90,10 @@ def create_new_comment_for_object(
 async def update_comment_by_id(
     model_name: str,
     comment_id: int,
-    comment: _schemas.CommentUpdate,
+    comment: comments_schemas.CommentUpdate,
     db_Session=Depends(get_db),
 ):
-    obj = _services.db_update_comment(
+    obj = db_update_comment(
         object_id=comment_id, model_name=model_name, comment=comment, db=db_Session
     )
     return {"status": True, "data": obj}
@@ -102,7 +103,7 @@ async def update_comment_by_id(
 async def delete_comment_by_id(
     model_name: str, comment_id:int, db_Session=Depends(get_db)
 ):
-    obj = await _services.db_delete_comment(
+    obj = await db_delete_comment(
         object_id=comment_id, model_name=model_name, db=db_Session
     )
     return {"status": True, "data": obj}
@@ -119,7 +120,7 @@ async def vote_on_comment(
                 f"{action} not supported. Consider using 'upvote' or 'downvote'."
             },
         }
-    response = await _services.db_vote_for_comments(
+    response = await db_vote_for_comments(
         comment_id=comment_id, model_name=model_name, action=action, db=db_Session
     )
     error_message = "Vote Failed"
@@ -158,15 +159,15 @@ async def db_retrieve_all_comments_for_object(object_id: int, model_name:str, db
     object_qs = db.query(_models.Comment).filter(_models.Comment.rel_id == object_id, 
         _models.Comment.model_type == model_name, _models.Comment.p_id == None).all()
     
-    object_qs = list(map(_schemas.Comment.from_orm, object_qs))
+    object_qs = list(map(comments_schemas.Comment.from_orm, object_qs))
     return object_qs
 
 async def db_retrieve_all_model_comments(model_name:str, db: _orm.Session):
     object_qs = db.query(_models.Comment).filter(_models.Comment.model_type == model_name, _models.Comment.p_id == None).all()
-    object_qs = list(map(_schemas.Comment.from_orm, object_qs))
+    object_qs = list(map(comments_schemas.Comment.from_orm, object_qs))
     return object_qs
 
-async def db_reply_to_comment(model_name:str, comment_id:int, comment: _schemas.Comment, db: _orm.Session):
+async def db_reply_to_comment(model_name:str, comment_id:int, comment: comments_schemas.Comment, db: _orm.Session):
     p_comment = db.query(_models.Comment).filter(_models.Comment.model_type == model_name, 
         _models.Comment.id == comment_id).first()
     if p_comment:
@@ -181,21 +182,21 @@ async def db_delete_comment(object_id: int, model_name:str, db: _orm.Session):
     object = await db_retrieve_comment_by_id(object_id=object_id, model_name=model_name, db=db)
     db.delete(object)
     db.commit()
-    return _schemas.Comment.from_orm(object)
+    return comments_schemas.Comment.from_orm(object)
     
-async def db_create_comment_for_object(object_id: str, comment: _schemas.CommentCreate, db: _orm.Session, model_name:str = None):
+async def db_create_comment_for_object(object_id: str, comment: comments_schemas.CommentCreate, db: _orm.Session, model_name:str = None):
     obj = _models.Comment(rel_id=object_id, model_name=model_name, text=comment.text, name=comment.name, email=comment.email)
     db.add(obj)
     db.commit()
     db.refresh(obj)
-    return _schemas.Comment.from_orm(obj)
+    return comments_schemas.Comment.from_orm(obj)
 
-async def db_update_comment(object_id:int, comment: _schemas.CommentUpdate, db: _orm.Session, model_name:str = None):
+async def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_name:str = None):
     object_db = await db_retrieve_comment_by_id(object_id=object_id, model_name=model_name, db=db)
     object_db.text = comment.text
     object_db.name = comment.name
     object_db.email = comment.email
     db.commit()
     db.refresh(object_db)
-    return _schemas.Comment.from_orm(object_db)
+    return comments_schemas.Comment.from_orm(object_db)
     
