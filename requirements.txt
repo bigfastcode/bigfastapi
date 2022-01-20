@@ -45,3 +45,4 @@ uvicorn
 watchgod
 websockets
 validators
+pytest
