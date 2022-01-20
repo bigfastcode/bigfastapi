@@ -186,7 +186,7 @@ async def create_user(verification_method: str, user: _schemas.UserCreate, db: o
     user_obj = user_models.User(
         id = uuid4().hex,email=user.email, password=_hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name,
-        is_active=True, is_verified = False
+        is_active=True, is_verified = True
     )
     db.add(user_obj)
     db.commit()
@@ -198,7 +198,7 @@ async def create_user(verification_method: str, user: _schemas.UserCreate, db: o
     # elif verification_method == "token":
     #     token = await resend_token_verification_mail(user_obj.email,user.verification_redirect_url, db)
     #     verification_info = token["token"]
-    
+
     db.refresh(user_obj)
     return {"user":user_obj, "verification_info": verification_info}
 

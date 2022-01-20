@@ -293,13 +293,15 @@ async def is_authenticated(request: Request, token:str = _fastapi.Depends(bearer
             status_code=401, detail="invalid token"
         )
 
+async def get_user_by_id(id: str, db: _orm.Session):
+    return db.query(user_models.User).filter(user_models.User.id == id).first()
 
 async def password_change_code(password: users_schemas.UserPasswordUpdate, code: str, db: _orm.Session):
 
     code_db = await get_password_reset_code_from_db(code, db)
     if code_db:
         user = await get_user_by_id(db=db, id=code_db.user_id)
-        user.password = _hash.bcrypt.hash(password.password)
+        user.password = _hash.sha256_crypt.hash(password.password)
         db.commit()
         db.refresh(user)
 
@@ -336,7 +338,7 @@ async def password_change_token(password: users_schemas.UserPasswordUpdate, toke
     token_db = db.query(auth_models.PasswordResetToken).filter(auth_models.PasswordResetToken.token == token).first()
     if token_db:
         user = await get_user_by_id(db=db, id=validate_resp["data"]["user_id"])
-        user.password = _hash.bcrypt.hash(password.password)
+        user.password = _hash.sha256_crypt.hash(password.password)
         db.commit()
         db.refresh(user)
 
