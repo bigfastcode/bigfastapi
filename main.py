@@ -68,24 +68,44 @@ async def run_test() -> dict:
     # print(response.text)
     assert response.status_code == 200, response.text
     
-
+    
     # Create a new user
-    user_create_response = client.post("/users", json={ "email": uuid4().hex + "user@example.com",
-                                            "password": "password",
+    user_email =  uuid4().hex + "user@example.com"
+    user_create_response = client.post("/users", json={ "email": user_email,
+                                            "password": "secret_password",
                                             "first_name": "John",
                                             "last_name": "Doe",
                                             "verification_method": "code",
                                             "verification_redirect_url": "https://example.com/verify",
                                             "verification_code_length": 5
                                             })
-    auth_json = user_create_response.json()
+    create_auth_json = user_create_response.json()
     print("Code: " + str(user_create_response.status_code))
     assert user_create_response.status_code == 201
     
+    # Login the user
+    user_login_response = client.post("/login", json={ "email": user_email, "password": "secret_password",})
+    user_login_json = user_login_response.json()
+    print(user_login_json)
+    print("Code: " + str(user_login_response.status_code))
+    assert user_login_response.status_code == 200
+
+    # Create a blog post
+    blog_create_response = client.post("/blog", headers={"Authorization": "Bearer " + user_login_json["access_token"]}, json={ "title": "New Blog Post by " + user_email, "content": "And this is the body of the blog post by " + user_email,})
+    blog_create_json = blog_create_response.json()
+    print(blog_create_json)
+    print("Response Code: " + str(blog_create_response.status_code))
+    assert blog_create_response.status_code == 200
+
+    blog_list = client.get("/blogs")
+    blog_list_json = blog_list.json()
+    print(blog_list_json)
 
     return {
         "message": "Test Results:",
-        "auth_token" : auth_json["access_token"]
+        "create_user_auth_token" : create_auth_json["access_token"]["access_token"],
+        "login_auth_token" : user_login_json["access_token"],
+        "blog_list" : blog_list_json
     }
 
 

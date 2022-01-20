@@ -27,4 +27,4 @@ class User(_database.Base):
     organization = Column(String(255), default="")
 
     def verify_password(self, password: str):
-        return _hash.bcrypt.verify(password, self.password)
+        return _hash.sha256_crypt.verify(password, self.password)
