@@ -9,7 +9,7 @@ from bigfastapi.db.database import get_db
 from .db.database import create_database
 import pydantic as _pydantic
 from typing import List
-from . import models as _models
+from .models import faq_models as _models
 from fastapi.responses import JSONResponse
 from fastapi import status
 from uuid import uuid4
@@ -26,7 +26,7 @@ class CreateFaqRes(_pydantic.BaseModel):
 
 
 @app.post('/support/faqs', response_model=CreateFaqRes)
-async def create_faq(
+def create_faq(
     faq: faq_schemas.Faq, 
     db: _orm.Session = _fastapi.Depends(get_db), 
     user: users_schemas.User = _fastapi.Depends(is_authenticated)):
@@ -45,7 +45,7 @@ async def create_faq(
 
 
 @app.get('/support/faqs', response_model=List[faq_schemas.FaqInDB])
-async def get_faqs(db: _orm.Session = _fastapi.Depends(get_db)):
+def get_faqs(db: _orm.Session = _fastapi.Depends(get_db)):
     faqs = db.query(_models.Faq).all()
     return list(map(faq_schemas.FaqInDB.from_orm, faqs))
 
@@ -54,7 +54,7 @@ class CreateTicketRes(_pydantic.BaseModel):
     message: str
     ticket: faq_schemas.TicketInDB
 @app.post('/support/tickets', response_model=CreateTicketRes)
-async def create_ticket(
+def create_ticket(
     ticket: ticketschema, 
     user: users_schemas.User = _fastapi.Depends(is_authenticated), 
     db: _orm.Session = _fastapi.Depends(get_db)):
@@ -69,13 +69,13 @@ async def create_ticket(
     return {"message": "Ticket created succesfully", "ticket": faq_schemas.TicketInDB.from_orm(ticket)}
 
 @app.get('/support/ticket/{short_id}', response_model=faq_schemas.TicketInDB)
-async def get_ticket(short_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
+def get_ticket(short_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
     ticket = db.query(_models.Ticket).filter(_models.Ticket.short_id == short_id).first()
     return faq_schemas.TicketInDB.from_orm(ticket)
 
 
 @app.get('/support/tickets', response_model=List[faq_schemas.TicketInDB])
-async def get_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
+def get_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
     tickets = db.query(_models.Ticket).all()
     return list(map(faq_schemas.TicketInDB.from_orm, tickets))
 
@@ -84,7 +84,7 @@ class TicketReplyRes(_pydantic.BaseModel):
     message: str
     reply: faq_schemas.TicketReply
 @app.post('/support/tickets/{short_id}/reply', response_model=TicketReplyRes)
-async def reply_ticket(
+def reply_ticket(
     ticket_reply: faq_schemas.TicketReply,
     short_id: str,
     db: _orm.Session = _fastapi.Depends(get_db),
@@ -102,7 +102,7 @@ async def reply_ticket(
 class TicketCloseRes(_pydantic.BaseModel):
     message: str
 @app.put('/support/tickets/{short_id}/close', response_model=TicketCloseRes)
-async def close_ticket(
+def close_ticket(
     short_id: str,
     db: _orm.Session = _fastapi.Depends(get_db),
     user: users_schemas.User = _fastapi.Depends(is_authenticated)
@@ -117,7 +117,7 @@ async def close_ticket(
     return JSONResponse({"message": "Only an admin can close a ticket"}, status_code=status.HTTP_401_UNAUTHORIZED)
 
 @app.get('/support/tickets/{short_id}/replies', response_model=List[faq_schemas.TicketReplyInDB])
-async def get_ticket_replies(
+def get_ticket_replies(
     short_id: str,
     db: _orm.Session = _fastapi.Depends(get_db),
     ):
@@ -126,13 +126,13 @@ async def get_ticket_replies(
     return list(map(faq_schemas.TicketReplyInDB.from_orm, replies))
 
 @app.get('/support/tickets/open', response_model=List[faq_schemas.TicketInDB])
-async def get_open_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
+def get_open_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
     tickets = db.query(_models.Ticket).filter(_models.Ticket.closed==False).all()
     print("open tickets")
     return list(map(faq_schemas.TicketInDB.from_orm, tickets))
 
 @app.get('/support/tickets/closed', response_model=List[faq_schemas.ClosedTicket])
-async def get_closed_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
+def get_closed_tickets(db: _orm.Session = _fastapi.Depends(get_db)):
     tickets = db.query(_models.Ticket).filter(_models.Ticket.closed==True).all()
     return list(map(faq_schemas.ClosedTicket.from_orm, tickets))
 
