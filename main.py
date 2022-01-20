@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 import uvicorn
 from fastapi import FastAPI
 from bigfastapi.db.database import create_database
@@ -69,7 +70,7 @@ async def run_test() -> dict:
     
 
     # Create a new user
-    response = client.post("/users", json={ "email": "user@example.com",
+    user_create_response = client.post("/users", json={ "email": uuid4().hex + "user@example.com",
                                             "password": "password",
                                             "first_name": "John",
                                             "last_name": "Doe",
@@ -77,12 +78,14 @@ async def run_test() -> dict:
                                             "verification_redirect_url": "https://example.com/verify",
                                             "verification_code_length": 5
                                             })
-    print(response)
-    assert response.status_code == 200
+    auth_json = user_create_response.json()
+    print("Code: " + str(user_create_response.status_code))
+    assert user_create_response.status_code == 201
     
 
     return {
-        "message": "Test Results:"
+        "message": "Test Results:",
+        "auth_token" : auth_json["access_token"]
     }
 
 

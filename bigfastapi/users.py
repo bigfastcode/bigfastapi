@@ -190,12 +190,15 @@ async def create_user(verification_method: str, user: _schemas.UserCreate, db: o
     )
     db.add(user_obj)
     db.commit()
-    if verification_method == "code":
-        code = await resend_code_verification_mail(user_obj.email, db, user.verification_code_length)
-        verification_info = code["code"]
-    elif verification_method == "token":
-        token = await resend_token_verification_mail(user_obj.email,user.verification_redirect_url, db)
-        verification_info = token["token"]
+
+    # This all needs to be done async in a queue
+    # if verification_method == "code":
+    #     code = await resend_code_verification_mail(user_obj.email, db, user.verification_code_length)
+    #     verification_info = code["code"]
+    # elif verification_method == "token":
+    #     token = await resend_token_verification_mail(user_obj.email,user.verification_redirect_url, db)
+    #     verification_info = token["token"]
+    
     db.refresh(user_obj)
     return {"user":user_obj, "verification_info": verification_info}
 
