@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-from schemas.faq_schemas import Faq as faqschema
-from schemas.faq_schemas import Ticket as ticketschema
+from .schemas.faq_schemas import Faq as faqschema
+from .schemas.faq_schemas import Ticket as ticketschema
 import sqlalchemy.orm as _orm
 import fastapi as _fastapi
 from bigfastapi.db.database import get_db
-from . import services as _services, schema as _schemas
+# from . import services as _services, schema as _schemas
 from .db.database import create_database
 import pydantic as _pydantic
 from typing import List

@@ -1,3 +1,10 @@
+import datetime as _dt
+
+import pydantic as _pydantic
+from pydantic import Field
+from uuid import UUID
+from typing import List, Optional
+
 
 class _CommentBase(_pydantic.BaseModel):
     text : str 

@@ -1,10 +1,15 @@
+# from hashlib import _Hash
+from uuid import uuid4
 import fastapi as fastapi
+
+from bigfastapi.models import user_models
 from .utils import utils
 from fastapi import APIRouter
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
-from .auth import is_authenticated
+from .auth import is_authenticated, create_token, logout, verify_user_code, password_change_code, verify_user_token, password_change_token
+from .mail import resend_code_verification_mail, send_code_password_reset_email, resend_token_verification_mail
 
 app = APIRouter(tags=["Auth",])
 
@@ -86,7 +91,7 @@ async def logout_user(user: _schemas.User = fastapi.Depends(is_authenticated)):
 
 
 @app.get("/users/me", response_model=_schemas.User)
-async def get_user(user: _schemas.User = fastapi.Depends(_services.is_authenticated)):
+async def get_user(user: _schemas.User = fastapi.Depends(is_authenticated)):
     return user
 
 
@@ -111,7 +116,7 @@ async def verify_user_with_code(
     code: str,
     db: orm.Session = fastapi.Depends(get_db),
     ):
-    return await _services.verify_user_code(code)
+    return await verify_user_code(code)
 
 
 @app.post("/users/forgot-password/code")
@@ -119,7 +124,7 @@ async def send_code_password_reset_email(
     email : _schemas.UserCodeVerification,
     db: orm.Session = fastapi.Depends(get_db),
     ):
-    return await _services.send_code_password_reset_email(email.email, db, email.code_length)
+    return await send_code_password_reset_email(email.email, db, email.code_length)
 
 
 @app.put("/users/password-change/code/{code}")
@@ -128,7 +133,7 @@ async def password_change_with_code(
     code: str,
     db: orm.Session = fastapi.Depends(get_db),
     ):
-    return await _services.password_change_code(password, code, db)
+    return await password_change_code(password, code, db)
 
 # ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
 
@@ -140,14 +145,14 @@ async def resend_token_verification(
     email : _schemas.UserTokenVerification,
     db: orm.Session = fastapi.Depends(get_db),
     ):
-    return await _services.resend_token_verification_mail(email.email, email.redirect_url, db)
+    return await resend_token_verification_mail(email.email, email.redirect_url, db)
 
 @app.post("/users/verify/token/{token}")
 async def verify_user_with_token(
     token: str,
     db: orm.Session = fastapi.Depends(get_db),
     ):
-    return await _services.verify_user_token(token)
+    return await verify_user_token(token)
 
 
 @app.post("/users/forgot-password/token")
@@ -155,7 +160,7 @@ async def send_token_password_reset_email(
     email : _schemas.UserTokenVerification,
     db: orm.Session = fastapi.Depends(get_db),
     ):
-    return await _services.send_token_password_reset_email(email.email, email.redirect_url,db)
+    return await send_token_password_reset_email(email.email, email.redirect_url,db)
 
 
 @app.put("/users/password-change/token/{token}")
@@ -164,21 +169,21 @@ async def password_change_with_token(
     token: str,
     db: orm.Session = fastapi.Depends(get_db),
     ):
-    return await _services.password_change_token(password, token, db)
+    return await password_change_token(password, token, db)
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
 async def get_user_by_email(email: str, db: orm.Session):
-    return db.query(_models.User).filter(_models.User.email == email).first()
+    return db.query(user_models.User).filter(user_models.User.email == email).first()
 
 async def get_user_by_id(id: str, db: orm.Session):
-    return db.query(_models.User).filter(_models.User.id == id).first()
+    return db.query(user_models.User).filter(user_models.User.id == id).first()
 
 
 async def create_user(verification_method: str, user: _schemas.UserCreate, db: orm.Session):
     verification_info = ""
-    user_obj = _models.User(
-        id = uuid4().hex,email=user.email, password=_hash.bcrypt.hash(user.password),
+    user_obj = user_models.User(
+        id = uuid4().hex,email=user.email, password=_Hash.bcrypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name,
         is_active=True, is_verified = False
     )
@@ -213,3 +218,15 @@ async def user_update(user_update: _schemas.UserUpdate, user:_schemas.User, db: 
     db.refresh(user)
 
     return _schemas.User.fromorm(user)
+
+
+async def authenticate_user(email: str, password: str, db: orm.Session):
+    user = await get_user_by_email(db=db, email=email)
+
+    if not user:
+        return False
+
+    if not user.verify_password(password):
+        return False
+
+    return user

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
-from . import schema as _schemas
+# from . import schema as _schemas
+from .schemas import countries_schemas as _schemas
 import json
 
 app = APIRouter(tags=["Countries"])
