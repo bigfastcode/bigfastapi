@@ -2,13 +2,14 @@ import fastapi as _fastapi
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import sqlalchemy.orm as _orm
-from bigfastapi import database as _database, settings as settings
+from bigfastapi.utils import settings as settings
+from bigfastapi.db import database as _database
 from . import models as _models
 from uuid import uuid4
 from fastapi import BackgroundTasks
-from .token import create_passwordreset_token, create_verification_token
+from .auth import create_passwordreset_token, create_verification_token
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from .code import create_forgot_pasword_code, create_verification_code
+from .auth import create_forgot_pasword_code, create_verification_code
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,

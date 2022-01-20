@@ -1,3 +1,18 @@
+import datetime as _dt
+from sqlite3 import Timestamp
+import sqlalchemy as _sql
+import sqlalchemy.orm as _orm
+import passlib.hash as _hash
+from sqlalchemy.schema import Column
+from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, Text
+from sqlalchemy import ForeignKey
+from uuid import UUID, uuid4
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.sql import func
+from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
+from utils.utils import generate_short_id
+import bigfastapi.db.database as _database
+
 class Comment(_database.Base):
     __tablename__ = "comments"
     id = Column(Integer, primary_key=True, autoincrement=True)

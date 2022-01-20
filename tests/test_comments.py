@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from bigfastapi.models import Comment
-from bigfastapi import database as _db
+from bigfastapi.db import database as _db
 from bigfastapi.comments import app as App
 from fastapi.testclient import TestClient
 from fastapi import FastAPI

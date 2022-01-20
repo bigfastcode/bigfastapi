@@ -1,18 +1,18 @@
 from fastapi import APIRouter
-from .schema import Faq as faqschema
-from .schema import Ticket as ticketschema
+from schemas.faq_schemas import Faq as faqschema
+from schemas.faq_schemas import Ticket as ticketschema
 import sqlalchemy.orm as _orm
 import fastapi as _fastapi
-from bigfastapi.database import get_db
+from bigfastapi.db.database import get_db
 from . import services as _services, schema as _schemas
-from .database import create_database
+from .db.database import create_database
 import pydantic as _pydantic
 from typing import List
 from . import models as _models
 from fastapi.responses import JSONResponse
 from fastapi import status
 from uuid import uuid4
-from bigfastapi.utils import generate_short_id
+from bigfastapi.utils.utils import generate_short_id
 
 
 

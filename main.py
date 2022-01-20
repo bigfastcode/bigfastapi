@@ -1,10 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
-from bigfastapi.database import create_database
-from bigfastapi.accounts import app as accounts_router
+from bigfastapi.db.database import create_database
+from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.countries import app as countries
-from bigfastapi.faq_support import app as faq
+from bigfastapi.faq import app as faq
 from bigfastapi.blog import app as blog
 from bigfastapi.comments import app as comments
 from fastapi.middleware.cors import CORSMiddleware

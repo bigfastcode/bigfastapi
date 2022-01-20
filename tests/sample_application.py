@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from bigfastapi import database as _db
-from bigfastapi import organization, comments, accounts, blog
+from bigfastapi.db import database as _db
+from bigfastapi import organization, comments, blog, users
 from bigfastapi import token
 
 _db.create_database()
