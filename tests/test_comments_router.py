@@ -1,9 +1,9 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from bigfastapi.models import Comment
-from bigfastapi import schema as _schemas
-from bigfastapi.db import database as _db
+from bigfastapi.models import comments_models
+from bigfastapi.schemas import comments_schemas
+from bigfastapi.db import database
 from bigfastapi.comments import app as Router
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
@@ -16,7 +16,7 @@ engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-_db.Base.metadata.create_all(engine, tables=[Comment.__table__])
+database.Base.metadata.create_all(engine, tables=[comments_models.Comment.__table__])
 
 MODEL_NAME = "posts"
 
@@ -41,7 +41,7 @@ comment_params = {
 
 app = FastAPI()
 app.include_router(Router)
-app.dependency_overrides[_db.get_db] = override_get_db
+app.dependency_overrides[database.get_db] = override_get_db
 client = TestClient(app)
 
 
@@ -49,28 +49,28 @@ client = TestClient(app)
 def cs_db_objects():
     db_session = TestingSessionLocal()
 
-    p_comment = Comment(**comment_params)
+    p_comment = comments_models.Comment(**comment_params)
     db_session.add(p_comment)
     db_session.commit()
 
-    child1 = Comment(p_id=p_comment.id, **comment_params)
-    child2 = Comment(p_id=p_comment.id, **comment_params)
+    child1 = comments_models.Comment(p_id=p_comment.id, **comment_params)
+    child2 = comments_models.Comment(p_id=p_comment.id, **comment_params)
     db_session.add_all([child1, child2])
     db_session.commit()
     db_session.refresh(child1)
     db_session.refresh(child2)
 
-    sub1_child1 = Comment(p_id=child1.id, **comment_params)
-    sub2_child1 = Comment(p_id=child1.id, **comment_params)
+    sub1_child1 = comments_models.Comment(p_id=child1.id, **comment_params)
+    sub2_child1 = comments_models.Comment(p_id=child1.id, **comment_params)
     db_session.add_all([sub1_child1, sub2_child1])
     db_session.commit()
     db_session.refresh(p_comment)
     return {
-        "p_comment": _schemas.Comment.from_orm(p_comment),
-        "child1": _schemas.Comment.from_orm(child1),
-        "child2": _schemas.Comment.from_orm(child2),
-        "sub1_child1": _schemas.Comment.from_orm(sub1_child1),
-        "sub2_child1": _schemas.Comment.from_orm(sub2_child1),
+        "p_comment": comments_schemas.Comment.from_orm(p_comment),
+        "child1": comments_schemas.Comment.from_orm(child1),
+        "child2": comments_schemas.Comment.from_orm(child2),
+        "sub1_child1": comments_schemas.Comment.from_orm(sub1_child1),
+        "sub2_child1": comments_schemas.Comment.from_orm(sub2_child1),
     }
 
 
@@ -97,7 +97,7 @@ def test_get_comment_for_object(cs_db_objects):
 
 def test_create_comment_for_object(cs_db_objects):
     create_url = "/comments/{model_name}/{object_id}"
-    new_comment = _schemas.CommentCreate.parse_obj(comment_params)
+    new_comment = comments_schemas.CommentCreate.parse_obj(comment_params)
     response = client.post(
         create_url.format(model_name=MODEL_NAME, object_id=1),
         data=json.dumps(new_comment.dict()),
@@ -112,7 +112,7 @@ def test_create_comment_for_object(cs_db_objects):
 
 def test_reply_to_comment(cs_db_objects):
     reply_url = "/comments/{model_name}/{comment_id}/reply"
-    new_comment = _schemas.CommentCreate.parse_obj(comment_params)
+    new_comment = comments_schemas.CommentCreate.parse_obj(comment_params)
     response = client.post(
         reply_url.format(model_name=MODEL_NAME, comment_id=1),
         data=json.dumps(new_comment.dict()),
