@@ -1,12 +1,11 @@
-import datetime as _dt
-
-import pydantic as _pydantic
+import datetime as dt
+import pydantic
 from pydantic import Field
 from uuid import UUID
 from typing import List, Optional
 
 
-class Ticket(_pydantic.BaseModel):
+class Ticket(pydantic.BaseModel):
     title: str
     issue: str
 
@@ -18,12 +17,12 @@ class TicketInDB(Ticket):
     opened_by: str
     short_id: str
     closed: bool
-    date_created: _dt.datetime
+    date_created: dt.datetime
 
 class ClosedTicket(TicketInDB):
     closed_by: str
 
-class TicketReply(_pydantic.BaseModel):
+class TicketReply(pydantic.BaseModel):
     reply: str
 
     class Config:
@@ -32,9 +31,9 @@ class TicketReply(_pydantic.BaseModel):
         
 class TicketReplyInDB(TicketReply):
     reply_by: str
-    date_created: _dt.datetime
+    date_created: dt.datetime
 
-class Faq(_pydantic.BaseModel):
+class Faq(pydantic.BaseModel):
     question: str
     answer: str
 
@@ -43,4 +42,4 @@ class Faq(_pydantic.BaseModel):
 
 class FaqInDB(Faq):
     created_by: str
-    date_created: _dt.datetime
+    date_created: dt.datetime
