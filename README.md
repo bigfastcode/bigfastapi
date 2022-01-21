@@ -23,11 +23,9 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 ### Planned
 - Transactional Email sending + templates
 - Wallet/Credits
-- Subscriptions & Plans
+- Subscriptions
 - Notifications
 - Plans
-- Blog
-- Countries
 - Contact
 
 

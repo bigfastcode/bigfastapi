@@ -97,6 +97,7 @@ async def run_test() -> dict:
     print("Response Code: " + str(blog_create_response.status_code))
     assert blog_create_response.status_code == 200
 
+    # Get a list of all blog posts
     blog_list = client.get("/blogs")
     blog_list_json = blog_list.json()
     print(blog_list_json)
