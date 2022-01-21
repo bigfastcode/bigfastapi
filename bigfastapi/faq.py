@@ -1,34 +1,31 @@
-from fastapi import APIRouter
-from .schemas import faq_schemas
-from .schemas.faq_schemas import Ticket as ticketschema
-from .schemas import users_schemas
-import sqlalchemy.orm as orm
 import fastapi
-from bigfastapi.db.database import get_db
-from .db.database import create_database
-import pydantic
-from typing import List
-from .models import faq_models
-from fastapi.responses import JSONResponse
-from fastapi import status
 from uuid import uuid4
-from bigfastapi.utils.utils import generate_short_id
+from typing import List
+import sqlalchemy.orm as orm
+from fastapi import status
+from fastapi import APIRouter
+from .models import faq_models
+from .schemas import faq_schemas
 from .auth import is_authenticated
+from .schemas import users_schemas
+from bigfastapi.db.database import get_db
+from fastapi.responses import JSONResponse
+from bigfastapi.utils.utils import generate_short_id
+
 
 
 app = APIRouter(tags=["FAQ and Support ❓"])
 
 
-class CreateFaqRes(pydantic.BaseModel):
-    message: str
-    faq: faq_schemas.Faq
+# ////////////////////////////////////////////////////////////////
+#                          FAQ Endpoint
 
-
-@app.post('/support/faqs', response_model=CreateFaqRes)
+@app.post('/support/faqs', response_model=faq_schemas.CreateFaqRes)
 def create_faq(
     faq: faq_schemas.Faq, 
     db: orm.Session = fastapi.Depends(get_db), 
     user: users_schemas.User = fastapi.Depends(is_authenticated)):
+
     if user.is_superuser == True:
         faq = faq_models.Faq(
             id = uuid4().hex, 
@@ -40,6 +37,7 @@ def create_faq(
         db.commit()
         db.refresh(faq)
         return {"message": "Faq created succesfully", "faq": faq_schemas.Faq.from_orm(faq)}
+
     return JSONResponse({"message": "only an admin can create a faq"}, status_code=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -49,14 +47,12 @@ def get_faqs(db: orm.Session = fastapi.Depends(get_db)):
     return list(map(faq_schemas.FaqInDB.from_orm, faqs))
 
 
-class CreateTicketRes(pydantic.BaseModel):
-    message: str
-    ticket: faq_schemas.TicketInDB
-@app.post('/support/tickets', response_model=CreateTicketRes)
+@app.post('/support/tickets', response_model=faq_schemas.CreateTicketRes)
 def create_ticket(
-    ticket: ticketschema, 
+    ticket: faq_schemas.Ticket, 
     user: users_schemas.User = fastapi.Depends(is_authenticated), 
     db: orm.Session = fastapi.Depends(get_db)):
+
     ticket = faq_models.Ticket(
         id = uuid4().hex, user_id= user.id, 
         title = ticket.title, 
@@ -79,10 +75,7 @@ def get_tickets(db: orm.Session = fastapi.Depends(get_db)):
     return list(map(faq_schemas.TicketInDB.from_orm, tickets))
 
 
-class TicketReplyRes(pydantic.BaseModel):
-    message: str
-    reply: faq_schemas.TicketReply
-@app.post('/support/tickets/{short_id}/reply', response_model=TicketReplyRes)
+@app.post('/support/tickets/{short_id}/reply', response_model=faq_schemas.TicketReplyRes)
 def reply_ticket(
     ticket_reply: faq_schemas.TicketReply,
     short_id: str,
@@ -98,9 +91,7 @@ def reply_ticket(
     return JSONResponse({"message": "Only an admin can reply a ticket", "data": None}, status_code=status.HTTP_401_UNAUTHORIZED)
 
 
-class TicketCloseRes(pydantic.BaseModel):
-    message: str
-@app.put('/support/tickets/{short_id}/close', response_model=TicketCloseRes)
+@app.put('/support/tickets/{short_id}/close', response_model=faq_schemas.TicketCloseRes)
 def close_ticket(
     short_id: str,
     db: orm.Session = fastapi.Depends(get_db),

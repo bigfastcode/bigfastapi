@@ -52,3 +52,7 @@ Check for all possible errors and raise a FastAPI errors
 
 All API functions should be documented in the controller file. Each controller file should have a summary
 section at the top.
+
+# functions
+
+A space after function declaration before the body. Add comments for all endpoint functions
