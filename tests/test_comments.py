@@ -2,8 +2,8 @@ from distutils.errors import CompileError
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from bigfastapi.models import Comment
-from bigfastapi.db import database as _db
+from bigfastapi.models import comments_models
+from bigfastapi.db import database
 from bigfastapi.comments import app as App
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
@@ -16,9 +16,9 @@ def engine():
 
 @pytest.fixture(scope="function")
 def tables(engine):
-    _db.Base.metadata.create_all(engine, tables=[Comment.__table__])
+    database.Base.metadata.create_all(engine, tables=[comments_models.Comment.__table__])
     yield
-    _db.Base.metadata.drop_all(engine, tables=[Comment.__table__])
+    database.Base.metadata.drop_all(engine, tables=[comments_models.Comment.__table__])
 
 
 @pytest.fixture
@@ -53,11 +53,11 @@ comment_params = {
 
 
 def test_comment_create(db_session):
-    new_comment = Comment(**comment_params)
+    new_comment = comments_models.Comment(**comment_params)
     db_session.add(new_comment)
     db_session.commit()
     db_session.refresh(new_comment)
-    db_comment = db_session.query(Comment).filter(Comment.id == 1).first()
+    db_comment = db_session.query(comments_models.Comment).filter(comments_models.Comment.id == 1).first()
     assert db_comment.email == new_comment.email
     assert db_comment.text == new_comment.text
     assert db_comment.name == new_comment.name
@@ -65,12 +65,12 @@ def test_comment_create(db_session):
 
 
 def test_comment_threading(db_session):
-    p_comment = Comment(**comment_params)
+    p_comment = comments_models.Comment(**comment_params)
     db_session.add(p_comment)
     db_session.commit()
     db_session.refresh(p_comment)
 
-    child_comment = Comment(**comment_params)
+    child_comment = comments_models.Comment(**comment_params)
     child_comment.p_id = p_comment.id
     db_session.add(child_comment)
     db_session.commit()
@@ -83,12 +83,12 @@ def test_comment_threading(db_session):
 
 
 def test_comment_cascade(db_session):
-    p_comment = Comment(**comment_params)
+    p_comment = comments_models.Comment(**comment_params)
     db_session.add(p_comment)
     db_session.commit()
     db_session.refresh(p_comment)
 
-    child_comment = Comment(**comment_params)
+    child_comment = comments_models.Comment(**comment_params)
     child_comment.p_id = p_comment.id
     db_session.add(child_comment)
     db_session.commit()
@@ -96,7 +96,7 @@ def test_comment_cascade(db_session):
     db_session.delete(p_comment)
     db_session.commit()
 
-    comments_qs = db_session.query(Comment).all()
+    comments_qs = db_session.query(comments_models.Comment).all()
     assert len(comments_qs) == 0
 
 
@@ -108,12 +108,12 @@ def test_comment_update(db_session):
         "name": "tester",
         "text": "New Content",
     }
-    p_comment = Comment(**comment_params)
+    p_comment = comments_models.Comment(**comment_params)
     db_session.add(p_comment)
     db_session.commit()
     db_session.refresh(p_comment)
 
-    child_comment = Comment(**comment_params)
+    child_comment = comments_models.Comment(**comment_params)
     child_comment.p_id = p_comment.id
     db_session.add(child_comment)
     db_session.commit()
@@ -130,7 +130,7 @@ def test_comment_update(db_session):
 
 
 def test_comment_voting(db_session):
-    p_comment = Comment(**comment_params)
+    p_comment = comments_models.Comment(**comment_params)
     db_session.add(p_comment)
     db_session.commit()
     db_session.refresh(p_comment)

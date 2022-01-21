@@ -2,8 +2,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from bigfastapi import services as _services, models as _models, schema as _schemas
-from bigfastapi.db import database as _database
+from bigfastapi.models import blog_models
+from bigfastapi.schemas import blog_schemas, users_schemas
+from bigfastapi.db import database
+from bigfastapi.auth import is_authenticated
 from main import app
 
 
@@ -27,7 +29,7 @@ async def override_is_authenticated():
         "phone_number":"123456789000", 
         "organization":"test"
     }
-    return _schemas.User(**user_data)
+    return users_schemas.User(**user_data)
 
 def override_get_db():
     try:
@@ -41,17 +43,17 @@ client = TestClient(app)
 
 @pytest.fixture(scope="module")
 def setUp():
-    _database.Base.metadata.create_all(engine)
-    app.dependency_overrides[_database.get_db] = override_get_db
-    app.dependency_overrides[_services.is_authenticated] = override_is_authenticated
+    database.Base.metadata.create_all(engine)
+    app.dependency_overrides[database.get_db] = override_get_db
+    app.dependency_overrides[is_authenticated] = override_is_authenticated
 
     blog_data1 = {"title":"First Test Data", "content":"Testing Blog Endpoint"}
     blog_data2 = {"title":"Second Test Data", "content":"Testing Blog Update Endpoint"}
     blog_data3 = {"title":"Third Test Data", "content":"Testing Update Endpoint"}
     
-    blog1 = _models.Blog(id="9cd87677378946d88dc7903b6710ae44", creator="9cd87677378946d88dc7903b6710ae54", **blog_data1)
-    blog2 = _models.Blog(id="9cd87677378946d88dc7903b6710ae45", creator="9cd87677378946d88dc7903b6710ae55", **blog_data2)
-    blog3 = _models.Blog(id="9cd87677378946d88dc7903b6710ae46", creator="9cd87677378946d88dc7903b6710ae55", **blog_data3)
+    blog1 = blog_models.Blog(id="9cd87677378946d88dc7903b6710ae44", creator="9cd87677378946d88dc7903b6710ae54", **blog_data1)
+    blog2 = blog_models.Blog(id="9cd87677378946d88dc7903b6710ae45", creator="9cd87677378946d88dc7903b6710ae55", **blog_data2)
+    blog3 = blog_models.Blog(id="9cd87677378946d88dc7903b6710ae46", creator="9cd87677378946d88dc7903b6710ae55", **blog_data3)
     _db.add(blog1)
     _db.add(blog2)
     _db.add(blog3)
@@ -60,10 +62,7 @@ def setUp():
     _db.refresh(blog2)
     _db.refresh(blog3)
 
-    yield _schemas.Blog.from_orm(blog1)
-
-    _database.Base.metadata.drop_all(engine)
-
+    return blog_schemas.Blog.from_orm(blog1)
 
 def test_create_blog(setUp):
     response = client.post("/blog", json={"title":"Testing Create Endpoint!!!", "content":"Testing Create Blog Endpoint"})
