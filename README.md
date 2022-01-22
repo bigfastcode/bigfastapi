@@ -35,6 +35,8 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - Images
 - QR Codes
 - Background Jobs and Scheduler
+- PDF Converter
+- Research bank format providers to build on
 
 
 # How to use it 

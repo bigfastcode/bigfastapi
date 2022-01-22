@@ -144,3 +144,7 @@ server.py
 data/27017
 data/27018
 data/27019
+
+# editor
+.idea/
+identifier.sqlite
