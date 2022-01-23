@@ -30,7 +30,12 @@ files so far as possible.
 
 A schemas folder for all the pydantic schemas.
 
+# Imports
 
+When importing the schema and the model, simply refer to them as schema and model in the way below
+
+from .models import file_models as model
+from .schemas import file_schemas as schema
 
 # Naming Variables
 ---

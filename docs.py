@@ -34,3 +34,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 if __name__ == "__main__":
     with open(f"docs/index.html", "w") as fd:
         print(HTML_TEMPLATE % json.dumps(app.openapi()), file=fd)
+
+    with open(f"docs/swagger.json", "w") as fd:
+        print(json.dumps(app.openapi()), file=fd)
