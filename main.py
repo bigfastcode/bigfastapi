@@ -13,6 +13,7 @@ from bigfastapi.countries import app as countries
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.pages import app as pages
+from bigfastapi.transactionalemails import app as trans
 
 # Create the application
 app = FastAPI()
@@ -37,6 +38,7 @@ app.include_router(faq)
 app.include_router(blog, tags=["Blog"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(pages, tags=["Pages"])
+app.include_router(trans)
 
 
 @app.get("/", tags=["Home"])
