@@ -9,13 +9,14 @@ import sqlalchemy.orm as orm
 from typing import List
 from bigfastapi.db.database import get_db
 from bigfastapi.utils import settings as settings
+from fastapi.responses import FileResponse
 from datetime import datetime
 
 # Import the Router
 app = fastapi.APIRouter()
 
 @app.get("/files/{bucket_name}/", response_model=List[schema.File])
-def get_all_pages(db: orm.Session = fastapi.Depends(get_db)):
+def get_all_files(db: orm.Session = fastapi.Depends(get_db)):
 
     """List all files that are in a single bucket
 
@@ -28,6 +29,34 @@ def get_all_pages(db: orm.Session = fastapi.Depends(get_db)):
     files = db.query(model.File).all()
     return list(map(schema.File.from_orm, files))
 
+
+@app.get("/files/{bucket_name}/{file_name}", response_class=FileResponse)
+def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends(get_db)):
+
+    """Download a single file from the storage
+
+    Args:
+        bucket_name (str): the bucket to list all the files.
+        file_name (str): the file that you want to retrieve
+
+    Returns:
+        A stream of the file
+    """
+
+    existing_file = model.find_file(bucket_name, file_name, db)
+    if existing_file:
+
+        local_file_path = os.path.join(os.path.realpath(settings.FILES_BASE_FOLDER), existing_file.bucketname, existing_file.filename)
+
+        common_path = os.path.commonpath((os.path.realpath(settings.FILES_BASE_FOLDER), local_file_path))
+        if os.path.realpath(settings.FILES_BASE_FOLDER) != common_path:
+            raise fastapi.HTTPException(status_code=403, detail="File reading from unallowed path")
+
+        return FileResponse(local_file_path)
+    else:
+        raise fastapi.HTTPException(status_code=404, detail="File not found")
+
+    
 
 @app.post("/upload-file/{bucket_name}/", response_model=schema.File)
 async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(...), db: orm.Session = fastapi.Depends(get_db)):
