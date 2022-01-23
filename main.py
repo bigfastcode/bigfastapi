@@ -10,6 +10,7 @@ from bigfastapi.faq import app as faq
 from bigfastapi.blog import app as blog
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
+from bigfastapi.notification import app as notification_router
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 
@@ -35,6 +36,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(blog, tags=["Blog"])
 app.include_router(comments, tags=["Comments"])
+app.include_router(notification_router, tags=["Notification"])
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
