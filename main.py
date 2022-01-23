@@ -13,7 +13,7 @@ from bigfastapi.countries import app as countries
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.pages import app as pages
-from bigfastapi.transactionalemails import app as trans
+from bigfastapi.email import app as trans
 
 # Create the application
 app = FastAPI()

@@ -10,6 +10,16 @@ from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as database
 from bigfastapi.utils import utils
 
+class Email(database.Base):
+    __tablename__ = "email"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    subject = Column(String(255), index=True)
+    recipient = Column(String(255), index=True)
+    title = Column(String(255), index=True)
+    first_name = Column(String(255), index=True)
+    body = Column(Text(), index=True)
+    date_created = Column(DateTime, default=dt.datetime.utcnow)
+
 
 class InvoiceMail(database.Base):
     __tablename__ = "invoicemail"

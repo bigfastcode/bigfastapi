@@ -2,6 +2,14 @@ import datetime as dt
 from pydantic import EmailStr, BaseModel
 
 
+class Email(BaseModel):
+    subject: str
+    recipient: EmailStr
+    title: str
+    first_name: str
+    body: str
+
+
 class InvoiceMail(BaseModel):
     subject: str
     recipient: EmailStr

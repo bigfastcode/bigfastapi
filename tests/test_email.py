@@ -1,5 +1,5 @@
 from http import client
-from bigfastapi.transactionalemails import send_email_background
+from bigfastapi.email import send_email_background
 from main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
