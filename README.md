@@ -25,13 +25,13 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - Notifications
 - Plans
 - Contact
+- Files
 
 ### Planned
 - Transactional Email sending + templates
 - Wallet/Credits
 - Subscriptions
 - Settings
-- Files
 - Images
 - QR Codes
 - Background Jobs and Scheduler
@@ -47,7 +47,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 4. run `pip install -r requirements.txt`
 5. Create a .env file by copying the .env.sample file
 6. Run `python main.py`. Check the code to understand how to use the library
-7. Create your own app in another folder and import the bigfastapi folder
+7. If you are planning to use BigFastAPI, but not just work on it, then create your own app in another folder and import the bigfastapi folder
 
 # Documentation
 

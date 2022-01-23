@@ -13,6 +13,8 @@ BigFastAPI.egg-info
 database.db
 test.db
 
+filestorage
+
 .vscode/
 # Distribution / packaging
 .Python
