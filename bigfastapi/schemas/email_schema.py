@@ -1,4 +1,3 @@
-import datetime as dt
 from pydantic import EmailStr, BaseModel
 
 

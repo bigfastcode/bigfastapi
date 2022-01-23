@@ -1,8 +1,4 @@
-from fastapi.openapi.models import HTTPBearer
-import fastapi.security as _security
 from bigfastapi.utils import settings as settings
-from bigfastapi.db import database as _database
-from . import models
 from .models import user_models
 from uuid import uuid4
 from .auth import create_passwordreset_token, create_verification_token
@@ -254,7 +250,3 @@ def send_receipt_mail(receipt_details: ReceiptMail, background_tasks: Background
 
     send_email_background(background_tasks=background_tasks, message=message, template=template)
     return {"message": "Receipt Email will be sent in the background"}
-
-
-
-

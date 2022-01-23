@@ -1,5 +1,4 @@
 from http import client
-from bigfastapi.email import send_email_background
 from main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -71,5 +70,3 @@ def test_send_receipt_mail():
     )
     assert response.status_code == 200, response.text
     assert response.json()["message"] == "Receipt Email will be sent in the background"
-
-

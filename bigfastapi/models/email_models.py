@@ -1,14 +1,10 @@
 import datetime as dt
-from sqlite3 import Timestamp
-from sqlalchemy.schema import Column
-from sqlalchemy.types import String, DateTime, Boolean, Text
-from sqlalchemy import ForeignKey
-from uuid import uuid4
 
-from sqlalchemy.sql import func
-from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
+from sqlalchemy.schema import Column
+from sqlalchemy.types import String, DateTime, Text
+from uuid import uuid4
 import bigfastapi.db.database as database
-from bigfastapi.utils import utils
+
 
 class Email(database.Base):
     __tablename__ = "email"
