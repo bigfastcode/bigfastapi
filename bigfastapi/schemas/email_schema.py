@@ -20,6 +20,7 @@ class InvoiceMail(BaseModel):
     invoice_id: str
     description: str
 
+
 class ReceiptMail(BaseModel):
     subject: str
     recipient: EmailStr
