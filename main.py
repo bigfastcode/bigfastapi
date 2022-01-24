@@ -1,19 +1,18 @@
-import json
-from uuid import uuid4
 import uvicorn
+from uuid import uuid4
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from fastapi.middleware.cors import CORSMiddleware
+
 from bigfastapi.db.database import create_database
-from bigfastapi.users import app as accounts_router
-from bigfastapi.organization import app as organization_router
-from bigfastapi.countries import app as countries
-# from bigfastapi.subscription import app as subscription
 from bigfastapi.faq import app as faq
 from bigfastapi.blog import app as blog
 from bigfastapi.comments import app as comments
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.testclient import TestClient
+from bigfastapi.countries import app as countries
+from bigfastapi.users import app as accounts_router
+from bigfastapi.organization import app as organization_router
 
-
+# Create the application
 app = FastAPI()
 
 client = TestClient(app)
@@ -100,6 +99,7 @@ async def run_test() -> dict:
     print("Response Code: " + str(blog_create_response.status_code))
     assert blog_create_response.status_code == 200
 
+    # Get a list of all blog posts
     blog_list = client.get("/blogs")
     blog_list_json = blog_list.json()
     print(blog_list_json)
