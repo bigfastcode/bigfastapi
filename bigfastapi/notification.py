@@ -1,92 +1,77 @@
-import fastapi
-from fastapi import Request, APIRouter
+from fastapi import APIRouter
 from datetime import datetime
-import sqlalchemy.orm as orm
-from bigfastapi import auth
 from bigfastapi.db.database import get_db
 from fastapi import Depends
-
-from bigfastapi.schemas import users_schemas
-from .models import notification_models
-from .schemas import notification_schemas
-from uuid import uuid4
+from .models import notification_models as model
+from .schemas import notification_schemas as schema, users_schemas as user_schema
 from typing import List
 from bigfastapi.auth import is_authenticated
+import sqlalchemy.orm as orm
+from uuid import uuid4
+
 
 
 app = APIRouter(tags=["Notification"])
 
-@app.get("/notification/{notification_id}", response_model=notification_schemas.Notification)
-def get_a_notification(
-    notification_id: str, 
-    db: orm.Session = Depends(get_db)
-):
-    return notification_selector(id=notification_id, db=db)
+@app.get("/notification/{notification_id}", response_model=schema.Notification)
+def get_a_notification(notification_id: str, db: orm.Session = Depends(get_db)):
 
-@app.get("/notifications", response_model=List[notification_schemas.Notification])
-def get_all_notifications(
-    db: orm.Session = Depends(get_db)
-):
-    return get_all_notifications_from_db(db=db)
+    """Get details of a notification
 
-@app.post("/notification", response_model=notification_schemas.Notification)
-def create_notification(
-    notification: notification_schemas.NotificationCreate, 
-    user: users_schemas.User = Depends(is_authenticated),
-    db: orm.Session = Depends(get_db)
-):
-    return create_a_notification(user=user, notification=notification, db=db)
+    Args:
+        notification_id (str): the id of the notification.
+    Returns:
+        schema.Nofication: Detail of the notification
+    """
 
-@app.put("/notification/{notification_id}/read", response_model=notification_schemas.Notification)
-def mark_notification_read(
-    notification_id: str,
-    db: orm.Session = Depends(get_db)
-):
-    return mark_a_notification_read(id=notification_id, db=db)
+    return model.notification_selector(id=notification_id, db=db)
 
-@app.put("/notifications/read", response_model=List[notification_schemas.Notification])
-def mark_notifications_read(
-    db: orm.Session = Depends(get_db)
-):
-    return mark_all_notifications_read(db=db)
+@app.get("/notifications", response_model=List[schema.Notification])
+def get_all_notifications(db: orm.Session = Depends(get_db)):  
 
-@app.put("/notifications/{notification_id}", response_model=notification_schemas.Notification)
-def update_notification(
-    notification_id: str,
-    notification: notification_schemas.NotificationUpdate,
-    db: orm.Session = Depends(get_db)
-):
-    return update_a_notification(id=notification_id, notification=notification, db=db)
+    """Get all the notifications
 
-@app.delete("/notification/{notification_id}")
-def delete_notification(
-    notification_id: str,
-    db: orm.Session = Depends(get_db)
-):
-    return delete_a_notification(id=notification_id, db=db)
+    Returns:
+        List of schema.Notification: A list of all the notifications
+    """
 
+    notifications = db.query(model.Notification).all()
+    return list(map(schema.Notification.from_orm, notifications))
 
+@app.post("/notification", response_model=schema.Notification)
+def create_notification(notification: schema.NotificationCreate, user: user_schema.User = Depends(is_authenticated),db: orm.Session = Depends(get_db)):
 
+    """Create a new notification
 
-#=================================== NOTIFICATION SERVICES =================================#
+    Returns:
+        schema.Notification: Details of the newly created notification
+    """
 
-def get_authenticated_user_email(user: users_schemas.User):
-    return user.email
+    if notification.creator == "":
+        creator = model.get_authenticated_user_email(user=user)
+    else:
+        creator = notification.creator
 
-def notification_selector(id: str, db: orm.Session):
-    notification = db.query(notification_models.Notification).filter(notification_models.Notification.id == id).first()
+    new_notification = model.Notification(id=uuid4().hex, creator=creator, content=notification.content, reference=notification.reference, recipient=notification.recipient)
+    db.add(new_notification)
+    db.commit()
+    db.refresh(new_notification)
 
-    if notification is None:
-        raise fastapi.HTTPException(status_code=404, detail="Notification does not exist")
+    return schema.Notification.from_orm(new_notification)
 
-    return notification
+@app.put("/notification/{notification_id}/read", response_model=schema.Notification)
+def mark_notification_read(notification_id: str,db: orm.Session = Depends(get_db)):  
 
-def get_all_notifications_from_db(db: orm.Session):
-    notifications = db.query(notification_models.Notification).all()
-    return list(map(notification_schemas.Notification.from_orm, notifications))
+    """Marks a notifcation as read
 
-def mark_a_notification_read(id:str, db: orm.Session):
-    notification = notification_selector(id=id, db=db)
+    Args:
+        notification_id (str): the id of the notification
+    
+    Returns:
+        schema.Notification: Refreshed data of the updated notification
+    """
+
+    notification = model.notification_selector(id=notification_id, db=db)
 
     if notification.has_read:
         pass
@@ -97,10 +82,18 @@ def mark_a_notification_read(id:str, db: orm.Session):
     db.commit()
     db.refresh(notification)
 
-    return notification_schemas.Notification.from_orm(notification)
+    return schema.Notification.from_orm(notification)
 
-def mark_all_notifications_read(db: orm.Session):
-    notifications = db.query(notification_models.Notification).all()
+@app.put("/notifications/read", response_model=List[schema.Notification])
+def mark_notifications_read(db: orm.Session = Depends(get_db)):
+
+    """Mark all the notifications as read
+    
+    Returns:
+        List of schema.Notification: A list of all the notifications updated to read
+    """
+
+    notifications = db.query(model.Notification).all()
     for notification in notifications:
         if notification.has_read:
             pass
@@ -111,32 +104,20 @@ def mark_all_notifications_read(db: orm.Session):
         db.commit()
         db.refresh(notification)
     
-    return list(map(notification_schemas.Notification.from_orm, notifications))
+    return list(map(schema.Notification.from_orm, notifications))
 
-def create_a_notification(user: users_schemas.User, notification: notification_schemas.NotificationCreate, db: orm.Session):
+@app.put("/notifications/{notification_id}", response_model=schema.Notification)
+def update_notification(notification_id: str, notification: schema.NotificationUpdate, db: orm.Session = Depends(get_db)):
+    
+    """Update a notification
+    
+    Args:
+        notification_id (str): the id of the notification
 
-    if notification.creator == "":
-        creator = get_authenticated_user_email(user=user)
-    else:
-        creator = notification.creator
-
-    new_notification = notification_models.Notification(id=uuid4().hex, creator=creator, content=notification.content, reference=notification.reference, recipient=notification.recipient)
-    db.add(new_notification)
-    db.commit()
-    db.refresh(new_notification)
-
-    return notification_schemas.Notification.from_orm(new_notification)
-
-def delete_a_notification(id:str , db: orm.Session):
-    notification = notification_selector(id=id, db=db)
-
-    db.delete(notification)
-    db.commit()
-
-    return {"message":"successfully deleted"}
-
-def update_a_notification(id: str, notification: notification_schemas.NotificationUpdate, db: orm.Session):
-    notification_from_db = notification_selector(id=id, db=db)
+    Returns:
+        schema.Notification: The details of the notification that has been updated
+    """
+    notification_from_db = model.notification_selector(id=notification_id, db=db)
 
     if notification.content != "":
         notification_from_db.content = notification.content
@@ -152,4 +133,23 @@ def update_a_notification(id: str, notification: notification_schemas.Notificati
     db.commit()
     db.refresh(notification_from_db)
 
-    return notification_schemas.Notification.from_orm(notification_from_db)
+    return schema.Notification.from_orm(notification_from_db)
+
+@app.delete("/notification/{notification_id}")
+def delete_notification(notification_id: str,db: orm.Session = Depends(get_db)):
+
+    """Delete a notification from the db
+    
+    Args:
+        notification_id (str): the id of the notification
+
+    Returns:
+        object (dict): successfully deleted
+    """
+
+    notification = model.notification_selector(id=notification_id, db=db)
+
+    db.delete(notification)
+    db.commit()
+
+    return {"message":"successfully deleted"}

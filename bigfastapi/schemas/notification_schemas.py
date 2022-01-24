@@ -7,7 +7,7 @@ from fastapi import Depends
 class NotificationBase(pydantic.BaseModel):
     content: str
     recipient: str
-    reference: str = Field(..., description="model instance reference eg. comment-9cd87677378946d88dc7903b6710ae55", max_length=100)
+    reference: str
 
 class Notification(NotificationBase):
     id: str
