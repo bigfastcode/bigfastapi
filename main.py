@@ -9,6 +9,7 @@ from bigfastapi.db.database import create_database
 
 # Import all the functionality that BFA provides
 from bigfastapi.faq import app as faq
+from bigfastapi.contact import app as contact
 from bigfastapi.blog import app as blog
 from bigfastapi.pages import app as pages
 from bigfastapi.files import app as files
@@ -35,6 +36,7 @@ app.add_middleware(
 
 # routers
 app.include_router(faq)
+app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(files, tags=["File"])
