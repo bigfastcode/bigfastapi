@@ -1,4 +1,5 @@
 import uvicorn
+import datetime
 from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -6,14 +7,23 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from bigfastapi.db.database import create_database
 
+# Import all the functionality that BFA provides
 from bigfastapi.faq import app as faq
 from bigfastapi.blog import app as blog
+from bigfastapi.pages import app as pages
+from bigfastapi.files import app as files
+from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
+
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.pages import app as pages
 from bigfastapi.email import app as trans
+
+from bigfastapi.organization import app as organization
+
+
 
 # Create the application
 app = FastAPI()
@@ -31,14 +41,17 @@ app.add_middleware(
 )
 
 # routers
-app.include_router(accounts_router, tags=["Auth"])
-app.include_router(organization_router, tags=["Organization"])
-app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(blog, tags=["Blog"])
-app.include_router(comments, tags=["Comments"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(trans)
+
+
+app.include_router(files, tags=["File"])
+app.include_router(accounts, tags=["Auth"])
+app.include_router(comments, tags=["Comments"])
+app.include_router(countries, tags=["Countries"])
+app.include_router(organization, tags=["Organization"])
 
 
 @app.get("/", tags=["Home"])
@@ -54,6 +67,7 @@ async def get_root() -> dict:
 async def run_test() -> dict:
     # This function shows you how to use each of the APIs in a practical way
     print("Testing BigFastAPI")
+
 
     # Retrieve all countries in the world
     print("Testing Countries - get all countries")
@@ -106,6 +120,18 @@ async def run_test() -> dict:
     blog_list_json = blog_list.json()
     print(blog_list_json)
 
+    # Test file upload 
+    txt_file = open("README.md", 'rb').read()
+
+    timestamp_str = datetime.datetime.now().isoformat()
+    files = {
+        'timestamp': (None, timestamp_str),
+        'file': ('readme8.txt', txt_file),
+    }
+
+    file_upload_response = client.post("/upload-file/bfafiles/", files = files) 
+    print(file_upload_response.json())
+    
     return {
         "message": "Test Results:",
         "create_user_auth_token": create_auth_json["access_token"]["access_token"],
@@ -113,6 +139,6 @@ async def run_test() -> dict:
         "blog_list": blog_list_json
     }
 
-
 if __name__ == "__main__":
     uvicorn.run("main:app", port=7001, reload=True)
+

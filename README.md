@@ -25,13 +25,13 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - Notifications
 - Plans
 - Contact
+- Files
 
 ### Planned
 - Transactional Email sending + templates
 - Wallet/Credits
 - Subscriptions
 - Settings
-- Files
 - Images
 - QR Codes
 - Background Jobs and Scheduler
@@ -39,7 +39,20 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - Research bank format providers to build on
 
 
-# How to use it 
+# How to use BigFastAPI
+- Create a new python project
+- Create a main.py file
+- Create the requirements.txt and copy the content from here. Install all requirements
+- Make a folder called db and copy the database.py file from here
+- In your main.py, import FastAPI and the create_database function (in database.py). Import
+  CORSMiddleware too. You can look in the main.py here to see everything you should import
+- Copy the env file sample from here into your new project
+- Clone the BigFastAPI repo. Cut out the BigFastAPI folder (the one with users.py only) and paste in your new project
+- Make sure you have a main that calls uvicorn in the bottom of your file
+- Run the main.py file. You now have a project where you can add all your endpoints. You also have
+  access to all the functions in bigfastapi. You can include any of them by importing (from bigfastapi.countries import app as countries) and then including a router app.include_router(countries, tags=["Countries"])
+
+# How to contribute to BigFastAPI
 
 1. Create a virtual environment with `python3 -m venv env`
 2. Activate the virtual environment using `.\env\bin\Activate.ps1` (windows) or `source /path/to/venv/bin/activate` (linux/mac)
@@ -47,7 +60,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 4. run `pip install -r requirements.txt`
 5. Create a .env file by copying the .env.sample file
 6. Run `python main.py`. Check the code to understand how to use the library
-7. Create your own app in another folder and import the bigfastapi folder
+7. If you are planning to use BigFastAPI, but not just work on it, then create your own app in another folder and import the bigfastapi folder
 
 # Documentation
 
