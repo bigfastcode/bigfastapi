@@ -1,4 +1,6 @@
 from http import client
+
+from aiosmtplib import response
 from main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -30,17 +32,28 @@ client = TestClient(app)
 app.dependency_overrides[get_db] = override_get_db
 
 
-
-
+def test_send_email():
+    response = client.post(
+        '/email/send',
+        json= {
+            "subject": "Rejection",
+            "recipient": "testemail@email.com",
+            "title": "title",
+            "first_name": "Samuel",
+            "body": "the body"
+            }
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["message"] == "Email will be sent in the background"
 
 
 
 def test_send_invoice_mail():
     response = client.post(
-        '/mail/invoice',
+        '/email/send/invoice',
         json={
             "subject": "Invoice from BigFastAPI",
-            "recipient": "okechukwusamuel16@gmail.com",
+            "recipient": "test@email.com",
             "title": "Invoice for Ps5",
             "first_name": "Psami",
             "amount": "$1000",
@@ -57,10 +70,10 @@ def test_send_invoice_mail():
 
 def test_send_receipt_mail():
     response = client.post(
-        '/mail/receipt',
+        '/email/send/receipt',
         json={
         "subject": "Receipt from BigFastAPI",
-        "recipient": "okechukwusamuel16@gmail.com",
+        "recipient": "test@email.com",
         "title": "Payment for Ps5",
         "first_name": "Samuel",
         "amount": "$600",
