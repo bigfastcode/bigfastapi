@@ -19,7 +19,8 @@ from bigfastapi.countries import app as countries
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.pages import app as pages
-from bigfastapi.email import app as trans
+
+from bigfastapi.email import app as email
 
 from bigfastapi.organization import app as organization
 
@@ -44,7 +45,7 @@ app.add_middleware(
 app.include_router(faq)
 app.include_router(blog, tags=["Blog"])
 app.include_router(pages, tags=["Pages"])
-app.include_router(trans)
+app.include_router(email)
 
 
 app.include_router(files, tags=["File"])

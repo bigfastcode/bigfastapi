@@ -8,6 +8,14 @@ class Email(BaseModel):
     first_name: str
     body: str
 
+class NotificationEmail(BaseModel):
+    subject: str
+    recipient: EmailStr
+    title: str
+    first_name: str
+    body: str
+    sender: str
+
 
 class InvoiceMail(BaseModel):
     subject: str

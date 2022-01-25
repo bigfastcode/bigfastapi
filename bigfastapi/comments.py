@@ -22,7 +22,7 @@ from bigfastapi.db import database
 from .schemas import comments_schemas
 from .models import comments_models
 from .auth import *
-from .email import *
+from .mail import *
 
 
 

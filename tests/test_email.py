@@ -38,7 +38,7 @@ def test_send_email():
         "/email/send",
         json={
             "subject": "Rejection",
-            "recipient": "testemail@email.com",
+            "recipient": "test@email.com",
             "title": "title",
             "first_name": "Samuel",
             "body": "the body",
@@ -46,6 +46,22 @@ def test_send_email():
     )
     assert response.status_code == 200, response.text
     assert response.json()["message"] == "Email will be sent in the background"
+
+def test_send_notification_email():
+    response = client.post(
+        "/email/send/notification",
+        json={
+            "subject": "Rejection",
+            "recipient": "test@email.com",
+            "title": "title",
+            "first_name": "Samuel",
+            "body": "the body",
+            "sender": "mark"
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["message"] == "Notification Email will be sent in the background"
+
 
 
 def test_send_invoice_mail():
