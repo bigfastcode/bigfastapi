@@ -11,7 +11,7 @@ from bigfastapi.blog import app as blog
 from bigfastapi.comments import app as comments
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
-
+from bigfastapi import banks
 
 app = FastAPI()
 
@@ -34,6 +34,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(blog, tags=["Blog"])
 app.include_router(comments, tags=["Comments"])
+app.include_router(banks.router, tags=["Banks"])
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:

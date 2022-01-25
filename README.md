@@ -35,11 +35,10 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 
 0. Upgrade pip with pip install --upgrade pip
 1. Create a virtual environment with python3 -m venv env
-2. Activate the virtual environment using .\env\bin\Activate.ps1 (windows) or source /path/to/venv/bin/activate (linux/mac)
+2. Activate the virtual environment using .\env\Scripts\Activate.ps1 (windows powershell) or .\env\Scripts\Activate.bat 
+    (windows cmd) or source /path/to/venv/bin/activate (linux/mac)
 3. Pull latest code.
 4. run "pip install -r requirements.txt"
-   - On Windows be sure to install microsoft visual c++ build tools https://go.microsoft.com/fwlink/?LinkId=691126
-   - Install PostgresQL before
 5. Create a .env file by copying the .env.sample file
 6. Run python main.py. Check the code to understand how to use the library
 7. Create your own app in another folder and import the bigfastapi folder
