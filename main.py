@@ -3,7 +3,7 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
-
+from bigfastapi.subscription import app as sub
 from bigfastapi.db.database import create_database
 from bigfastapi.faq import app as faq
 from bigfastapi.blog import app as blog
@@ -34,6 +34,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(blog, tags=["Blog"])
 app.include_router(comments, tags=["Comments"])
+app.include_router(sub, tags=["Subscription"])
 # app.include_router(subscription, tags=["Subscription"])
 
 
