@@ -3,8 +3,8 @@ from sqlalchemy import ForeignKey
 import bigfastapi.db.database as database
 from datetime import datetime
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String,DateTime, JSON, ARRAY, DECIMAL, Text
-from bigfastapi.db.database import get_db
+from sqlalchemy.types import String,DateTime,Text, JSON
+
 from bigfastapi.schemas import plan_schemas
 from bigfastapi.auth import is_authenticated
 from fastapi import Depends
@@ -19,32 +19,32 @@ class Plan(database.Base):
     created_by = Column(String(255), ForeignKey("users.id"))
     title = Column(String(255), unique= True, index=True, default="")
     description = Column(Text, index=True, default="")
-    price_offers = Column(Text, index=True, default="")
+    price_offers = Column(JSON, index=True, default=None)
     available_geographies = Column(Text, index=True, default="")
     features = Column(Text, index=True, default="")
     date_created = Column(DateTime, default=datetime.utcnow)
     last_updated = Column(DateTime, default=datetime.utcnow)
     
 
-def get_all_plans(db: orm.Session = Depends(get_db)):
+def get_all_plans(db: orm.Session = Depends(database.get_db)):
     plans = db.query(Plan).all()
     return list(map(plan_schemas.Plan.from_orm, plans))
 
-def get_plan_by_id(plan_id: str, db: orm.Session = Depends(get_db)):
+def get_plan_by_id(plan_id: str, db: orm.Session = Depends(database.get_db)):
     plan = db.query(Plan).filter(Plan.id == plan_id).first()
     if plan:
         return plan_schemas.Plan.from_orm(plan)
     else:
         return None
 
-def get_plan_by_title(title: str, db: orm.Session = Depends(get_db)):
+def get_plan_by_title(title: str, db: orm.Session = Depends(database.get_db)):
     plan = db.query(Plan).filter(Plan.title.casefold() == title.casefold()).first()
     if plan:
         return plan_schemas.Plan.from_orm(plan)
     else:
         return None
 
-def get_plan_by_geography(geography: str, db: orm.Session = Depends(get_db)):
+def get_plan_by_geography(geography: str, db: orm.Session = Depends(database.get_db)):
     plan = db.query(Plan).filter(geography in json.loads(Plan.geography)).all()
     if plan:
         return list(map(plan_schemas.Plan.from_orm, plan))
@@ -53,7 +53,7 @@ def get_plan_by_geography(geography: str, db: orm.Session = Depends(get_db)):
 
 def create_plan(
     plan: plan_schemas.PlanDTO, 
-    db: orm.Session = Depends(get_db), 
+    db: orm.Session = Depends(database.get_db), 
     user: users_schemas.User = Depends(is_authenticated)):
     
     plan_search = get_plan_by_title(title=plan.title, db=db)
@@ -71,7 +71,7 @@ def create_plan(
 def update_plan(
     plan: plan_schemas.PlanDTO, 
     plan_id: str, 
-    db: orm.Session = Depends(get_db), 
+    db: orm.Session = Depends(database.get_db), 
     user: users_schemas.User = Depends(is_authenticated)):
     
     plan_db = get_plan_by_id(plan_id=plan_id, db=db)
@@ -91,7 +91,7 @@ def update_plan(
 
 def delete_plan(
     plan_id: str, 
-    db: orm.Session = Depends(get_db), 
+    db: orm.Session = Depends(database.get_db), 
     user: users_schemas.User = Depends(is_authenticated)):
     
     plan_db = get_plan_by_id(plan_id=plan_id, db=db)

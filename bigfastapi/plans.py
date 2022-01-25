@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, responses
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from typing import List
+from fastapi.encoders import jsonable_encoder
 
 
 app = APIRouter(tags=["Plans"])
@@ -83,7 +84,7 @@ def get_all_plans(db: orm.Session = Depends(get_db)):
             data (List[plan_schemas.Plan]): list of plans
     """
     plans = plan_models.get_all_plans(db=db)
-    return responses.JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Plans retrieved succesfully", "data": plans})
+    return responses.JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Plans retrieved succesfully", "data": jsonable_encoder(plans)})
 
 
 @app.get("/plans/{plan_id}", response_model=plan_schemas.Plan)

@@ -1,4 +1,5 @@
-from typing import Dict, List, Union
+from tkinter import E
+from typing import Any, Dict, List, Union
 import pydantic
 from datetime import datetime
 from enum import Enum
@@ -6,11 +7,12 @@ import json
 
 
 def is_json(myjson:str):
-  try:
-    json.loads(myjson)
-  except ValueError as e:
-    return False
-  return True
+    try:
+        json.loads(myjson)
+    except ValueError or TypeError as e:
+        return False
+    else:
+        return True
 
 
 class Period(str, Enum):
@@ -30,24 +32,17 @@ class Period(str, Enum):
 
 
 class Duration(pydantic.BaseModel):
-    number: int = 1
+    length: int = 1
     period: Period
     
-    
+
 
 class PlanDTO(pydantic.BaseModel):
     title: str
     description: str
-    price_offers: Union[Dict[float, Duration], str] = None
-    available_geographies: Union[List[str], str] = None
-    features: Union[List[str], str] = None
-    
-    @pydantic.validator('price_offers')
-    def price_offers_to_string(cls, value):
-        """converts price_offers from dict to str"""
-        if isinstance(value, dict):
-            return json.dumps(value)
-        return value
+    price_offers: Dict[float, Duration] = None
+    available_geographies: List[str] = None
+    features: List[str] = None
     
     @pydantic.validator('available_geographies')
     def available_geo_to_string(cls, value):
@@ -63,10 +58,19 @@ class PlanDTO(pydantic.BaseModel):
             return json.dumps(value)
         return value
     
-    class Config:
-        json_encoders = {
-            str: lambda value: json.loads(value) if is_json(value) else value
-        }
+    
+    @classmethod
+    def from_orm(cls, obj: Any): 
+        if hasattr(obj, "available_geographies"):       
+            if is_json(obj.available_geographies):
+                setattr(obj, "available_geographies", json.loads(obj.available_geographies))
+        
+        if hasattr(obj, "features"):
+            if is_json(obj.features):
+                setattr(obj, "features", json.loads(obj.features))
+        
+        return obj
+        
 
 class Plan(PlanDTO):
     id: str

@@ -4,7 +4,6 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
-
 from bigfastapi.db.database import create_database
 
 # Import all the functionality that BFA provides
