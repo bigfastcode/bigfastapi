@@ -23,6 +23,7 @@ from bigfastapi.pages import app as pages
 from bigfastapi.email import app as email
 
 from bigfastapi.organization import app as organization
+from bigfastapi.notification import app as notification
 
 
 
@@ -53,6 +54,7 @@ app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
+app.include_router(notification, tags=["Notification"])
 
 
 @app.get("/", tags=["Home"])
