@@ -50,8 +50,6 @@ app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(email)
-#
-#
 app.include_router(files, tags=["File"])
 app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
