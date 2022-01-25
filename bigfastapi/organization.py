@@ -8,6 +8,7 @@ import fastapi.security as _security
 import sqlalchemy.orm as _orm
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
+from . import wallet
 
 from bigfastapi.db.database import get_db
 from .auth import is_authenticated
@@ -52,7 +53,7 @@ async def get_organization(
 @app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,  user: users_schemas.User = _fastapi.Depends(is_authenticated), db: _orm.Session = _fastapi.Depends(get_db)):
     return await update_organization(organization_id, organization, user, db)
-    
+
 
 @app.delete("/organizations/{organization_id}", status_code=204)
 async def delete_organization(organization_id: str, user: users_schemas.User = _fastapi.Depends(is_authenticated), db: _orm.Session = _fastapi.Depends(get_db)):
@@ -69,12 +70,14 @@ async def get_orgnanization_by_name(name: str, db: _orm.Session):
 
 
 async def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
-   
-    organization = _models.Organization(id=uuid4().hex, creator=user.id, mission= organization.mission, 
+
+    organization_id = uuid4().hex
+    organization = _models.Organization(id=organization_id, creator=user.id, mission= organization.mission,
     vision= organization.vision, values= organization.values, name= organization.name)
     db.add(organization)
     db.commit()
     db.refresh(organization)
+    await wallet.create_wallet(organization_id=organization_id, db=db)
     return _schemas.Organization.from_orm(organization)
 
 
@@ -106,7 +109,7 @@ async def get_organization(organization_id: str, user: users_schemas.User, db: _
 
 async def delete_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = await _organization_selector(organization_id, user, db)
-    
+
     db.delete(organization)
     db.commit()
 
@@ -128,7 +131,7 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
         if db_org:
             raise _fastapi.HTTPException(status_code=400, detail="Organization name already in use")
         else:
-            organization_db.name = organization.name       
+            organization_db.name = organization.name
 
     organization_db.last_updated = _dt.datetime.utcnow()
 
