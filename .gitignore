@@ -13,6 +13,9 @@ BigFastAPI.egg-info
 database.db
 test.db
 
+.DS_Store
+
+
 filestorage
 
 .vscode/

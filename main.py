@@ -15,7 +15,15 @@ from bigfastapi.files import app as files
 from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
+
+from bigfastapi.users import app as accounts_router
+from bigfastapi.organization import app as organization_router
+from bigfastapi.pages import app as pages
+
+from bigfastapi.email import app as email
+
 from bigfastapi.organization import app as organization
+
 
 
 # Create the application
@@ -37,11 +45,15 @@ app.add_middleware(
 app.include_router(faq)
 app.include_router(blog, tags=["Blog"])
 app.include_router(pages, tags=["Pages"])
+app.include_router(email)
+
+
 app.include_router(files, tags=["File"])
 app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
+
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
