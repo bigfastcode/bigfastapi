@@ -1,22 +1,25 @@
-import datetime as _dt
-from sqlite3 import Timestamp
-import sqlalchemy as _sql
-import sqlalchemy.orm as _orm
-import passlib.hash as _hash
+import datetime as datetime
+import sqlalchemy.orm as orm
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, Text
+from sqlalchemy.types import String, DateTime
 from sqlalchemy import ForeignKey
-from uuid import UUID, uuid4
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-from sqlalchemy.sql import func
-from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
-import bigfastapi.db.database as _database
+from uuid import uuid4
+import bigfastapi.db.database as database
+import bigfastapi.schemas.users_schemas as schema
 
-class Blog(_database.Base):
+class Blog(database.Base):
     __tablename__ = "blogs"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     creator = Column(String(255), ForeignKey("users.id"))
     title = Column(String(50), index=True, unique=True)
     content = Column(String(255), index=True)
-    date_created = Column(DateTime, default=_dt.datetime.utcnow)
-    last_updated = Column(DateTime, default=_dt.datetime.utcnow)
+    date_created = Column(DateTime, default=datetime.datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+def blog_selector(user: schema.User, id: str, db: orm.Session):
+    blog = db.query(Blog).filter_by(creator=user.id).filter(Blog.id == id).first()
+    return blog
+
+def get_blog_by_title(title: str, db: orm.Session):
+    return db.query(Blog).filter(Blog.title == title).first()
