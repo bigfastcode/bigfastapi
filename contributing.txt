@@ -30,7 +30,12 @@ files so far as possible.
 
 A schemas folder for all the pydantic schemas.
 
+# Imports
 
+When importing the schema and the model, simply refer to them as schema and model in the way below
+
+from .models import file_models as model
+from .schemas import file_schemas as schema
 
 # Naming Variables
 ---
@@ -52,3 +57,7 @@ Check for all possible errors and raise a FastAPI errors
 
 All API functions should be documented in the controller file. Each controller file should have a summary
 section at the top.
+
+# functions
+
+A space after function declaration before the body. Add comments for all endpoint functions

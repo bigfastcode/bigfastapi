@@ -13,6 +13,11 @@ BigFastAPI.egg-info
 database.db
 test.db
 
+.DS_Store
+
+
+filestorage
+
 .vscode/
 # Distribution / packaging
 .Python
@@ -144,3 +149,7 @@ server.py
 data/27017
 data/27018
 data/27019
+
+# editor
+.idea/
+identifier.sqlite
