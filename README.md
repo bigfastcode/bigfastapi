@@ -43,6 +43,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - Research bank format providers to build on
 - Analytics
 - ActivityLog
+- Products
 
 # How to use BigFastAPI
 - Create a new python project
