@@ -4,7 +4,8 @@ from uuid import uuid4
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
-
+from bigfastapi.subscription import app as sub
+from bigfastapi.plan import app as plan
 from bigfastapi.db.database import create_database
 
 # Import all the functionality that BFA provides
@@ -35,7 +36,6 @@ from bigfastapi.pdfs import app as pdfs
 from bigfastapi.notification import app as notification
 
 
-
 # Create the application
 app = FastAPI()
 
@@ -62,6 +62,8 @@ app.include_router(email)
 app.include_router(files, tags=["File"])
 app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
+app.include_router(sub, tags=["Subscription"])
+app.include_router(plan, tags=["Plan"])
 app.include_router(banks.router, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
@@ -81,7 +83,6 @@ async def get_root() -> dict:
 async def run_test() -> dict:
     # This function shows you how to use each of the APIs in a practical way
     print("Testing BigFastAPI")
-
 
     # Retrieve all countries in the world
     print("Testing Countries - get all countries")
@@ -114,13 +115,18 @@ async def run_test() -> dict:
     assert user_create_response.status_code == 201
 
     # Login the user
-    user_login_response = client.post("/login", json={"email": user_email, "password": "secret_password", })
+    user_login_response = client.post(
+        "/login", json={"email": user_email, "password": "secret_password", })
+    user_login_response = client.post(
+        "/login", json={"email": user_email, "password": "secret_password", })
     user_login_json = user_login_response.json()
     print(user_login_json)
     print("Code: " + str(user_login_response.status_code))
     assert user_login_response.status_code == 200
 
     # Create a blog post
+    blog_create_response = client.post("/blog", headers={"Authorization": "Bearer " + user_login_json["access_token"]}, json={
+                                       "title": "New Blog Post by " + user_email, "content": "And this is the body of the blog post by " + user_email, })
     blog_create_response = client.post("/blog", headers={"Authorization": "Bearer " + user_login_json["access_token"]},
                                        json={"title": "New Blog Post by " + user_email,
                                              "content": "And this is the body of the blog post by " + user_email, })
@@ -134,7 +140,7 @@ async def run_test() -> dict:
     blog_list_json = blog_list.json()
     print(blog_list_json)
 
-    # Test file upload 
+    # Test file upload
     txt_file = open("README.md", 'rb').read()
 
     timestamp_str = datetime.datetime.now().isoformat()
@@ -143,9 +149,9 @@ async def run_test() -> dict:
         'file': ('readme8.txt', txt_file),
     }
 
-    file_upload_response = client.post("/upload-file/bfafiles/", files = files) 
+    file_upload_response = client.post("/upload-file/bfafiles/", files=files)
     print(file_upload_response.json())
-    
+
     return {
         "message": "Test Results:",
         "create_user_auth_token": create_auth_json["access_token"]["access_token"],
@@ -155,4 +161,3 @@ async def run_test() -> dict:
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=7001, reload=True)
-
