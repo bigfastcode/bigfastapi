@@ -16,17 +16,18 @@ import datetime as _dt
 
 app = APIRouter(tags=["Organization"])
 
-@app.post("/organizations", response_model=_schemas.Organization)
+
+@app.post("/organizations", response_model=_schemas.OrganizationCreate)
 async def create_organization(
     organization: _schemas.OrganizationCreate,
     user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
 ):
     db_org = await get_orgnanization_by_name(name = organization.name, db=db)
-    print(db_org)
     if db_org:
         raise _fastapi.HTTPException(status_code=400, detail="Organization name already in use")
     return await create_organization(user=user, db=db, organization=organization)
+
 
 
 @app.get("/organizations", response_model=List[_schemas.Organization])
@@ -34,16 +35,28 @@ async def get_organizations(
     user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
 ):
-    return await get_organizations(user=user, db=db)
+    print(user)
+    return await get_organizations(user, db)
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
 async def get_organization(
-    organization_id: int,
+    organization_id: str,
     user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
 ):
     return await get_organization(organization_id, user, db)
+
+
+
+@app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
+async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,  user: users_schemas.User = _fastapi.Depends(is_authenticated), db: _orm.Session = _fastapi.Depends(get_db)):
+    return await update_organization(organization_id, organization, user, db)
+    
+
+@app.delete("/organizations/{organization_id}", status_code=204)
+async def delete_organization(organization_id: str, user: users_schemas.User = _fastapi.Depends(is_authenticated), db: _orm.Session = _fastapi.Depends(get_db)):
+    return await delete_organization(organization_id, user, db)
 
 
 
@@ -56,6 +69,7 @@ async def get_orgnanization_by_name(name: str, db: _orm.Session):
 
 
 async def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
+   
     organization = _models.Organization(id=uuid4().hex, creator=user.id, mission= organization.mission, 
     vision= organization.vision, values= organization.values, name= organization.name)
     db.add(organization)
@@ -65,12 +79,12 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
 
 
 async def get_organizations(user: users_schemas.User, db: _orm.Session):
-    organizations = db.query(_models.Organization).filter_by(owner_id=user.id)
+    organizations = db.query(_models.Organization).filter_by(creator=user.id)
 
     return list(map(_schemas.Organization.from_orm, organizations))
 
 
-async def _organization_selector(organization_id: int, user: users_schemas.User, db: _orm.Session):
+async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
         .filter_by(creator=user.id)
@@ -84,19 +98,20 @@ async def _organization_selector(organization_id: int, user: users_schemas.User,
     return organization
 
 
-async def get_organization(organization_id: int, user: users_schemas.User, db: _orm.Session):
+async def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = await _organization_selector(organization_id=organization_id, user=user, db=db)
 
     return _schemas.Organization.from_orm(organization)
 
 
-async def delete_organization(organization_id: int, user: users_schemas.User, db: _orm.Session):
+async def delete_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = await _organization_selector(organization_id, user, db)
-
+    
     db.delete(organization)
     db.commit()
 
-async def update_organization(organization_id: int, organization: _schemas.OrganizationUpdate, user: users_schemas.User, db: _orm.Session):
+
+async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate, user: users_schemas.User, db: _orm.Session):
     organization_db = await _organization_selector(organization_id, user, db)
 
     if organization.mission != "":

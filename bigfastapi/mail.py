@@ -1,16 +1,16 @@
-import fastapi as _fastapi
-from fastapi.openapi.models import HTTPBearer
-import fastapi.security as _security
-import sqlalchemy.orm as _orm
 from bigfastapi.utils import settings as settings
-from bigfastapi.db import database as _database
-from . import models as _models
 from .models import user_models
-from uuid import uuid4
-from fastapi import BackgroundTasks
+
 from .auth import create_passwordreset_token, create_verification_token
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from .auth import create_forgot_pasword_code, create_verification_code
+
+from fastapi_mail import FastMail, MessageSchema
+import sqlalchemy.orm as orm
+import fastapi
+
+from fastapi import BackgroundTasks
+
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -26,12 +26,13 @@ conf = ConnectionConfig(
 )
 
 
-async def get_user_by_email(email: str, db: _orm.Session):
+async def get_user_by_email(email: str, db: orm.Session):
     return db.query(user_models.User).filter(user_models.User.email == email).first()
 
 
-
-async def send_code_password_reset_email(email: str, db: _orm.Session, codelength:int=None):
+async def send_code_password_reset_email(
+    email: str, db: orm.Session, codelength: int = None
+):
     user = await get_user_by_email(email, db)
     if user:
         code = await create_forgot_pasword_code(user, codelength)
@@ -48,9 +49,12 @@ async def send_code_password_reset_email(email: str, db: _orm.Session, codelengt
         await send_email_async(message, settings.PASSWORD_RESET_TEMPLATE)
         return {"code": code["code"]}
     else:
-        raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
+        raise fastapi.HTTPException(status_code=401, detail="Email not registered")
 
-async def resend_code_verification_mail(email: str, db: _orm.Session, codelength:int=None):
+
+async def resend_code_verification_mail(
+    email: str, db: orm.Session, codelength: int = None
+):
     user = await get_user_by_email(email, db)
     if user:
         code = await create_verification_code(user, codelength)
@@ -67,10 +71,12 @@ async def resend_code_verification_mail(email: str, db: _orm.Session, codelength
         await send_email_async(message, settings.EMAIL_VERIFICATION_TEMPLATE)
         return {"code": code["code"]}
     else:
-        raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
+        raise fastapi.HTTPException(status_code=401, detail="Email not registered")
 
 
-async def send_token_password_reset_email(email: str,redirect_url: str, db: _orm.Session):
+async def send_token_password_reset_email(
+    email: str, redirect_url: str, db: orm.Session
+):
     user = await get_user_by_email(email, db)
     if user:
         token = await create_passwordreset_token(user)
@@ -88,11 +94,12 @@ async def send_token_password_reset_email(email: str,redirect_url: str, db: _orm
         await send_email_async(message, settings.PASSWORD_RESET_TEMPLATE)
         return {"token": token}
     else:
-        raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
+        raise fastapi.HTTPException(status_code=401, detail="Email not registered")
 
 
-
-async def resend_token_verification_mail(email: str,redirect_url: str, db: _orm.Session):
+async def resend_token_verification_mail(
+    email: str, redirect_url: str, db: orm.Session
+):
     user = await get_user_by_email(email, db)
     if user:
         token = await create_verification_token(user)
@@ -110,7 +117,7 @@ async def resend_token_verification_mail(email: str,redirect_url: str, db: _orm.
         await send_email_async(message, settings.EMAIL_VERIFICATION_TEMPLATE)
         return {"token": token}
     else:
-        raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
+        raise fastapi.HTTPException(status_code=401, detail="Email not registered")
 
 
 async def send_email_async(message: MessageSchema, template: str):
