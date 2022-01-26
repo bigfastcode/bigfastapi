@@ -3,7 +3,7 @@ from fastapi import APIRouter, status, HTTPException, BackgroundTasks
 from typing import List
 import fastapi
 from fastapi_mail import FastMail, MessageSchema
-from .mail import conf
+from .email import conf
 import sqlalchemy.orm as orm
 from fastapi.responses import JSONResponse
 from .auth import is_authenticated
@@ -82,8 +82,9 @@ def delete_contact(contact_id: str, db: orm.Session = fastapi.Depends(get_db),
 
 @app.post("/contactus")
 def create_contactUS(contact: contact_schemas.ContactUSB,
-                     db: orm.Session = fastapi.Depends(get_db),
-                     background_tasks=BackgroundTasks):
+                    background_tasks: BackgroundTasks,
+                     db: orm.Session = fastapi.Depends(get_db)
+                     ):
     contact = contact_model.ContactUS(id=uuid4().hex,
                                       name=contact.name,
                                       email=contact.email,

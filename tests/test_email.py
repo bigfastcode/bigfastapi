@@ -1,12 +1,10 @@
 from http import client
-
-from aiosmtplib import response
 from main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bigfastapi.db.database import Base, get_db
-
+from fastapi_mail.errors import ConnectionErrors
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -99,3 +97,51 @@ def test_send_receipt_mail():
     )
     assert response.status_code == 200, response.text
     assert response.json()["message"] == "Receipt Email will be sent in the background"
+
+def test_send_welcome_email():
+    response = client.post(
+        "/email/send/welcome",
+        json={
+            "subject": "Welcome",
+            "recipient": "test@email.com",
+            "title": "Payment for Ps5",
+            "first_name": "Samuel",
+            "body": "test_body",
+            "link": "clickme"
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["message"] == "Welcome Email will be sent in the background"
+
+def test_send_verification_email():
+    response = client.post(
+        "/email/send/verification",
+        json={
+            "subject": "Verify Your Email",
+            "recipient": "test@email.com",
+            "title": "Payment for Ps5",
+            "first_name": "Samuel",
+            "body": "test_body",
+            "link": "dbshj"
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["message"] == "Verification Email will be sent in the background"
+
+def test_send_reset_password_email():
+    try: 
+        response = client.post(
+            "/email/send/reset-password",
+            json={
+                "subject": "Reset Password",
+                "recipient": "okechukwusamuel16@gmail.com",
+                "title": "Payment for Ps5",
+                "first_name": "Samuel",
+                "link": "reset_password_link"
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["message"] == "Reset Password Email will be sent in the background"
+    except ConnectionErrors:
+        print("Connection Errors")
+        pass
