@@ -8,6 +8,7 @@ from bigfastapi.db.database import create_database
 
 # Import all the functionality that BFA provides
 from bigfastapi.faq import app as faq
+from bigfastapi.contact import app as contact
 from bigfastapi.blog import app as blog
 from bigfastapi.pages import app as pages
 from bigfastapi.files import app as files
@@ -15,7 +16,10 @@ from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
 from bigfastapi.plans import app as plans
+from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
+from bigfastapi.notification import app as notification
+
 
 
 # Create the application
@@ -35,14 +39,18 @@ app.add_middleware(
 
 # routers
 app.include_router(faq)
+app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(plans, tags=['Plans'])
+app.include_router(email)
 app.include_router(files, tags=["File"])
 app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
+app.include_router(notification, tags=["Notification"])
+
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:

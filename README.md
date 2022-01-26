@@ -20,24 +20,29 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - FAQ
 - Countries
 - Pages
-
-### In Progress
-- Notifications
-- Plans
 - Contact
 - Files
+- Notifications
+- Image
 
-### Planned
+### In Progress
 - Transactional Email sending + templates
-- Wallet/Credits
+- Plans
+- Bank Accounts
+- QR Codes
+- Wallet
+- Credits
 - Subscriptions
 - Settings
-- Images
-- QR Codes
-- Background Jobs and Scheduler
 - PDF Converter
-- Research bank format providers to build on
 
+### Planned
+- Currency Rates
+- Customers
+- Marketing Emails
+- Research bank format providers to build on
+- Analytics
+- ActivityLog
 
 # How to use BigFastAPI
 - Create a new python project
