@@ -1,4 +1,5 @@
 from pydantic import EmailStr, BaseModel
+from typing import Optional
 
 
 class Email(BaseModel):
@@ -6,34 +7,14 @@ class Email(BaseModel):
     recipient: EmailStr
     title: str
     first_name: str
-    body: str
-
-class NotificationEmail(BaseModel):
-    subject: str
-    recipient: EmailStr
-    title: str
-    first_name: str
-    body: str
-    sender: str
-
-
-class InvoiceMail(BaseModel):
-    subject: str
-    recipient: EmailStr
-    title: str
-    first_name: str
-    amount: str
-    due_date: str
-    payment_link: str
-    invoice_id: str
-    description: str
+    body: Optional[str] = None
+    amount: Optional[str] = None
+    due_date: Optional[str] = None
+    link: Optional[str] = None
+    extra_link: Optional[str] = None
+    invoice_id: Optional[str] = None
+    description: Optional[str] = None
+    receipt_id: Optional[str] = None
 
 
-class ReceiptMail(BaseModel):
-    subject: str
-    recipient: EmailStr
-    title: str
-    first_name: str
-    amount: str
-    receipt_id: str
-    description: str
+

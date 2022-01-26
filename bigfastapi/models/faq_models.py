@@ -10,17 +10,20 @@ from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as database
 from bigfastapi.utils import utils
 
+
 class Ticket(database.Base):
     __tablename__ = "ticket"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     user_id = Column(String(255), ForeignKey("users.id"))
-    short_id = Column(String(255), index=True, unique=True, default=utils.generate_short_id())
+    short_id = Column(String(255), index=True, unique=True,
+                      default=utils.generate_short_id())
     title = Column(String(255), index=True)
     issue = Column(Text(), index=True)
     opened_by = Column(String(255), index=True)
     closed = Column(Boolean, default=False, index=True)
     closed_by = Column(String(255), default=None, nullable=True, index=True)
     date_created = Column(DateTime, default=dt.datetime.utcnow)
+
 
 class Faq(database.Base):
     __tablename__ = "faq"
@@ -30,11 +33,11 @@ class Faq(database.Base):
     created_by = Column(String(255), index=True)
     date_created = Column(DateTime, default=dt.datetime.utcnow)
 
+
 class TicketReply(database.Base):
     __tablename__ = "ticketreply"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     ticket_id = Column(String(255), ForeignKey("ticket.id"))
-    reply = Column(Text(), index=True) 
+    reply = Column(Text(), index=True)
     reply_by = Column(String(255), default=None, nullable=True, index=True)
     date_created = Column(DateTime, default=dt.datetime.utcnow)
-
