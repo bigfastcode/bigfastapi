@@ -24,6 +24,7 @@ MarkupSafe
 packaging
 passlib
 # psycopg2-binary
+pdfkit
 pycparser
 pydantic
 PyJWT
