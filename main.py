@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
 from bigfastapi.subscription import app as sub
+from bigfastapi.plan import app as plan
 from bigfastapi.db.database import create_database
 
 # Import all the functionality that BFA provides
@@ -54,6 +55,7 @@ app.include_router(files, tags=["File"])
 app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
+app.include_router(plan, tags=["Plan"])
 
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])

@@ -15,17 +15,29 @@ import fastapi
 app = APIRouter(tags=["Plan"])
 
 
-@app.post('/plan', response_model=plan_schema.ResponseSingle)
+@app.post('/plans', response_model=plan_schema.ResponseSingle)
 async def addPlan(plan: plan_schema.PlanReqBase, db: _orm.Session = _fastapi.Depends(get_db)):
     addedPlan = await addNewPlan(plan, db)
-    return buildSuccessRess(addedPlan, 'plan', False)
+    return buildSuccessRess(addedPlan, False)
 
 
-# SERVICE LAYER --------
+@app.get('/plans', response_model=plan_schema.ResponseList)
+async def getAll(db: _orm.Session = _fastapi.Depends(get_db)):
+    plans = await getAllPlans(db)
+    return buildSuccessRess(plans, True)
 
+
+@app.get('/plans/{planId}', response_model=plan_schema.ResponseSingle)
+async def getPlan(planId: str, db: _orm.Session = _fastapi.Depends(get_db)):
+    plan = await fetchPlan(planId, db)
+    return buildSuccessRess(plan, False)
+
+
+# SERVICE LAYER
+# ----------------------------------------------------------------------------
 # ADD A NEW PLAN
 async def addNewPlan(newPlan: plan_schema.PlanReqBase, db: _orm.Session):
-    planObj = plan_model.Plan(id=uuid4().hex, price=newPlan.price,
+    planObj = plan_model.Plan(id=uuid4().hex, credit_price=newPlan.credit_price,
                               access_type=newPlan.access_type, duration=newPlan.duration)
     db.add(planObj)
     db.commit()
@@ -40,12 +52,12 @@ async def getAllPlans(db: _orm.Session):
 
 # FETCH A SPECIFIC PLAN BY ITS ID
 async def fetchPlan(planId: str, db: _orm.Session):
-    return db.query(plan_model.Plan).filter(plan_model.Plan.id == planId).all()
+    return db.query(plan_model.Plan).filter(plan_model.Plan.id == planId).first()
 
 
 # GENERIC STRUCTURED RESPONSE BUILDER
-def buildSuccessRess(resData, type: str, isList: bool):
+def buildSuccessRess(resData, isList: bool):
     if isList:
-        return plan_schema.ResponseList(status='success', resource_type=type, data=resData)
+        return plan_schema.ResponseList(status='success', resource_type='plan list', data=resData)
     else:
-        return plan_schema.ResponseSingle(status='success', resource_type=type, data=resData)
+        return plan_schema.ResponseSingle(status='success', resource_type='plan', data=resData)

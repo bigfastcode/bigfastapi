@@ -28,7 +28,7 @@ async def subscribe(
         db: _orm.Session = _fastapi.Depends(get_db)
 ):
     createdSubscrcription = await createSub(subscription, db)
-    return buildSuccessRess(createdSubscrcription, 'subscription',)
+    return buildSuccessRess(createdSubscrcription, 'subscription', False)
 
 # ///
 # SERVICE LAYER

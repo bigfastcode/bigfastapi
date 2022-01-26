@@ -5,7 +5,7 @@ from typing import List, Optional
 
 
 class PlanReqBase(pydantic.BaseModel):
-    price: float
+    credit_price: int
     access_type: str
     duration: int
 
@@ -18,15 +18,18 @@ class PlanResponse(PlanResBase):
     date_created: _dt.datetime
     last_updated: _dt.datetime
 
+    class Config:
+        orm_mode = True
 
-class ResponseDefault(pydantic.BaseModel):
+
+class PlanResponseDef(pydantic.BaseModel):
     status: str
     resource_type: str
 
 
-class ResponseSingle(ResponseDefault):
+class ResponseSingle(PlanResponseDef):
     data: PlanResponse
 
 
-class ResponseList(ResponseDefault):
+class ResponseList(PlanResponseDef):
     data: List[PlanResponse]

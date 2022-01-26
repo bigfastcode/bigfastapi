@@ -26,7 +26,7 @@ class Plan(_database.Base):
     __tablename__ = "plan"
 
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    price = Column(float, index=True)
+    credit_price = Column(Integer, index=True)
     access_type = Column(String(225), index=True,
                          default=AccessTypeEnum.limited)
     duration = Column(Integer, index=True)
