@@ -15,7 +15,7 @@ from .schemas import users_schemas
 
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database as _database
-# from . import models as _models, schema as _schemas
+# from . import models as model, schema as schema
 from fastapi.security import HTTPBearer
 bearerSchema = HTTPBearer()
 import re
@@ -37,7 +37,7 @@ from datetime import datetime, timedelta
 
 from bigfastapi.utils import settings as settings
 # from bigfastapi.db import database as _database
-# from . import models as _models, schema as _schemas
+# from . import models as model, schema as schema
 from fastapi.security import HTTPBearer
 bearerSchema = HTTPBearer()
 import re
@@ -180,7 +180,7 @@ async def create_token(user: user_models.User):
     token = ""
 
     db_token = await get_token_by_userid(user_id= user_obj.id, db=db)
-    # token_obj = _schemas.User.from_orm(db_token)
+    # token_obj = schema.User.from_orm(db_token)
     if db_token:
         validate_resp = await validate_token(db_token.token)
         if not validate_resp["status"]:
