@@ -130,7 +130,7 @@ def test_fund_wallet(setUp):
 
     response = requests.post("https://api.flutterwave.com/v3/charges?type=mobile_money_franco",
                              headers={"Authorization": "Bearer " + secretKey},
-                             json={"amount": 1500, "currency": "XAF", "phone_number": "237******20",
+                             json={"amount": 1500, "currency": "XAF", "phone_number": "237675812885",
                                    "email": "user@flw.com", "tx_ref": ref, "country": "CM",
                                    "fullname": "John Madakin", "client_ip": "154.123.220.1",
                                    "device_fingerprint": "62wd23423rq324323qew1", "meta": {"flightID": "123949494DC",
@@ -140,7 +140,7 @@ def test_fund_wallet(setUp):
 
     transactionID = (response.json().get('data'))['id']
     assert response.status_code == 200
-    sleep(20)  # wait for flutter wave to simulate mobile money PIN validation.
+    sleep(20)  # wait for flutter wave to simulate mobile money PIN validation. it takes about 20 seconds
     response = client.post("/wallets/" + walletID + "/fund",
                            json={"amount": 1500, "provider": "flutterwave", "ref": transactionID})
 
