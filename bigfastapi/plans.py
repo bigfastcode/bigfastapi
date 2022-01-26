@@ -34,7 +34,9 @@ def create_plan(
     
     try:
         response = plan_models.create_plan(plan=plan, db=db, user=user)
-        return responses.JSONResponse(status_code=status.HTTP_201_CREATED, content=response)
+        return responses.JSONResponse(
+            status_code=status.HTTP_201_CREATED, 
+            content= {"message": "Plan created succesfully","data":jsonable_encoder(response)})
     except PermissionError as exception:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exception))
     except LookupError as exception:
@@ -65,7 +67,10 @@ def update_plan(
     """
     try:
         response = plan_models.update_plan(plan=plan, plan_id=plan_id, db=db, user=user)
-        return responses.JSONResponse(status_code=status.HTTP_200_OK, content=response)
+        return responses.JSONResponse(
+            status_code=status.HTTP_200_OK, 
+            content={"message": "Plan updated succesfully",
+                    "data":jsonable_encoder(response)})
     except PermissionError as exception:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exception))
     except LookupError as exception:
@@ -102,10 +107,28 @@ def get_plan_by_id(plan_id: str, db: orm.Session = Depends(get_db)):
     """
     plan = plan_models.get_plan_by_id(plan_id=plan_id, db=db)
     if plan:
-        return responses.JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Plan retrieved succesfully", "data": plan})
+        return responses.JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Plan retrieved succesfully", "data": jsonable_encoder(plan)})
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="plan does not exist")
 
+@app.get("/plans/geography/{geography_id}", response_model=List[plan_schemas.Plan])
+def get_plan_by_geography(geography_id: str, db: orm.Session = Depends(get_db)):
+    """Retrieves a plan by geography id
+
+    Args:
+        geography_id (str): id of the geography
+        db (orm.Session, optional): [description]. Defaults to Depends(get_db).
+
+    Returns:
+        [dict]: key value pair of the following keys:
+            message (str): success message
+            data (List[plan_schemas.Plan]): list of plans
+    """
+    plans = plan_models.get_plans_by_geography(geography=geography_id, db=db)
+    if plans:
+        return responses.JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Plans retrieved succesfully", "data": jsonable_encoder(plans)})
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="plan does not exist")
 
 @app.delete("/plans/{plan_id}", response_model=plan_schemas.Plan)
 def delete_plan(

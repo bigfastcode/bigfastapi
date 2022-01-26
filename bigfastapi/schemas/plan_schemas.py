@@ -6,7 +6,7 @@ from enum import Enum
 import json
 
 
-def is_json(myjson:str):
+def is_json(myjson: str):
     try:
         json.loads(myjson)
     except ValueError or TypeError as e:
@@ -24,60 +24,52 @@ class Period(str, Enum):
     DAYS = "days"
     WEEKS = "weeks"
     MONTHS = "months"
-    YEARS = 'years'
+    YEARS = "years"
 
     def __str__(self):
         """returns string representation of enum choice"""
         return self.value
 
 
-class Duration(pydantic.BaseModel):
-    length: int = 1
+class PriceOffer(pydantic.BaseModel):
+    price: float
+    duration: int = 1
     period: Period
-    
 
 
 class PlanDTO(pydantic.BaseModel):
     title: str
     description: str
-    price_offers: Dict[float, Duration] = None
+    price_offers: List[PriceOffer] = None
     available_geographies: List[str] = None
     features: List[str] = None
-    
-    @pydantic.validator('available_geographies')
-    def available_geo_to_string(cls, value):
-        """converts available_geographies from list to str"""
-        if isinstance(value, list):
-            return json.dumps(value)
-        return value
-    
-    @pydantic.validator('features')
-    def features_to_string(cls, value):
-        """converts fetures from list to str"""
-        if isinstance(value, list):
-            return json.dumps(value)
-        return value
-    
-    
+
+    class Config:
+        orm_mode = True
+
     @classmethod
-    def from_orm(cls, obj: Any): 
-        if hasattr(obj, "available_geographies"):       
-            if is_json(obj.available_geographies):
-                setattr(obj, "available_geographies", json.loads(obj.available_geographies))
-        
+    def from_orm(cls, obj: Any) -> "PlanDTO":
+        if hasattr(obj, "available_geographies"):
+            if type(obj.price_offers) == str:
+                setattr(obj, "price_offers", json.loads(obj.price_offers))
+                
+            if type(obj.available_geographies) is str:
+                setattr(
+                    obj, "available_geographies", json.loads(obj.available_geographies)
+                )
+
         if hasattr(obj, "features"):
-            if is_json(obj.features):
+            if type(obj.features) is str:
                 setattr(obj, "features", json.loads(obj.features))
-        
-        return obj
-        
+
+        return super().from_orm(obj)
+
 
 class Plan(PlanDTO):
     id: str
     created_by: str
     date_created: datetime
     last_updated: datetime
-    
+
     class Config:
         orm_mode = True
-    
