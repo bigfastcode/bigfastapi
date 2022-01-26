@@ -29,6 +29,9 @@ async def get_wallet(
     return await _get_wallet(organization_id=organization_id, user=user, db=db)
 
 
+############
+# Services #
+############
 async def _get_wallet(organization_id: str,
                       user: users_schemas.User,
                       db: _orm.Session):
@@ -75,15 +78,15 @@ async def debit_wallet(wallet_id: str, amount: float, db: _orm.Session):
 async def fund_wallet(wallet_id: str, amount: float, transaction_id: str, db: _orm.Session,
                       payment_provider: PaymentProvider):
     if payment_provider is PaymentProvider.FLUTTERWAVE:
-        flutterwave_key = config('FLUTTERWAVE_SEC_KEY')
-        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwave_key}
+        flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
+        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
         url = 'https://api.flutterwave.com/v3/transactions/' + transaction_id + '/verify'
-        verification_request = requests.get(url, headers=headers)
-        json_response = verification_request.json()
-        if json_response['status'] == 'pending':
+        verificationRequest = requests.get(url, headers=headers)
+        jsonResponse = verificationRequest.json()
+        if jsonResponse['status'] == 'pending':
             raise _fastapi.HTTPException(status_code=402, detail="Transaction is pending")
-        elif json_response['status'] == 'success':
-            if amount == json_response['data']['amount']:
+        elif jsonResponse['status'] == 'success':
+            if amount == jsonResponse['data']['amount']:
                 wallet = db.query(_models.Wallet).filter_by(id=wallet_id).first()
                 if wallet is None:
                     raise _fastapi.HTTPException(status_code=404, detail="Wallet does not exist")
