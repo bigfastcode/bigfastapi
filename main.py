@@ -20,11 +20,19 @@ from bigfastapi.countries import app as countries
 
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
+from bigfastapi.countries import app as countries
+from bigfastapi.faq import app as faq
+from bigfastapi.blog import app as blog
+from bigfastapi.comments import app as comments
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.testclient import TestClient
+from bigfastapi import banks
 from bigfastapi.pages import app as pages
 
 from bigfastapi.email import app as email
 
 from bigfastapi.organization import app as organization
+from bigfastapi.pdfs import app as pdfs
 from bigfastapi.notification import app as notification
 
 
@@ -56,11 +64,11 @@ app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
 app.include_router(plan, tags=["Plan"])
-
+app.include_router(banks.router, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
 app.include_router(notification, tags=["Notification"])
-
+app.include_router(pdfs)
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
