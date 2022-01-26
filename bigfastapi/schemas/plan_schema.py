@@ -12,3 +12,21 @@ class PlanReqBase(pydantic.BaseModel):
 
 class PlanResBase(PlanReqBase):
     id: str
+
+
+class PlanResponse(PlanResBase):
+    date_created: _dt.datetime
+    last_updated: _dt.datetime
+
+
+class ResponseDefault(pydantic.BaseModel):
+    status: str
+    resource_type: str
+
+
+class ResponseSingle(ResponseDefault):
+    data: PlanResponse
+
+
+class ResponseList(ResponseDefault):
+    data: List[PlanResponse]
