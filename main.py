@@ -17,12 +17,11 @@ from bigfastapi.files import app as files
 from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
-<<<<<<< HEAD
+
 from bigfastapi.auth import app as authentication
-=======
 
 from bigfastapi.plans import app as plans
->>>>>>> 1c4410c5c33e093981983ab1ec383d9c902a6aba
+
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from bigfastapi.countries import app as countries
