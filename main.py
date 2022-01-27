@@ -16,6 +16,7 @@ from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
 from bigfastapi.organization import app as organization
+from bigfastapi.qrcode import app as qrcode
 
 
 # Create the application
@@ -42,6 +43,7 @@ app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
+app.include_router(qrcode, tags=["qrcode"])
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
