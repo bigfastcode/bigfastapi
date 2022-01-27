@@ -20,24 +20,30 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - FAQ
 - Countries
 - Pages
-
-### In Progress
-- Notifications
-- Plans
 - Contact
 - Files
+- Notifications
+- Image
 
-### Planned
+### In Progress
 - Transactional Email sending + templates
-- Wallet/Credits
+- Plans
+- Bank Accounts
+- QR Codes
+- Wallet
+- Credits
 - Subscriptions
 - Settings
-- Images
-- QR Codes
-- Background Jobs and Scheduler
 - PDF Converter
-- Research bank format providers to build on
 
+### Planned
+- Currency Rates
+- Customers
+- Marketing Emails
+- Research bank format providers to build on
+- Analytics
+- ActivityLog
+- Products
 
 # How to use BigFastAPI
 - Create a new python project
@@ -60,7 +66,8 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 4. run `pip install -r requirements.txt`
 5. Create a .env file by copying the .env.sample file
 6. Run `python main.py`. Check the code to understand how to use the library
-7. If you are planning to use BigFastAPI, but not just work on it, then create your own app in another folder and import the bigfastapi folder
+7. Build the library using python setup.py sdist bdist_wheel
+7. Install the library using pip install .\dist\<name of whl file>
 
 # Documentation
 
