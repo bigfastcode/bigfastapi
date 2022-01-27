@@ -10,6 +10,7 @@ from bigfastapi.faq import app as faq
 from bigfastapi.blog import app as blog
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
+from bigfastapi.auth import app as authentication
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 
@@ -29,7 +30,8 @@ app.add_middleware(
 )
 
 # routers
-app.include_router(accounts_router, tags=["Auth"])
+app.include_router(authentication, tags=["Auth"])
+app.include_router(accounts_router, tags=["User"])
 app.include_router(organization_router, tags=["Organization"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(faq)

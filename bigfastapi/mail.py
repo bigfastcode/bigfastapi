@@ -31,24 +31,26 @@ async def get_user_by_email(email: str, db: _orm.Session):
 
 
 
-async def send_code_password_reset_email(email: str, db: _orm.Session, codelength:int=None):
+async def send_code_password_reset_email(email: str, db: _orm.Session):
     user = await get_user_by_email(email, db)
     if user:
-        code = await create_forgot_pasword_code(user, codelength)
+        code = await create_forgot_pasword_code(user, 6)
+   
         message = MessageSchema(
             subject="Password Reset",
             recipients=[email],
             template_body={
                 "title": "Change your password",
                 "first_name": user.first_name,
-                "code": code["code"],
+                "code": code,
             },
             subtype="html",
         )
         await send_email_async(message, settings.PASSWORD_RESET_TEMPLATE)
-        return {"code": code["code"]}
+        return {"code": code}
     else:
         raise _fastapi.HTTPException(status_code=401, detail="Email not registered")
+
 
 async def resend_code_verification_mail(email: str, db: _orm.Session, codelength:int=None):
     user = await get_user_by_email(email, db)
