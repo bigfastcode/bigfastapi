@@ -124,7 +124,16 @@ async def run_test() -> dict:
     print("Code: " + str(user_login_response.status_code))
     assert user_login_response.status_code == 200
 
-    # )
+    # Create a blog post
+    blog_create_response = client.post("/blog", headers={"Authorization": "Bearer " + user_login_json["access_token"]}, json={
+                                       "title": "New Blog Post by " + user_email, "content": "And this is the body of the blog post by " + user_email, })
+    blog_create_response = client.post("/blog", headers={"Authorization": "Bearer " + user_login_json["access_token"]},
+                                       json={"title": "New Blog Post by " + user_email,
+                                             "content": "And this is the body of the blog post by " + user_email, })
+    blog_create_json = blog_create_response.json()
+    print(blog_create_json)
+    print("Response Code: " + str(blog_create_response.status_code))
+    assert blog_create_response.status_code == 200
 
     # Get a list of all blog posts
     blog_list = client.get("/blogs")
