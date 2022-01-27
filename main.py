@@ -17,7 +17,7 @@ from bigfastapi.files import app as files
 from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
-
+from bigfastapi.customer import app as customer
 from bigfastapi.plans import app as plans
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
@@ -67,6 +67,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
+app.include_router(customer)
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
