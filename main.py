@@ -54,13 +54,11 @@ app.add_middleware(
 )
 
 # routers
-<<<<<<< HEAD
+
 app.include_router(authentication, tags=["Auth"])
 app.include_router(accounts_router, tags=["User"])
 app.include_router(organization_router, tags=["Organization"])
 app.include_router(countries, tags=["Countries"])
-=======
->>>>>>> 1c4410c5c33e093981983ab1ec383d9c902a6aba
 app.include_router(faq)
 app.include_router(contact)
 app.include_router(blog, tags=["Blog"])

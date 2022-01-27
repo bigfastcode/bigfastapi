@@ -1,4 +1,3 @@
-
 from uuid import uuid4
 import fastapi as fastapi
 
@@ -9,11 +8,11 @@ from fastapi import APIRouter
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
-<<<<<<< HEAD
-from .auth import is_authenticated, create_access_token, password_change_code, verify_user_token, password_change_token
+
+
 from .email import send_reset_password_email
 
-from .auth import is_authenticated, create_token, logout, verify_user_code, password_change_code, verify_user_token, password_change_token, resend_code_verification_mail, send_code_password_reset_email, resend_token_verification_mail
+from .auth import is_authenticated, logout, create_access_token, password_change_code, verify_user_token, password_change_token, resend_code_verification_mail, send_code_password_reset_email, resend_token_verification_mail
 
 
 app = APIRouter(tags=["User",])
