@@ -15,12 +15,15 @@ After that, the following endpoints will become available:
 
 
 import json
+import pkg_resources
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, HTTPException, status
 from .schemas.countries_schemas import Country, State
 
 
 app = APIRouter(tags=["Countries"])
+
+COUNTRIES_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
 @app.get("/countries", response_model=Country, status_code=200)
@@ -34,7 +37,7 @@ def get_countries():
         List[Country]: list of countries and their respective states
 
     """
-    with open("bigfastapi/data/countries.json") as file:
+    with open(COUNTRIES_DATA_PATH + "/countries.json") as file:
         countries = json.load(file)
         for country in countries:
             del country["states"]
@@ -54,7 +57,7 @@ def get_country_states(country_code: str):
         List[State]: list of states and their respective cities
 
     """
-    with open("bigfastapi/data/countries.json") as file:
+    with open(COUNTRIES_DATA_PATH + "/countries.json") as file:
         countries = json.load(file)
         country_data = list(
             filter(
@@ -85,7 +88,7 @@ def get_countries_dial_codes(country_code: str = None):
         List[Country]: list of countries and their respective dial codes
 
     """
-    with open("bigfastapi/data/countries.json") as file:
+    with open(COUNTRIES_DATA_PATH + "/countries.json") as file:
         countries = json.load(file)
         if country_code:
             country_search = list(
