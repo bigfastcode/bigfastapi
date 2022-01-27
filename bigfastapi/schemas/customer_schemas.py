@@ -1,9 +1,8 @@
 from datetime import datetime
-from email.mime import message
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
-class Customer(BaseModel):
+class CustomerBase(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
@@ -20,11 +19,11 @@ class Customer(BaseModel):
     class Config:
         orm_mode = True
 
-class CustomerValidator(Customer):
-    organization_name: str
+class CustomerCreate(CustomerBase):
+    organization_id: str
 
-class CustomerInDB(Customer):
-    organization: str
+class Customer(CustomerBase):
+    organization_id: str
     customer_id: str
     date_created: datetime
     last_updated: datetime
@@ -34,7 +33,7 @@ class CustomerUpdate(BaseModel):
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
-    organization_name: Optional[str] = None
+    organization_id: Optional[str] = None
     address: Optional[str] = None
     gender: Optional[str] = None
     age: Optional[int] = None
@@ -46,7 +45,7 @@ class CustomerUpdate(BaseModel):
 
 class CustomerCreateResponse(BaseModel):
     message: str
-    customer: CustomerInDB
+    customer: Customer
 
 class ResponseModel(BaseModel):
     message: str

@@ -1,6 +1,4 @@
 from http import client
-import json
-from urllib import response
 from main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -69,14 +67,17 @@ def test_create_organization():
     )
     assert response.status_code == 200, response.text
     assert response.json()["name"]== "spark"
+    global organization_id
+    organization_id = response.json()["id"]
 
 def test_create_customer():
+    global organization_id
     response = client.post(
         '/customers',
         json={
-            "first_name": "string",
+            "first_name": "test_name",
             "last_name": "string",
-            "organization_name": "spark",
+            "organization_id": organization_id,
             "email": "usertest@example.com",
             "phone_number": "string",
             "address": "string",
@@ -91,7 +92,7 @@ def test_create_customer():
     )
     assert response.status_code == 200, response.text
     assert response.json()["message"]== "Customer created succesfully"
-    assert response.json()["customer"]["organization"] == "spark"
+    assert response.json()["customer"]["organization_id"] == organization_id
     global customer_id
     customer_id = response.json()["customer"]["customer_id"]
 
@@ -100,12 +101,15 @@ def test_get_customers():
         '/customers'
     )
     assert response.status_code == 200, response.text
+    assert response.json()["items"][0]["first_name"] == "test_name"
 
 def test_get_customers_by_organization():
+    organization_id
     response = client.get(
-        '/customers/organization/spark'
+        f'/customers?organization_id={organization_id}'
     )
     assert response.status_code == 200, response.text
+    assert response.json()["items"][0]["first_name"] == "test_name"
 
 def test_get_customer():
     global customer_id
@@ -122,7 +126,6 @@ def test_update_customer():
         json={
             "first_name": "samuel",
             "last_name": "tiangolo",
-            "organization_name": "spark"
 
         }
     )

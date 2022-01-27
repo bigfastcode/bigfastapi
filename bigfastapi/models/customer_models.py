@@ -12,7 +12,7 @@ class Customer(database.Base):
     __tablename__ = "customer"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     customer_id = Column(String(255), index=True, default=generate_short_id(size=12))
-    organization = Column(String(255), ForeignKey("organizations.name"))
+    organization_id = Column(String(255), ForeignKey("organizations.id"))
     email = Column(String(255), unique=True, index=True)
     first_name = Column(String(255), index=True)
     last_name = Column(String(255), index=True)
