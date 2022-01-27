@@ -15,13 +15,13 @@ import datetime as _dt
 
 
 class Tutorial(_database.Base):
-    __tablename__ = "tutorials_main"
+    __tablename__ = "instructions"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     category = Column(String(255), index=True)
     title = Column(String(255), unique=True, index=True)
     description = Column(Text, unique=True, index=True, default="")
-    thumbnail = Column(Text, unique=True, index=True, default="")
-    stream_url = Column(Text, unique=True, index=True)
+    thumbnail = Column(Text, index=True, default="")
+    stream_url = Column(Text, index=True)
     text = Column(Text, index=True, default="")
     added_by = Column(String(255), ForeignKey("users.id"))
     date_created = Column(DateTime, default=_dt.datetime.utcnow)

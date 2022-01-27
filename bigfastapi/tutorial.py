@@ -50,7 +50,7 @@ async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
     objectConstruct = tutorial_model.Tutorial(
         id=uuid4().hex, category=newTutorial.category, title=newTutorial.title,
         description=newTutorial.description, thumbnail=newTutorial.thumbnail,
-        stream_url=newTutorial.stream_url, added_by=newTutorial.added_by)
+        stream_url=newTutorial.stream_url, text=newTutorial.text, added_by=newTutorial.added_by)
     try:
         db.add(objectConstruct)
         db.commit()

@@ -10,8 +10,9 @@ class TutorialBase(pydantic.BaseModel):
     category: str
     title: str
     description: str
-    thumbnail: str
-    stream_url: str
+    thumbnail: Optional[str]
+    stream_url: Optional[str]
+    text: Optional[str]
     added_by: str
 
 
