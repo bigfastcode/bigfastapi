@@ -9,6 +9,7 @@ import sqlalchemy.orm as _orm
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
 
+
 from bigfastapi.db.database import get_db
 from .auth import is_authenticated
 from .models import organisation_models as _models
@@ -20,7 +21,7 @@ app = APIRouter(tags=["Organization"])
 @app.post("/organizations", response_model=_schemas.OrganizationCreate)
 async def create_organization(
     organization: _schemas.OrganizationCreate,
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
+    user: str = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
 ):
     db_org = await get_orgnanization_by_name(name = organization.name, db=db)
