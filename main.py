@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from bigfastapi.subscription import app as sub
 from bigfastapi.plan import app as plan
 from bigfastapi.db.database import create_database
+import random
+
 
 # Import all the functionality that BFA provides
 from bigfastapi.faq import app as faq
@@ -150,11 +152,23 @@ async def run_test() -> dict:
     file_upload_response = client.post("/upload-file/bfafiles/", files=files)
     print(file_upload_response.json())
 
+    #test html convert to pdf 
+    pdf_response= client.post(app.url_path_for("convertToPdf"), json={
+        "htmlString": "new post",
+        "pdfName": str(random.random)+"test.pdf"
+    })
+
+    pdf_create_json = pdf_response.json()
+    print(pdf_create_json)
+    print("Response Code: " + str(pdf_response.status_code))
+    assert pdf_response.status_code == 200
+
     return {
         "message": "Test Results:",
         "create_user_auth_token": create_auth_json["access_token"]["access_token"],
         "login_auth_token": user_login_json["access_token"],
-        "blog_list": blog_list_json
+        "blog_list": blog_list_json,
+        "pdf": pdf_create_json
     }
 
 if __name__ == "__main__":
