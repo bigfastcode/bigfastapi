@@ -7,44 +7,28 @@ import datetime as _dt
 import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from datetime import datetime, timedelta
-from .models import auth_models
-from .models import user_models
-from .schemas import auth_schemas
-from .schemas import users_schemas
+from .models import auth_models, user_models
+from .schemas import auth_schemas, users_schemas
 from passlib.context import CryptContext
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database as _database
-
-# from . import models as _models, schema as _schemas
-from fastapi.security import HTTPBearer
 from fastapi.security import OAuth2PasswordBearer
-bearerSchema = HTTPBearer()
-import re
 from uuid import uuid4
 import validators
 import random
 from jose import JWTError, jwt
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated = "auto")
-# from .users import get_user_by_id, get_user_by_email
-
 from fastapi import APIRouter
 from bigfastapi.db.database import get_db
-
-# from bigfastapi.db import database as _database
-# from . import models as _models, schema as _schemas
 import json
 import re
 import validators
-
 import requests
 
 
 
 JWT_SECRET = settings.JWT_SECRET
-JWT_ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_IN_MINUTES = 30
 ALGORITHM = 'HS256'
 
 app = APIRouter(tags=["Auth"])

@@ -1,4 +1,4 @@
-# from hashlib import _Hash
+
 from uuid import uuid4
 import fastapi as fastapi
 
@@ -49,9 +49,9 @@ async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session 
 
 @app.put("/users/reset-password")
 async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fastapi.Depends(get_db)):
-    code_exist = await get_password_reset_code_sent_to_email(code, db)
+    code_exist = await get_password_reset_code_sent_to_email(user.code, db)
     if code_exist is None:
-        raise _fastapi.HTTPException(status_code=403, detail="invalid code")
+        raise fastapi.HTTPException(status_code=403, detail="invalid code")
     return await resetpassword(user, db)
 
 
