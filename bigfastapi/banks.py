@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from pydantic import HttpUrl
+from pydantic import HttpUrl, Json
 from bigfastapi.schemas import bank_schemas, users_schemas
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as Session
@@ -8,10 +8,12 @@ from uuid import uuid4
 from .auth import is_authenticated
 from fastapi.responses import JSONResponse
 from typing import List
+import pkg_resources
+import json
 
 router = APIRouter()
 
-
+BANK_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
 @router.post("/organisation/{org_id}/bank", status_code=status.HTTP_201_CREATED,
@@ -30,21 +32,22 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
     Raises
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
     """
-    try:
-        addbank = bank_models.Bank(id=uuid4().hex,
-                        account_number=bank.account_number, 
-                        bank_name=bank.bank_name, 
-                        account_name=bank.account_name,
-                        bank_sort_code=bank.bank_sort_code, 
-                        country=bank.country, 
-                        created_by=bank.created_by,
-                        date_created=bank.date_created )
-        db.add(addbank)
-        db.commit()
-        db.refresh(addbank)
-    except:
-        raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, 
-                    detail=f"failed to add bank details")
+    addbank = bank_models.BankDetails(id=uuid4().hex,
+                    organisation_id= bank.organisation_id,
+                    creator_id= bank.creator_id,
+                    account_number= bank.account_number,
+                    bank_name= bank.bank_name,
+                    account_name= bank.account_name,
+                    address=bank.address,
+                    swift_code=bank.swift_code,
+                    sort_code=bank.sort_code,
+                    postcode=bank.postcode,
+                    country=bank.country,
+                    date_created=bank.date_created)
+    db.add(addbank)
+    db.commit()
+    db.refresh(addbank)
+   
     return bank_schemas.BankResponse.from_orm(addbank)
 
 
@@ -64,11 +67,7 @@ async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authe
     Raises
         HTTP_424_FAILED_DEPENDENCY: failed to fetch banks
     """
-    try:
-        banks = db.query(bank_models.Bank).all()
-    except:
-        raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, 
-                    detail=f"failed to fetch banks")
+    banks = db.query(bank_models.BankDetails).all()
     return list(map(bank_schemas.BankResponse.from_orm, banks))
 
 
@@ -118,18 +117,76 @@ async def delete_bank(org_id: str, bank_id:str,
                  status_code=status.HTTP_200_OK)
 
 
+@router.get("/bank/schema", status_code=status.HTTP_200_OK)
+async def get_single_bank(country: str):
+    """Fetches details needed to add bank details based on country provided.
+    Args:
+        country: Country whose schema structure is to be fetched.
+    Returns:
+        HTTP_200_OK (bank object)
+    Raises
+        HTTP_4O4_NOT_FOUND: Country not in the list of supported countries.
+    """
+    return "schema"
+
+    
+
+@router.get("/bank/validator", status_code=status.HTTP_200_OK)
+async def validate_bank_details(country: str):
+    """Fetches details needed to add bank details based on country provided.
+    Args:
+        country: Country whose schema structure is to be fetched.
+    Returns:
+        HTTP_200_OK (bank object)
+    Raises
+        HTTP_4O4_NOT_FOUND: Country not in the list of supported countries.
+    """
+    return "valid"
+
+
+
+
+
 #=================================== Bank Service =================================#
     
 async def fetch_bank(user: users_schemas.User, id: str, db: Session):
-    try:
-        bank = db.query(bank_models.Bank).filter(bank_models.Bank.id == id).first()
-    except: 
-        raise HTTPException(status_code=status.HTTP_424_FAILED_DEPENDENCY, 
-                    detail=f"failed to fetch bank details")
+    bank = db.query(bank_models.BankDetails).filter(bank_models.AccountDetails.id == id).first()
     if not bank:
        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"This bank detail does not exist here")
     return bank
 
+
+class IdentityValidator:
+
+    async def validate_org():
+        pass
+
+    async def user_in_org():
+        pass
+
+
+async def get_country_data(country, info=None): 
+    with open(BANK_DATA_PATH + "/bank.json") as file:
+        country_data = json.load(file)
+    try:
+        if info:
+            country_info = country_data[country][info]
+        country_info= country_data[country]
+        return country_info
+    except ValueError:
+        return country_data["others"]
+
+
+async def validate_supported_country(country):
+    
+    pass
+
+async def validate_schema_format(country, schema):
+    
+    
+
 async def validate_bank_details(details:list, validator: HttpUrl):
     return "bank details valid"
+
+
