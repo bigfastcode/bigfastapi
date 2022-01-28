@@ -42,7 +42,6 @@ app = APIRouter(tags=["Auth"])
 @app.post("/auth/signup", status_code=201)
 async def create_user(user: auth_schemas.UserCreate, db: _orm.Session = _fastapi.Depends(get_db)): 
     user_email = await find_user_email(user.email, db)
-    print(user_email)
     if user_email != None:
         raise _fastapi.HTTPException(status_code=403, detail="Email already exist")        
     user_created = await create_user(user, db=db)
@@ -69,7 +68,7 @@ async def create_user(user: auth_schemas.UserCreate, db: _orm.Session):
     user_obj = user_models.User(
         id = uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
-        is_active=True, is_verified = True
+        is_active=True, is_verified = True, country_code=user.country_code
     )
     
     db.add(user_obj)

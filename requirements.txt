@@ -3,6 +3,7 @@ uvicorn
 aioredis
 aiosmtplib
 anyio
+alembic
 asgiref
 async-timeout
 # bcrypt

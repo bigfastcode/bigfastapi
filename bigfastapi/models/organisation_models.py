@@ -16,7 +16,7 @@ import bigfastapi.db.database as _database
 class Organization(_database.Base):
     __tablename__ = "organizations"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    creator = Column(String(255), ForeignKey("users.id"))
+    creator = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
     mission = Column(String(255), index=True)
     vision = Column(String(255), index=True)
     values = Column(String(255), index=True)

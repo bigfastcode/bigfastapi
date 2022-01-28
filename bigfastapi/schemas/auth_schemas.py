@@ -24,7 +24,8 @@ class UserCreate(_UserBase):
     first_name: str
     last_name: str
     phone_number: str
-
+    country_code: str
+    
     class Config:
         orm_mode = True
     

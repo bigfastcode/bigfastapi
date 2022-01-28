@@ -72,6 +72,7 @@ class User(_UserBase):
     is_active: bool
     is_verified: bool
     is_superuser: bool
+    country_code: Optional[str]
 
 
     class Config:

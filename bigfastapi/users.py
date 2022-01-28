@@ -38,10 +38,10 @@ async def update_user(
 async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user: _schemas.User = fastapi.Depends(is_authenticated),
     db: orm.Session = fastapi.Depends(get_db)):
     if user.is_superuser == False:
-        raise _fastapi.HTTPException(status_code=403, detail="only super admins can perform this operation")
+        raise fastapi.HTTPException(status_code=403, detail="only super admins can perform this operation")
     user_act = await get_user_by_id(user_id, db)
     if user.is_active == True:
-        raise _fastapi.HTTPException(status_code=403, detail="this user is already active")
+        raise fastapi.HTTPException(status_code=403, detail="this user is already active")
     await activate(user_activate, user_id, db)
     
 
@@ -60,12 +60,12 @@ async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fas
 
 # ////////////////////////////////////////////////////CODE ////////////////////////////////////////////////////////////// 
 
-@app.post("/users/verify/code/{code}")
-async def verify_user_with_code(
-    code: str,
-    db: orm.Session = fastapi.Depends(get_db),
-    ):
-    return await verify_user_code(code)
+# @app.post("/users/verify/code/{code}")
+# async def verify_user_with_code(
+#     code: str,
+#     db: orm.Session = fastapi.Depends(get_db),
+#     ):
+#     return await verify_user_code(code)
 
 
 
