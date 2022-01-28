@@ -78,8 +78,8 @@ class User(_UserBase):
     device_id: Optional[str] 
     country: Optional[str]
     state: Optional[str]
-    # google_id: Optional[str]
-    # google_picture: Optional[str] 
+    google_id: Optional[str]
+    google_image: Optional[str] 
     date_created: dt.datetime
     last_updated: dt.datetime 
 

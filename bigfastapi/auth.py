@@ -82,7 +82,7 @@ async def create_user(user: auth_schemas.UserCreate, db: _orm.Session):
         id = uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified = True, country_code=user.country_code, is_deleted=False,
-        country=user.country, state= user.state, 
+        country=user.country, state= user.state, google_id = user.google_id, google_image= user.google_image,
         image = user.image, device_id = user.device_id
     )
     

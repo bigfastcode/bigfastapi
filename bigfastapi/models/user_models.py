@@ -31,8 +31,8 @@ class User(Base):
     is_deleted = Column(String(225), index = True)
     image = Column(String(), index = True)
     device_id = Column(String(), index = True)
-    # google_id = Column(String())
-    # google_picture = Column(String())
+    google_id = Column(String())
+    google_image = Column(String())
     date_created = Column(DateTime, default=datetime.datetime.utcnow)
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
 

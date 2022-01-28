@@ -25,20 +25,19 @@ def upgrade():
     op.add_column('users', sa.Column('google_id', sa.String()))
     op.add_column('users', sa.Column('date_created', sa.DateTime()))
     op.add_column('users', sa.Column('last_updated', sa.DateTime()))
-    )
+    
     pass
 
 
-def downgrade():
-    op.drop_column('users', 'image') 
-    op.drop_column('users', 'is_deleted') 
-    op.drop_column('users', 'device_id') 
-    op.drop_column('users','device_id') 
-    op.drop_column('users', 'country') 
-    op.drop_column('users', 'state') 
-
-    op.drop_column('users', 'google_picture')
-    op.drop_column('users', 'date_created')
-    op.drop_column('users', 'last_updated')
-    pass
+# def downgrade():
+#     op.drop_column('users', 'image') 
+#     op.drop_column('users', 'is_deleted') 
+#     op.drop_column('users', 'device_id') 
+#     op.drop_column('users','device_id') 
+#     op.drop_column('users', 'country') 
+#     op.drop_column('users', 'state') 
+#     op.drop_column('users', 'google_id')
+#     op.drop_column('users', 'date_created')
+#     op.drop_column('users', 'last_updated')
+#     pass
 
