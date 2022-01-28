@@ -24,12 +24,14 @@ MarkupSafe
 packaging
 passlib
 # psycopg2-binary
+pdfkit
 pycparser
 pydantic
 PyJWT
 pyparsing
 python-decouple
 python-dotenv
+python-jose[cryptography]
 python-multipart
 PyYAML
 requests
