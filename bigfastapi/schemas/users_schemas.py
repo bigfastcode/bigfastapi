@@ -1,4 +1,4 @@
-import datetime as _dt
+import datetime as dt
 
 import pydantic as _pydantic
 from pydantic import Field
@@ -73,6 +73,15 @@ class User(_UserBase):
     is_verified: bool
     is_superuser: bool
     country_code: Optional[str]
+    image: Optional[str] 
+    is_deleted: bool
+    device_id: Optional[str] 
+    country: Optional[str]
+    state: Optional[str]
+    # google_id: Optional[str]
+    # google_picture: Optional[str] 
+    date_created: dt.datetime
+    last_updated: dt.datetime 
 
 
     class Config:

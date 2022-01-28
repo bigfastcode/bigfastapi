@@ -1,4 +1,4 @@
-import datetime as _dt
+import datetime as dt
 import pydantic as _pydantic
 from pydantic import Field
 from uuid import UUID
@@ -23,9 +23,15 @@ class UserCreate(_UserBase):
     password: str
     first_name: str
     last_name: str
-    phone_number: str
-    country_code: str
-    
+    phone_number: Optional[str]
+    country_code: Optional[str] 
+    image: Optional[str] 
+    device_id: Optional[str] 
+    country: Optional[str]
+    state: Optional[str]
+    # google_id: Optional[str]
+    # google_picture: Optional[str] 
+
     class Config:
         orm_mode = True
     
@@ -44,7 +50,6 @@ class TokenData(_UserBase):
     id: Optional[str] = None
 
 
-
 class User(_UserBase):
     id: str
     first_name: str
@@ -53,7 +58,16 @@ class User(_UserBase):
     is_active: bool
     is_verified: bool
     is_superuser: bool
-
+    country_code: Optional[str]
+    image: Optional[str] 
+    is_deleted: bool
+    device_id: Optional[str] 
+    country: Optional[str]
+    state: Optional[str]
+    # google_id: Optional[str]
+    # google_picture: Optional[str] 
+    date_created: dt.datetime
+    last_updated: dt.datetime 
 
     class Config:
         orm_mode = True

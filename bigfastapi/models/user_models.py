@@ -1,5 +1,5 @@
 
-import datetime as _dt
+import datetime as datetime
 from sqlite3 import Timestamp
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -26,7 +26,16 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
     country_code = Column(String(225), index= True)
-    
+    country = Column(String(225), index = True)
+    state =  Column(String(225), index = True)
+    is_deleted = Column(String(225), index = True)
+    image = Column(String(), index = True)
+    device_id = Column(String(), index = True)
+    # google_id = Column(String())
+    # google_picture = Column(String())
+    date_created = Column(DateTime, default=datetime.datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
+
 
     def verify_password(self, password: str):
         return _hash.sha256_crypt.verify(password, self.password)
