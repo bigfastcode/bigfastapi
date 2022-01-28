@@ -3,13 +3,13 @@
         "schema": 
         {   
             "organisation_id": "string",
-            "owner_type": "string",
+            "creator_id": "string",
             "account_number": "integer", 
             "bank_name": "string", 
             "account_name": "string", 
             "sort_code":"string",
             "account_type": "string",
-            "bank_country": "Nigeria"
+            "country": "Nigeria"
         },
         "validation_url": "https://maylancer.org/api/nuban/api.php?account_number={account_number}&bank_code={code}",
         "banks_url": "https://maylancer.org/api/nuban/banklist.php?type=bank_code",

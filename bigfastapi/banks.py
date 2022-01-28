@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from typing import List
 import pkg_resources
 import json
+import requests
 
 router = APIRouter()
 
@@ -31,26 +32,50 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
         HTTP_201_CREATED (new bank details added)
     Raises
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
+        HTTP_403_FORBIDDEN: incomplete details
     """
-    addbank = bank_models.BankDetails(id=uuid4().hex,
-                    organisation_id= bank.organisation_id,
+    if bank.country == "Nigeria":
+       # bank_details = requests.post(f"https://maylancer.org/api/nuban/api.php?account_number={bank.account_number}")
+       # print(bank_details)
+       # if bank_details is not dict:
+       #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid account number")
+        
+        if not bank.bank_type:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                                    detail="Account type is required")
+
+        addbank = bank_models.BankModels(id=uuid4().hex,
+                    organisation_id= org_id,
                     creator_id= bank.creator_id,
                     account_number= bank.account_number,
                     bank_name= bank.bank_name,
                     account_name= bank.account_name,
-                    address=bank.address,
-                    swift_code=bank.swift_code,
+                    bank_type=bank.bank_type,
                     sort_code=bank.sort_code,
-                    postcode=bank.postcode,
                     country=bank.country,
                     date_created=bank.date_created)
-    db.add(addbank)
-    db.commit()
-    db.refresh(addbank)
-   
-    return bank_schemas.BankResponse.from_orm(addbank)
+        
+        return await add_bank( user=user, addbank=addbank, db=db)
 
-
+    if bank.country and bank.bank_name and bank.account_name and bank.aba_routing_number and bank.swift_code and bank.sort_code and bank.iban:             
+        addbank = bank_models.BankModels(id=uuid4().hex,
+                        organisation_id= org_id,
+                        creator_id= bank.creator_id,
+                        account_number= bank.account_number,
+                        bank_name= bank.bank_name,
+                        account_name= bank.account_name,
+                        country=bank.country,
+                        sort_code=bank.sort_code,
+                        swift_code=bank.swift_code,
+                        address=bank.address, 
+                        account_type = bank.bank_type, 
+                        aba_routing_number =bank.aba_routing_number,
+                        iban=bank.iban,
+                        date_created=bank.date_created)
+    else: 
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                                    detail="missing required fields")
+    return await add_bank( user=user, addbank=addbank, db=db)
 
 
 @router.get("/organisation/{org_id}/banks", status_code=status.HTTP_200_OK,
@@ -67,7 +92,7 @@ async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authe
     Raises
         HTTP_424_FAILED_DEPENDENCY: failed to fetch banks
     """
-    banks = db.query(bank_models.BankDetails).all()
+    banks = db.query(bank_models.BankModels).all()
     return list(map(bank_schemas.BankResponse.from_orm, banks))
 
 
@@ -118,16 +143,17 @@ async def delete_bank(org_id: str, bank_id:str,
 
 
 @router.get("/bank/schema", status_code=status.HTTP_200_OK)
-async def get_single_bank(country: str):
-    """Fetches details needed to add bank details based on country provided.
+async def get_country_schema(country: str):
+    """Fetches the schema valid for each country    .
     Args:
         country: Country whose schema structure is to be fetched.
     Returns:
         HTTP_200_OK (bank object)
-    Raises
+    Raises: 
         HTTP_4O4_NOT_FOUND: Country not in the list of supported countries.
     """
-    return "schema"
+    schema = await BV.get_country_data(country=country, info ="schema")
+    return {"schema": dict(schema)}
 
     
 
@@ -141,7 +167,8 @@ async def validate_bank_details(country: str):
     Raises
         HTTP_4O4_NOT_FOUND: Country not in the list of supported countries.
     """
-    return "valid"
+    country_info = await BV.validate_supported_country(country)
+    return country_info
 
 
 
@@ -150,43 +177,44 @@ async def validate_bank_details(country: str):
 #=================================== Bank Service =================================#
     
 async def fetch_bank(user: users_schemas.User, id: str, db: Session):
-    bank = db.query(bank_models.BankDetails).filter(bank_models.AccountDetails.id == id).first()
+    bank = db.query(bank_models.BankModels).filter(bank_models.BankModels.id == id).first()
     if not bank:
        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"This bank detail does not exist here")
     return bank
 
-
-class IdentityValidator:
-
-    async def validate_org():
-        pass
-
-    async def user_in_org():
-        pass
+async def add_bank(user: users_schemas.User, addbank: str, db: Session):
+    db.add(addbank)
+    db.commit()
+    db.refresh(addbank)
+    
+    return bank_schemas.BankResponse.from_orm(addbank) 
 
 
-async def get_country_data(country, info=None): 
-    with open(BANK_DATA_PATH + "/bank.json") as file:
-        country_data = json.load(file)
-    try:
+
+with open(BANK_DATA_PATH + "/bank.json") as file:
+            country_data = json.load(file)
+           
+class BankValidator:
+    def __init__(self) -> None:
+        self.country_info = country_data
+        
+    async def get_country_data(self, country, info=None): 
+        if country not in self.country_info and info is None:
+            return self.country_info["others"]
+        elif country not in country_data:
+            return self.country_info["others"][info]
         if info:
-            country_info = country_data[country][info]
-        country_info= country_data[country]
-        return country_info
-    except ValueError:
-        return country_data["others"]
-
-
-async def validate_supported_country(country):
+            country_info = self.country_info[country][info]
+            return country_info
+        return self.country_info[country]
+        
     
-    pass
+            
+    async def validate_supported_country(self, country):
+        for data in self.country_info:
+            if data == country:
+                return True
+        return False
 
-async def validate_schema_format(country, schema):
-    
-    
-
-async def validate_bank_details(details:list, validator: HttpUrl):
-    return "bank details valid"
-
-
+BV = BankValidator()
