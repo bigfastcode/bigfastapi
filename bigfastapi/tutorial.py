@@ -1,6 +1,5 @@
 from operator import or_
 import sqlalchemy
-import fastapi
 from fastapi import APIRouter, HTTPException, status
 from fastapi.param_functions import Depends
 from fastapi.responses import JSONResponse
@@ -13,8 +12,6 @@ from bigfastapi.models import plan_model, tutorial_model, user_models
 from uuid import uuid4
 from bigfastapi import db, users
 from typing import List
-from ast import With
-from email import message
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 import datetime as _dt
@@ -23,6 +20,7 @@ import datetime as _dt
 app = APIRouter(tags=["Tutorials"])
 
 
+# SAVE TUTORIAL ENDPOINT
 @app.post('/tutorial', response_model=tutorial_schema.TutorialSingleRes)
 async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session = _fastapi.Depends(get_db)):
     try:
@@ -34,12 +32,8 @@ async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session =
         raise HTTPException(status_code=404, detail=str(exception))
 
 
-@app.get('/tutorials/list/categories')
-async def getCategoryLsit(db: _orm.Session = _fastapi.Depends(get_db)):
-    categories = await groupByCategory(db)
-
-
-@app.get('/tutorials')
+# GET TUTORIALS - Can be filtered by category, title or both
+@app.get('/tutorials', response_model=tutorial_schema.TutorialListRes)
 async def getTutorials(
         category: str = None, title: str = None,
         page_size: int = 10, page: int = 1,
@@ -54,20 +48,30 @@ async def getTutorials(
         getPagination(page, page_size, rowCount, '/tutorials'))
 
 
-async def runFetchQuery(
-        category: str, title: str, page_size: int, skip: int,
-        rowCount: int, db: _orm.Session = _fastapi.Depends(get_db)):
+# GET TUTORIALS IN GROUPED OF CATEGORIES
+@app.get('/tutorials/group/categories')
+async def getGroup(
+        page_size: int = 10, page: int = 1,
+        db: _orm.Session = _fastapi.Depends(get_db)):
 
-    if category is None and title is None:
-        return await tutorial_model.fetchAll(db, skip, page_size)
-    if category is None and title != None:
-        return await tutorial_model.getBytitle(title, db, skip, page_size)
-    if category != None and title != None:
-        return await tutorial_model.getByCatByTitle(category, title, db, skip, page_size)
+    rowCount = await tutorial_model.getRowCount(db)
+    skip = getSkip(page, page_size)
+    groupedTutorials = await tutorial_model.groupByCategory(db, skip, page_size)
+    pagination = getPagination(
+        page, page_size, rowCount, '/tutorials/group/categories')
+    return {"data": groupedTutorials, "total": rowCount, "count": page_size, "pagination": pagination}
+
+
+# GET A LIST OF ALL TUTORIAL CATEGORIES
+@app.get('/tutorials/categories')
+async def getCategoryLsit(db: _orm.Session = _fastapi.Depends(get_db)):
+    tutorials = await tutorial_model.groupByCategory(db)
+    categories = buildCategoryList(tutorials)
+    return {"data": categories}
 
 
 async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
-    user = await getUser(newTutorial.added_by, db)
+    user = await tutorial_model.getUser(newTutorial.added_by, db)
     if user != None:
         if user.is_superuser:
             dbRes = await store(newTutorial, db)
@@ -76,28 +80,6 @@ async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm
             raise PermissionError("Lacks super admin access")
     else:
         raise LookupError('Could not find user')
-
-
-def getSkip(page: int, pageSize: int):
-    return (page-1)*pageSize
-
-
-def getPagination(page: int, pageSize: int, count: int, endpoint: str):
-    paging = {}
-    if pageSize >= count:
-        paging['next'] = None
-        if page > 1:
-            paging['previous'] = f"{endpoint}?page={page-1}&page_size={pageSize}"
-        else:
-            paging['previous'] = None
-    else:
-        paging['next'] = f"{endpoint}?page={page+1}&page_size={pageSize}"
-        if page > 1:
-            paging['previous'] = f"{endpoint}?page={page-1}&page_size={pageSize}"
-        else:
-            paging['previous'] = None
-
-    return paging
 
 
 # STORE IN DB
@@ -118,39 +100,9 @@ async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
             status_code=409, detail='A tutorial with the same details exist')
 
 
-async def getUser(addedBy: str, db: _orm.Session):
-    return db.query(user_models.User).filter(user_models.User.id == addedBy).first()
-
-
-async def groupByCategory(db: _orm.Session):
-    return db.query(
-        tutorial_model.Tutorial.category, tutorial_model.Tutorial.stream_url,
-        func.count(tutorial_model.Tutorial.category).label('count')).group_by(
-        tutorial_model.Tutorial.category).all()
-
-
-async def getOne(tutorialId: str, db: _orm.Session):
-    return db.query(tutorial_model.Tutorial).filter(tutorialId == tutorial_model.Tutorial.id).first()
-
-
-async def getByCategory(categoryName: str, db: _orm.Session):
-    return db.query(tutorial_model.Tutorial).filter(tutorial_model.Tutorial.category == categoryName).all()
-
-
-async def getBytitle(title: str, db: _orm.Session):
-    return db.query(tutorial_model.Tutorial).filter(tutorial_model.Tutorial.title == title).all()
-
-
-async def searchWithAll(categoryName: str, title: str, desc: str, db: _orm.Session):
-    return db.query(tutorial_model.Tutorial).filter(or_(
-        tutorial_model.Tutorial.category.like(categoryName),
-        tutorial_model.Tutorial.title.like(title),
-        tutorial_model.Tutorial.title.like(desc))).all()
-
-
 async def delete(itemId: str, userId: str, db: _orm.Session):
-    instance = await getOne(itemId, db)
-    userinstnace = await getUser(userId, db)
+    instance = await tutorial_model.getOne(itemId, db)
+    userinstnace = await tutorial_model.getUser(userId, db)
     if instance:
         if userinstnace:
             if userinstnace.is_superuser:
@@ -169,8 +121,8 @@ async def delete(itemId: str, userId: str, db: _orm.Session):
 
 
 async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, userId: str, db: _orm.Session):
-    user = await getUser(userId, db)
-    tutorial = await getOne(itemId, db)
+    user = await tutorial_model.getUser(userId, db)
+    tutorial = await tutorial_model.getOne(itemId, db)
     if user:
         if user.is_superuser:
             try:
@@ -189,9 +141,55 @@ async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, user
         raise LookupError('Could not find user')
 
 
+# HELPER FUNCTIONS
+
+# SKIP and OFFSET
+def getSkip(page: int, pageSize: int):
+    return (page-1)*pageSize
+
+
+# PAGINATION LOGIC
+def getPagination(page: int, pageSize: int, count: int, endpoint: str):
+    paging = {}
+    if (pageSize + getSkip(page, pageSize)) >= count:
+        paging['next'] = None
+        if page > 1:
+            paging['previous'] = f"{endpoint}?page={page-1}&page_size={pageSize}"
+        else:
+            paging['previous'] = None
+    else:
+        paging['next'] = f"{endpoint}?page={page+1}&page_size={pageSize}"
+        if page > 1:
+            paging['previous'] = f"{endpoint}?page={page-1}&page_size={pageSize}"
+        else:
+            paging['previous'] = None
+
+    return paging
+
+
+# RUN QUERY
+async def runFetchQuery(
+        category: str, title: str, page_size: int, skip: int,
+        rowCount: int, db: _orm.Session = _fastapi.Depends(get_db)):
+
+    if category is None and title is None:
+        return await tutorial_model.fetchAll(db, skip, page_size)
+    if category is None and title != None:
+        return await tutorial_model.getBytitle(title, db, skip, page_size)
+    if category != None and title != None:
+        return await tutorial_model.getByCatByTitle(category, title, db, skip, page_size)
+
+
+# BUID CATEGORY LIST
+def buildCategoryList(tutorials: List[tutorial_model.Tutorial]):
+    categories = []
+    for tutorial in tutorials:
+        categories.append(tutorial.category)
+
+    return categories
+
+
 # GENERIC STRUCTURED RESPONSE BUILDER
-
-
 def buildSuccessRes(resData, isList: bool, pageSize: int, totalCount: int, pagination: dict):
     if isList:
         return tutorial_schema.TutorialListRes(

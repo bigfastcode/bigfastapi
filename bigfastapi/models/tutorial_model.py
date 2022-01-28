@@ -57,11 +57,11 @@ async def getUser(addedBy: str, db: _orm.Session):
     return db.query(user_models.User).filter(user_models.User.id == addedBy).first()
 
 
-async def groupByCategory(db: _orm.Session):
+async def groupByCategory(db: _orm.Session, skip: int, limit: int):
     return db.query(
-        Tutorial.category, Tutorial.stream_url,
+        Tutorial.category, Tutorial.thumbnail,
         func.count(Tutorial.category).label('count')).group_by(
-        Tutorial.category).all()
+        Tutorial.category).offset(skip).limit(limit).all()
 
 
 async def fetchAll(db: _orm.Session, skip: int, limit: int):
@@ -136,8 +136,6 @@ async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, user
 
 
 # GENERIC STRUCTURED RESPONSE BUILDER
-
-
 def buildSuccessRes(resData, isList: bool):
     if isList:
         return tutorial_schema.TutorialListRes(status_code=200, resource_type='plan list', data=resData)
