@@ -33,6 +33,7 @@ async def update_user(
     return await user_update(user_update, user, db)
 
 
+
 #user must be a super user to perform this
 @app.put("/users/{user_id}/activate")
 async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user: _schemas.User = fastapi.Depends(is_authenticated),
@@ -156,7 +157,7 @@ async def deactivate(user_activate: _schemas.UserActivate, user:_schemas.User, d
 async def resetpassword(user: _schemas.UserResetPassword, db: orm.Session):
     user_found = await get_user_by_email(email = user.email, db=db)
     user_found.password = _hash.sha256_crypt.hash(user.password)
-    find_token = db.query(auth_models.Token).filter(auth_models.Token.user_id == user_found.id).all()
+    db.query(auth_models.Token).filter(auth_models.Token.user_id == user_found.id).delete()
     db.commit()
     db.refresh(user_found)
     return "password reset successful"

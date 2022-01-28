@@ -21,3 +21,10 @@ def ValidateUrl(url):
         return True
     else:
         return False
+
+
+def paginate_data(data, page_size: int, page_number: int):
+    start = (page_number - 1) * page_size
+    end = start + page_size
+
+    return data[start: end]
