@@ -7,42 +7,24 @@ import datetime as _dt
 import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from datetime import datetime, timedelta
-
-from .models import auth_models as auth_models
-from .models import user_models as user_models
-
-from .schemas import users_schemas
-
+from .models import auth_models, user_models
+from .schemas import auth_schemas, users_schemas
+from passlib.context import CryptContext
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database as _database
-# from . import models as _models, schema as _schemas
-from fastapi.security import HTTPBearer
-bearerSchema = HTTPBearer()
-import re
+from fastapi.security import OAuth2PasswordBearer
 from uuid import uuid4
 import validators
 import random
-
-# from .users import get_user_by_id, get_user_by_email
-
-import fastapi as _fastapi
-from fastapi import Request
-from fastapi.openapi.models import HTTPBearer
-import fastapi.security as _security
-import jwt as _jwt
-import datetime as _dt
-import sqlalchemy.orm as _orm
-import passlib.hash as _hash
-from datetime import datetime, timedelta
-
-from bigfastapi.utils import settings as settings
-# from bigfastapi.db import database as _database
-# from . import models as _models, schema as _schemas
-from fastapi.security import HTTPBearer
-bearerSchema = HTTPBearer()
+from jose import JWTError, jwt
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated = "auto")
+from fastapi import APIRouter
+from bigfastapi.db.database import get_db
+import json
 import re
-from uuid import uuid4
 import validators
+import requests
 
 from bigfastapi.email import conf
 from fastapi_mail import FastMail, MessageSchema
@@ -51,13 +33,118 @@ import fastapi
 from fastapi import BackgroundTasks
 
 
-JWT_SECRET = settings.JWT_SECRET
-JWT_ALGORITHM = 'HS256'
-JWT_EXP_DELTA_SECONDS = 60 * 60 * 24
 
 JWT_SECRET = settings.JWT_SECRET
-JWT_ALGORITHM = 'HS256'
-JWT_EXP_DELTA_SECONDS = 60 * 60 * 24
+ALGORITHM = 'HS256'
+
+app = APIRouter(tags=["Auth"])
+
+@app.post("/auth/signup", status_code=201)
+async def create_user(user: auth_schemas.UserCreate, db: _orm.Session = _fastapi.Depends(get_db)): 
+    user_email = await find_user_email(user.email, db)
+    print(user_email)
+    if user_email != None:
+        raise _fastapi.HTTPException(status_code=403, detail="Email already exist")        
+    user_created = await create_user(user, db=db)
+    access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
+    return { "access_token": access_token}
+
+
+@app.post("/auth/login", status_code=200)
+async def login(user: auth_schemas.UserLogin, db: _orm.Session = _fastapi.Depends(get_db)):
+    userinfo = await find_user_email(user.email, db)
+    veri = userinfo.verify_password(user.password)
+    if not veri:
+       raise _fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
+    
+    access_token = await create_access_token(data = {"user_id": userinfo.id }, db=db)
+    return {"access_token": access_token}
+
+
+
+
+
+
+async def create_user(user: auth_schemas.UserCreate, db: _orm.Session):
+    user_obj = user_models.User(
+        id = uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(user.password),
+        first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
+        is_active=True, is_verified = True
+    )
+    
+    db.add(user_obj)
+    db.commit()
+    db.refresh(user_obj)
+    return user_obj
+
+
+async def create_access_token(data: dict, db: _orm.Session):
+    to_encode = data.copy()
+  
+    expire = datetime.utcnow() + timedelta(minutes=1440)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=ALGORITHM)
+    token_obj = auth_models.Token(id = uuid4().hex, user_id=data["user_id"], token=encoded_jwt)
+    db.add(token_obj)
+    db.commit()
+    db.refresh(token_obj)
+    return encoded_jwt
+
+
+def verify_access_token(token: str, credentials_exception, db: _orm.Session ):
+    try:
+        #check if token still exist 
+        check_token = db.query(auth_models.Token).filter(auth_models.Token.token == token).first()
+        if check_token == None:
+            raise _fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
+        id: str = payload.get("user_id")
+        user = db.query(user_models.User).filter(user_models.User.id == id).first()
+        email = user.email
+        if id is None:
+            raise credentials_exception
+        token_data = auth_schemas.TokenData(email=email, id=id)
+    except JWTError:
+        raise credentials_exception
+
+    return token_data
+
+
+def is_authenticated(token: str = _fastapi.Depends(oauth2_scheme), db: _orm.Session = _fastapi.Depends(get_db)):
+    credentials_exception = _fastapi.HTTPException(status_code=_fastapi.status.HTTP_401_UNAUTHORIZED,
+                                          detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+    token = verify_access_token(token, credentials_exception, db)
+    user = db.query(user_models.User).filter(user_models.User.id == token.id).first()
+    return user
+
+
+async def find_user_email(email, db: _orm.Session):
+    found_user = db.query(user_models.User).filter(user_models.User.email == email).first()
+    return found_user
+
+
+def find_country(ctry):
+    with open("bigfastapi/data/countries.json") as file:
+        cap_country = ctry.capitalize()
+        countries = json.load(file)
+        found_country = next((country for country in countries if country['name'] == cap_country), None)
+        if found_country is None:
+            raise _fastapi.HTTPException(status_code=403, detail="This country doesn't exist")
+        return found_country['name']
+
+
+def dialcode(dcode):
+    with open("bigfastapi/data/dialcode.json") as file:
+        dialcodes = json.load(file)
+        found_dialcode = next((dialcode for dialcode in dialcodes if dialcode['dial_code'] == dcode), None)
+        if found_dialcode is None:
+            raise _fastapi.HTTPException(status_code=403, detail="This is an invalid dialcode")
+        return found_dialcode['dial_code']
+
+
+
+
+
 
 
 async def get_code_from_db(code: str, db: _orm.Session):
@@ -65,6 +152,7 @@ async def get_code_from_db(code: str, db: _orm.Session):
 
 async def get_code_by_userid(user_id: str, db: _orm.Session):
     return db.query(auth_models.VerificationCode).filter(auth_models.VerificationCode.user_id == user_id).first()
+
 async def get_password_reset_code_from_db(code: str, db: _orm.Session):
     return db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.code == code).first()
 
@@ -105,6 +193,7 @@ async def create_verification_code(user: user_models.User, length:int=None):
         db.refresh(code_obj)
 
     return {"code":code}
+    
 
 async def create_forgot_pasword_code(user: user_models.User, length:int=None):
     user_obj = users_schemas.User.from_orm(user)
@@ -127,7 +216,7 @@ async def create_forgot_pasword_code(user: user_models.User, length:int=None):
         db.commit()
         db.refresh(code_obj)
 
-    return {"code":code}
+    return code
 
 
 async def get_token_from_db(token: str, db: _orm.Session):
@@ -153,46 +242,9 @@ async def get_header_token(request: Request):
     except Exception as e:
         return {"status": True, "data": "Invalid Token"}
 
-async def validate_token(token: str):
-    try:
-        data = _jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except _jwt.ExpiredSignatureError:
-        return {"status": False, "data": "token has expired"}
-    except Exception as e:
-        return {"status": False, "data": "Invalid Token"}
-
-    return {"status": True, "data": data}
 
 
-async def generate_token(user_id:str, db: _orm.Session):
-    payload = {'user_id': user_id,
-    'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)}
-    token = _jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
-    token_obj = auth_models.Token(id = uuid4().hex, user_id=user_id, token=token)
-    db.add(token_obj)
-    db.commit()
-    db.refresh(token_obj)
-    return token
 
-async def create_token(user: user_models.User):
-    user_obj = users_schemas.User.from_orm(user)
-    db = _database.SessionLocal()
-    token = ""
-
-    db_token = await get_token_by_userid(user_id= user_obj.id, db=db)
-    # token_obj = _schemas.User.from_orm(db_token)
-    if db_token:
-        validate_resp = await validate_token(db_token.token)
-        if not validate_resp["status"]:
-            db.delete(db_token)
-            db.commit()
-            token = await generate_token(user_obj.id, db)
-        else:
-            token = (db_token.token)
-    else:
-        token = await generate_token(user_obj.id, db)
-
-    return dict(access_token=token, token_type="bearer")
 
 
 async def generate_verification_token(user_id:str, db: _orm.Session):
@@ -265,39 +317,6 @@ async def logout(user: users_schemas.User):
     db.commit()
     return True
 
-async def verify_user_code(code:str):
-    db = _database.SessionLocal()
-    code_db = await get_code_from_db(code, db)
-    # if code_db:
-    #     user = await get_user_by_id(db=db, id=code_db.user_id)
-    #     user.is_verified = True
-
-    #     db.commit()
-    #     db.refresh(user)
-    #     db.delete(code_db)
-    #     db.commit()
-    #     return users_schemas.User.from_orm(user)
-    # else:
-    raise _fastapi.HTTPException(status_code=401, detail="Invalid Code")
-
-
-
-async def is_authenticated(request: Request, token:str = _fastapi.Depends(bearerSchema), db: _orm.Session = _fastapi.Depends(_database.get_db)):
-    token = token.credentials
-    validate_resp = await validate_token(token)
-    if not validate_resp["status"]:
-        raise _fastapi.HTTPException(
-            status_code=401, detail=validate_resp["data"]
-        )
-
-    user = await get_user_by_id(db=db, id=validate_resp["data"]["user_id"])
-    db_token = await get_token_from_db(token, db)
-    if db_token:
-        return users_schemas.User.from_orm(user)
-    else:
-        raise _fastapi.HTTPException(
-            status_code=401, detail="invalid token"
-        )
 
 async def get_user_by_id(id: str, db: _orm.Session):
     return db.query(user_models.User).filter(user_models.User.id == id).first()
@@ -463,6 +482,5 @@ def send_email_background(
 ):
     fm = FastMail(conf)
     background_tasks.add_task(fm.send_message, message, template_name="email.html") 
-
 
 
