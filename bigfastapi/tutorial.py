@@ -17,6 +17,7 @@ from ast import With
 from email import message
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
+import datetime as _dt
 
 
 app = APIRouter(tags=["Tutorials"])
@@ -39,9 +40,30 @@ async def getCategoryLsit(db: _orm.Session = _fastapi.Depends(get_db)):
 
 
 @app.get('/tutorials')
-async def getTutorials(category: str = None, db: _orm.Session = _fastapi.Depends(get_db)):
-    tutorials = await tutorial_model.groupByCategory(db)
-    return tutorials
+async def getTutorials(
+        category: str = None, title: str = None,
+        page_size: int = 10, page: int = 1,
+        db: _orm.Session = _fastapi.Depends(get_db)):
+
+    rowCount = await tutorial_model.getRowCount(db)
+    skip = getSkip(page, page_size)
+
+    tutorials = await runFetchQuery(category, title, page_size, skip, rowCount, db)
+    return buildSuccessRes(
+        tutorials, True, page_size, rowCount,
+        getPagination(page, page_size, rowCount, '/tutorials'))
+
+
+async def runFetchQuery(
+        category: str, title: str, page_size: int, skip: int,
+        rowCount: int, db: _orm.Session = _fastapi.Depends(get_db)):
+
+    if category is None and title is None:
+        return await tutorial_model.fetchAll(db, skip, page_size)
+    if category is None and title != None:
+        return await tutorial_model.getBytitle(title, db, skip, page_size)
+    if category != None and title != None:
+        return await tutorial_model.getByCatByTitle(category, title, db, skip, page_size)
 
 
 async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
@@ -56,7 +78,31 @@ async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm
         raise LookupError('Could not find user')
 
 
+def getSkip(page: int, pageSize: int):
+    return (page-1)*pageSize
+
+
+def getPagination(page: int, pageSize: int, count: int, endpoint: str):
+    paging = {}
+    if pageSize >= count:
+        paging['next'] = None
+        if page > 1:
+            paging['previous'] = f"{endpoint}?page={page-1}&page_size={pageSize}"
+        else:
+            paging['previous'] = None
+    else:
+        paging['next'] = f"{endpoint}?page={page+1}&page_size={pageSize}"
+        if page > 1:
+            paging['previous'] = f"{endpoint}?page={page-1}&page_size={pageSize}"
+        else:
+            paging['previous'] = None
+
+    return paging
+
+
 # STORE IN DB
+
+
 async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
     objectConstruct = tutorial_model.Tutorial(
         id=uuid4().hex, category=newTutorial.category, title=newTutorial.title,
@@ -81,10 +127,6 @@ async def groupByCategory(db: _orm.Session):
         tutorial_model.Tutorial.category, tutorial_model.Tutorial.stream_url,
         func.count(tutorial_model.Tutorial.category).label('count')).group_by(
         tutorial_model.Tutorial.category).all()
-
-
-async def fetchAll(db: _orm.Session):
-    return db.query(tutorial_model.Tutorial).all()
 
 
 async def getOne(tutorialId: str, db: _orm.Session):
@@ -131,13 +173,16 @@ async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, user
     tutorial = await getOne(itemId, db)
     if user:
         if user.is_superuser:
-            db.query(tutorial_model.Tutorial).filter(itemId == tutorial_model.Tutorial.id).update(
-
-            )
-            objectConstruct = tutorial_model.Tutorial(
-                category=newTutorial.category, title=newTutorial.title,
-                description=newTutorial.description, thumbnail=newTutorial.thumbnail,
-                stream_url=newTutorial.stream_url, text=newTutorial.text, added_by=newTutorial.added_by)
+            try:
+                tutorial.category = newTutorial.category, tutorial.title = newTutorial.title,
+                tutorial.description = newTutorial.description, tutorial.thumbnail = newTutorial.thumbnail,
+                tutorial.stream_url = newTutorial.stream_url, tutorial.text = newTutorial.text,
+                tutorial.last_updated = _dt.datetime.utcnow
+                db.commit()
+                db.refresh(tutorial)
+                return tutorial
+            except:
+                raise HTTPException(status_code=500, detail='Server Error')
         else:
             raise PermissionError('Lacks super admin access')
     else:
@@ -147,8 +192,9 @@ async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, user
 # GENERIC STRUCTURED RESPONSE BUILDER
 
 
-def buildSuccessRes(resData, isList: bool):
+def buildSuccessRes(resData, isList: bool, pageSize: int, totalCount: int, pagination: dict):
     if isList:
-        return tutorial_schema.TutorialListRes(status_code='success', resource_type='tutoria list', data=resData)
+        return tutorial_schema.TutorialListRes(
+            data=resData, total=totalCount, count=pageSize, pagination=pagination)
     else:
-        return tutorial_schema.TutorialSingleRes(status_code='success', resource_type='tutorial', data=resData)
+        return tutorial_schema.TutorialSingleRes(data=resData)

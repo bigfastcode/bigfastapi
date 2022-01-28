@@ -49,6 +49,10 @@ async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
             status_code=409, detail='A tutorial with the same details exist')
 
 
+async def getRowCount(db: _orm.Session):
+    return db.query(Tutorial).count()
+
+
 async def getUser(addedBy: str, db: _orm.Session):
     return db.query(user_models.User).filter(user_models.User.id == addedBy).first()
 
@@ -60,27 +64,75 @@ async def groupByCategory(db: _orm.Session):
         Tutorial.category).all()
 
 
-async def fetchAll(db: _orm.Session):
-    return db.query(Tutorial).all()
+async def fetchAll(db: _orm.Session, skip: int, limit: int):
+    return db.query(Tutorial).offset(skip).limit(limit).all()
+
+
+async def getBytitle(title: str, db: _orm.Session, skip: int, limit: int):
+    return db.query(Tutorial).filter(Tutorial.title == title).offset(skip).limit(limit).all()
+
+
+async def getByCategory(categoryName: str, db: _orm.Session, skip: int, limit: int):
+    return db.query(Tutorial).filter(Tutorial.category == categoryName).offset(skip).limit(limit).all()
+
+
+async def getByCatByTitle(categoryName: str, title: str, db: _orm.Session, skip: int, limit: int):
+    return db.query(Tutorial).filter(
+        Tutorial.category == categoryName and
+        Tutorial.title == title).offset(skip).limit(limit).all()
 
 
 async def getOne(tutorialId: str, db: _orm.Session):
     return db.query(Tutorial).filter(tutorialId == Tutorial.id).first()
 
 
-async def getByCategory(categoryName: str, db: _orm.Session):
-    return db.query(Tutorial).filter(Tutorial.category == categoryName).all()
-
-
-async def getBytitle(title: str, db: _orm.Session):
-    return db.query(Tutorial).filter(Tutorial.title == title).all()
-
-
-async def searchWithAll(categoryName: str, title: str, desc: str, db: _orm.Session):
+async def searchWithAll(
+        categoryName: str, title: str, desc: str, db: _orm.Session, skip: int, limit: int):
     return db.query(Tutorial).filter(or_(
         Tutorial.category.like(categoryName),
         Tutorial.title.like(title),
-        Tutorial.title.like(desc))).all()
+        Tutorial.title.like(desc))).offset(skip).limit(limit).all()
+
+
+async def delete(itemId: str, userId: str, db: _orm.Session):
+    instance = await getOne(itemId, db)
+    userinstnace = await getUser(userId, db)
+    if instance:
+        if userinstnace:
+            if userinstnace.is_superuser:
+                try:
+                    db.delete(instance)
+                    db.commit()
+                    return {"message": "Tutorial deleted succesfully"}
+                except:
+                    raise HTTPException(status_code=500, detail='Server Error')
+            else:
+                raise PermissionError('Lacks super admin access')
+        else:
+            raise LookupError('Could not find user')
+    else:
+        raise LookupError('Tutorial does not exisst')
+
+
+async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, userId: str, db: _orm.Session):
+    user = await getUser(userId, db)
+    tutorial = await getOne(itemId, db)
+    if user:
+        if user.is_superuser:
+            try:
+                tutorial.category = newTutorial.category, tutorial.title = newTutorial.title,
+                tutorial.description = newTutorial.description, tutorial.thumbnail = newTutorial.thumbnail,
+                tutorial.stream_url = newTutorial.stream_url, tutorial.text = newTutorial.text,
+                tutorial.last_updated = _dt.datetime.utcnow
+                db.commit()
+                db.refresh(tutorial)
+                return tutorial
+            except:
+                raise HTTPException(status_code=500, detail='Server Error')
+        else:
+            raise PermissionError('Lacks super admin access')
+    else:
+        raise LookupError('Could not find user')
 
 
 # GENERIC STRUCTURED RESPONSE BUILDER

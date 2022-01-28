@@ -34,9 +34,12 @@ class TutorialRequest(TutorialBase):
     pass
 
 
-class TutorialSingleRes(TutorialResponseBase):
+class TutorialSingleRes(pydantic.BaseModel):
     data: TutorialDTO
 
 
-class TutorialListRes(TutorialResponseBase):
+class TutorialListRes(pydantic.BaseModel):
     data: List[TutorialDTO]
+    total: int
+    count: int
+    pagination: dict
