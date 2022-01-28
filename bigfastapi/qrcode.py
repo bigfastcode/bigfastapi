@@ -15,17 +15,17 @@ After that, the following endpoints will become available:
 
 
 import json
-import qrcode as _qrcode
+import qrcode as qrcode
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, HTTPException, status
-from bigfastapi.schemas.countries_schemas import Country, State
+from bigfastapi.schemas.qrcode_schemas import  State
 
 
 app = APIRouter(tags=["qrcode"])
 
 
-@app.get("/qrcode", response_model=Country, status_code=200)
-def get_qrcode():
+@app.get("/qrcode", status_code=status.HTTP_200_OK)
+def get_qrcode(data: str):
     """Get Countries and their respective states
 
     Args:
@@ -35,22 +35,11 @@ def get_qrcode():
         List[Country]: list of countries and their respective states
 
     """
-    data = "emediong"
-    # img = _qrcode.make(data)
-    # img.save("qr.png")
-    # Creating an instance of QRCode class
-    qr = _qrcode.QRCode(version = 1,
-                    box_size = 10,
-                    border = 5)
-    
-    # Adding data to the instance 'qr'
-    qr.add_data(data)
-    
-    qr.make(fit = True)
-    img = qr.make_image(fill_color = 'red',
-                        back_color = 'white')
-    print ("tiny")
+    img = qrcode.make(data)
+    type(img)  # qrcode.image.pil.PilImage
     img.show()
-    """img.save('MyQRCode2.png')"""
-    return JSONResponse(status_code=status.HTTP_200_OK, content=img)
+    img.save(f"C:\\Users\\USER\\cpme\\bigfastapi\\bigfastapi\\data\\qrcode_images\\{data}.png")
 
+    
+
+    return "successfully created qrcode"
