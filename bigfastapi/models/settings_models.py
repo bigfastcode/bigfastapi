@@ -13,11 +13,12 @@ from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as database
 # from organisation_models import Organisation
 
+
 class Settings(database.Base):
+
     __tablename__ = "settings"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_settings = Column(String(255), ForeignKey("organizations.id"))
-    # user_settings = Column(String(255), ForeignKey("users.id"))
+    organization = Column(String(255), ForeignKey("organizations.id"))
     location = Column(String(255), index=True)
     phone_number = Column(String(255), index=True)
     email = Column(String(255), index=True)
@@ -27,6 +28,9 @@ class Settings(database.Base):
     state = Column(String(255), index=True)
     city = Column(String(255), index=True)
     zip_code = Column(Integer, index=True)
+
+
+
 
 
 
