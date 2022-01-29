@@ -64,86 +64,46 @@ async def getGroup(
 
 # GET A LIST OF ALL TUTORIAL CATEGORIES
 @app.get('/tutorials/categories')
-async def getCategoryLsit(db: _orm.Session = _fastapi.Depends(get_db)):
-    tutorials = await tutorial_model.groupByCategory(db)
+async def getCategoryLsit(page_size: int = 10, page: int = 1,
+                          db: _orm.Session = _fastapi.Depends(get_db)):
+    skip = getSkip(page, page_size)
+    tutorials = await tutorial_model.groupByCategory(db, skip, page_size)
     categories = buildCategoryList(tutorials)
     return {"data": categories}
 
+
+@app.put('/tutorials/{itemId}')
+async def update(
+        itemId: str, newTutorial: tutorial_schema.TutorialRequest,
+        db: _orm.Session = _fastapi.Depends(get_db)):
+    try:
+        tutorial = await tutorial_model.update(newTutorial, itemId, newTutorial.added_by, db)
+        return tutorial_model.buildSuccessRes(tutorial, False)
+    except PermissionError as exception:
+        raise HTTPException(status_code=401, details=str(exception))
+    except LookupError as exception:
+        raise HTTPException(status_code=404, details=str(exception))
+
+
+# @app.delete('/tutorials/{itemId}')
+# as
 
 async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
     user = await tutorial_model.getUser(newTutorial.added_by, db)
     if user != None:
         if user.is_superuser:
-            dbRes = await store(newTutorial, db)
+            dbRes = await tutorial_model.store(newTutorial, db)
             return dbRes
         else:
             raise PermissionError("Lacks super admin access")
     else:
         raise LookupError('Could not find user')
 
-
-# STORE IN DB
-
-
-async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
-    objectConstruct = tutorial_model.Tutorial(
-        id=uuid4().hex, category=newTutorial.category, title=newTutorial.title,
-        description=newTutorial.description, thumbnail=newTutorial.thumbnail,
-        stream_url=newTutorial.stream_url, text=newTutorial.text, added_by=newTutorial.added_by)
-    try:
-        db.add(objectConstruct)
-        db.commit()
-        db.refresh(objectConstruct)
-        return objectConstruct
-    except IntegrityError as e:
-        raise HTTPException(
-            status_code=409, detail='A tutorial with the same details exist')
-
-
-async def delete(itemId: str, userId: str, db: _orm.Session):
-    instance = await tutorial_model.getOne(itemId, db)
-    userinstnace = await tutorial_model.getUser(userId, db)
-    if instance:
-        if userinstnace:
-            if userinstnace.is_superuser:
-                try:
-                    db.delete(instance)
-                    db.commit()
-                    return {"message": "Tutorial deleted succesfully"}
-                except:
-                    raise HTTPException(status_code=500, detail='Server Error')
-            else:
-                raise PermissionError('Lacks super admin access')
-        else:
-            raise LookupError('Could not find user')
-    else:
-        raise LookupError('Tutorial does not exisst')
-
-
-async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, userId: str, db: _orm.Session):
-    user = await tutorial_model.getUser(userId, db)
-    tutorial = await tutorial_model.getOne(itemId, db)
-    if user:
-        if user.is_superuser:
-            try:
-                tutorial.category = newTutorial.category, tutorial.title = newTutorial.title,
-                tutorial.description = newTutorial.description, tutorial.thumbnail = newTutorial.thumbnail,
-                tutorial.stream_url = newTutorial.stream_url, tutorial.text = newTutorial.text,
-                tutorial.last_updated = _dt.datetime.utcnow
-                db.commit()
-                db.refresh(tutorial)
-                return tutorial
-            except:
-                raise HTTPException(status_code=500, detail='Server Error')
-        else:
-            raise PermissionError('Lacks super admin access')
-    else:
-        raise LookupError('Could not find user')
-
-
 # HELPER FUNCTIONS
 
 # SKIP and OFFSET
+
+
 def getSkip(page: int, pageSize: int):
     return (page-1)*pageSize
 

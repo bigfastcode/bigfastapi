@@ -19,11 +19,11 @@ from operator import or_
 
 
 class Tutorial(_database.Base):
-    __tablename__ = "instructions"
+    __tablename__ = "Tutirial"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     category = Column(String(255), index=True)
-    title = Column(String(255), unique=True, index=True)
-    description = Column(Text, unique=True, index=True, default="")
+    title = Column(String(255), index=True)
+    description = Column(Text, index=True, default="")
     thumbnail = Column(Text, index=True, default="")
     stream_url = Column(Text, index=True)
     text = Column(Text, index=True, default="")
@@ -33,20 +33,25 @@ class Tutorial(_database.Base):
 
 
 #
-# SERVICE LAYER
+# REPOSITORY LAYER
 async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
     objectConstruct = Tutorial(
         id=uuid4().hex, category=newTutorial.category, title=newTutorial.title,
         description=newTutorial.description, thumbnail=newTutorial.thumbnail,
         stream_url=newTutorial.stream_url, text=newTutorial.text, added_by=newTutorial.added_by)
-    try:
-        db.add(objectConstruct)
-        db.commit()
-        db.refresh(objectConstruct)
-        return objectConstruct
-    except IntegrityError as e:
+    copy = await findTheSame(db, newTutorial)
+    if copy == None:
+        try:
+            db.add(objectConstruct)
+            db.commit()
+            db.refresh(objectConstruct)
+            return objectConstruct
+        except:
+            raise HTTPException(
+                status_code=500, detail='Server Error')
+    else:
         raise HTTPException(
-            status_code=409, detail='A tutorial with the same details exist')
+            status_code=500, detail='A tutorial with the same details already exist')
 
 
 async def getRowCount(db: _orm.Session):
@@ -55,6 +60,20 @@ async def getRowCount(db: _orm.Session):
 
 async def getUser(addedBy: str, db: _orm.Session):
     return db.query(user_models.User).filter(user_models.User.id == addedBy).first()
+
+
+async def findTheSame(db: _orm.Session, request: tutorial_schema.TutorialRequest):
+    return db.query(Tutorial).filter(
+        request.title == Tutorial.title or request.description == Tutorial.description or
+        request.stream_url == Tutorial.stream_url or request.thumbnail == Tutorial.thumbnail or
+        request.text == Tutorial.text).first()
+
+
+async def findReplica(db: _orm.Session, itemId: str, request: tutorial_schema.TutorialRequest):
+    return db.query(Tutorial).filter(Tutorial.id != itemId).filter(
+        request.title == Tutorial.title or request.description == Tutorial.description or
+        request.stream_url == Tutorial.stream_url or request.thumbnail == Tutorial.thumbnail or
+        request.text == Tutorial.text).first()
 
 
 async def groupByCategory(db: _orm.Session, skip: int, limit: int):
@@ -105,7 +124,7 @@ async def delete(itemId: str, userId: str, db: _orm.Session):
                     db.commit()
                     return {"message": "Tutorial deleted succesfully"}
                 except:
-                    raise HTTPException(status_code=500, detail='Server Error')
+                    raise HTTPException(status_code=500, detail='Opp error')
             else:
                 raise PermissionError('Lacks super admin access')
         else:
@@ -115,20 +134,35 @@ async def delete(itemId: str, userId: str, db: _orm.Session):
 
 
 async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, userId: str, db: _orm.Session):
+    duplicate = await findReplica(db, itemId, newTutorial)
     user = await getUser(userId, db)
     tutorial = await getOne(itemId, db)
+    print(duplicate)
+
     if user:
         if user.is_superuser:
-            try:
-                tutorial.category = newTutorial.category, tutorial.title = newTutorial.title,
-                tutorial.description = newTutorial.description, tutorial.thumbnail = newTutorial.thumbnail,
-                tutorial.stream_url = newTutorial.stream_url, tutorial.text = newTutorial.text,
-                tutorial.last_updated = _dt.datetime.utcnow
-                db.commit()
-                db.refresh(tutorial)
-                return tutorial
-            except:
-                raise HTTPException(status_code=500, detail='Server Error')
+            if duplicate is None:
+                try:
+                    db.query(Tutorial).filter(tutorial.id == itemId).update(
+                        {
+                            "category": newTutorial.category,
+                            "title": newTutorial.title,
+                            "description": newTutorial.description,
+                            "text": newTutorial.text,
+                            "thumbnail": newTutorial.thumbnail,
+                            "stream_url": newTutorial.stream_url,
+                            "added_by": newTutorial.added_by,
+                            "last_updated": _dt.datetime.utcnow()
+                        })
+                    db.commit()
+                    db.refresh(tutorial)
+                    return tutorial
+                except:
+                    raise HTTPException(
+                        status_code=500, detail='Something went wrong')
+            else:
+                raise HTTPException(
+                    status_code=409, detail='Tutorial with the same details already exist')
         else:
             raise PermissionError('Lacks super admin access')
     else:
@@ -136,6 +170,8 @@ async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, user
 
 
 # GENERIC STRUCTURED RESPONSE BUILDER
+
+
 def buildSuccessRes(resData, isList: bool):
     if isList:
         return tutorial_schema.TutorialListRes(status_code=200, resource_type='plan list', data=resData)
