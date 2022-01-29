@@ -65,6 +65,8 @@ async def create_user(user: auth_schemas.UserCreate, db: _orm.Session = fastapi.
 @app.post("/auth/login", status_code=200)
 async def login(user: auth_schemas.UserLogin, db: _orm.Session = fastapi.Depends(get_db)):
     userinfo = await find_user_email(user.email, db)
+    if userinfo is None:
+        raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
     veri = userinfo.verify_password(user.password)
     if not veri:
        raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")

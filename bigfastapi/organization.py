@@ -39,6 +39,7 @@ async def get_organizations(
 ):
     print(user)
     allorgs = await get_organizations(user, db)
+    print(allorgs)
     return paginate_data(allorgs, page_size, page_number)
 
 
