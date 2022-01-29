@@ -36,7 +36,7 @@ def test_send_email():
         "/email/send",
         json={
             "subject": "Rejection",
-            "recipient": "test@email.com",
+            "recipient": ["test@email.com"],
             "title": "title",
             "first_name": "Samuel",
             "body": "the body",
@@ -50,7 +50,7 @@ def test_send_notification_email():
         "/email/send/notification",
         json={
             "subject": "Rejection",
-            "recipient": "test@email.com",
+            "recipient": ["test@email.com"],
             "title": "title",
             "first_name": "Samuel",
             "body": "the body",
@@ -67,7 +67,7 @@ def test_send_invoice_mail():
         "/email/send/invoice",
         json={
             "subject": "Invoice from BigFastAPI",
-            "recipient": "test@email.com",
+            "recipient": ["test@email.com"],
             "title": "Invoice for Ps5",
             "first_name": "Psami",
             "amount": "$1000",
@@ -87,7 +87,7 @@ def test_send_receipt_mail():
         "/email/send/receipt",
         json={
             "subject": "Receipt from BigFastAPI",
-            "recipient": "test@email.com",
+            "recipient": ["test@email.com"],
             "title": "Payment for Ps5",
             "first_name": "Samuel",
             "amount": "$600",
@@ -103,7 +103,7 @@ def test_send_welcome_email():
         "/email/send/welcome",
         json={
             "subject": "Welcome",
-            "recipient": "test@email.com",
+            "recipient": ["test@email.com"],
             "title": "Payment for Ps5",
             "first_name": "Samuel",
             "body": "test_body",
@@ -118,7 +118,7 @@ def test_send_verification_email():
         "/email/send/verification",
         json={
             "subject": "Verify Your Email",
-            "recipient": "test@email.com",
+            "recipient": ["test@email.com"],
             "title": "Payment for Ps5",
             "first_name": "Samuel",
             "body": "test_body",
@@ -134,7 +134,7 @@ def test_send_reset_password_email():
             "/email/send/reset-password",
             json={
                 "subject": "Reset Password",
-                "recipient": "okechukwusamuel16@gmail.com",
+                "recipient": ["okechukwusamuel16@gmail.com"],
                 "title": "Payment for Ps5",
                 "first_name": "Samuel",
                 "link": "reset_password_link"

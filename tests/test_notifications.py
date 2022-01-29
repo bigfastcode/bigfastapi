@@ -41,7 +41,7 @@ def override_get_db():
 client = TestClient(app)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def setUp():
     database.Base.metadata.create_all(bind=engine, tables=[notification_models.Notification.__table__])
     app.dependency_overrides[database.get_db] = override_get_db
@@ -55,22 +55,13 @@ def setUp():
         recipient="admin@gmail.com",
     )
 
-    notification2 = notification_models.Notification(
-        id="9cd87677378946d88dc7903b6710ae78", 
-        creator="test@gmail.com", 
-        content="new blog has been created", 
-        reference="blog-9cd87677378946d88dc7903b6710ae67",
-        recipient="admin@gmail.com",
-    )
-
-    test_db.add_all([notification1, notification2])
+    test_db.add(notification1)
     test_db.commit()
     test_db.refresh(notification1)
-    test_db.refresh(notification2)
 
-    return notification_schemas.Notification.from_orm(notification1)
+    yield notification_schemas.Notification.from_orm(notification1)
 
-    # database.Base.metadata.drop_all(bind=engine, tables=[notification_models.Notification.__tablename__])
+    database.Base.metadata.drop_all(bind=engine, tables=[notification_models.Notification.__table__])
 
 def test_system_creating_a_notification(setUp):
     response = client.post("/notification", json={"creator": "support@admin.com", "content":"Testing", "reference":"comment-9cd87677378946d88dc7903b6710ae66", "recipient":"hello@test.com"})
@@ -92,7 +83,7 @@ def test_get_a_notification(setUp):
 def test_get_all_notifications(setUp):
     response = client.get("/notifications")
     assert response.status_code == 200
-    assert len(response.json()) == 4
+    assert len(response.json()) == 1
 
 def test_mark_a_notification_read(setUp):
     response = client.put("/notification/9cd87677378946d88dc7903b6710ae77/read")
@@ -103,7 +94,7 @@ def test_mark_a_notification_read(setUp):
 def test_mark_all_notifications_read(setUp):
     response = client.put("/notifications/read")
     assert response.status_code == 200
-    assert len(response.json()) == 4
+    assert len(response.json()) == 1
     for n in response.json():
         assert n.get("has_read") == True
     
@@ -123,6 +114,6 @@ def test_update_a_notification_recipient(setUp):
     assert response.json().get('recipient') == "admin@test.com"
 
 def test_delete_a_notification(setUp):
-    response = client.delete("/notification/9cd87677378946d88dc7903b6710ae78")
+    response = client.delete("/notification/9cd87677378946d88dc7903b6710ae77")
     assert response.status_code == 200
     assert response.json().get("message") == "successfully deleted"
