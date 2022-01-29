@@ -23,5 +23,5 @@ class Organization(_database.Base):
     name = Column(String(255), unique=True, index=True, default="")
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
-    settings = _orm.relationship("Settings")
+    # settings = _orm.relationship("settings")
 

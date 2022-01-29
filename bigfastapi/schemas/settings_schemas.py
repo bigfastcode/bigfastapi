@@ -23,11 +23,10 @@ from pydantic import BaseModel
     
 
 
-class Settings(BaseModel):
-    # organization: str
+class SettingsBase(BaseModel):
     email: str
     location : str
-    phone_number : str
+    phone_number : Optional[str] = None
     organization_size : Optional[str] = None
     organization_type : Optional[str] = None
     country : Optional[str] = None
@@ -35,13 +34,20 @@ class Settings(BaseModel):
     city : Optional[str] = None
     zip_code : Optional[int] = None
 
+    # class Config:
+    #     orm_mode = True
+
+
+class SettingsUpdate(SettingsBase):
+    pass
+
+
+class Settings(SettingsBase):
+    pass
+
     class Config:
         orm_mode = True
 
-
-
-class SettingsInDB(Settings):
-    organization: str
 
 
 

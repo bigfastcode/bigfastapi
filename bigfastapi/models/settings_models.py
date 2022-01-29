@@ -1,4 +1,5 @@
 import datetime as _dt
+from re import T
 from sqlite3 import Timestamp
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -18,10 +19,10 @@ class Settings(database.Base):
 
     __tablename__ = "settings"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization = Column(String(255), ForeignKey("organizations.id"))
-    location = Column(String(255), index=True)
-    phone_number = Column(String(255), index=True)
-    email = Column(String(255), index=True)
+    org_id = Column(String(255), ForeignKey("organizations.id"))
+    location = Column(String(255), index=True, nullable=True)
+    phone_number = Column(String(255), index=True, nullable=True)
+    email = Column(String(255), index=True, nullable=True)
     organization_size = Column(String(255), index=True)
     organization_type = Column(String(255), index=True)
     country = Column(String(255), index=True)
