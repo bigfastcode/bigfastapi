@@ -48,7 +48,7 @@ async def getTutorials(
         getPagination(page, page_size, rowCount, '/tutorials'))
 
 
-# GET TUTORIALS IN GROUPED OF CATEGORIES
+# GET TUTORIALS IN GROUPED OF CATEGORIES- Return result as groups of categories
 @app.get('/tutorials/group/categories')
 async def getGroup(
         page_size: int = 10, page: int = 1,
@@ -72,6 +72,19 @@ async def getCategoryLsit(page_size: int = 10, page: int = 1,
     return {"data": categories}
 
 
+@app.get('/tutorials/search/{keyword}', response_model=tutorial_schema.TutorialListRes)
+async def searchByKeyWord(
+        keyword: str, page_size: int = 10, page: int = 1,
+        db: _orm.Session = _fastapi.Depends(get_db)):
+
+    rowCount = await tutorial_model.getRowCount(db)
+    skip = getSkip(page, page_size)
+    pagination = getPagination(
+        page, page_size, rowCount, '/tutorials/search/{keyword}')
+    tutorials = await tutorial_model.searchWithAll(keyword, db, skip, page_size)
+    return buildSuccessRes(tutorials, True, page_size, rowCount, pagination)
+
+
 @app.put('/tutorials/{itemId}')
 async def update(
         itemId: str, newTutorial: tutorial_schema.TutorialRequest,
@@ -85,9 +98,28 @@ async def update(
         raise HTTPException(status_code=404, details=str(exception))
 
 
-# @app.delete('/tutorials/{itemId}')
-# as
+@app.delete('/tutorials/{itemId}/user/{userId}')
+async def delete(itemId: str, userId: str, db: _orm.Session = _fastapi.Depends(get_db)):
+    try:
+        dbResponse = await tutorial_model.delete(itemId, userId, db)
+        return {'data': dbResponse}
+    except PermissionError as exception:
+        raise HTTPException(status_code=401, details=str(exception))
+    except LookupError as exception:
+        raise HTTPException(status_code=404, details=str(exception))
 
+
+# ---------------------#
+# HELPER FUNCTIONS
+# ---------------------#
+
+
+# SKIP and OFFSET
+def getSkip(page: int, pageSize: int):
+    return (page-1)*pageSize
+
+
+# SAVE A NEW TUTORIA
 async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
     user = await tutorial_model.getUser(newTutorial.added_by, db)
     if user != None:
@@ -98,14 +130,6 @@ async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm
             raise PermissionError("Lacks super admin access")
     else:
         raise LookupError('Could not find user')
-
-# HELPER FUNCTIONS
-
-# SKIP and OFFSET
-
-
-def getSkip(page: int, pageSize: int):
-    return (page-1)*pageSize
 
 
 # PAGINATION LOGIC

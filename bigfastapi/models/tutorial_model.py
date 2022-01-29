@@ -105,12 +105,11 @@ async def getOne(tutorialId: str, db: _orm.Session):
     return db.query(Tutorial).filter(tutorialId == Tutorial.id).first()
 
 
-async def searchWithAll(
-        categoryName: str, title: str, desc: str, db: _orm.Session, skip: int, limit: int):
+async def searchWithAll(keyword: str, db: _orm.Session, skip: int, limit: int):
     return db.query(Tutorial).filter(or_(
-        Tutorial.category.like(categoryName),
-        Tutorial.title.like(title),
-        Tutorial.title.like(desc))).offset(skip).limit(limit).all()
+        Tutorial.category.like(keyword),
+        Tutorial.title.like(keyword),
+        Tutorial.title.like(keyword))).offset(skip).limit(limit).all()
 
 
 async def delete(itemId: str, userId: str, db: _orm.Session):
@@ -170,8 +169,6 @@ async def update(newTutorial: tutorial_schema.TutorialRequest, itemId: str, user
 
 
 # GENERIC STRUCTURED RESPONSE BUILDER
-
-
 def buildSuccessRes(resData, isList: bool):
     if isList:
         return tutorial_schema.TutorialListRes(status_code=200, resource_type='plan list', data=resData)
