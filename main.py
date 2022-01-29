@@ -38,6 +38,7 @@ from bigfastapi.organization import app as organization
 from bigfastapi.settings import app as settings
 from bigfastapi.wallet import app as wallet
 from bigfastapi.pdfs import app as pdfs
+from bigfastapi.receipts import app as receipts
 from bigfastapi.notification import app as notification
 
 
@@ -80,6 +81,7 @@ app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
+app.include_router(receipts)
 app.include_router(customer)
 
 @app.get("/", tags=["Home"])
