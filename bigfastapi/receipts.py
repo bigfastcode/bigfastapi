@@ -30,7 +30,7 @@ app = APIRouter()
 @app.post("/sendreceipt")
 def sendReceipt(body: receipt_schemas.atrributes, background_tasks: BackgroundTasks, db: orm.Session = Depends(get_db)):
     #define pdf schema
-    pdfname = (body.subject)+str(random.randint(3,8))+".pdf"
+    pdfname = (body.subject)+str(uuid4().hex)+".pdf"
     
     pdfSchema = {
             "htmlString": body.message,
