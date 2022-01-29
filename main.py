@@ -35,6 +35,7 @@ from bigfastapi import banks
 from bigfastapi.pages import app as pages
 from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
+from bigfastapi.qrcode import app as qrcode
 from bigfastapi.settings import app as settings
 from bigfastapi.wallet import app as wallet
 from bigfastapi.pdfs import app as pdfs
@@ -77,6 +78,7 @@ app.include_router(plan, tags=["Plan"])
 app.include_router(banks.router, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
+app.include_router(qrcode, tags=["qrcode"])
 app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
 app.include_router(notification, tags=["Notification"])
