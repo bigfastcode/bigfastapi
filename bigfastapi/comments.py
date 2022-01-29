@@ -138,7 +138,7 @@ def db_vote_for_comments(comment_id: int, model_name:str, action: str, db: _orm.
         db (_orm.Session): DB Session to commit to. Automatically determined by FastAPI
     
     Returns:
-        _schemas.Comment : A refreshed Comment object reflecting the changed votes
+        schema.Comment : A refreshed Comment object reflecting the changed votes
     """ 
     comment_obj = db_retrieve_comment_by_id(comment_id, model_name, db=db)
     if action == "upvote": comment_obj.upvote(),
@@ -173,7 +173,7 @@ def db_retrieve_all_comments_for_object(object_id: int, model_name:str, db: _orm
         db (_orm.Session): DB Session to commit to. Automatically determined by FastAPI
 
     Returns:
-        List[_schemas. Comment]: A list of all comments and their threads, for a specific object
+        List[schema. Comment]: A list of all comments and their threads, for a specific object
     """
     object_qs = db.query(comments_models.Comment).filter(comments_models.Comment.rel_id == object_id, 
         comments_models.Comment.model_type == model_name, comments_models.Comment.p_id == None).all()
