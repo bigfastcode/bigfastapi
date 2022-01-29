@@ -34,6 +34,7 @@ from bigfastapi.pages import app as pages
 from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
 from bigfastapi.pdfs import app as pdfs
+from bigfastapi.receipts import app as receipts
 from bigfastapi.notification import app as notification
 
 
@@ -69,6 +70,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
+app.include_router(receipts)
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:
