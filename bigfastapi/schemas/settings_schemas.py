@@ -34,8 +34,7 @@ class SettingsBase(BaseModel):
     city : Optional[str] = None
     zip_code : Optional[int] = None
 
-    # class Config:
-    #     orm_mode = True
+
 
 
 class SettingsUpdate(SettingsBase):
