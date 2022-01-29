@@ -56,7 +56,7 @@ async def add_organization_settings(
 
 
 
-### Fetch settings by id ####
+### Fetch settings by organization id ####
 @app.get('/organization/{org_id}/settings', status_code=status.HTTP_200_OK, response_model=schemas.Settings)
 
 
@@ -80,6 +80,10 @@ async def fetch_settings (
     return settings
 
     
+
+
+
+### Update Settings by organization id ####
 
 
 @app.put('/organization/{org_id}/settings', status_code=status.HTTP_202_ACCEPTED, response_model=schemas.SettingsUpdate)
