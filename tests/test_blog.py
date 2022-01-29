@@ -41,28 +41,25 @@ def override_get_db():
 client = TestClient(app)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def setUp():
-    database.Base.metadata.create_all(engine)
+    database.Base.metadata.create_all(engine, tables=[blog_models.Blog.__table__])
     app.dependency_overrides[database.get_db] = override_get_db
     app.dependency_overrides[is_authenticated] = override_is_authenticated
 
     blog_data1 = {"title":"First Test Data", "content":"Testing Blog Endpoint"}
     blog_data2 = {"title":"Second Test Data", "content":"Testing Blog Update Endpoint"}
-    blog_data3 = {"title":"Third Test Data", "content":"Testing Update Endpoint"}
     
     blog1 = blog_models.Blog(id="9cd87677378946d88dc7903b6710ae44", creator="9cd87677378946d88dc7903b6710ae54", **blog_data1)
     blog2 = blog_models.Blog(id="9cd87677378946d88dc7903b6710ae45", creator="9cd87677378946d88dc7903b6710ae55", **blog_data2)
-    blog3 = blog_models.Blog(id="9cd87677378946d88dc7903b6710ae46", creator="9cd87677378946d88dc7903b6710ae55", **blog_data3)
-    _db.add(blog1)
-    _db.add(blog2)
-    _db.add(blog3)
+    _db.add_all([blog1, blog2])
     _db.commit()
     _db.refresh(blog1)
     _db.refresh(blog2)
-    _db.refresh(blog3)
 
-    return blog_schemas.Blog.from_orm(blog1)
+    yield blog_schemas.Blog.from_orm(blog1)
+
+    database.Base.metadata.drop_all(engine, tables=[blog_models.Blog.__table__])
 
 def test_create_blog(setUp):
     response = client.post("/blog", json={"title":"Testing Create Endpoint!!!", "content":"Testing Create Blog Endpoint"})
@@ -77,7 +74,7 @@ def test_create_blog_with_existing_title(setUp):
 def test_get_all_blogs(setUp):
     response = client.get("/blogs")
     assert response.status_code == 200
-    assert len(response.json()) == 4
+    assert len(response.json()) == 2
 
 def test_get_blog(setUp):
     response = client.get("/blog/9cd87677378946d88dc7903b6710ae44")
@@ -88,7 +85,7 @@ def test_get_blog(setUp):
 def test_get_user_blogs(setUp):
     response = client.get("/blogs/9cd87677378946d88dc7903b6710ae55")
     assert response.status_code == 200
-    assert len(response.json()) == 3
+    assert len(response.json()) == 1
 
 def test_update_blog(setUp):
     response = client.put("/blog/9cd87677378946d88dc7903b6710ae45", json={"title": "","content": "Testing Update Blog Endpoint!!!"})
@@ -106,7 +103,7 @@ def test_update_blog_that_was_not_created_by_user(setUp):
     assert response.status_code == 404
 
 def test_delete_blog(setUp):
-    response = client.delete("/blog/9cd87677378946d88dc7903b6710ae46")
+    response = client.delete("/blog/9cd87677378946d88dc7903b6710ae45")
     assert response.status_code == 200
     assert response.json().get("message") == "successfully deleted"
 
