@@ -14,11 +14,13 @@ database.db
 test.db
 
 .DS_Store
+bigfastapi/.DS_Store
 
 
 filestorage
 
 .vscode/
+.idea/
 # Distribution / packaging
 .Python
 build/

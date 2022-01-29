@@ -18,14 +18,22 @@ class UserUpdate(_UserBase):
     first_name: str
     last_name: str
     phone_number: str
-    organization: str
+
+class UserActivate(_UserBase):
+    is_active: bool
+
+class UserResetPassword(_UserBase):
+    code: str
+    password: str
 
 class UserPasswordUpdate(_pydantic.BaseModel):
+    code: str
     password: str
 
 class UserTokenVerification(_pydantic.BaseModel):
     email: str
     redirect_url: str
+    
 class UserCodeVerification(_pydantic.BaseModel):
     email: str
     code_length: Optional[int] = Field(None, title="This is the length of the verification code, which is 6 by default", example=5)
@@ -34,9 +42,13 @@ class UserCreate(_UserBase):
     password: str
     first_name: str
     last_name: str
-    verification_method: str = Field(..., title="The user verification method you prefer, this is either: token or code", example="code")
-    verification_redirect_url: Optional[str] = Field(None, title="This is the redirect url if you are chosing token verification method", example="https://bigfastapi.com/verify")
-    verification_code_length: Optional[int] = Field(None, title="This is the length of the verification code, which is 6 by default", example=5)
+
+    class Config:
+        orm_mode = True
+
+class UserCreateOut(_UserBase):
+    first_name: str
+    last_name: str
 
     class Config:
         orm_mode = True
@@ -48,6 +60,9 @@ class UserOrgLogin(_UserBase):
 class UserLogin(_UserBase):
     password: str
 
+class UserRecoverPassword(_UserBase):
+    pass
+
 
 class User(_UserBase):
     id: str
@@ -57,7 +72,7 @@ class User(_UserBase):
     is_active: bool
     is_verified: bool
     is_superuser: bool
-    organization: str
+
 
     class Config:
         orm_mode = True

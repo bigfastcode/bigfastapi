@@ -29,6 +29,7 @@ PyJWT
 pyparsing
 python-decouple
 python-dotenv
+python-jose[cryptography]
 python-multipart
 PyYAML
 requests
@@ -44,3 +45,4 @@ watchgod
 websockets
 validators
 pytest
+fastapi-pagination
