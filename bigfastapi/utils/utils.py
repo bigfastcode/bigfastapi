@@ -31,5 +31,5 @@ def paginate_data(data, page_size: int, page_number: int):
     return {
         "data": data[start: end],
         "total_documents": data.__len__(),
-        "count": page_size
+        "page_limit": page_size
     }
