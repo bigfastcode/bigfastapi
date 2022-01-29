@@ -57,6 +57,9 @@ def test_create_contact():
     assert response.status_code == 200, response.text
     data = response.json()
     assert data['contact'].get('phone') == "2449085765909"
+    print(data)
+
+
 
 
 def test_get_contact():
@@ -98,7 +101,7 @@ def test_create_contactUS():
 def test_get_all_contactus():
     response = client.get('/contactus')
     assert response.status_code == 200, response.text
-    "fb2887ad6dca4a868b5a34b6d64e12dd"
+
 
 
 def test_get_contactUS_by_id():

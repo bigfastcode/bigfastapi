@@ -48,7 +48,7 @@ client = TestClient(app)
 
 @pytest.fixture(scope="module")
 def setUp():
-    database.Base.metadata.create_all(engine)
+    database.Base.metadata.create_all(engine, tables=[plan_models.Plan.__table__])
     app.dependency_overrides[database.get_db] = override_get_db
     app.dependency_overrides[is_authenticated] = override_is_authenticated
 
@@ -91,7 +91,9 @@ def setUp():
     db.refresh(plan_one)
     db.refresh(plan_two)
 
-    return plan_schemas.Plan.from_orm(plan_one)
+    yield plan_schemas.Plan.from_orm(plan_one)
+
+    database.Base.metadata.drop_all(engine, tables=[plan_models.Plan.__table__])
 
 
 def test_get_all_plans(setUp):
