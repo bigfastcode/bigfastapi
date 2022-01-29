@@ -18,7 +18,7 @@ import datetime as _dt
 app = APIRouter(tags=["Organization"])
 
 
-@app.post("/organizations", response_model=_schemas.OrganizationCreate)
+@app.post("/organizations", response_model=_schemas.Organization)
 async def create_organization(
     organization: _schemas.OrganizationCreate,
     user: str = _fastapi.Depends(is_authenticated),
