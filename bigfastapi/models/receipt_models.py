@@ -12,15 +12,11 @@ from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as _database
 
-
-class Organization(_database.Base):
-    __tablename__ = "organizations"
+class Receipt(_database.Base):
+    __tablename__ = "newreceipts"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    creator = Column(String(255), ForeignKey("users.id"))
-    mission = Column(String(255), index=True)
-    vision = Column(String(255), index=True)
-    values = Column(String(255), index=True)
-    name = Column(String(255), unique=True, index=True, default="")
+    sender_email = Column(String(255), index=True)
+    file_id = Column(String(255), ForeignKey("files.id"))
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
-
+    

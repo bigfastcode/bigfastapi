@@ -1,4 +1,6 @@
+import datetime
 from uuid import uuid4
+from pydantic import BaseModel
 from fastapi import APIRouter, status, HTTPException, BackgroundTasks
 from typing import List
 import fastapi
@@ -77,24 +79,37 @@ def delete_contact(contact_id: str, db: orm.Session = fastapi.Depends(get_db),
             status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
     return JSONResponse({"message": "Only an Admin can delete a contact"}, status_code=status.HTTP_401_UNAUTHORIZED)
 
+    # ============================ CONTACT US =====================================#
 
-# ==================================================================== CONTACT US ========================================================#
 
 @app.post("/contactus")
-def create_contactUS(contact: contact_schemas.ContactUSB,
-                    background_tasks: BackgroundTasks,
-                     db: orm.Session = fastapi.Depends(get_db)
-                     ):
-    contact = contact_model.ContactUS(id=uuid4().hex,
-                                      name=contact.name,
-                                      email=contact.email,
-                                      subject=contact.subject,
-                                      message=contact.message)
-    db.add(contact)
+def create_contactUS(contact: contact_schemas.ContactUSB, background_tasks: BackgroundTasks,
+                     db: orm.Session = fastapi.Depends(get_db)):
+    cont = contact_model.ContactUS(id=uuid4().hex,
+                                   name=contact.name,
+                                   email=contact.email,
+                                   subject=contact.subject,
+                                   message=contact.message)
+    db.add(cont)
     db.commit()
-    db.refresh(contact)
+    db.refresh(cont)
 
-    return {"message": "message sent successfully", "contact": contact_schemas.ContactUS.from_orm(contact)}
+    message1 = MessageSchema(
+        subject="New Contact Request",
+        recipients=["admins@bigfastapi.com"],
+        body=f"Dear Admin,\n A new contact request was sent from: {cont.email}\n {cont.name}\n{cont.subject} \n{cont.message}\nThanks.")
+
+    visitor_name = cont.name
+    split_name = visitor_name.split()
+    Indexed_name = split_name[0]
+    date_created = datetime.datetime.now()
+
+    message2 = MessageSchema(
+        subject="Message Received",
+        recipients=[cont.email],
+        body=f"Good day {Indexed_name},\nyour message has been received at {date_created}\nbe rest assured that we will get back to you in due time,\nhave a lovely day.")
+    SendContactMail(background_tasks=background_tasks, message1=message1, message2=message2)
+    return {"message": "message sent successfully"}
 
 
 @app.get("/contactus", response_model=List[contact_schemas.ContactUS])
@@ -130,3 +145,11 @@ def delete_contactUS(contactus_id: str, db: orm.Session = fastapi.Depends(get_db
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Contact details not found")
     return JSONResponse({"message": "Admin access only"}, status_code=status.HTTP_401_UNAUTHORIZED)
+
+    # =====================Contact mail service====================#
+
+
+def SendContactMail(background_tasks: BackgroundTasks, message1, message2):
+    fm = FastMail(conf)
+    background_tasks.add_task(fm.send_message, message1)
+    background_tasks.add_task(fm.send_message, message2)
