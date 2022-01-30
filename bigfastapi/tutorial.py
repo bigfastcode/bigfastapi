@@ -72,6 +72,7 @@ async def getCategoryLsit(page_size: int = 10, page: int = 1,
     return {"data": categories}
 
 
+# SEARCH TUTORIAL BY MATCHING KEYWORDS
 @app.get('/tutorials/search/{keyword}', response_model=tutorial_schema.TutorialListRes)
 async def searchByKeyWord(
         keyword: str, page_size: int = 10, page: int = 1,
@@ -85,6 +86,7 @@ async def searchByKeyWord(
     return buildSuccessRes(tutorials, True, page_size, rowCount, pagination)
 
 
+# UPDATE TUTORIAL DETAILS
 @app.put('/tutorials/{itemId}')
 async def update(
         itemId: str, newTutorial: tutorial_schema.TutorialRequest,
@@ -109,9 +111,9 @@ async def delete(itemId: str, userId: str, db: _orm.Session = _fastapi.Depends(g
         raise HTTPException(status_code=404, details=str(exception))
 
 
-# ---------------------#
-# HELPER FUNCTIONS
-# ---------------------#
+# --------------------------------------------------------------------------------------------------#
+#                                    HELPER FUNCTIONS SECION
+# --------------------------------------------------------------------------------------------------#
 
 
 # SKIP and OFFSET

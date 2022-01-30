@@ -32,8 +32,11 @@ class Tutorial(_database.Base):
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
 
+# --------------------------------------------------------------------------------------------------#
+#                                    REPOSITORY LAYER
+# --------------------------------------------------------------------------------------------------#
 #
-# REPOSITORY LAYER
+
 async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
     objectConstruct = Tutorial(
         id=uuid4().hex, category=newTutorial.category, title=newTutorial.title,
