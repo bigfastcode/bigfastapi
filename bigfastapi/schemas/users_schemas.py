@@ -1,4 +1,4 @@
-import datetime as _dt
+import datetime as dt
 
 import pydantic as _pydantic
 from pydantic import Field
@@ -63,7 +63,6 @@ class UserLogin(_UserBase):
 class UserRecoverPassword(_UserBase):
     pass
 
-
 class User(_UserBase):
     id: str
     first_name: str
@@ -72,10 +71,18 @@ class User(_UserBase):
     is_active: bool
     is_verified: bool
     is_superuser: bool
+    country_code: Optional[str]
+    image: Optional[str] 
+    is_deleted: bool
+    device_id: Optional[str] 
+    country: Optional[str]
+    state: Optional[str]
+    google_id: Optional[str]
+    google_image: Optional[str] 
+    date_created: dt.datetime
+    last_updated: dt.datetime 
 
 
-    class Config:
-        orm_mode = True
 
 
 

@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
 from bigfastapi.subscription import app as sub
 from bigfastapi.plan import app as plan
+from bigfastapi.tutorial import app as tutorial
 from bigfastapi.db.database import create_database
 import random
 
@@ -19,20 +20,15 @@ from bigfastapi.files import app as files
 from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
+from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.customer import app as customer
 from bigfastapi.auth import app as authentication
 from bigfastapi.plans import app as plans
-
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
-from bigfastapi.countries import app as countries
-from bigfastapi.faq import app as faq
-from bigfastapi.blog import app as blog
-from bigfastapi.comments import app as comments
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 from bigfastapi import banks
-from bigfastapi.pages import app as pages
 from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
 from bigfastapi.qrcode import app as qrcode
@@ -75,6 +71,7 @@ app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
 app.include_router(plan, tags=["Plan"])
+app.include_router(tutorial, tags=["Tutorial"])
 app.include_router(banks.router, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
@@ -83,8 +80,10 @@ app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
+app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(customer)
+
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:

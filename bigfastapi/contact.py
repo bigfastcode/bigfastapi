@@ -8,7 +8,7 @@ from fastapi_mail import FastMail, MessageSchema
 from .email import conf
 import sqlalchemy.orm as orm
 from fastapi.responses import JSONResponse
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from .schemas import users_schemas
 from .schemas import contact_schemas
 from .models import contact_model

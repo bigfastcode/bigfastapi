@@ -5,7 +5,7 @@ from fastapi import Depends
 from .models import notification_models as model
 from .schemas import notification_schemas as schema, users_schemas as user_schema
 from typing import List
-from bigfastapi.auth import is_authenticated
+from bigfastapi.auth_api import is_authenticated
 import sqlalchemy.orm as orm
 from uuid import uuid4
 

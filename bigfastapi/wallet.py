@@ -11,7 +11,7 @@ from .schemas import users_schemas
 from . import organization
 
 from bigfastapi.db.database import get_db
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from .models import wallet_models as model
 import datetime as _dt
 app = APIRouter(tags=["Wallet"])
