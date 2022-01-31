@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from pydantic import HttpUrl, Json
 from bigfastapi.schemas import bank_schemas, users_schemas
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as Session
@@ -10,7 +9,7 @@ from fastapi.responses import JSONResponse
 from typing import List
 import pkg_resources
 import json
-import requests
+from fastapi_pagination import Page, add_pagination, paginate
 
 router = APIRouter()
 
@@ -79,7 +78,7 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
 
 
 @router.get("/organisation/{org_id}/banks", status_code=status.HTTP_200_OK,
-            response_model=List[bank_schemas.BankResponse])
+            response_model=Page[bank_schemas.BankResponse])
 async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authenticated),
     db:Session = Depends(get_db)):
 
@@ -93,7 +92,8 @@ async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authe
         HTTP_424_FAILED_DEPENDENCY: failed to fetch banks
     """
     banks = db.query(bank_models.BankModels).all()
-    return list(map(bank_schemas.BankResponse.from_orm, banks))
+    banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
+    return paginate(banks_list)
 
 
 
@@ -218,3 +218,5 @@ class BankValidator:
         return False
 
 BV = BankValidator()
+
+add_pagination(router)
