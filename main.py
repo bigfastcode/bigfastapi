@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from fastapi.middleware.cors import CORSMiddleware
 from bigfastapi.subscription import app as sub
 from bigfastapi.plan import app as plan
+from bigfastapi.tutorial import app as tutorial
 from bigfastapi.db.database import create_database
 import random
 
@@ -75,6 +76,7 @@ app.include_router(accounts, tags=["Auth"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
 app.include_router(plan, tags=["Plan"])
+app.include_router(tutorial, tags=["Tutorial"])
 app.include_router(banks.router, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
@@ -85,6 +87,7 @@ app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
 app.include_router(receipts)
 app.include_router(customer)
+
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:

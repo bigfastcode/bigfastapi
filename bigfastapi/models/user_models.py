@@ -13,6 +13,7 @@ from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as _database
 
+
 class User(_database.Base):
     __tablename__ = "users"
 
