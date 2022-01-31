@@ -11,7 +11,7 @@ from bigfastapi.db.database import get_db
 from uuid import uuid4
 from fastapi.responses import JSONResponse
 from fastapi import status
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from fastapi_pagination import Page, add_pagination, paginate
 
 app = APIRouter(tags=["Customers 💁"],)
