@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.schemas import bank_schemas, users_schemas
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as Session
-from bigfastapi.models import bank_models
+from bigfastapi.models import bank_models, organisation_models
 from uuid import uuid4
 from .auth import is_authenticated
 from fastapi.responses import JSONResponse
@@ -17,7 +17,7 @@ BANK_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 @router.post("/bank", status_code=status.HTTP_201_CREATED,
             response_model=bank_schemas.BankResponse)
-async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
+async def add_bank_detail(bank: bank_schemas.AddBank,
      user: users_schemas.User = Depends(is_authenticated), 
     db:Session = Depends(get_db)
     ):
@@ -35,6 +35,7 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
     if user.is_superuser is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                     detail="User not authorised to add bank details")
+                                    
     if bank.country == "Nigeria":
        # bank_details = requests.post(f"https://maylancer.org/api/nuban/api.php?account_number={bank.account_number}")
        # print(bank_details)
