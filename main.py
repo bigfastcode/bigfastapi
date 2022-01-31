@@ -20,20 +20,15 @@ from bigfastapi.files import app as files
 from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
+from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.customer import app as customer
 from bigfastapi.auth import app as authentication
 from bigfastapi.plans import app as plans
-
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
-from bigfastapi.countries import app as countries
-from bigfastapi.faq import app as faq
-from bigfastapi.blog import app as blog
-from bigfastapi.comments import app as comments
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 from bigfastapi import banks
-from bigfastapi.pages import app as pages
 from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
 from bigfastapi.qrcode import app as qrcode
@@ -85,6 +80,7 @@ app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
+app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(customer)
 

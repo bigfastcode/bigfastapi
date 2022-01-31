@@ -12,7 +12,11 @@ class _OrganizationBase(_pydantic.BaseModel):
     vision: str
     name: str
     values: str
+
+    class Config:
+        orm_mode = True
   
+
 
 class OrganizationCreate(_OrganizationBase):
     pass

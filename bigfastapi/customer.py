@@ -11,7 +11,7 @@ from bigfastapi.db.database import get_db
 from uuid import uuid4
 from fastapi.responses import JSONResponse
 from fastapi import status
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from fastapi_pagination import Page, add_pagination, paginate
 
 app = APIRouter(tags=["Customers 💁"],)
@@ -53,6 +53,7 @@ def create_customer(
         return {"message": "Customer created succesfully", "customer": customer_schemas.Customer.from_orm(customer_instance)}
     else:
         return {"message": "Organization Doesn't Exist", "customer": {}}
+
 
 @app.get('/customers', response_model=Page[customer_schemas.Customer])
 def get_customers(

@@ -5,7 +5,7 @@ from bigfastapi.db.database import get_db
 import sqlalchemy.orm as Session
 from bigfastapi.models import bank_models
 from uuid import uuid4
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from fastapi.responses import JSONResponse
 from typing import List
 import pkg_resources

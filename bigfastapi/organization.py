@@ -8,12 +8,11 @@ import fastapi.security as _security
 import sqlalchemy.orm as _orm
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
-
-
 from bigfastapi.db.database import get_db
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from .models import organisation_models as _models
 import datetime as _dt
+from .utils.utils import paginate_data
 
 app = APIRouter(tags=["Organization"])
 
@@ -31,13 +30,15 @@ async def create_organization(
 
 
 
-@app.get("/organizations", response_model=List[_schemas.Organization])
+@app.get("/organizations")
 async def get_organizations(
     user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
+    page_size: int = 2, 
+    page_number: int = 1,
 ):
-    print(user)
-    return await get_organizations(user, db)
+    allorgs = await get_organizations(user, db)
+    return paginate_data(allorgs, page_size, page_number)
 
 
 @app.get("/organizations/{organization_id}", status_code=200)

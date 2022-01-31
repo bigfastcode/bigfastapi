@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from typing import List
 import fastapi as fastapi
 import sqlalchemy.orm as orm
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from .schemas import users_schemas as user_schema
 from .schemas import blog_schemas as schema
 from .models import blog_models as model
