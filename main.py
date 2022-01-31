@@ -17,21 +17,14 @@ from bigfastapi.files import app as files
 from bigfastapi.users import app as accounts
 from bigfastapi.comments import app as comments
 from bigfastapi.countries import app as countries
-
+from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.auth import app as authentication
-
 from bigfastapi.plans import app as plans
-
 from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
-from bigfastapi.countries import app as countries
-from bigfastapi.faq import app as faq
-from bigfastapi.blog import app as blog
-from bigfastapi.comments import app as comments
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 from bigfastapi import banks
-from bigfastapi.pages import app as pages
 from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
 from bigfastapi.pdfs import app as pdfs
@@ -75,6 +68,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
+app.include_router(jwt_services)
 
 @app.get("/", tags=["Home"])
 async def get_root() -> dict:

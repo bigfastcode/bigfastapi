@@ -9,7 +9,7 @@ import sqlalchemy.orm as _orm
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
 from bigfastapi.db.database import get_db
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from .models import organisation_models as _models
 import datetime as _dt
 from .utils.utils import paginate_data

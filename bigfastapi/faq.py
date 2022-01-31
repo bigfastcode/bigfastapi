@@ -6,7 +6,7 @@ from fastapi import status
 from fastapi import APIRouter
 from .models import faq_models
 from .schemas import faq_schemas
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from .schemas import users_schemas
 from bigfastapi.db.database import get_db
 from fastapi.responses import JSONResponse

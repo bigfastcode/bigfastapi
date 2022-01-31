@@ -7,7 +7,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import String, DateTime, Text, JSON
 
 from bigfastapi.schemas import plan_schemas
-from bigfastapi.auth import is_authenticated
+from bigfastapi.auth_api import is_authenticated
 from fastapi import Depends
 import sqlalchemy.orm as orm
 from bigfastapi.schemas import users_schemas

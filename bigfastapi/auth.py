@@ -2,10 +2,7 @@ import fastapi
 from fastapi import Request, APIRouter, BackgroundTasks
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
-import jwt as _jwt
-import datetime as _dt
 import passlib.hash as _hash
-from datetime import datetime, timedelta
 from .models import auth_models, user_models
 from .schemas import auth_schemas, users_schemas
 from passlib.context import CryptContext
@@ -13,17 +10,9 @@ from bigfastapi.utils import settings, utils
 from bigfastapi.db import database as _database
 from fastapi.security import OAuth2PasswordBearer
 from uuid import uuid4
-import random
-from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
-import json
-import re
-import validators
-import requests
-from bigfastapi.email import conf
-from fastapi_mail import FastMail, MessageSchema
 import sqlalchemy.orm as orm
-
+from .auth_api import create_access_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated = "auto")
@@ -83,50 +72,10 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
     db.refresh(user_obj)
     return user_obj
 
-
-async def create_access_token(data: dict, db: orm.Session):
-    to_encode = data.copy()
-  
-    expire = datetime.utcnow() + timedelta(minutes=1440)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=ALGORITHM)
-    token_obj = auth_models.Token(id = uuid4().hex, user_id=data["user_id"], token=encoded_jwt)
-    db.add(token_obj)
-    db.commit()
-    db.refresh(token_obj)
-    return encoded_jwt
-
-
-def verify_access_token(token: str, credentials_exception, db: orm.Session ):
-    try:
-        #check if token still exist 
-        check_token = db.query(auth_models.Token).filter(auth_models.Token.token == token).first()
-        if check_token == None:
-            raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
-        id: str = payload.get("user_id")
-        user = db.query(user_models.User).filter(user_models.User.id == id).first()
-        email = user.email
-        if id is None:
-            raise credentials_exception
-        token_data = auth_schemas.TokenData(email=email, id=id)
-    except JWTError:
-        raise credentials_exception
-
-    return token_data
-
-
-def is_authenticated(token: str = fastapi.Depends(oauth2_scheme), db: orm.Session = fastapi.Depends(get_db)):
-    credentials_exception = fastapi.HTTPException(status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
-                                          detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
-    token = verify_access_token(token, credentials_exception, db)
-    user = db.query(user_models.User).filter(user_models.User.id == token.id).first()
-    return user
-
-
 async def find_user_email(email, db: orm.Session):
     found_user = db.query(user_models.User).filter(user_models.User.email == email).first()
     return found_user
+
 
 
 

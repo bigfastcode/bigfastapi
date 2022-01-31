@@ -21,7 +21,7 @@ from bigfastapi.utils import settings as settings
 from bigfastapi.db import database
 from .schemas import comments_schemas
 from .models import comments_models
-from .auth import *
+from .auth_api import *
 
 
 
