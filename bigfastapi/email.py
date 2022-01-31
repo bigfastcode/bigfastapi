@@ -154,3 +154,35 @@ def send_email(email_details: email_schema.Email, background_tasks: BackgroundTa
     db.refresh(email)
     fm = FastMail(conf)
     background_tasks.add_task(fm.send_message, message, template_name=template)
+
+
+async def send_email_user(email: str, user, template, title: str, path="", code=""):
+    if path == "" and code != "":
+        message = MessageSchema(
+        subject="Password Reset",
+        recipients=[email],
+        template_body={
+            "title": title,
+            "first_name": user.first_name,
+            "code": code
+        },
+        subtype="html",
+        )
+        fm = FastMail(conf)
+        return await fm.send_message(message, template)
+    else:
+        message = MessageSchema(
+        subject="Password Reset",
+        recipients=[email],
+        template_body={
+            "title": title,
+            "first_name": user.first_name,
+            "path": path
+        },
+        subtype="html",
+        )
+        fm = FastMail(conf)
+        return await fm.send_message(message, template)
+
+
+    

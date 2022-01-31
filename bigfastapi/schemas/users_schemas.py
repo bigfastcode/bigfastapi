@@ -63,7 +63,6 @@ class UserLogin(_UserBase):
 class UserRecoverPassword(_UserBase):
     pass
 
-
 class User(_UserBase):
     id: str
     first_name: str
@@ -84,8 +83,6 @@ class User(_UserBase):
     last_updated: dt.datetime 
 
 
-    class Config:
-        orm_mode = True
 
 
 

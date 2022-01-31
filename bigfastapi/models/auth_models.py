@@ -37,6 +37,7 @@ class Token(database.Base):
     token = Column(String(255), index=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
 
+
 class VerificationToken(database.Base):
     __tablename__ = "verification_tokens"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
