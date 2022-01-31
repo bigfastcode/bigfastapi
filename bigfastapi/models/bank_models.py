@@ -10,7 +10,7 @@ from bigfastapi.db import database
 class   BankModels(database.Base):
     __tablename__ = "bank_models"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organisation_id = Column(String, index=True)
+    organisation_id = Column(String(255), ForeignKey("organizations.id"))
     creator_id = Column(String)
     account_number= Column(Integer, unique=True, index=True)
     bank_name = Column(String)

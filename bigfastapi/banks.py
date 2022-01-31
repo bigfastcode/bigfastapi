@@ -33,6 +33,9 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
         HTTP_403_FORBIDDEN: incomplete details
     """
+    if user.is_superuser is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                                    detail="User not authorised to add bank details")
     if bank.country == "Nigeria":
        # bank_details = requests.post(f"https://maylancer.org/api/nuban/api.php?account_number={bank.account_number}")
        # print(bank_details)
@@ -45,7 +48,7 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
 
         addbank = bank_models.BankModels(id=uuid4().hex,
                     organisation_id= org_id,
-                    creator_id= bank.creator_id,
+                    creator_id= user.id,
                     account_number= bank.account_number,
                     bank_name= bank.bank_name,
                     account_name= bank.account_name,
@@ -135,6 +138,9 @@ async def delete_bank(org_id: str, bank_id:str,
         HTTP_424_FAILED_DEPENDENCY: failed to delete bank details
         HTTP_4O4_NOT_FOUND: Bank does not exist.
     """
+    if user.is_superuser is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                                    detail="User not authorised to delete bank details")
     bank = await fetch_bank(user=user, id=bank_id, db=db)
     db.delete(bank)
     db.commit()
