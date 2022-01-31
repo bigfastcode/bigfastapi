@@ -54,6 +54,7 @@ def create_customer(
     else:
         return {"message": "Organization Doesn't Exist", "customer": {}}
 
+
 @app.get('/customers', response_model=Page[customer_schemas.Customer])
 def get_customers(
     db: orm.Session = fastapi.Depends(get_db), 
