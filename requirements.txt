@@ -6,7 +6,6 @@ anyio
 alembic
 asgiref
 async-timeout
-# bcrypt
 blinker
 certifi
 cffi
@@ -24,7 +23,6 @@ Jinja2
 MarkupSafe
 packaging
 passlib
-# psycopg2-binary
 pdfkit
 pycparser
 pydantic
@@ -44,8 +42,8 @@ SQLAlchemy
 starlette
 typing-extensions
 uvicorn
-# uvloop
 watchgod
 websockets
 validators
 pytest
+fastapi-pagination
