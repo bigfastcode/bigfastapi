@@ -15,7 +15,7 @@ After that, the following endpoints will become available:
 
 
 import json
-import qrcode as qrcode
+# import qrcode as qrcode
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, HTTPException, status
 from bigfastapi.schemas.qrcode_schemas import  State
