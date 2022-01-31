@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.schemas import bank_schemas, users_schemas
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as Session
-from bigfastapi.models import bank_models, organisation_models
+from bigfastapi.models import bank_models
 from uuid import uuid4
 from .auth import is_authenticated
 from fastapi.responses import JSONResponse
@@ -37,11 +37,6 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
                                     detail="User not authorised to add bank details")
                                     
     if bank.country == "Nigeria":
-       # bank_details = requests.post(f"https://maylancer.org/api/nuban/api.php?account_number={bank.account_number}")
-       # print(bank_details)
-       # if bank_details is not dict:
-       #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid account number")
-        
         if not bank.bank_type:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                     detail="Account type is required")

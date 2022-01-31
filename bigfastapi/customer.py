@@ -1,4 +1,5 @@
 from datetime import datetime
+from http.client import HTTPException
 from typing import Optional
 from fastapi import APIRouter
 from bigfastapi.models import organisation_models
@@ -83,65 +84,77 @@ def get_customer(
     else:
         return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
 
-@app.put('/customers/{customer_id}', response_model=customer_schemas.Customer)
+@app.put('/customers/{customer_id}', 
+        response_model=customer_schemas.Customer, 
+        status_code=status.HTTP_202_ACCEPTED)
 def update_customer(
     customer: customer_schemas.CustomerUpdate, 
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
     user: users_schemas.User = fastapi.Depends(is_authenticated)):
-    customer_instance = db.query(customer_models.Customer).filter(customer_models.Customer.customer_id == customer_id).first()
-    if customer_instance is not None:
-        if customer.organization_id:
-            organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == customer.organization_id).first()
-            if organization is not None:
-                customer_instance.organization_id = organization.id
-            else:
-                return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_400_BAD_REQUEST)  
-        if customer.first_name:
-            customer_instance.first_name = customer.first_name
-        if customer.last_name:
-            customer_instance.last_name = customer.last_name
-        if customer.email:
-            customer_instance.email = customer.email
-        if customer.phone_number:
-            customer_instance.phone_number= customer.phone_number
-        if customer.address:
-            customer_instance.address= customer.address
-        if customer.gender:
-            customer_instance.gender= customer.gender
-        if customer.age:
-            customer_instance.age= customer.age
-        if customer.postal_code:
-            customer_instance.postal_code= customer.postal_code
-        if customer.language:
-            customer_instance.language= customer.language
-        if customer.country:
-            customer_instance.country= customer.country
-        if customer.city:
-            customer_instance.city= customer.city
-        if customer.region:
-            customer_instance.region= customer.region
-        customer_instance.last_updated = datetime.now()
-        db.commit()
-        db.refresh(customer_instance)
-        return customer_schemas.Customer.from_orm(customer_instance)
 
-    else:
-        return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
+    customer_instance = db.query(customer_models.Customer).filter(
+                                customer_models.Customer.customer_id == customer_id).first()
+    if not customer_instance :
+        raise HTTPException (status_code=status.HTTP_404_NOT_FOUND, 
+                            detail={"message": "Customer does not exist"})
+
+    if customer.organization_id:
+        organization = db.query(organisation_models.Organization).filter(
+                                organisation_models.Organization.id == customer.organization_id).first()
+        if not organization:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail={"message": "Organization does not exist"})
+        customer_instance.organization_id = organization.id
+        
+    if customer.first_name:
+        customer_instance.first_name = customer.first_name
+    if customer.last_name:
+        customer_instance.last_name = customer.last_name
+    if customer.email:
+        customer_instance.email = customer.email
+    if customer.phone_number:
+        customer_instance.phone_number= customer.phone_number
+    if customer.address:
+        customer_instance.address= customer.address
+    if customer.gender:
+        customer_instance.gender= customer.gender
+    if customer.age:
+        customer_instance.age= customer.age
+    if customer.postal_code:
+        customer_instance.postal_code= customer.postal_code
+    if customer.language:
+        customer_instance.language= customer.language
+    if customer.country:
+        customer_instance.country= customer.country
+    if customer.city:
+        customer_instance.city= customer.city
+    if customer.region:
+        customer_instance.region= customer.region
+    customer_instance.last_updated = datetime.now()
+    db.commit()
+    db.refresh(customer_instance)
+    return customer_schemas.Customer.from_orm(customer_instance)
 
 
-@app.delete('/customers/{customer_id}', response_model=customer_schemas.ResponseModel)
+
+@app.delete('/customers/{customer_id}', 
+            response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
 def delete_customer(
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
     user: users_schemas.User = fastapi.Depends(is_authenticated)):
-    customer = db.query(customer_models.Customer).filter(customer_models.Customer.customer_id == customer_id).first()
-    if customer is not None:
-        db.delete(customer)
-        db.commit()
-        return {"message": "Customer deleted succesfully"}
-    else:
-        return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND) 
+
+    customer = db.query(customer_models.Customer).filter(
+                        customer_models.Customer.customer_id == customer_id).first()
+    if not customer:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail={"message": "Customer does not exist"}, ) 
+    db.delete(customer)
+    db.commit()
+    return {"message": "Customer deleted succesfully"}
+
+        
 
 
 
