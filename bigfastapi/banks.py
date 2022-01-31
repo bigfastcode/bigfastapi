@@ -15,7 +15,7 @@ router = APIRouter()
 BANK_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
-@router.post("/organisation/{org_id}/bank", status_code=status.HTTP_201_CREATED,
+@router.post("/bank", status_code=status.HTTP_201_CREATED,
             response_model=bank_schemas.BankResponse)
 async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
      user: users_schemas.User = Depends(is_authenticated), 
@@ -46,7 +46,7 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
                                     detail="Account type is required")
 
         addbank = bank_models.BankModels(id=uuid4().hex,
-                    organisation_id= org_id,
+                    organisation_id= bank.organisation_id,
                     creator_id= user.id,
                     account_number= bank.account_number,
                     bank_name= bank.bank_name,
@@ -60,8 +60,8 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
 
     if bank.country and bank.bank_name and bank.account_name and bank.aba_routing_number and bank.swift_code and bank.sort_code and bank.iban:             
         addbank = bank_models.BankModels(id=uuid4().hex,
-                        organisation_id= org_id,
-                        creator_id= bank.creator_id,
+                        organisation_id= bank.organisation_id,
+                        creator_id= user.id,
                         account_number= bank.account_number,
                         bank_name= bank.bank_name,
                         account_name= bank.account_name,
@@ -79,9 +79,9 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
     return await bank_models.add_bank( user=user, addbank=addbank, db=db)
 
 
-@router.get("/organisation/{org_id}/banks", status_code=status.HTTP_200_OK,
+@router.get("/banks", status_code=status.HTTP_200_OK,
             response_model=Page[bank_schemas.BankResponse])
-async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authenticated),
+async def get_all_banks(user: users_schemas.User = Depends(is_authenticated),
     db:Session = Depends(get_db)):
 
     """Fetches all available bank details in the database.
@@ -99,7 +99,7 @@ async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authe
 
 
 
-@router.get("/organisation/{org_id}/bank/{bank_id}", status_code=status.HTTP_200_OK,
+@router.get("/bank/{bank_id}", status_code=status.HTTP_200_OK,
             response_model=bank_schemas.BankResponse)
 async def get_single_bank(org_id: str, bank_id:str,
             user: users_schemas.User = Depends(is_authenticated),
@@ -122,8 +122,8 @@ async def get_single_bank(org_id: str, bank_id:str,
 
 
 
-@router.delete("/organisation/{org_id}/bank/{bank_id}", status_code=status.HTTP_200_OK)
-async def delete_bank(org_id: str, bank_id:str,
+@router.delete("/bank/{bank_id}", status_code=status.HTTP_200_OK)
+async def delete_bank(bank_id:str,
             user: users_schemas.User = Depends(is_authenticated),
             db:Session = Depends(get_db)):
     """delete a given bank of id bank_id.

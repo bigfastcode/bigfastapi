@@ -23,7 +23,7 @@ class BankBase(pydantic.BaseModel):
     bank_type: str =None
 
 class AddBank(BankBase):
-    
+    organisation_id:str = None
     address: str = None
     swift_code: str = None
     sort_code: str= None
@@ -36,6 +36,5 @@ class AddBank(BankBase):
 class BankResponse(AddBank):
     id: str
     creator_id: str
-    organisation_id:str
     class Config:
         orm_mode = True
