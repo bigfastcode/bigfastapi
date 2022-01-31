@@ -6,7 +6,6 @@ from bigfastapi.models import bank_models
 from uuid import uuid4
 from .auth import is_authenticated
 from fastapi.responses import JSONResponse
-from typing import List
 import pkg_resources
 import json
 from fastapi_pagination import Page, add_pagination, paginate
@@ -57,7 +56,7 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
                     country=bank.country,
                     date_created=bank.date_created)
         
-        return await add_bank( user=user, addbank=addbank, db=db)
+        return await bank_models.add_bank( user=user, addbank=addbank, db=db)
 
     if bank.country and bank.bank_name and bank.account_name and bank.aba_routing_number and bank.swift_code and bank.sort_code and bank.iban:             
         addbank = bank_models.BankModels(id=uuid4().hex,
@@ -77,7 +76,7 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
     else: 
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                     detail="missing required fields")
-    return await add_bank( user=user, addbank=addbank, db=db)
+    return await bank_models.add_bank( user=user, addbank=addbank, db=db)
 
 
 @router.get("/organisation/{org_id}/banks", status_code=status.HTTP_200_OK,
@@ -117,7 +116,7 @@ async def get_single_bank(org_id: str, bank_id:str,
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
         HTTP_4O4_NOT_FOUND: Bank does not exist.
     """
-    bank = await fetch_bank(user=user, id=bank_id, db=db)
+    bank = await bank_models.fetch_bank(user=user, id=bank_id, db=db)
     return bank_schemas.BankResponse.from_orm(bank)
      
 
@@ -141,7 +140,7 @@ async def delete_bank(org_id: str, bank_id:str,
     if user.is_superuser is False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                     detail="User not authorised to delete bank details")
-    bank = await fetch_bank(user=user, id=bank_id, db=db)
+    bank = await bank_models.fetch_bank(user=user, id=bank_id, db=db)
     db.delete(bank)
     db.commit()
     return JSONResponse({"detail": f"bank details with {bank_id} successfully deleted"},
@@ -181,34 +180,19 @@ async def validate_bank_details(country: str):
 
 
 #=================================== Bank Service =================================#
-    
-async def fetch_bank(user: users_schemas.User, id: str, db: Session):
-    bank = db.query(bank_models.BankModels).filter(bank_models.BankModels.id == id).first()
-    if not bank:
-       raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"This bank detail does not exist here")
-    return bank
-
-async def add_bank(user: users_schemas.User, addbank: str, db: Session):
-    db.add(addbank)
-    db.commit()
-    db.refresh(addbank)
-    
-    return bank_schemas.BankResponse.from_orm(addbank) 
 
 
-
-with open(BANK_DATA_PATH + "/bank.json") as file:
-            country_data = json.load(file)
            
 class BankValidator:
+    
     def __init__(self) -> None:
-        self.country_info = country_data
-        
+        with open(BANK_DATA_PATH + "/bank.json") as file:
+                self.country_info = json.load(file)
+
     async def get_country_data(self, country, info=None): 
         if country not in self.country_info and info is None:
             return self.country_info["others"]
-        elif country not in country_data:
+        elif country not in self.country_info:
             return self.country_info["others"][info]
         if info:
             country_info = self.country_info[country][info]
@@ -223,6 +207,6 @@ class BankValidator:
                 return True
         return False
 
-BV = BankValidator()
 
+BV = BankValidator()
 add_pagination(router)
