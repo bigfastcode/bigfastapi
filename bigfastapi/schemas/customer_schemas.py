@@ -42,6 +42,7 @@ class CustomerUpdate(BaseModel):
     country: Optional[str] = None
     city: Optional[str] = None
     region: Optional[str] = None
+    country_code: Optional[str] = None
 
 class CustomerCreateResponse(BaseModel):
     message: str

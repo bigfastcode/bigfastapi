@@ -28,7 +28,7 @@ from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
-from bigfastapi import banks
+from bigfastapi.banks import router as banks
 from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
 from bigfastapi.qrcode import app as qrcode
@@ -72,7 +72,7 @@ app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
 app.include_router(plan, tags=["Plan"])
 app.include_router(tutorial, tags=["Tutorial"])
-app.include_router(banks.router, tags=["Banks"])
+app.include_router(banks, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
 app.include_router(qrcode, tags=["qrcode"])
