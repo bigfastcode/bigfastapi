@@ -7,13 +7,11 @@ from fastapi.param_functions import Depends
 import sqlalchemy.orm as orm
 from .schemas import organisation_schemas as _schemas
 from bigfastapi.db.database import get_db, db_engine
-from .auth import is_authenticated
 from .models import organisation_models as _models
 import datetime as _dt
-
 from .schemas import settings_schemas as schemas 
 from .schemas import users_schemas
-from .auth import is_authenticated
+from .auth_api import is_authenticated
 from .models import settings_models as models
 import datetime as _dt
 
