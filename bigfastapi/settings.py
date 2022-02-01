@@ -8,12 +8,10 @@ import sqlalchemy.orm as orm
 from .schemas import organisation_schemas as _schemas
 from bigfastapi.db.database import get_db, db_engine
 from .models import organisation_models as _models
-import datetime as _dt
 from .schemas import settings_schemas as schemas 
 from .schemas import users_schemas
 from .auth_api import is_authenticated
 from .models import settings_models as models
-import datetime as _dt
 
 app = APIRouter(tags=["Settings"])
 
@@ -49,9 +47,6 @@ async def add_organization_settings(
             detail="Something went wrong, try again",
         )
     return schemas.Settings.from_orm(settings)
-
-
-
 
 
 ### Fetch settings by organization id ####
