@@ -86,7 +86,7 @@
     "others": {
         "schema": {
             "organisation_id": "string",
-            "owner_type": "string",
+            "creator_id": "string",
             "recipient_name": "string",
             "recipient_address": "string",
             "account_number": "integer",

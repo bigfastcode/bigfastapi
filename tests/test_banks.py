@@ -1,11 +1,16 @@
+import pytest
+import json
+from bigfastapi.db import database
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from bigfastapi.db.database import get_db, Base
+from bigfastapi.models import bank_models
+from bigfastapi.schemas import bank_schemas, users_schemas
 from bigfastapi.auth import is_authenticated
-from bigfastapi.schemas.users_schemas import User
 from main import app
+from bigfastapi.db.database import Base, get_db
 from uuid import uuid4
+
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -13,6 +18,7 @@ engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+test_db = TestingSessionLocal()
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,11 +29,6 @@ def override_get_db():
         yield db
     finally:
         db.close()
-
-
-client = TestClient(app)
-
-app.dependency_overrides[get_db] = override_get_db
 
 
 async def override_is_authenticated():
@@ -43,8 +44,15 @@ async def override_is_authenticated():
         "is_superuser": True,
         "organization": "marquees"
     }
-    return User(**user_data)
+    return users_schemas.User(**user_data)
+
+client = TestClient(app)
 
 
-app.dependency_overrides[is_authenticated] = override_is_authenticated
+@pytest.fixture(scope="module")
+def setUp():
+    database.Base.metadata.create_all(engine, tables=[bank_models.BankModels.__table__])
+    app.dependency_overrides[database.get_db] = override_get_db
+    app.dependency_overrides[is_authenticated] = override_is_authenticated
 
+   
