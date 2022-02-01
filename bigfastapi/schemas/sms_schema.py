@@ -1,8 +1,10 @@
-from pydantic import EmailStr, BaseModel
+from pydantic import BaseModel
 from typing import Optional, List
 
-
-class SMS(BaseModel):
+class HashableBaseModel(BaseModel):
+    def __hash__(self):
+        return hash((type(self),) + tuple(self.__dict__.values()))
+class SMS(HashableBaseModel):
     sender: str
-    recipient: List[EmailStr]
+    recipient: str
     body: Optional[str] = None
