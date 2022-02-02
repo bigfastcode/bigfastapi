@@ -1,41 +1,71 @@
-from .models import sms_models
 from .schemas import sms_schema
+from .models import sms_models
 from typing import Optional
 from uuid import uuid4
 from datetime import datetime
-from fastapi import APIRouter, BackgroundTasks, Response
+from fastapi import APIRouter
 from bigfastapi.db.database import get_db
 from fastapi import BackgroundTasks
 from pydantic import BaseModel
 import fastapi
 import sqlalchemy.orm as orm
 from bigfastapi.utils import settings
-import time
+import json
+import requests
 
-app = APIRouter(tags=["Transactional Emails 📧"])
+app = APIRouter(tags=["SMS"])
 
 
 class ResponseModel(BaseModel):
     message: str
 
-
 class SendSMS():
+    providers: dict[str, str] = { 
+        "nuobject": "https://cloud.nuobjects.com/api/send"
+    }
 
     @app.post("/sms/send", response_model=ResponseModel)
-    def send_sms(
+    async def send_sms(
         sms_details: sms_schema.SMS,
+        provider,
+        user,
+        passkey,
         db: orm.Session = fastapi.Depends(get_db)
     ):
 
-        """An endpoint used to send an sms
+        """ 
+            An endpoint used to send an sms
         
-        Returns:
-            object (dict): a message
+            Returns:
+                object (dict): status code, message
         """
-        
 
-        # send_sms(sms_details=sms_details, background_tasks=background_tasks, template=template, db=db)
+        if (provider == "nuobject"):
+            print(sms_details)
+            req = requests.post(
+                SendSMS.providers.get("nuobject"),
+                params={
+                    "user":user, 
+                    "pass":passkey, 
+                    "from": sms_details.sender,
+                    "to": sms_details.recipient,
+                    "msg": sms_details.body
+                    }
+            )
+            
+            if(req.status_code == 200):
+                sms = sms_models.SMS(
+                    id=uuid4().hex,
+                    sender=sms_details.sender,
+                    recipient=sms_details.recipient,
+                    body=sms_details.body
+                )
 
-        return { "message": "SMS sent successfully" }
+                db.add(sms)
+                db.commit()
+                db.refresh(sms)
 
-    
+            print({ "code": req.status_code, "message": req.content })
+            return { "code": req.status_code, "message": req.text }
+
+        return { "message": "An error occured while sending sms" }
