@@ -15,6 +15,7 @@ class CustomerBase(BaseModel):
     country: str
     city: str
     region: str
+    country_code: Optional[str] = None
 
     class Config:
         orm_mode = True

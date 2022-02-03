@@ -27,33 +27,34 @@ def create_customer(
     user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
     organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == customer.organization_id).first()
-    if organization is not None: 
-        customer_instance = customer_models.Customer(
-            id = uuid4().hex,
-            customer_id = generate_short_id(size=12),
-            first_name = customer.first_name,
-            last_name= customer.last_name,
-            organization_id= organization.id,
-            email= customer.email,
-            phone_number= customer.phone_number,
-            address= customer.address,
-            gender= customer.gender,
-            age= customer.age,
-            postal_code= customer.postal_code,
-            language= customer.language,
-            country= customer.country,
-            city= customer.city,
-            region= customer.region,
-            date_created = datetime.now(),
-            last_updated = datetime.now()
+    if not organization: 
+        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail={"message": "Organization Doesn't Exist"})
+    customer_instance = customer_models.Customer(
+        id = uuid4().hex,
+        customer_id = generate_short_id(size=12),
+        first_name = customer.first_name,
+        last_name= customer.last_name,
+        organization_id= organization.id,
+        email= customer.email,
+        phone_number= customer.phone_number,
+        address= customer.address,
+        gender= customer.gender,
+        age= customer.age,
+        postal_code= customer.postal_code,
+        language= customer.language,
+        country= customer.country,
+        city= customer.city,
+        region= customer.region,
+        country_code = customer.country_code,
+        date_created = datetime.now(),
+        last_updated = datetime.now()
 
-        )
-        db.add(customer_instance)
-        db.commit()
-        db.refresh(customer_instance)
-        return {"message": "Customer created succesfully", "customer": customer_schemas.Customer.from_orm(customer_instance)}
-    else:
-        return {"message": "Organization Doesn't Exist", "customer": {}}
+    )
+    db.add(customer_instance)
+    db.commit()
+    db.refresh(customer_instance)
+    return {"message": "Customer created succesfully", "customer": customer_schemas.Customer.from_orm(customer_instance)}
+    
 
 
 @app.get('/customers', response_model=Page[customer_schemas.Customer])
@@ -72,18 +73,21 @@ def get_customers(
     customers = db.query(customer_models.Customer).all()
     customer_list = list(map(customer_schemas.Customer.from_orm, customers))
     return  paginate(customer_list)
+    
 
 
 @app.get('/customers/{customer_id}', response_model=customer_schemas.Customer)
 def get_customer(
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    user: users_schemas.User = fastapi.Depends(is_authenticated)
+   ):
     customer = db.query(customer_models.Customer).filter(customer_models.Customer.customer_id == customer_id).first()
     if customer is not None:
         return customer_schemas.Customer.from_orm(customer)
     else:
         return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
+        
 
 @app.put('/customers/{customer_id}', 
         response_model=customer_schemas.Customer, 
@@ -92,7 +96,8 @@ def update_customer(
     customer: customer_schemas.CustomerUpdate, 
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    ):
 
     customer_instance = db.query(customer_models.Customer).filter(
                                 customer_models.Customer.customer_id == customer_id).first()
@@ -144,7 +149,8 @@ def update_customer(
 def delete_customer(
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    ):
 
     customer = db.query(customer_models.Customer).filter(
                         customer_models.Customer.customer_id == customer_id).first()
