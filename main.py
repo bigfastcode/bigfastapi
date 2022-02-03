@@ -37,6 +37,7 @@ from bigfastapi.wallet import app as wallet
 from bigfastapi.pdfs import app as pdfs
 from bigfastapi.receipts import app as receipts
 from bigfastapi.notification import app as notification
+from bigfastapi.sms import app as sms
 
 
 # Create the application
@@ -83,6 +84,7 @@ app.include_router(pdfs)
 app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(customer)
+app.include_router(sms)
 
 
 @app.get("/", tags=["Home"])
