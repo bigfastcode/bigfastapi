@@ -5,7 +5,6 @@ from uuid import uuid4
 from datetime import datetime
 from fastapi import APIRouter
 from bigfastapi.db.database import get_db
-from fastapi import BackgroundTasks
 from pydantic import BaseModel
 import fastapi
 import sqlalchemy.orm as orm
@@ -27,9 +26,6 @@ class SendSMS():
     @app.post("/sms/send", response_model=ResponseModel)
     async def send_sms(
         sms_details: sms_schema.SMS,
-        provider,
-        user,
-        passkey,
         db: orm.Session = fastapi.Depends(get_db)
     ):
 
@@ -39,20 +35,18 @@ class SendSMS():
             Returns:
                 object (dict): status code, message
         """
-
-        if (provider == "nuobject"):
-            print(sms_details)
+        if (sms_details.provider == "nuobject"):
             req = requests.post(
                 SendSMS.providers.get("nuobject"),
                 params={
-                    "user":user, 
-                    "pass":passkey, 
+                    "user":sms_details.user, 
+                    "pass":sms_details.passkey, 
                     "from": sms_details.sender,
                     "to": sms_details.recipient,
                     "msg": sms_details.body
                     }
             )
-            
+            print(req.url)
             if(req.status_code == 200):
                 sms = sms_models.SMS(
                     id=uuid4().hex,
@@ -61,11 +55,6 @@ class SendSMS():
                     body=sms_details.body
                 )
 
-                db.add(sms)
-                db.commit()
-                db.refresh(sms)
-
-            print({ "code": req.status_code, "message": req.content })
             return { "code": req.status_code, "message": req.text }
 
         return { "message": "An error occured while sending sms" }

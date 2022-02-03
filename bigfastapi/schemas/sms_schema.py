@@ -6,5 +6,9 @@ class HashableBaseModel(BaseModel):
         return hash((type(self),) + tuple(self.__dict__.values()))
 class SMS(HashableBaseModel):
     sender: str
-    recipient: str
+    recipient: int
     body: Optional[str] = None
+    provider: str
+    user: str
+    passkey: str
+    
