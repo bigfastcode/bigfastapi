@@ -18,6 +18,7 @@ setuptools.setup(
                                                 'bigfastapi.utils', 
                                                 'bigfastapi.db'
                                                 'bigfastapi.data']),    # List of all python modules to be installed
+
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -31,8 +32,12 @@ setuptools.setup(
     url='https://bigfastapi.com',
     keywords='fastapi, bigfastapi, auth',  # Optional
     package_data={  # Optional
+        'bigfastapi': ['data/bank.json'],
+        'bigfastapi': ['data/dialcode.json'],
+        'bigfastapi': ['data/qrcode.json'],
         'bigfastapi': ['data/countries.json'],
     },
+    include_package_data=True,
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/rijentech/bigfastapi',
         'Funding': 'https://bigfastapi.com',
