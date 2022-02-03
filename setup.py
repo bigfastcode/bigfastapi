@@ -16,7 +16,8 @@ setuptools.setup(
                                                 'bigfastapi.models', 
                                                 'bigfastapi.templates', 
                                                 'bigfastapi.utils', 
-                                                'bigfastapi.db']),    # List of all python modules to be installed
+                                                'bigfastapi.db'
+                                                'bigfastapi.data']),    # List of all python modules to be installed
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
