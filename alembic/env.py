@@ -8,6 +8,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from bigfastapi.models.user_models import Base as UserBase
+from bigfastapi.models.customer_models import Base as CustomerBase
 from bigfastapi.db.database import DATABASE_URL 
 
 
@@ -24,6 +25,7 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = UserBase.metadata
+target_metadata = CustomerBase.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
