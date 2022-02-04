@@ -45,7 +45,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
     return { "access_token": access_token}
 
 
-@app.post("/auth/login", status_code=200)
+@app.post("/auth/login", response_model=users_schemas.User, status_code=200)
 async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(get_db)):
     userinfo = await find_user_email(user.email, db)
     if userinfo is None:
