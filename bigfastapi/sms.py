@@ -42,7 +42,7 @@ class SendSMS():
                     "user":sms_details.user, 
                     "pass":sms_details.passkey, 
                     "from": sms_details.sender,
-                    "to": sms_details.recipient,
+                    "to": int(sms_details.recipient),
                     "msg": sms_details.body
                     }
             )
