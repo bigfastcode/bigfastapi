@@ -3,6 +3,10 @@ import re
 import validators
 import fastapi
 import json
+import pkg_resources
+
+DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
+
 
 def generate_short_id(size=9, chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -37,7 +41,7 @@ def paginate_data(data, page_size: int, page_number: int):
 
 
 def find_country(ctry):
-    with open("bigfastapi/data/countries.json") as file:
+     with open(DATA_PATH + "/countries.json") as file:
         cap_country = ctry.capitalize()
         countries = json.load(file)
         found_country = next((country for country in countries if country['name'] == cap_country), None)
@@ -47,7 +51,7 @@ def find_country(ctry):
 
 
 def dialcode(dcode):
-    with open("bigfastapi/data/dialcode.json") as file:
+     with open(DATA_PATH + "/dialcode.json") as file:
         dialcodes = json.load(file)
         found_dialcode = next((dialcode for dialcode in dialcodes if dialcode['dial_code'] == dcode), None)
         if found_dialcode is None:

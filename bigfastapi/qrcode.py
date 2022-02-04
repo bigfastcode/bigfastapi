@@ -19,6 +19,8 @@ import qrcode as qrcode
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, HTTPException, status
 from bigfastapi.schemas.qrcode_schemas import  State
+import qrcode
+from fastapi import APIRouter, status
 
 import qrcode
 from fastapi import APIRouter, status
@@ -29,20 +31,10 @@ app = APIRouter(tags=["qrcode"])
 
 @app.get("/qrcode", status_code=status.HTTP_200_OK)
 def get_qrcode(data: str):
-    """Get Countries and their respective states
-
-    Args:
-        country_name (str): serves as a filter for a particular country
-
-    Returns:
-        List[Country]: list of countries and their respective states
-
-    """
+    
     img = qrcode.make(data)
     type(img)  # qrcode.image.pil.PilImage
     img.show()
-    img.save(f"C:\\Users\\USER\\cpme\\bigfastapi\\bigfastapi\\data\\qrcode_images\\{data}.png")
-
-    
+    img.save(f"bigfastapi\\data\\qrcode_images\\{data}.png")
 
     return "successfully created qrcode"

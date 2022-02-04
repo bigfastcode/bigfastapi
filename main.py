@@ -28,7 +28,7 @@ from bigfastapi.users import app as accounts_router
 from bigfastapi.organization import app as organization_router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
-from bigfastapi import banks
+from bigfastapi.banks import router as banks
 from bigfastapi.email import app as email
 from bigfastapi.organization import app as organization
 from bigfastapi.qrcode import app as qrcode
@@ -37,6 +37,7 @@ from bigfastapi.wallet import app as wallet
 from bigfastapi.pdfs import app as pdfs
 from bigfastapi.receipts import app as receipts
 from bigfastapi.notification import app as notification
+from bigfastapi.sms import app as sms
 
 
 # Create the application
@@ -72,7 +73,7 @@ app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
 app.include_router(plan, tags=["Plan"])
 app.include_router(tutorial, tags=["Tutorial"])
-app.include_router(banks.router, tags=["Banks"])
+app.include_router(banks, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(organization, tags=["Organization"])
 app.include_router(qrcode, tags=["qrcode"])
@@ -83,6 +84,7 @@ app.include_router(pdfs)
 app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(customer)
+app.include_router(sms)
 
 
 @app.get("/", tags=["Home"])

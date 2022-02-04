@@ -23,9 +23,11 @@ Jinja2
 MarkupSafe
 packaging
 passlib
+python-jose
 pdfkit
 pycparser
 pydantic
+fastapi_pagination
 PyJWT
 pyparsing
 python-decouple

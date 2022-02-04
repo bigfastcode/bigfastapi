@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from pydantic import HttpUrl, Json
 from bigfastapi.schemas import bank_schemas, users_schemas
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as Session
@@ -7,19 +6,18 @@ from bigfastapi.models import bank_models
 from uuid import uuid4
 from .auth_api import is_authenticated
 from fastapi.responses import JSONResponse
-from typing import List
 import pkg_resources
 import json
-import requests
+from fastapi_pagination import Page, add_pagination, paginate
 
 router = APIRouter()
 
 BANK_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
-@router.post("/organisation/{org_id}/bank", status_code=status.HTTP_201_CREATED,
+@router.post("/bank", status_code=status.HTTP_201_CREATED,
             response_model=bank_schemas.BankResponse)
-async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
+async def add_bank_detail(bank: bank_schemas.AddBank,
      user: users_schemas.User = Depends(is_authenticated), 
     db:Session = Depends(get_db)
     ):
@@ -34,19 +32,18 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
         HTTP_403_FORBIDDEN: incomplete details
     """
+    if user.is_superuser is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                                    detail="User not authorised to add bank details")
+                                    
     if bank.country == "Nigeria":
-       # bank_details = requests.post(f"https://maylancer.org/api/nuban/api.php?account_number={bank.account_number}")
-       # print(bank_details)
-       # if bank_details is not dict:
-       #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid account number")
-        
         if not bank.bank_type:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                     detail="Account type is required")
 
         addbank = bank_models.BankModels(id=uuid4().hex,
-                    organisation_id= org_id,
-                    creator_id= bank.creator_id,
+                    organisation_id= bank.organisation_id,
+                    creator_id= user.id,
                     account_number= bank.account_number,
                     bank_name= bank.bank_name,
                     account_name= bank.account_name,
@@ -55,12 +52,12 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
                     country=bank.country,
                     date_created=bank.date_created)
         
-        return await add_bank( user=user, addbank=addbank, db=db)
+        return await bank_models.add_bank( user=user, addbank=addbank, db=db)
 
     if bank.country and bank.bank_name and bank.account_name and bank.aba_routing_number and bank.swift_code and bank.sort_code and bank.iban:             
         addbank = bank_models.BankModels(id=uuid4().hex,
-                        organisation_id= org_id,
-                        creator_id= bank.creator_id,
+                        organisation_id= bank.organisation_id,
+                        creator_id= user.id,
                         account_number= bank.account_number,
                         bank_name= bank.bank_name,
                         account_name= bank.account_name,
@@ -75,12 +72,12 @@ async def add_bank_detail(org_id: str, bank: bank_schemas.AddBank,
     else: 
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                     detail="missing required fields")
-    return await add_bank( user=user, addbank=addbank, db=db)
+    return await bank_models.add_bank( user=user, addbank=addbank, db=db)
 
 
-@router.get("/organisation/{org_id}/banks", status_code=status.HTTP_200_OK,
-            response_model=List[bank_schemas.BankResponse])
-async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authenticated),
+@router.get("/banks", status_code=status.HTTP_200_OK,
+            response_model=Page[bank_schemas.BankResponse])
+async def get_all_banks(user: users_schemas.User = Depends(is_authenticated),
     db:Session = Depends(get_db)):
 
     """Fetches all available bank details in the database.
@@ -93,11 +90,12 @@ async def get_all_banks(org_id: str, user: users_schemas.User = Depends(is_authe
         HTTP_424_FAILED_DEPENDENCY: failed to fetch banks
     """
     banks = db.query(bank_models.BankModels).all()
-    return list(map(bank_schemas.BankResponse.from_orm, banks))
+    banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
+    return paginate(banks_list)
 
 
 
-@router.get("/organisation/{org_id}/bank/{bank_id}", status_code=status.HTTP_200_OK,
+@router.get("/bank/{bank_id}", status_code=status.HTTP_200_OK,
             response_model=bank_schemas.BankResponse)
 async def get_single_bank(org_id: str, bank_id:str,
             user: users_schemas.User = Depends(is_authenticated),
@@ -114,14 +112,14 @@ async def get_single_bank(org_id: str, bank_id:str,
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
         HTTP_4O4_NOT_FOUND: Bank does not exist.
     """
-    bank = await fetch_bank(user=user, id=bank_id, db=db)
+    bank = await bank_models.fetch_bank(user=user, id=bank_id, db=db)
     return bank_schemas.BankResponse.from_orm(bank)
      
 
 
 
-@router.delete("/organisation/{org_id}/bank/{bank_id}", status_code=status.HTTP_200_OK)
-async def delete_bank(org_id: str, bank_id:str,
+@router.delete("/bank/{bank_id}", status_code=status.HTTP_200_OK)
+async def delete_bank(bank_id:str,
             user: users_schemas.User = Depends(is_authenticated),
             db:Session = Depends(get_db)):
     """delete a given bank of id bank_id.
@@ -135,7 +133,10 @@ async def delete_bank(org_id: str, bank_id:str,
         HTTP_424_FAILED_DEPENDENCY: failed to delete bank details
         HTTP_4O4_NOT_FOUND: Bank does not exist.
     """
-    bank = await fetch_bank(user=user, id=bank_id, db=db)
+    if user.is_superuser is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
+                                    detail="User not authorised to delete bank details")
+    bank = await bank_models.fetch_bank(user=user, id=bank_id, db=db)
     db.delete(bank)
     db.commit()
     return JSONResponse({"detail": f"bank details with {bank_id} successfully deleted"},
@@ -175,34 +176,19 @@ async def validate_bank_details(country: str):
 
 
 #=================================== Bank Service =================================#
-    
-async def fetch_bank(user: users_schemas.User, id: str, db: Session):
-    bank = db.query(bank_models.BankModels).filter(bank_models.BankModels.id == id).first()
-    if not bank:
-       raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"This bank detail does not exist here")
-    return bank
-
-async def add_bank(user: users_schemas.User, addbank: str, db: Session):
-    db.add(addbank)
-    db.commit()
-    db.refresh(addbank)
-    
-    return bank_schemas.BankResponse.from_orm(addbank) 
 
 
-
-with open(BANK_DATA_PATH + "/bank.json") as file:
-            country_data = json.load(file)
            
 class BankValidator:
+    
     def __init__(self) -> None:
-        self.country_info = country_data
-        
+        with open(BANK_DATA_PATH + "/bank.json") as file:
+                self.country_info = json.load(file)
+
     async def get_country_data(self, country, info=None): 
         if country not in self.country_info and info is None:
             return self.country_info["others"]
-        elif country not in country_data:
+        elif country not in self.country_info:
             return self.country_info["others"][info]
         if info:
             country_info = self.country_info[country][info]
@@ -217,4 +203,6 @@ class BankValidator:
                 return True
         return False
 
+
 BV = BankValidator()
+add_pagination(router)

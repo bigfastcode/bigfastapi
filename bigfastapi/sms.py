@@ -1,0 +1,60 @@
+from .schemas import sms_schema
+from .models import sms_models
+from typing import Optional
+from uuid import uuid4
+from datetime import datetime
+from fastapi import APIRouter
+from bigfastapi.db.database import get_db
+from pydantic import BaseModel
+import fastapi
+import sqlalchemy.orm as orm
+from bigfastapi.utils import settings
+import json
+import requests
+
+app = APIRouter(tags=["SMS"])
+
+
+class ResponseModel(BaseModel):
+    message: str
+
+class SendSMS():
+    providers: dict[str, str] = { 
+        "nuobject": "https://cloud.nuobjects.com/api/send"
+    }
+
+    @app.post("/sms/send", response_model=ResponseModel)
+    async def send_sms(
+        sms_details: sms_schema.SMS,
+        db: orm.Session = fastapi.Depends(get_db)
+    ):
+
+        """ 
+            An endpoint used to send an sms
+        
+            Returns:
+                object (dict): status code, message
+        """
+        if (sms_details.provider == "nuobject"):
+            req = requests.post(
+                SendSMS.providers.get("nuobject"),
+                params={
+                    "user":sms_details.user, 
+                    "pass":sms_details.passkey, 
+                    "from": sms_details.sender,
+                    "to": sms_details.recipient,
+                    "msg": sms_details.body
+                    }
+            )
+            print(req.url)
+            if(req.status_code == 200):
+                sms = sms_models.SMS(
+                    id=uuid4().hex,
+                    sender=sms_details.sender,
+                    recipient=sms_details.recipient,
+                    body=sms_details.body
+                )
+
+            return { "code": req.status_code, "message": req.text }
+
+        return { "message": "An error occured while sending sms" }

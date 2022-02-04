@@ -15,6 +15,7 @@ class CustomerBase(BaseModel):
     country: str
     city: str
     region: str
+    country_code: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -42,6 +43,7 @@ class CustomerUpdate(BaseModel):
     country: Optional[str] = None
     city: Optional[str] = None
     region: Optional[str] = None
+    country_code: Optional[str] = None
 
 class CustomerCreateResponse(BaseModel):
     message: str
