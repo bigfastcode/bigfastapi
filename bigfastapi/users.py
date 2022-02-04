@@ -15,7 +15,7 @@ app = APIRouter(tags=["User"])
 
 
 @app.get("/users/me", response_model=_schemas.User)
-async def get_user(user: _schemas.UserCreate = fastapi.Depends(is_authenticated)):
+async def get_user(user: _schemas.User= fastapi.Depends(is_authenticated)):
     return user
 
 
