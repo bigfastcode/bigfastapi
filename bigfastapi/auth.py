@@ -43,7 +43,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
         raise fastapi.HTTPException(status_code=403, detail="Email already exist")        
     user_created = await create_user(user, db=db)
     access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
-    return { "access_token": access_token}
+    return { "data": await find_user_email(user_created.email, db), "access_token": access_token}
 
 
 @app.post("/auth/login", status_code=200)
