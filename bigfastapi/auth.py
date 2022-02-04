@@ -14,6 +14,7 @@ from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .auth_api import create_access_token
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated = "auto")
 
@@ -45,7 +46,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
     return { "access_token": access_token}
 
 
-@app.post("/auth/login", response_model=users_schemas.User, status_code=200)
+@app.post("/auth/login", status_code=200)
 async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(get_db)):
     userinfo = await find_user_email(user.email, db)
     if userinfo is None:
@@ -54,8 +55,8 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
     if not veri:
        raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
     
-    access_token = await create_access_token(data = {"user_id": userinfo.id }, db=db)
-    return {"access_token": access_token}
+    access_token = await create_access_token(data = {"user_id": userinfo.id }, db=db)  
+    return {"data": await find_user_email(user.email, db), "access_token": access_token}
 
 
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
