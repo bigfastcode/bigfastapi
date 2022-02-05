@@ -36,17 +36,16 @@ class SendSMS():
                 object (dict): status code, message
         """
         if (sms_details.provider == "nuobject"):
-            req = requests.post(
+            req = requests.put(
                 SendSMS.providers.get("nuobject"),
                 params={
                     "user":sms_details.user, 
                     "pass":sms_details.passkey, 
                     "from": sms_details.sender,
-                    "to": int(sms_details.recipient),
+                    "to": sms_details.recipient,
                     "msg": sms_details.body
                     }
             )
-            print(req.url)
             if(req.status_code == 200):
                 sms = sms_models.SMS(
                     id=uuid4().hex,
@@ -54,7 +53,10 @@ class SendSMS():
                     recipient=sms_details.recipient,
                     body=sms_details.body
                 )
-
+                
+                db.add(sms)
+                db.commit()
+                db.refresh(sms)
             return { "code": req.status_code, "message": req.text }
 
         return { "message": "An error occured while sending sms" }
