@@ -1,6 +1,7 @@
 
 
 import datetime as _dt
+from locale import currency
 
 import pydantic as _pydantic
 from pydantic import Field
@@ -8,10 +9,17 @@ from uuid import UUID
 from typing import List, Optional
 
 class _OrganizationBase(_pydantic.BaseModel):
-    mission: str
-    vision: str
+    mission: Optional[str]
+    vision: Optional[str]
     name: str
-    values: str
+    country: str
+    state: str
+    address: str
+    currency_preference: str
+    current_subscription: Optional[str]
+    tagline: Optional[str]
+    image: Optional[str]
+    values: Optional[str]
 
     class Config:
         orm_mode = True
