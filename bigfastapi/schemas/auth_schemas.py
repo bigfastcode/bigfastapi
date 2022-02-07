@@ -7,7 +7,7 @@ from typing import List, Optional
 
 
 class _UserBase(_pydantic.BaseModel):
-    email: str
+    email: Optional[str]
 
 class UserUpdate(_UserBase):
     first_name: str
