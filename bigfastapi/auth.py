@@ -53,7 +53,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
         return { "data": await find_user_email(user_created.email, db), "access_token": access_token}
 
     if user.phone_number:
-        user_phone = await find_user_phone(user.phone_number, user.countr_code, db)
+        user_phone = await find_user_phone(user.phone_number, user.country_code, db)
         if user_phone != None:
             raise fastapi.HTTPException(status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
@@ -109,9 +109,7 @@ async def find_user_email(email, db: orm.Session):
     return found_user
 
 async def find_user_phone(phone_number, country_code, db: orm.Session):
-    found_user = db.query(user_models.User).filter(user_models.User.phone_number == phone_number).first()
-    if found_user.country_code != country_code:
-        raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
+    found_user = db.query(user_models.User).filter(user_models.User.phone_number == phone_number and user_models.User.country_code == country_code).first()
     return found_user
 
 
