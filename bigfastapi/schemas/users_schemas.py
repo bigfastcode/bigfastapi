@@ -53,9 +53,15 @@ class UserCreateOut(_UserBase):
     class Config:
         orm_mode = True
 
+class UserInfo(_UserBase):
+    first_name: str
+    last_name: str
+
+
 class UserOrgLogin(_UserBase):
     password: str
     organization: str
+    
     
 class UserLogin(_UserBase):
     password: str
@@ -82,7 +88,8 @@ class User(_UserBase):
     date_created: dt.datetime
     last_updated: dt.datetime 
 
-
+    class Config:
+        orm_mode = True
 
 
 
