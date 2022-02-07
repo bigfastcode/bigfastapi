@@ -71,9 +71,9 @@ class UserRecoverPassword(_UserBase):
 
 class User(_UserBase):
     id: str
-    first_name: str
-    last_name: str
-    phone_number: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone_number: Optional[str]
     is_active: bool
     is_verified: bool
     is_superuser: bool
