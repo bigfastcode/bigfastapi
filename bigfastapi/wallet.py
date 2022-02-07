@@ -1,19 +1,19 @@
+import datetime as _dt
 from uuid import uuid4
 
-import requests
-from fastapi import APIRouter, Request, status
 import fastapi
-from decouple import config
-
+import requests
 import sqlalchemy.orm as _orm
-from .schemas import wallet_schemas as schema
-from .schemas import users_schemas
-from . import organization
+from decouple import config
+from fastapi import APIRouter, status
 
 from bigfastapi.db.database import get_db
+from . import organization
 from .auth_api import is_authenticated
 from .models import wallet_models as model
-import datetime as _dt
+from .schemas import users_schemas
+from .schemas import wallet_schemas as schema
+
 app = APIRouter(tags=["Wallet"])
 
 
@@ -23,6 +23,8 @@ async def create_wallet(body: schema.WalletCreate,
                         db: _orm.Session = fastapi.Depends(get_db)):
     wallet = db.query(model.Wallet).filter_by(organization_id=body.organization_id).first()
     if wallet is None:
+        # todo: why is create wallet returning an error?
+        # wallet = _create_wallet(organization_id=body.organization_id, db=db)
         wallet = model.Wallet(id=uuid4().hex, organization_id=body.organization_id, balance=0,
                               last_updated=_dt.datetime.utcnow())
 
@@ -86,6 +88,18 @@ async def delete_wallet(
 ############
 # Services #
 ############
+
+async def _create_wallet(organization_id: str,
+                         db: _orm.Session):
+    wallet = model.Wallet(id=uuid4().hex, organization_id=organization_id, balance=0,
+                          last_updated=_dt.datetime.utcnow())
+
+    db.add(wallet)
+    db.commit()
+    db.refresh(wallet)
+    return wallet
+
+
 async def _get_organization_wallet(organization_id: str,
                                    user: users_schemas.User,
                                    db: _orm.Session):
@@ -97,7 +111,14 @@ async def _get_organization_wallet(organization_id: str,
 
     wallet = db.query(model.Wallet).filter_by(organization_id=organization_id).first()
     if wallet is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
+        # todo: why is create wallet returning an error?
+        # wallet = _create_wallet(organization_id=body.organization_id, db=db)
+        wallet = model.Wallet(id=uuid4().hex, organization_id=organization_id, balance=0,
+                              last_updated=_dt.datetime.utcnow())
+
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
 
     return wallet
 

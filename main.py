@@ -38,6 +38,7 @@ from bigfastapi.pdfs import app as pdfs
 from bigfastapi.receipts import app as receipts
 from bigfastapi.notification import app as notification
 from bigfastapi.sms import app as sms
+from bigfastapi.credit import app as credit
 
 
 # Create the application
@@ -79,6 +80,7 @@ app.include_router(organization, tags=["Organization"])
 app.include_router(qrcode, tags=["qrcode"])
 app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
+app.include_router(credit, tags=["Credit"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
 app.include_router(jwt_services)

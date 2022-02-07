@@ -1,21 +1,17 @@
-
-
 import datetime as _dt
 
 import pydantic as _pydantic
-from pydantic import Field
-from uuid import UUID
-from typing import List, Optional
+
 
 class _OrganizationBase(_pydantic.BaseModel):
     mission: str
     vision: str
     name: str
     values: str
+    currency: str
 
     class Config:
         orm_mode = True
-  
 
 
 class OrganizationCreate(_OrganizationBase):
@@ -26,7 +22,6 @@ class OrganizationUpdate(_OrganizationBase):
     pass
 
 
-
 class Organization(_OrganizationBase):
     id: str
     creator: str
@@ -35,5 +30,3 @@ class Organization(_OrganizationBase):
 
     class Config:
         orm_mode = True
-
-
