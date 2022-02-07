@@ -35,7 +35,7 @@ async def create_organization(
 async def get_organizations(
     user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
-    page_size: int = 2, 
+    page_size: int = 15, 
     page_number: int = 1,
 ):
     allorgs = await get_organizations(user, db)
