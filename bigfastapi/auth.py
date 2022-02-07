@@ -78,7 +78,6 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
         return {"data": await find_user_email(user.email, db), "access_token": access_token}
     
     if user.phone_number:
-        print("phone")
         if user.country_code == None:
             raise fastapi.HTTPException(status_code=403, detail="you must add country_code when using phone_number to login")
         userinfo = await find_user_phone(user.phone_number, user.country_code, db)
