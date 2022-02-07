@@ -1,4 +1,5 @@
 
+from locale import currency
 from uuid import uuid4
 from fastapi import APIRouter, Request
 from typing import List
@@ -34,7 +35,7 @@ async def create_organization(
 async def get_organizations(
     user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
-    page_size: int = 2, 
+    page_size: int = 15, 
     page_number: int = 1,
 ):
     allorgs = await get_organizations(user, db)
@@ -72,7 +73,8 @@ async def get_orgnanization_by_name(name: str, db: _orm.Session):
 
 async def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
 
-    organization = _models.Organization(id=uuid4().hex, creator=user.id, mission= organization.mission, vision= organization.vision, values= organization.values, name= organization.name)
+    organization = _models.Organization(id=uuid4().hex, creator=user.id, mission= organization.mission, vision= organization.vision, values= organization.values, name= organization.name, country=organization.country,
+    state=organization.state, address=organization.address, tagline=organization.tagline, image = organization.image, is_deleted = False, current_subscription = organization.current_subscription, currency_preference = organization.currency_preference)
     db.add(organization)
     db.commit()
     db.refresh(organization)

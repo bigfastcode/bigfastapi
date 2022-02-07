@@ -53,9 +53,15 @@ class UserCreateOut(_UserBase):
     class Config:
         orm_mode = True
 
+class UserInfo(_UserBase):
+    first_name: str
+    last_name: str
+
+
 class UserOrgLogin(_UserBase):
     password: str
     organization: str
+    
     
 class UserLogin(_UserBase):
     password: str
@@ -65,9 +71,9 @@ class UserRecoverPassword(_UserBase):
 
 class User(_UserBase):
     id: str
-    first_name: str
-    last_name: str
-    phone_number: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone_number: Optional[str]
     is_active: bool
     is_verified: bool
     is_superuser: bool
@@ -82,7 +88,8 @@ class User(_UserBase):
     date_created: dt.datetime
     last_updated: dt.datetime 
 
-
+    class Config:
+        orm_mode = True
 
 
 

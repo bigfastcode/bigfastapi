@@ -14,13 +14,22 @@ import bigfastapi.db.database as _database
 
 
 class Organization(_database.Base):
-    __tablename__ = "organizations"
+    __tablename__ = "businesses"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     creator = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
     mission = Column(String(255), index=True)
     vision = Column(String(255), index=True)
     values = Column(String(255), index=True)
     name = Column(String(255), unique=True, index=True, default="")
+    country = Column(String(255), index=True)
+    state = Column(String(255), index=True)
+    address = Column(String(), index=True)
+    tagline = Column(String(255), index=True)
+    image = Column(String(), default="")
+    is_deleted = Column(Boolean(), default=False)
+    current_subscription = Column(String(225), default="")
+    credit_balance = Column(Integer, default=5000) 
+    currency_preference = Column(String, default="")
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
