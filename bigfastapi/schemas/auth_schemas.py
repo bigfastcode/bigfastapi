@@ -7,12 +7,12 @@ from typing import List, Optional
 
 
 class _UserBase(_pydantic.BaseModel):
-    email: str
+    email: Optional[str]
+  
 
 class UserUpdate(_UserBase):
     first_name: str
     last_name: str
-    phone_number: str
 
 
 class UserPasswordUpdate(_pydantic.BaseModel):
@@ -37,6 +37,8 @@ class UserCreate(_UserBase):
     
 
 class UserLogin(_UserBase):
+    phone_number: Optional[str]
+    country_code: Optional[str]
     password: str
 
 
@@ -54,7 +56,7 @@ class User(_UserBase):
     id: str
     first_name: Optional[str]
     last_name: Optional[str]
-    phone_number: str
+    phone_number: Optional[str]
     is_active: bool
     is_verified: bool
     is_superuser: bool
