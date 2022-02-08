@@ -35,6 +35,7 @@ class SendSMS():
             Returns:
                 object (dict): status code, message
         """
+        print(sms_details)
         if (sms_details.provider == "nuobject"):
             req = requests.put(
                 SendSMS.providers.get("nuobject"),
