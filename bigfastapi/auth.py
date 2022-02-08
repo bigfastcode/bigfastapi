@@ -1,5 +1,5 @@
 import fastapi
-from fastapi import FastAPI, Request, APIRouter, BackgroundTasks
+from fastapi import FastAPI, Request, APIRouter, BackgroundTasks, HTTPException, status
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import passlib.hash as _hash
@@ -14,8 +14,9 @@ from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .auth_api import create_access_token
 import os
-from authlib.integrations.starlette_client import OAuth
+from authlib.integrations.starlette_client import OAuth, OAuthError
 from starlette.config import Config
+from starlette.responses import RedirectResponse
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -113,10 +114,24 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
 
 @app.route("/auth/google/signup")
 async def google_signup(request: Request):
-    # absolute url for callback
-    # we will define it below
     redirect_uri = 'http://127.0.0.1:8000'
     return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@app.route('/auth/google/token')
+async def auth(request: Request):
+    print("callback")
+    try:
+        print("It worked")
+        access_token = await oauth.google.authorize_access_token(request)
+        print(access_token)
+    except OAuthError:
+        print("ERROR")
+        return RedirectResponse(url='http://127.0.0.1:8000/login')
+    user_data = await oauth.google.parse_id_token(request, access_token)
+    request.session['user'] = dict(user_data)
+    return RedirectResponse(url='http://127.0.0.1:8000')
+
 
 
 
