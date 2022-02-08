@@ -1,5 +1,5 @@
 import fastapi
-from fastapi import Request, APIRouter, BackgroundTasks
+from fastapi import FastAPI, Request, APIRouter, BackgroundTasks
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import passlib.hash as _hash
@@ -13,6 +13,9 @@ from uuid import uuid4
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .auth_api import create_access_token
+import os
+from authlib.integrations.starlette_client import OAuth
+from starlette.config import Config
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -22,6 +25,24 @@ JWT_SECRET = settings.JWT_SECRET
 ALGORITHM = 'HS256'
 
 app = APIRouter(tags=["Auth"])
+
+# GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or None
+# GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET') or None
+# if GOOGLE_CLIENT_ID is None or GOOGLE_CLIENT_SECRET is None:
+#     raise BaseException('Missing env variables')
+
+GOOGLE_CLIENT_ID="620824813671-47q9fct9om4033h6p2pn6n3em3nmub4s.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="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"
+
+config_data = {'GOOGLE_CLIENT_ID': GOOGLE_CLIENT_ID, 'GOOGLE_CLIENT_SECRET': GOOGLE_CLIENT_SECRET}
+starlette_config = Config(environ=config_data)
+oauth = OAuth(starlette_config)
+oauth.register(
+    name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},    
+)
+
 
 @app.post("/auth/signup", status_code=201)
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.Depends(get_db)):
@@ -88,6 +109,15 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")    
         access_token = await create_access_token(data = {"user_id": userinfo.id }, db=db)  
         return {"data": await find_user_phone(user.phone_number, user.country_code, db), "access_token": access_token}
+
+
+@app.route("/auth/google/signup")
+async def google_signup(request: Request):
+    # absolute url for callback
+    # we will define it below
+    redirect_uri = 'http://127.0.0.1:8000'
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
 
 
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session):

@@ -38,10 +38,11 @@ from bigfastapi.pdfs import app as pdfs
 from bigfastapi.receipts import app as receipts
 from bigfastapi.notification import app as notification
 from bigfastapi.sms import app as sms
-
-
+from starlette.middleware.sessions import SessionMiddleware
 # Create the application
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key="toyin228jdlkjsiwjcpme")
+
 
 client = TestClient(app)
 create_database()
