@@ -49,3 +49,4 @@ websockets
 validators
 pytest
 fastapi-pagination
+qrcode
