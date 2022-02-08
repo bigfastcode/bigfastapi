@@ -4,7 +4,6 @@ from bigfastapi.db.database import Base
 from uuid import uuid4
 from sqlalchemy.schema import Column
 import datetime as dt
-from sqlalchemy.orm import relationship
 
 from bigfastapi.utils.utils import generate_short_id
 
@@ -29,4 +28,3 @@ class Customer(Base):
     country_code= Column(String(255), index=True, default="")
     date_created = Column(DateTime, default=dt.datetime.utcnow)
     last_updated = Column(DateTime, default=dt.datetime.utcnow)
-    debt = relationship("Debt", back_populates="customer", uselist=False)
