@@ -112,28 +112,6 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
         return {"data": await find_user_phone(user.phone_number, user.country_code, db), "access_token": access_token}
 
 
-@app.route("/auth/google/signup")
-async def google_signup(request: Request):
-    redirect_uri = 'http://127.0.0.1:8000'
-    return await oauth.google.authorize_redirect(request, redirect_uri)
-
-
-@app.route('/auth/google/token')
-async def auth(request: Request):
-    print("callback")
-    try:
-        print("It worked")
-        access_token = await oauth.google.authorize_access_token(request)
-        print(access_token)
-    except OAuthError:
-        print("ERROR")
-        return RedirectResponse(url='http://127.0.0.1:8000/login')
-    user_data = await oauth.google.parse_id_token(request, access_token)
-    request.session['user'] = dict(user_data)
-    return RedirectResponse(url='http://127.0.0.1:8000')
-
-
-
 
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
     user_obj = user_models.User(
