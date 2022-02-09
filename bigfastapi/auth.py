@@ -1,5 +1,5 @@
 import fastapi
-from fastapi import Request, APIRouter, BackgroundTasks
+from fastapi import FastAPI, Request, APIRouter, BackgroundTasks, HTTPException, status
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import passlib.hash as _hash
@@ -13,6 +13,9 @@ from uuid import uuid4
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .auth_api import create_access_token
+from authlib.integrations.starlette_client import OAuth, OAuthError
+from starlette.config import Config
+from starlette.responses import RedirectResponse
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -22,6 +25,7 @@ JWT_SECRET = settings.JWT_SECRET
 ALGORITHM = 'HS256'
 
 app = APIRouter(tags=["Auth"])
+
 
 @app.post("/auth/signup", status_code=201)
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.Depends(get_db)):
@@ -88,6 +92,7 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")    
         access_token = await create_access_token(data = {"user_id": userinfo.id }, db=db)  
         return {"data": await find_user_phone(user.phone_number, user.country_code, db), "access_token": access_token}
+
 
 
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
