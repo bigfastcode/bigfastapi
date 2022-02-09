@@ -23,6 +23,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from bigfastapi.db.database import get_db
 from bigfastapi.auth_api import create_access_token
 from bigfastapi.utils import settings
+import random
+import string
 
 app = APIRouter(tags=["Social_Auth"])
 
@@ -54,8 +56,8 @@ CREDENTIALS_EXCEPTION = HTTPException(
 )
 
 # REDIRECT URL:
-REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://127.0.0.1:7001/google/token'
-# REDIRECT_URL = settings.REDIRECT_URL or 'http://127.0.0.1:7001/google/token'
+# REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://127.0.0.1:7001/google/token'
+REDIRECT_URL = settings.REDIRECT_URL or 'http://127.0.0.1:7001/google/token'
 
 @app.get('/google/generate_url')
 async def login(request: Request):
@@ -80,8 +82,11 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
         access_token = await create_access_token(data = {"user_id": check_user.id }, db=db)
         return { "data": valid_email_from_db(check_user.email, db), "access_token": access_token}
 
+    S = 10 
+    ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))  
+    n= str(ran)
     user_obj = user_models.User(
-        id = uuid4().hex, email=user_data.email, password=_hash.sha256_crypt.hash("toyin"),
+        id = uuid4().hex, email=user_data.email, password=_hash.sha256_crypt.hash(n),
         first_name=user_data.given_name, last_name=user_data.family_name, phone_number="",
         is_active=True, is_verified = True, country_code="", is_deleted=False,
         country="", state= "", google_id = "", google_image=user_data.picture,
