@@ -143,7 +143,6 @@ def update_customer(
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
-
 @app.delete('/customers/{customer_id}', 
             response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
 def delete_customer(
