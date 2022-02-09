@@ -109,8 +109,7 @@ def update_customer(
         organization = db.query(organisation_models.Organization).filter(
                                 organisation_models.Organization.id == customer.organization_id).first()
         if not organization:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail={"message": "Organization does not exist"})
+            return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         customer_instance.organization_id = organization.id
         
     if customer.first_name:
@@ -155,8 +154,7 @@ def delete_customer(
     customer = db.query(customer_models.Customer).filter(
                         customer_models.Customer.customer_id == customer_id).first()
     if not customer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail={"message": "Customer does not exist"}, ) 
+        return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
     db.delete(customer)
     db.commit()
     return {"message": "Customer deleted succesfully"}

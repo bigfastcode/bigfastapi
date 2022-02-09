@@ -33,13 +33,13 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
         HTTP_403_FORBIDDEN: incomplete details
     """
     if user.is_superuser is False:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
-                                    detail="User not authorised to add bank details")
+        return JSONResponse({"message": "User not authorised to add bank details"}, 
+                        status_code=status.HTTP_403_FORBIDDEN)
                                     
     if bank.country == "Nigeria":
         if not bank.bank_type:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
-                                    detail="Account type is required")
+            return JSONResponse({"message": "Account type is required"}, 
+                         status_code=status.HTTP_403_FORBIDDEN)
 
         addbank = bank_models.BankModels(id=uuid4().hex,
                     organisation_id= bank.organisation_id,
@@ -70,8 +70,8 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
                         iban=bank.iban,
                         date_created=bank.date_created)
     else: 
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
-                                    detail="missing required fields")
+        return JSONResponse({"message": "missing required fields"}, 
+                         status_code=status.HTTP_403_FORBIDDEN)                       
     return await bank_models.add_bank( user=user, addbank=addbank, db=db)
 
 
