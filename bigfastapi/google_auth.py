@@ -49,7 +49,12 @@ SECRET_KEY = "yeahyeh500500"
 if SECRET_KEY is None:
     raise 'Missing SECRET_KEY'
 
-
+# Error
+CREDENTIALS_EXCEPTION = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail='Could not validate credentials',
+    headers={'WWW-Authenticate': 'Bearer'},
+)
 
 # Frontend URL:
 FRONTEND_URL = os.environ.get('FRONTEND_URL') or 'http://127.0.0.1:7001/google/token'
@@ -79,7 +84,7 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
         return { "data": valid_email_from_db(check_user.email, db), "access_token": access_token}
 
     user_obj = user_models.User(
-        id = uuid4().hex, email=user_data.email, password=_hash.sha256_crypt.hash(user_data.at_hash),
+        id = uuid4().hex, email=user_data.email, password=_hash.sha256_crypt.hash("toyin"),
         first_name=user_data.given_name, last_name=user_data.family_name, phone_number="",
         is_active=True, is_verified = True, country_code="", is_deleted=False,
         country="", state= "", google_id = "", google_image=user_data.picture,
@@ -96,32 +101,6 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
 
 
-def cast_to_number(id):
-    temp = os.environ.get(id)
-    if temp is not None:
-        try:
-            return float(temp)
-        except ValueError:
-            return None
-    return None
-
-
-# Configuration
-API_SECRET_KEY = "uyyeujnfbhgdtwyuiofkjhndbwgyufiklew"
-if API_SECRET_KEY is None:
-    raise BaseException('Missing API_SECRET_KEY env var.')
-API_ALGORITHM = os.environ.get('API_ALGORITHM') or 'HS256'
-API_ACCESS_TOKEN_EXPIRE_MINUTES = cast_to_number('API_ACCESS_TOKEN_EXPIRE_MINUTES') or 1444
-
-# Token url (We should later create a token url that accepts just a user and a password to use it with Swagger)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
-
-# Error
-CREDENTIALS_EXCEPTION = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail='Could not validate credentials',
-    headers={'WWW-Authenticate': 'Bearer'},
-)
 
 
 def valid_email_from_db(email, db: orm.Session = fastapi.Depends(get_db)):
@@ -129,16 +108,3 @@ def valid_email_from_db(email, db: orm.Session = fastapi.Depends(get_db)):
     return found_user
 
 
-async def get_current_user_email(token: str = Depends(oauth2_scheme)):
-    try:
-        payload = jwt.decode(token, API_SECRET_KEY, algorithms=[API_ALGORITHM])
-        email: str = payload.get('sub')
-        if email is None:
-            raise CREDENTIALS_EXCEPTION
-    except jwt.PyJWTError:
-        raise CREDENTIALS_EXCEPTION
-
-    if valid_email_from_db(email, db=orm.Session):
-        return email
-
-    raise CREDENTIALS_EXCEPTION
