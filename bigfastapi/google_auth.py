@@ -20,17 +20,16 @@ from fastapi import Request
 from fastapi import status
 from starlette.config import Config
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import JSONResponse
 from bigfastapi.db.database import get_db
 from bigfastapi.auth_api import create_access_token
-
+from bigfastapi.utils import settings
 
 app = APIRouter(tags=["Social_Auth"])
 
 
 # OAuth settings
-GOOGLE_CLIENT_ID="620824813671-47q9fct9om4033h6p2pn6n3em3nmub4s.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="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"
+GOOGLE_CLIENT_ID=settings.GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=settings.GOOGLE_CLIENT_SECRET
 if GOOGLE_CLIENT_ID is None or GOOGLE_CLIENT_SECRET is None:
     raise BaseException('Missing env variables')
 
@@ -45,9 +44,7 @@ oauth.register(
 )
 
 # Set up the middleware to read the request session
-SECRET_KEY = "yeahyeh500500"
-if SECRET_KEY is None:
-    raise 'Missing SECRET_KEY'
+SECRET_KEY = settings.JWT_SECRET
 
 # Error
 CREDENTIALS_EXCEPTION = HTTPException(
@@ -56,13 +53,13 @@ CREDENTIALS_EXCEPTION = HTTPException(
     headers={'WWW-Authenticate': 'Bearer'},
 )
 
-# Frontend URL:
-FRONTEND_URL = os.environ.get('FRONTEND_URL') or 'http://127.0.0.1:7001/google/token'
-
+# REDIRECT URL:
+REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://127.0.0.1:7001/google/token'
+# REDIRECT_URL = settings.REDIRECT_URL or 'http://127.0.0.1:7001/google/token'
 
 @app.get('/google/generate_url')
 async def login(request: Request):
-    redirect_uri = FRONTEND_URL  # This creates the url for our /auth endpoint
+    redirect_uri = REDIRECT_URL  # This creates the url for our /auth endpoint
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
@@ -70,7 +67,7 @@ async def login(request: Request):
 async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     try:
         
-        print("USER AUTH")
+        print("reached callback")
         access_token = await oauth.google.authorize_access_token(request)
     except OAuthError:
         raise CREDENTIALS_EXCEPTION
