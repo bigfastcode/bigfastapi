@@ -6,15 +6,15 @@ class CustomerBase(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
-    phone_number: str
-    address: str
-    gender: str
-    age: int
-    postal_code: str
-    language: str
-    country: str
-    city: str
-    region: str
+    phone_number: str = None
+    address: str =None
+    gender: str=None
+    age: int =None
+    postal_code: str =None
+    language: str =None
+    country: str = None
+    city: str =None
+    region: str =None
     country_code: Optional[str] = None
 
     class Config:

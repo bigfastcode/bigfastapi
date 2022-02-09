@@ -1,0 +1,25 @@
+
+name: Bigfastapi CI/CD
+
+on:
+  push:
+    branches: [ dev ]
+ 
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deployment
+        run: |
+          cd ${{ secrets.API_PATH }}
+          source env/bin/activate
+          bash deploy.sh > deploy.log
+          cat deploy.log
+          
+          

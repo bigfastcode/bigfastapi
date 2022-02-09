@@ -11,6 +11,7 @@ from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .models import credit_models as credit_models
 from .models import organisation_models as organization_models
+from .models import wallet_models as wallet_models
 from .schemas import payment_schemas as schema
 from .schemas import users_schemas
 
@@ -75,6 +76,22 @@ async def add_credit(status: str, tx_ref: str, transaction_id: str, db: _orm.Ses
                     credit.amount += amount
                     credit.last_updated = dt.datetime.utcnow()
                     db.commit()
+                    db.refresh(credit)
+                    response = RedirectResponse(
+                        url='https://staging.customerpay.me/payment/error/?status=success')
+                    return response
+            else:
+                wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).first()
+                if wallet is None:
+                    # redirect to a frontend url that will be set
+                    response = RedirectResponse(
+                        url='https://staging.customerpay.me/payment/error/' + tx_ref)
+                    return response
+                else:
+                    wallet.balance += amount
+                    wallet.last_updated = dt.datetime.utcnow()
+                    db.commit()
+                    db.refresh(wallet)
                     response = RedirectResponse(
                         url='https://staging.customerpay.me/payment/error/?status=success')
                     return response

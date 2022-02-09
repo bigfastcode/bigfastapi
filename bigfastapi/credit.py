@@ -33,10 +33,12 @@ async def add_credit(body: schema.Credit,
         db.commit()
         db.refresh(credit)
 
+    return credit
+
 
 # @app.get("/credits/organization/{organization_id}", response_model=schema.CreditResponse)
 # response_model=schema.CreditResponse is giving errors todo: find out why
-@app.get("/credits/organization/{organization_id}")
+@app.get("/credits/{organization_id}/balance")
 async def get_credit(
         organization_id: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
