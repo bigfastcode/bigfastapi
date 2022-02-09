@@ -24,11 +24,11 @@ app = APIRouter(tags=["Customers 💁"],)
 def create_customer(
     customer: customer_schemas.CustomerCreate, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
     organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == customer.organization_id).first()
     if not organization: 
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail={"message": "Organization Doesn't Exist"})
+        return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
     customer_instance = customer_models.Customer(
         id = uuid4().hex,
         customer_id = generate_short_id(size=12),
@@ -61,7 +61,7 @@ def create_customer(
 def get_customers(
     db: orm.Session = fastapi.Depends(get_db), 
     organization_id: Optional[str]=None,
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
     if organization_id:
         organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == organization_id).first()
@@ -80,7 +80,7 @@ def get_customers(
 def get_customer(
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
    ):
     customer = db.query(customer_models.Customer).filter(customer_models.Customer.customer_id == customer_id).first()
     if customer is not None:
@@ -96,7 +96,7 @@ def update_customer(
     customer: customer_schemas.CustomerUpdate, 
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
 
     customer_instance = db.query(customer_models.Customer).filter(
@@ -149,7 +149,7 @@ def update_customer(
 def delete_customer(
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
 
     customer = db.query(customer_models.Customer).filter(
