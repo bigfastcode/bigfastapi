@@ -51,7 +51,7 @@ SECRET_KEY = settings.JWT_SECRET
 # Error
 CREDENTIALS_EXCEPTION = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
-    detail='Could not validate credentials',
+    detail='Google oauth error',
     headers={'WWW-Authenticate': 'Bearer'},
 )
 
@@ -62,16 +62,17 @@ REDIRECT_URL = settings.REDIRECT_URL or 'http://127.0.0.1:7001/google/token'
 @app.get('/google/generate_url')
 async def login(request: Request):
     redirect_uri = REDIRECT_URL  # This creates the url for our /auth endpoint
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    response_url = await oauth.google.authorize_redirect(request, redirect_uri)
+    return {"response": response_url}
 
 
 @app.get('/google/token')
 async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     try:
-        
         print("reached callback")
         access_token = await oauth.google.authorize_access_token(request)
     except OAuthError:
+        print('auth error')
         raise CREDENTIALS_EXCEPTION
     user_data = await oauth.google.parse_id_token(request, access_token)
     
@@ -85,6 +86,7 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     S = 10 
     ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))  
     n= str(ran)
+    
     user_obj = user_models.User(
         id = uuid4().hex, email=user_data.email, password=_hash.sha256_crypt.hash(n),
         first_name=user_data.given_name, last_name=user_data.family_name, phone_number="",
