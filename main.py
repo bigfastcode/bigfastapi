@@ -60,6 +60,7 @@ app.add_middleware(
 # routers
 
 app.include_router(authentication, tags=["Auth"])
+app.include_router(social_auth)
 app.include_router(accounts_router, tags=["User"])
 app.include_router(organization_router, tags=["Organization"])
 app.include_router(countries, tags=["Countries"])
@@ -82,7 +83,7 @@ app.include_router(qrcode, tags=["qrcode"])
 app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
 app.include_router(notification, tags=["Notification"])
-app.include_router(social_auth)
+
 app.include_router(pdfs)
 app.include_router(jwt_services)
 app.include_router(receipts)
