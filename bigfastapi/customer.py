@@ -57,22 +57,22 @@ def create_customer(
     
 
 
-@app.get('/customers', response_model=Page[customer_schemas.Customer])
+@app.get('/customers', response_model=Page[customer_schemas.Customer],
+            status_code=status.HTTP_200_OK)
 def get_customers(
+    organization_id: str,
     db: orm.Session = fastapi.Depends(get_db), 
-    organization_id: Optional[str]=None,
     #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
-    if organization_id:
-        organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == organization_id).first()
-        if organization is not None:
-            customers = db.query(customer_models.Customer).filter_by(organization_id=organization_id)
-            customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-            return paginate(customer_list)
+    customers = []
+    organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == organization_id).first()
+    if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
-    customers = db.query(customer_models.Customer).all()
-    customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    return  paginate(customer_list)
+    customers = db.query(customer_models.Customer).filter_by(organization_id=organization_id)
+    if customers:
+        customer_list = list(map(customer_schemas.Customer.from_orm, customers))
+        return paginate(customer_list)
+    return paginate(customers)
     
 
 
@@ -140,7 +140,6 @@ def update_customer(
     db.commit()
     db.refresh(customer_instance)
     return customer_schemas.Customer.from_orm(customer_instance)
-
 
 
 @app.delete('/customers/{customer_id}', 

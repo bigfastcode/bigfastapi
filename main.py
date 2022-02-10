@@ -27,7 +27,6 @@ from bigfastapi.notification import app as notification
 from bigfastapi.organization import app as organization
 from bigfastapi.organization import app as organization_router
 from bigfastapi.pages import app as pages
-from bigfastapi.payments import app as payment
 from bigfastapi.pdfs import app as pdfs
 from bigfastapi.plan import app as plan
 from bigfastapi.plans import app as plans
@@ -60,6 +59,7 @@ app.add_middleware(
 # routers
 
 app.include_router(authentication, tags=["Auth"])
+app.include_router(social_auth)
 app.include_router(accounts_router, tags=["User"])
 app.include_router(organization_router, tags=["Organization"])
 app.include_router(countries, tags=["Countries"])
@@ -81,9 +81,8 @@ app.include_router(organization, tags=["Organization"])
 app.include_router(qrcode, tags=["qrcode"])
 app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
-app.include_router(credit, tags=["Credit"])
+app.include_router(credit, tags=["CreditWallet"])
 app.include_router(notification, tags=["Notification"])
-app.include_router(payment, tags=["Payment"])
 app.include_router(social_auth)
 app.include_router(pdfs)
 app.include_router(jwt_services)

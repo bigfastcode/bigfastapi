@@ -1,11 +1,11 @@
-from sqlalchemy.types import String, DateTime, Text, Integer
-from sqlalchemy import ForeignKey
-from bigfastapi.db.database import Base
-from uuid import uuid4
-from sqlalchemy.schema import Column
 import datetime as dt
-from sqlalchemy.orm import relationship
+from uuid import uuid4
 
+from sqlalchemy import ForeignKey
+from sqlalchemy.schema import Column
+from sqlalchemy.types import String, DateTime, Text, Integer
+
+from bigfastapi.db.database import Base
 from bigfastapi.utils.utils import generate_short_id
 
 
@@ -26,7 +26,7 @@ class Customer(Base):
     country = Column(String(255), index=True, default="")
     city = Column(String(255), index=True, default="")
     region = Column(String(255), index=True, default="")
-    country_code= Column(String(255), index=True, default="")
+    country_code = Column(String(255), index=True, default="")
     date_created = Column(DateTime, default=dt.datetime.utcnow)
     last_updated = Column(DateTime, default=dt.datetime.utcnow)
-    debt = relationship("Debt", back_populates="customer", uselist=False)
+    # debt = relationship("Debt", back_populates="customer", uselist=False)
