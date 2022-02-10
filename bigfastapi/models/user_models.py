@@ -22,7 +22,7 @@ class User(Base):
     email = Column(String(255), index=True)
     first_name = Column(String(255), index=True)
     last_name = Column(String(255), index=True)
-    phone_number = Column(String(255), index=True, unique=True)
+    phone_number = Column(String(255), index=True)
     password = Column(String(255), nullable=False)
     is_active = Column(Boolean)
     is_verified = Column(Boolean, default=False)
