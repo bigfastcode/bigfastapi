@@ -59,7 +59,7 @@ CREDENTIALS_EXCEPTION = HTTPException(
 
 # REDIRECT URL:
 # REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://127.0.0.1:7001/google/token'
-REDIRECT_URL =  'http://127.0.0.1:7001/google/token'
+REDIRECT_URL =  settings.REDIRECT_URL or 'http://127.0.0.1:7001/google/token'
 
 @app.get('/google/generate_url')
 async def login(request: Request):
