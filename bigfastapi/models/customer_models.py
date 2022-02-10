@@ -29,4 +29,6 @@ class Customer(Base):
     country_code= Column(String(255), index=True, default="")
     date_created = Column(DateTime, default=dt.datetime.utcnow)
     last_updated = Column(DateTime, default=dt.datetime.utcnow)
-    #debt = relationship("Debt", back_populates="customer", uselist=False)
+    debt = relationship("Debt", back_populates="customer", uselist=False)
+    
+
