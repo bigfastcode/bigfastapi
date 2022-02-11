@@ -18,7 +18,7 @@ class Settings(database.Base):
 
     __tablename__ = "settings"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    org_id = Column(String(255), ForeignKey("organizations.id"))
+    org_id = Column(String(255), ForeignKey("businesses.id"))
     location = Column(String(255), index=True, nullable=True)
     phone_number = Column(String(255), index=True, nullable=True)
     email = Column(String(255), index=True, nullable=True)
