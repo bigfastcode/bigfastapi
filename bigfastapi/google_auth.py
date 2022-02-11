@@ -1,6 +1,7 @@
 import os
 import fastapi
 from pytest import Session
+from sqlalchemy import null
 from .models import auth_models, user_models
 from datetime import datetime
 from datetime import timedelta
@@ -135,7 +136,7 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     
         user_obj = user_models.User(
             id = uuid4().hex, email=user_data.email, password=_hash.sha256_crypt.hash(n),
-            first_name=user_data.given_name, last_name=user_data.family_name, phone_number="",
+            first_name=user_data.given_name, last_name=user_data.family_name, phone_number=n,
             is_active=True, is_verified = True, country_code="", is_deleted=False,
             country="", state= "", google_id = "", google_image=user_data.picture,
             image = user_data.picture, device_id = ""
