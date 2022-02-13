@@ -20,7 +20,8 @@ app = APIRouter(tags=["Customers 💁"],)
 
 
 
-@app.post("/customers", response_model=customer_schemas.CustomerCreateResponse)
+@app.post("/customers", response_model=customer_schemas.CustomerCreateResponse,
+                         status_code=status.HTTP_201_CREATED)
 def create_customer(
     customer: customer_schemas.CustomerCreate, 
     db: orm.Session = fastapi.Depends(get_db),
@@ -45,6 +46,7 @@ def create_customer(
         country= customer.country,
         city= customer.city,
         region= customer.region,
+        other_information = customer.other_information,
         country_code = customer.country_code,
         date_created = datetime.now(),
         last_updated = datetime.now()
