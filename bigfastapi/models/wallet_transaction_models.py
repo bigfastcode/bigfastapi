@@ -8,11 +8,10 @@ from sqlalchemy.types import String, DateTime, Float
 import bigfastapi.db.database as _database
 
 
-class Wallet(_database.Base):
-    __tablename__ = "wallets"
+class WalletTransaction(_database.Base):
+    __tablename__ = "wallet_transactions"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("businesses.id"))
-    user_id = Column(String(255), ForeignKey("users.id"), default='')
+    wallet_id = Column(String(255), ForeignKey("wallets.id"))
+    amount = Column(Float, default=0)
     currency_code = Column(String(4))
-    balance = Column(Float, default=0)
-    last_updated = Column(DateTime, default=_dt.datetime.utcnow)
+    transaction_date = Column(DateTime, default=_dt.datetime.utcnow)

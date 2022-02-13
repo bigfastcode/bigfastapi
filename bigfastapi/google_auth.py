@@ -1,6 +1,7 @@
 import os
 import fastapi
 from pytest import Session
+from sqlalchemy import null
 from .models import auth_models, user_models
 from datetime import datetime
 from datetime import timedelta
@@ -23,8 +24,10 @@ from starlette.middleware.sessions import SessionMiddleware
 from bigfastapi.db.database import get_db
 from bigfastapi.auth_api import create_access_token
 from bigfastapi.utils import settings
+from starlette.responses import RedirectResponse, HTMLResponse
 import random
 import string
+from .schemas import google_schema
 
 app = APIRouter(tags=["Social_Auth"])
 
@@ -55,33 +58,31 @@ CREDENTIALS_EXCEPTION = HTTPException(
     headers={'WWW-Authenticate': 'Bearer'},
 )
 
-# REDIRECT URL:
-# REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://127.0.0.1:7001/google/token'
-REDIRECT_URL = settings.REDIRECT_URL or 'http://127.0.0.1:7001/google/token'
+
+REDIRECT_URL =  'https://v2.api.customerpay.me/google/token'
+
 
 @app.get('/google/generate_url')
 async def login(request: Request):
     redirect_uri = REDIRECT_URL  # This creates the url for our /auth endpoint
-    response_url = await oauth.google.authorize_redirect(request, redirect_uri)
-    return {"response": response_url}
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
 
 
 @app.get('/google/token')
 async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
-    try:
-        print("reached callback")
-        access_token = await oauth.google.authorize_access_token(request)
-    except OAuthError:
-        print('auth error')
-        raise CREDENTIALS_EXCEPTION
+
+    access_token = await oauth.google.authorize_access_token(request)
     user_data = await oauth.google.parse_id_token(request, access_token)
-    
     check_user = valid_email_from_db(user_data['email'], db)
     
     if check_user:
-        print(check_user.id)
+        user_id = str(check_user.id)
         access_token = await create_access_token(data = {"user_id": check_user.id }, db=db)
-        return { "data": valid_email_from_db(check_user.email, db), "access_token": access_token}
+        response = f"https://v2.customerpay.me/app/google/authenticate?token={access_token}&user_id={user_id}"            
+    
+        return RedirectResponse(url=response)       
+
 
     S = 10 
     ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))  
@@ -89,21 +90,28 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     
     user_obj = user_models.User(
         id = uuid4().hex, email=user_data.email, password=_hash.sha256_crypt.hash(n),
-        first_name=user_data.given_name, last_name=user_data.family_name, phone_number="",
+        first_name=user_data.given_name, last_name=user_data.family_name, phone_number=n,
         is_active=True, is_verified = True, country_code="", is_deleted=False,
         country="", state= "", google_id = "", google_image=user_data.picture,
         image = user_data.picture, device_id = ""
     )
-    print("creating a user")
+
+  
     
     db.add(user_obj)
     db.commit()
     db.refresh(user_obj)
 
-    access_token = await create_access_token(data = {"user_id": user_obj.id }, db=db)
-    return { "data": valid_email_from_db(user_obj.email, db), "access_token": access_token}
+    response = 'https://v2.customerpay.me/app/google/authenticate?token=' + access_token["id_token"] + '&user_id=' + user_obj.id
+    return RedirectResponse(url=response)
 
 
+
+    
+@app.post('/google/validate-token')
+async def validate_user(user: google_schema.GoogleAuth,  db: orm.Session = fastapi.Depends(get_db)):
+    user_found = db.query(user_models.User).filter(user_models.User.id == user.user_id).first()
+    return {"data": user_found, "access_token": user.token}
 
 
 
@@ -112,3 +120,6 @@ def valid_email_from_db(email, db: orm.Session = fastapi.Depends(get_db)):
     return found_user
 
 
+# https://v2.customerpay.me/app/google/authenticate?
+# token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjE4MmU0NTBhMzVhMjA4MWZhYTFkOWFlMWQyZDc1YTBmMjNkOTFkZjgiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI2MjA4MjQ4MTM2NzEtNDdxOWZjdDlvbTQwMzNoNnAycG42bjNlbTNubXViNHMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI2MjA4MjQ4MTM2NzEtNDdxOWZjdDlvbTQwMzNoNnAycG42bjNlbTNubXViNHMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDIwMDA0NTEwMTE1NTE0NzAxMjUiLCJlbWFpbCI6ImRpc3V0akBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXRfaGFzaCI6ImJGVFhTWnctXzhaZGQ2eXBabmZrWmciLCJub25jZSI6ImJFZWxFNjVGMkRYdFJNR2JWU3pOIiwibmFtZSI6IkRpc3UgT2x1d2F0b3lpbiIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS0vQU9oMTRHaTlfV1lMdXZEVF9mWUdkYnUzTTdDcU5yNDg3dDVUYU9YR19LWk5CQT1zOTYtYyIsImdpdmVuX25hbWUiOiJEaXN1IiwiZmFtaWx5X25hbWUiOiJPbHV3YXRveWluIiwibG9jYWxlIjoiZW4iLCJpYXQiOjE2NDQ1MDE0MjAsImV4cCI6MTY0NDUwNTAyMH0.DZeVcEpFB_8Ea5HUUlP6fPFRT2BV_ED3XkbFsY-Fph34MenpURgyUiEhRiGD3l_bVv6KgD5YoYlTEyW4kcxMYdQOkh5nB_ZT5js6A4_Jtbuu49UuuZW5f2jR_lUthfwuc9aClMIr7XSXWggmPR7EXX75sF6ZtCmsCE33YjrKt7K2vqNHMb-Y6cg80v0feqkST6-JlKbY945E-3buKt3X_GfidFTtttDcYx4V4TqKgjpTYCHv7zh2pPGyJpRUoTH8T5YVRZ6pr7AwJ4MSK5X91SeG2sGdGYEvQQc4iX-lgU5nRiZTvvYyVCsvdMRo0emOETBT3oh8kFepJ27PbnB87Q
+# &user_id=29876542909876542#
