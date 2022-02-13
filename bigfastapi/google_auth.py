@@ -58,9 +58,8 @@ CREDENTIALS_EXCEPTION = HTTPException(
     headers={'WWW-Authenticate': 'Bearer'},
 )
 
-# REDIRECT URL:
-# REDIRECT_URL = os.environ.get('REDIRECT_URL') or 'http://127.0.0.1:7001/google/token'
-REDIRECT_URL =  'http://127.0.0.1:7001/google/token'
+
+REDIRECT_URL =  'https://v2.api.customerpay.me/google/token'
 
 
 @app.get('/google/generate_url')
@@ -80,7 +79,7 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     if check_user:
         user_id = str(check_user.id)
         access_token = await create_access_token(data = {"user_id": check_user.id }, db=db)
-        response = f"http://127.0.0.1:8000/app/google/authenticate?token={access_token}&user_id={user_id}"            
+        response = f"https://v2.customerpay.me/app/google/authenticate?token={access_token}&user_id={user_id}"            
     
         return RedirectResponse(url=response)       
 
@@ -103,7 +102,7 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     db.commit()
     db.refresh(user_obj)
 
-    response = 'http://127.0.0.1:8000/app/google/authenticate?token=' + access_token["id_token"] + '&user_id=' + user_obj.id
+    response = 'https://v2.customerpay.me/app/google/authenticate?token=' + access_token["id_token"] + '&user_id=' + user_obj.id
     return RedirectResponse(url=response)
 
 
