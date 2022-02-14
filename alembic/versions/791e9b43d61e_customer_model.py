@@ -1,8 +1,8 @@
-"""customer_another
+"""customer_model
 
-Revision ID: 647f600ed6a8
-Revises: 442d9b84ce92
-Create Date: 2022-02-01 08:36:00.650606
+Revision ID: 791e9b43d61e
+Revises: f4e906862bfa
+Create Date: 2022-02-13 22:58:26.252209
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '647f600ed6a8'
-down_revision = None
+revision = '791e9b43d61e'
+down_revision = 'f4e906862bfa'
 branch_labels = None
 depends_on = None
 
@@ -23,5 +23,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_column('customer', 'country_code')
     pass

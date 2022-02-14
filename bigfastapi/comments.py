@@ -72,8 +72,8 @@ def reply_to_comment(
 @app.post("/comments/{model_name}/{object_id}")
 def create_new_comment_for_object(
     model_name: str,
-    object_id: int,
-    comment: comments_schemas.CommentCreate,
+    object_id: str,
+    comment: comments_schemas.CommentBase,
     db_Session=Depends(get_db),
 ):
     obj = db_create_comment_for_object(
