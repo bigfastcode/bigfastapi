@@ -5,13 +5,14 @@ from sqlalchemy.types import String, Integer, DateTime
 from uuid import uuid4
 from bigfastapi.db import database
 from bigfastapi.schemas import bank_schemas, users_schemas
-from fastapi import HTTPException, status
+from fastapi import  status
+from fastapi.responses import JSONResponse
 
 
 class   BankModels(database.Base):
     __tablename__ = "bank_models"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organisation_id = Column(String(255), ForeignKey("organizations.id"))
+    organisation_id = Column(String(255), ForeignKey("businesses.id"))
     creator_id = Column(String)
     account_number= Column(Integer, unique=True, index=True)
     bank_name = Column(String)
@@ -32,8 +33,8 @@ class   BankModels(database.Base):
 async def fetch_bank(user: users_schemas.User, id: str, db: orm.Session):
     bank = db.query(BankModels).filter(BankModels.id == id).first()
     if not bank:
-       raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"This bank detail does not exist here")
+        return JSONResponse({"This bank detail does not exist here"}, 
+                    status_code=status.HTTP_403_FORBIDDEN) 
     return bank
 
 async def add_bank(user: users_schemas.User, addbank: str, db: orm.Session):

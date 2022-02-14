@@ -51,3 +51,6 @@ websockets
 validators
 pytest
 fastapi-pagination
+qrcode
+authlib
+itsdangerous

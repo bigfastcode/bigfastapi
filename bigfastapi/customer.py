@@ -20,15 +20,16 @@ app = APIRouter(tags=["Customers 💁"],)
 
 
 
-@app.post("/customers", response_model=customer_schemas.CustomerCreateResponse)
+@app.post("/customers", response_model=customer_schemas.CustomerCreateResponse,
+                         status_code=status.HTTP_201_CREATED)
 def create_customer(
     customer: customer_schemas.CustomerCreate, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
     organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == customer.organization_id).first()
     if not organization: 
-        raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail={"message": "Organization Doesn't Exist"})
+        return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
     customer_instance = customer_models.Customer(
         id = uuid4().hex,
         customer_id = generate_short_id(size=12),
@@ -45,6 +46,7 @@ def create_customer(
         country= customer.country,
         city= customer.city,
         region= customer.region,
+        other_information = customer.other_information,
         country_code = customer.country_code,
         date_created = datetime.now(),
         last_updated = datetime.now()
@@ -57,22 +59,22 @@ def create_customer(
     
 
 
-@app.get('/customers', response_model=Page[customer_schemas.Customer])
+@app.get('/customers', response_model=Page[customer_schemas.Customer],
+            status_code=status.HTTP_200_OK)
 def get_customers(
+    organization_id: str,
     db: orm.Session = fastapi.Depends(get_db), 
-    organization_id: Optional[str]=None,
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
-    if organization_id:
-        organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == organization_id).first()
-        if organization is not None:
-            customers = db.query(customer_models.Customer).filter_by(organization_id=organization_id)
-            customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-            return paginate(customer_list)
+    customers = []
+    organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == organization_id).first()
+    if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
-    customers = db.query(customer_models.Customer).all()
-    customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    return  paginate(customer_list)
+    customers = db.query(customer_models.Customer).filter_by(organization_id=organization_id)
+    if customers:
+        customer_list = list(map(customer_schemas.Customer.from_orm, customers))
+        return paginate(customer_list)
+    return paginate(customers)
     
 
 
@@ -80,7 +82,7 @@ def get_customers(
 def get_customer(
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
    ):
     customer = db.query(customer_models.Customer).filter(customer_models.Customer.customer_id == customer_id).first()
     if customer is not None:
@@ -96,7 +98,7 @@ def update_customer(
     customer: customer_schemas.CustomerUpdate, 
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
 
     customer_instance = db.query(customer_models.Customer).filter(
@@ -109,8 +111,7 @@ def update_customer(
         organization = db.query(organisation_models.Organization).filter(
                                 organisation_models.Organization.id == customer.organization_id).first()
         if not organization:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail={"message": "Organization does not exist"})
+            return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         customer_instance.organization_id = organization.id
         
     if customer.first_name:
@@ -143,20 +144,18 @@ def update_customer(
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
-
 @app.delete('/customers/{customer_id}', 
             response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
 def delete_customer(
     customer_id: str, 
     db: orm.Session = fastapi.Depends(get_db),
-    user: users_schemas.User = fastapi.Depends(is_authenticated)
+    #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
 
     customer = db.query(customer_models.Customer).filter(
                         customer_models.Customer.customer_id == customer_id).first()
     if not customer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail={"message": "Customer does not exist"}, ) 
+        return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
     db.delete(customer)
     db.commit()
     return {"message": "Customer deleted succesfully"}
