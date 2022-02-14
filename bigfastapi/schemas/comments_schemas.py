@@ -1,30 +1,29 @@
-import datetime as _dt
-
-import pydantic as _pydantic
+import datetime
+import pydantic
 from pydantic import Field
 from uuid import UUID
 from typing import List, Optional
 
 
-class _CommentBase(_pydantic.BaseModel):
+class CommentBase(pydantic.BaseModel):
     text : str 
     name : str
     email : str
 
-class Comment(_CommentBase):
+class Comment(CommentBase):
     id : int
     rel_id : str
     downvotes : int
     upvotes : int
-    time_created : _dt.datetime
-    time_updated : _dt.datetime
+    time_created : datetime.datetime
+    time_updated : datetime.datetime
     replies : List["Comment"]
     class Config:
         orm_mode = True
 
-class CommentCreate(_CommentBase):
+class CommentCreate(CommentBase):
     pass
 
-class CommentUpdate(_CommentBase):
+class CommentUpdate(CommentBase):
     pass
         

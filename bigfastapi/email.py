@@ -196,8 +196,8 @@ conf = ConnectionConfig(
     MAIL_PORT=settings.MAIL_PORT,
     MAIL_SERVER=settings.MAIL_SERVER,
     MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
-    MAIL_TLS=True,
-    MAIL_SSL=False,
+    MAIL_TLS=False,
+    MAIL_SSL=True,
     USE_CREDENTIALS=True,
     TEMPLATE_FOLDER=settings.TEMPLATE_FOLDER,
 )
@@ -273,7 +273,7 @@ def send_email(email_details: email_schema.Email, background_tasks: BackgroundTa
 async def send_email_user(email: str, user, template, title: str, path="", code=""):
     if path == "" and code != "":
         message = MessageSchema(
-        subject="Password Reset",
+        subject=title,
         recipients=[email],
         template_body={
             "title": title,
@@ -286,7 +286,7 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         return await fm.send_message(message, template)
     else:
         message = MessageSchema(
-        subject="Password Reset",
+        subject=title,
         recipients=[email],
         template_body={
             "title": title,
