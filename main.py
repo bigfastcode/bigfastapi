@@ -42,7 +42,7 @@ from bigfastapi.wallet import app as wallet
 
 # Create the application
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="toyin228jdlkjsiwjcpme")
+
 
 client = TestClient(app)
 create_database()
