@@ -30,6 +30,8 @@ pydantic
 fastapi_pagination
 PyJWT
 pyparsing
+qrcode
+pdfkit
 python-decouple
 python-dotenv
 python-jose[cryptography]

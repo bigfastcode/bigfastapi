@@ -39,10 +39,11 @@ from bigfastapi.tutorial import app as tutorial
 from bigfastapi.users import app as accounts
 from bigfastapi.users import app as accounts_router
 from bigfastapi.wallet import app as wallet
-
+from bigfastapi.utils import settings as env_var
 # Create the application
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="toyin228jdlkjsiwjcpme")
+app.add_middleware(SessionMiddleware, secret_key=env_var.JWT_SECRET)
+
 
 client = TestClient(app)
 create_database()
