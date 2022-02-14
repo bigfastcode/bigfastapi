@@ -13,7 +13,7 @@ from uuid import uuid4
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .auth_api import create_access_token
-from authlib.integrations.starlette_client import OAuth, OAuthError
+# from authlib.integrations.starlette_client import OAuth, OAuthError
 from starlette.config import Config
 from starlette.responses import RedirectResponse
 

@@ -1,4 +1,6 @@
+import os
 from decouple import config
+import pkg_resources
 
 JWT_SECRET = config("JWT_SECRET")
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
@@ -14,3 +16,8 @@ TEMPLATE_FOLDER = config('TEMPLATE_FOLDER')
 EMAIL_VERIFICATION_TEMPLATE = config('EMAIL_VERIFICATION_TEMPLATE')
 PASSWORD_RESET_TEMPLATE = config('PASSWORD_RESET_TEMPLATE')
 FILES_BASE_FOLDER = config('FILES_BASE_FOLDER')
+
+# If the templates folder is not valid, then we use the bigfastapi templates folder
+
+if os.path.exists(TEMPLATE_FOLDER) == False:
+    TEMPLATE_FOLDER = pkg_resources.resource_filename('bigfastapi', 'templates/')
