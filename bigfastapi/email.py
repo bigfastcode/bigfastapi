@@ -14,7 +14,6 @@ from bigfastapi.utils import settings
 import time
 import os
 
-
 app = APIRouter(tags=["Transactional Emails 📧"])
 
 
