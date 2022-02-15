@@ -43,16 +43,31 @@ async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user
 
 @app.post("/users/recover-password")
 async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)):
-    print(email)
-    return await send_code_password_reset_email(email.email, db)
+    user = await get_user(db=db, email = email.email)
+    print(user)
+    await delete_password_reset_code(db, user.id)
+    await send_code_password_reset_email(email.email, db)
+    return f"password reset code has been sent to {email.email}"
+
+# @app.post("/users/recover-password")
+# async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)):
+#     print(email)
+#     return await send_code_password_reset_email(email.email, db)
 
 
-@app.put("/users/reset-password")
+@app.post("/users/reset-password")
 async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fastapi.Depends(get_db)):
     code_exist = await get_password_reset_code_sent_to_email(user.code, db)
     if code_exist is None:
         raise fastapi.HTTPException(status_code=403, detail="invalid code")
     return await resetpassword(user, db)
+
+# @app.post("/users/reset-password")
+# async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fastapi.Depends(get_db)):
+#     code_exist = await get_password_reset_code_sent_to_email(user.code, db)
+#     if code_exist is None:
+#         raise fastapi.HTTPException(status_code=403, detail="invalid code")
+#     return await resetpassword(user, db)
 
 # ////////////////////////////////////////////////////CODE ////////////////////////////////////////////////////////////// 
 
@@ -144,3 +159,28 @@ async def resetpassword(user: _schemas.UserResetPassword, db: orm.Session):
     db.commit()
     db.refresh(user_found)
     return "password reset successful"
+
+async def resetpassword(user: _schemas.UserResetPassword, db: orm.Session):
+    user_found = await get_user(db, email = user.email)
+    user_found.password = _hash.sha256_crypt.hash(user.password)
+    db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.user_id == user_found.id).delete()
+    db.commit()
+    db.refresh(user_found)
+    return "password reset successful"
+
+
+async def get_user(db: orm.Session, email="", id=""):
+    if email != "":
+        return db.query(user_models.User).filter(user_models.User.email == email).first()
+    if id != "":
+        return db.query(user_models.User).filter(user_models.User.id == id).first()
+
+
+async def delete_password_reset_code(db: orm.Session, user_id: str):
+    db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.user_id == user_id).delete()
+    db.commit()
+
+
+
+
+
