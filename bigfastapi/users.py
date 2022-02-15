@@ -153,9 +153,9 @@ async def deactivate(user_activate: _schemas.UserActivate, user:_schemas.User, d
 
 
 async def resetpassword(user: _schemas.UserResetPassword, db: orm.Session):
-    user_found = await get_user(db=db, email = user.email)
+    user_found = await get_user(db, email = user.email)
     user_found.password = _hash.sha256_crypt.hash(user.password)
-    db.query(auth_models.Token).filter(auth_models.Token.user_id == user_found.id).delete()
+    db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.user_id == user_found.id).delete()
     db.commit()
     db.refresh(user_found)
     return "password reset successful"
