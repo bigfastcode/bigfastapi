@@ -190,17 +190,18 @@ def schedule_marketing_email(
 #=================================== EMAIL SERVICES =================================#
 
 conf = ConnectionConfig(
-    MAIL_USERNAME='customerpayme',
-    MAIL_PASSWORD='customer/2020',
-    MAIL_FROM='customerpayme@gmail.com',
-    MAIL_PORT=465,
-    MAIL_SERVER='smtp.googlemail.com',
-    MAIL_FROM_NAME="CPME",
+    MAIL_USERNAME=settings.MAIL_USERNAME,
+    MAIL_PASSWORD=settings.MAIL_PASSWORD,
+    MAIL_FROM=settings.MAIL_FROM,
+    MAIL_PORT=settings.MAIL_PORT,
+    MAIL_SERVER=settings.MAIL_SERVER,
+    MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
     MAIL_TLS=False,
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
     TEMPLATE_FOLDER=settings.TEMPLATE_FOLDER,
 )
+
 
 
 def send_email(email_details: email_schema.Email, background_tasks: BackgroundTasks, template: str, db: orm.Session):
