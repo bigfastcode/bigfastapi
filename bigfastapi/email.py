@@ -12,7 +12,7 @@ import fastapi
 import sqlalchemy.orm as orm
 from bigfastapi.utils import settings
 import time
-from fastapi.templating import Jinja2Templates
+
 
 
 app = APIRouter(tags=["Transactional Emails 📧"])
@@ -190,12 +190,12 @@ def schedule_marketing_email(
 #=================================== EMAIL SERVICES =================================#
 
 conf = ConnectionConfig(
-    MAIL_USERNAME=settings.MAIL_USERNAME,
-    MAIL_PASSWORD=settings.MAIL_PASSWORD,
-    MAIL_FROM=settings.MAIL_FROM,
-    MAIL_PORT=settings.MAIL_PORT,
-    MAIL_SERVER=settings.MAIL_SERVER,
-    MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
+    MAIL_USERNAME='customerpayme',
+    MAIL_PASSWORD='customer/2020',
+    MAIL_FROM='customerpayme@gmail.com',
+    MAIL_PORT=465,
+    MAIL_SERVER='smtp.googlemail.com',
+    MAIL_FROM_NAME="CPME",
     MAIL_TLS=False,
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
@@ -283,6 +283,7 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         subtype="html",
         )
         fm = FastMail(conf)
+     
         return await fm.send_message(message, template)
     else:
         message = MessageSchema(
@@ -292,11 +293,14 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
             "title": title,
             "first_name": user.first_name,
             "path": path
+           
         },
         subtype="html",
         )
         fm = FastMail(conf)
+  
         return await fm.send_message(message, template)
 
 
-    
+async def password_reset_email():
+    return "hey"

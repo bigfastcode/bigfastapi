@@ -54,3 +54,4 @@ fastapi-pagination
 qrcode
 authlib
 itsdangerous
+Jinja2
