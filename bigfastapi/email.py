@@ -12,8 +12,6 @@ import fastapi
 import sqlalchemy.orm as orm
 from bigfastapi.utils import settings
 import time
-from fastapi.templating import Jinja2Templates
-import os
 
 
 app = APIRouter(tags=["Transactional Emails 📧"])
@@ -204,6 +202,7 @@ conf = ConnectionConfig(
 )
 
 
+
 def send_email(email_details: email_schema.Email, background_tasks: BackgroundTasks, template: str, db: orm.Session):
     date_created = datetime.now()
     message = MessageSchema(
@@ -284,6 +283,7 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         subtype="html",
         )
         fm = FastMail(conf)
+     
         return await fm.send_message(message, template)
     else:
         message = MessageSchema(
@@ -293,11 +293,14 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
             "title": title,
             "first_name": user.first_name,
             "path": path
+           
         },
         subtype="html",
         )
         fm = FastMail(conf)
+  
         return await fm.send_message(message, template)
 
 
-    
+async def password_reset_email():
+    return "hey"
