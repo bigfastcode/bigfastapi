@@ -14,8 +14,7 @@ setuptools.setup(
     packages=setuptools.find_packages(include=['bigfastapi', 
                                                 'bigfastapi.schemas', 
                                                 'bigfastapi.models',
-                                                'bigfastapi.db', 
-                                                'bigfastapi.templates', 
+                                                'bigfastapi.db',  
                                                 'bigfastapi.utils', 
                                                 'bigfastapi.data']),  
 
@@ -87,11 +86,11 @@ setuptools.setup(
     url='https://bigfastapi.com',
     keywords='fastapi, bigfastapi, auth',
     package_data={
-        'bigfastapi': ['templates/*.*'],
-        'bigfastapi': ['templates/email/*.*'],
-        'bigfastapi': ['data/*.*']
+        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
+        # 'bigfastapi': ['data/*.*'],
+        # 'bigfastapi': ['templates/email/*.html'],   
     },
-    include_package_data=True,
+    # include_package_data=True,
     project_urls={ 
         'Bug Reports': 'https://github.com/rijentech/bigfastapi',
         'Funding': 'https://bigfastapi.com',
