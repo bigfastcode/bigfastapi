@@ -12,7 +12,7 @@ import fastapi
 import sqlalchemy.orm as orm
 from bigfastapi.utils import settings
 import time
-
+import os
 
 app = APIRouter(tags=["Transactional Emails 📧"])
 
