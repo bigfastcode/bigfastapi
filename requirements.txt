@@ -34,7 +34,7 @@ qrcode
 pdfkit
 python-decouple
 python-dotenv
-python-jose[cryptography]
+# python-jose[cryptography]
 python-multipart
 PyYAML
 requests
@@ -52,6 +52,5 @@ validators
 pytest
 fastapi-pagination
 qrcode
-authlib
+# authlib
 itsdangerous
-Jinja2
