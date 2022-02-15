@@ -4,6 +4,7 @@ from uuid import uuid4
 import fastapi
 import sqlalchemy.orm as _orm
 from fastapi import APIRouter
+from fastapi_pagination import Page, paginate, add_pagination
 from starlette import status
 
 from bigfastapi.db.database import get_db
@@ -13,7 +14,7 @@ from .schemas import credit_wallet_conversion_schemas as credit_wallet_conversio
 from .schemas import credit_wallet_schemas as schema
 from .schemas import users_schemas
 
-app = APIRouter(tags=["CreditWallet"])
+app = APIRouter(tags=["CreditWallet"], )
 
 
 @app.post("/credits/{organization_id}/fund", response_model=schema.CreditWalletResponse)
@@ -72,13 +73,13 @@ async def add_rate(
     return rate
 
 
-@app.get("/credits/rates")
+@app.get("/credits/rates", response_model=Page[credit_wallet_conversion_schemas.CreditWalletConversion])
 async def get_rates(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
     rates = db.query(credit_wallet_conversion_models.CreditWalletConversion)
-    return list(rates)
+    return paginate(list(rates))
 
 
 ############
@@ -118,3 +119,6 @@ async def _get_credit(organization_id: str,
         db.refresh(credit)
 
     return credit
+
+
+add_pagination(app)
