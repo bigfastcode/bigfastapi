@@ -46,7 +46,8 @@ async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session 
     user = await get_user(db=db, email = email.email)
     print(user)
     await delete_password_reset_code(db, user.id)
-    return await send_code_password_reset_email(email.email, db)
+    await send_code_password_reset_email(email.email, db)
+    return f"password reset code has been sent to {email.email}"
 
 
 @app.put("/users/reset-password")
