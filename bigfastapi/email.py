@@ -12,7 +12,7 @@ import fastapi
 import sqlalchemy.orm as orm
 from bigfastapi.utils import settings
 import time
-
+import os
 
 
 app = APIRouter(tags=["Transactional Emails 📧"])
@@ -199,7 +199,7 @@ conf = ConnectionConfig(
     MAIL_TLS=False,
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
-    TEMPLATE_FOLDER=settings.TEMPLATE_FOLDER,
+    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email")
 )
 
 

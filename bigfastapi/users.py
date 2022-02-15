@@ -50,7 +50,7 @@ async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session 
     return f"password reset code has been sent to {email.email}"
 
 
-@app.put("/users/reset-password")
+@app.post("/users/reset-password")
 async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fastapi.Depends(get_db)):
     code_exist = await get_password_reset_code_sent_to_email(user.code, db)
     if code_exist is None:
