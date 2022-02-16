@@ -271,6 +271,7 @@ async def send_code_password_reset_email(
     user = await get_user(db, email= email)
     if user:
         code = await create_forgot_pasword_code(user, codelength)
+        print(code)
         await send_email_user(email, user, template='password_reset.html', title="Password Reset", code=code)
         return code
     else:

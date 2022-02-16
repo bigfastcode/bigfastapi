@@ -23,6 +23,7 @@ class UserActivate(_UserBase):
     is_active: bool
 
 class UserResetPassword(_UserBase):
+    email: Optional[str]
     code: str
     password: str
 
