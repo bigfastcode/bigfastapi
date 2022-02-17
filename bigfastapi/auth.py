@@ -16,6 +16,7 @@ from .auth_api import create_access_token
 # from authlib.integrations.starlette_client import OAuth, OAuthError
 from starlette.config import Config
 from starlette.responses import RedirectResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
@@ -27,7 +28,11 @@ ALGORITHM = 'HS256'
 app = APIRouter(tags=["Auth"])
 
 
-@app.post("/auth/signup", status_code=201)
+@app.post("/auth/test", response_model=auth_schemas.TestOut)
+async def create_user(user: auth_schemas.TestIn):
+    return user
+
+@app.post("/auth/signup", response_model=auth_schemas.UserCreateOut)
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.Depends(get_db)):
     if user.email == None and user.phone_number == None:
         raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to sign up") 
@@ -53,8 +58,8 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
             if user_phone != None:
                 raise fastapi.HTTPException(status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
-        access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
-        return { "data": await find_user_email(user_created.email, db), "access_token": access_token}
+        # access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
+        return { "data": user_created, "access_token": "access_token"}
 
     if user.phone_number:
         user_phone = await find_user_phone(user.phone_number, user.country_code, db)
@@ -63,8 +68,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
         user_created = await create_user(user, db=db)
         access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
         return { "data": await find_user_phone(user_created.phone_number, user_created.country_code, db), "access_token": access_token}
-
-    
+ 
 
 
 @app.post("/auth/login", status_code=200)

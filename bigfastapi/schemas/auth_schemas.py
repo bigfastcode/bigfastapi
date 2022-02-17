@@ -18,6 +18,16 @@ class UserUpdate(_UserBase):
 class UserPasswordUpdate(_pydantic.BaseModel):
     password: str
 
+class TestIn(_UserBase):
+    username: str
+    password: str
+    full_name: str 
+
+
+class TestOut(_UserBase):
+    username: str
+    full_name: str
+
 
 class UserCreate(_UserBase):
     password: str
@@ -34,6 +44,19 @@ class UserCreate(_UserBase):
 
     class Config:
         orm_mode = True
+
+class UserCreateOut(_UserBase):
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone_number: Optional[str]
+    country_code: Optional[str] 
+    image: Optional[str] 
+    device_id: Optional[str] 
+    country: Optional[str]
+    state: Optional[str]
+    google_id: Optional[str]
+    google_image: Optional[str] 
+
     
 
 class UserLogin(_UserBase):
