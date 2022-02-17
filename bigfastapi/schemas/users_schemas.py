@@ -1,4 +1,5 @@
 import datetime as dt
+from fastapi import File, UploadFile
 
 import pydantic as _pydantic
 from pydantic import Field
@@ -91,6 +92,23 @@ class User(_UserBase):
 
     class Config:
         orm_mode = True
+
+
+class UpdateUserReq(_UserBase):
+    first_name: Optional[str]
+    last_name: Optional[str]
+    country_code: Optional[str]
+    phone_number: Optional[str]
+    country: Optional[str]
+    state: Optional[str]
+   
+    class Config:
+        orm_mode = True
+        
+        
+class updatePasswordRequest(_pydantic.BaseModel):
+    password:str
+    password_confirmation:str
 
 
 
