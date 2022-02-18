@@ -117,12 +117,12 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
 
 async def find_user_email(email, db: orm.Session):
     found_user = db.query(user_models.User).filter(user_models.User.email == email).first()
-    return found_user
+    return auth_schemas.UserCreateOut.from_orm(found_user)
 
 
 async def find_user_phone(phone_number, country_code, db: orm.Session):
     found_user = db.query(user_models.User).filter(user_models.User.phone_number == phone_number and user_models.User.country_code == country_code).first()
-    return found_user
+    return auth_schemas.UserCreateOut.from_orm(found_user)
 
 
 
