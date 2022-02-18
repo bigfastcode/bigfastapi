@@ -67,7 +67,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
             raise fastapi.HTTPException(status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
         access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
-        return { "data": await find_user_phone(user_created.phone_number, user_created.country_code, db), "access_token": access_token}
+        return { "data": user_created, "access_token": access_token}
  
 
 
