@@ -27,7 +27,7 @@ from bigfastapi.utils import settings
 from starlette.responses import RedirectResponse, HTMLResponse
 import random
 import string
-from .schemas import google_schema
+from .schemas import google_schema, auth_schemas
 
 app = APIRouter(tags=["Social_Auth"])
 
@@ -111,7 +111,7 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 @app.post('/google/validate-token')
 async def validate_user(user: google_schema.GoogleAuth,  db: orm.Session = fastapi.Depends(get_db)):
     user_found = db.query(user_models.User).filter(user_models.User.id == user.user_id).first()
-    return {"data": user_found, "access_token": user.token}
+    return {"data":  auth_schemas.UserCreateOut.from_orm(user_found), "access_token": user.token}
 
 
 
