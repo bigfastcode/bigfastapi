@@ -54,3 +54,6 @@ fastapi-pagination
 qrcode
 # authlib
 itsdangerous
+
+aiofiles
+Pillow

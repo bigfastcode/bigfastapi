@@ -1,9 +1,11 @@
+from unicodedata import name
+from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
 
 import passlib.hash as _hash
 from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
@@ -11,6 +13,8 @@ from .auth_api import is_authenticated, send_code_password_reset_email,  resend_
 
 
 app = APIRouter(tags=["User"])
+
+# app.mount('static', StaticFiles(directory="static"), name='static')
 
 
 
@@ -62,6 +66,28 @@ async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fas
     return await resetpassword(user, code_exist.user_id, db)
 
 
+@app.put('/users/profile/update')
+async def updateUserProfile(
+    payload: _schemas.UpdateUserReq, 
+    db: orm.Session = fastapi.Depends(get_db),
+    user: str = fastapi.Depends(is_authenticated)):
+    
+    updatedUser = await updateUserDetails(db, user.id, payload)
+    return {"data": updatedUser}
+
+
+@app.patch('/users/password/update')
+async def updateUserPassword(
+    payload:_schemas.updatePasswordRequest,
+    db: orm.Session = fastapi.Depends(get_db),
+    user: str = fastapi.Depends(is_authenticated)):
+    
+    dbResponse = await updateUserPassword(db, user.id, payload)
+    return {"data": {"status":True, "message":"Password updated successfully"}}
+    
+    
+
+
 
 # ////////////////////////////////////////////////////CODE ////////////////////////////////////////////////////////////// 
 
@@ -102,6 +128,8 @@ async def password_change_with_token(
     db: orm.Session = fastapi.Depends(get_db),
     ):
     return await password_change_token(password, token, db)
+
+
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
@@ -167,6 +195,43 @@ async def get_user(db: orm.Session, email="", id=""):
 async def delete_password_reset_code(db: orm.Session, user_id: str):
     db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.user_id == user_id).delete()
     db.commit()
+    
+    
+# Update user profile/Bio    
+async def updateUserDetails(db: orm.Session, userId:str, payload:_schemas.UpdateUserReq):
+    user = db.query(user_models.User).filter(user_models.User.id == userId).first()
+        
+    user.first_name = payload.first_name
+    user.last_name = payload.last_name
+    user.email = payload.email
+    user.country_code = payload.country_code
+    user.phone_number = payload.phone_number
+    user.country = payload.country
+        
+    try:
+        db.commit()
+        db.refresh(user)
+        return user
+    except:
+        raise HTTPException( status_code=500, detail='Something went wrong')   
+   
+    
+# Update user profile/Bio 
+async def updateUserPassword(db: orm.Session, userId:str, payload: _schemas.updatePasswordRequest):
+    if payload.password == payload.password_confirmation:
+        user = db.query(user_models.User).filter(user_models.User.id == userId).first()
+        user.password = _hash.sha256_crypt.hash(payload.password)
+        
+        try:
+            db.commit()
+            db.refresh(user)
+            return user
+        except :
+            raise HTTPException( status_code=500, detail='Something went wrong')        
+    else:
+        raise HTTPException(status_code=422, detail='Password does not match')
+        
+    
 
 
 
