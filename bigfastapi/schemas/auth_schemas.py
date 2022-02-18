@@ -49,6 +49,9 @@ class UserCreateOut(_UserBase):
     id: str
     first_name: Optional[str]
     last_name: Optional[str]
+    is_deleted: Optional[bool]
+    is_active: Optional[bool]
+    is_verified: Optional[bool]
     phone_number: Optional[str]
     country_code: Optional[str] 
     image: Optional[str] 

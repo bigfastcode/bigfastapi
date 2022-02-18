@@ -77,13 +77,13 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
         raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to login") 
     if user.email:    
         userinfo = await find_user_email(user.email, db)
-        if userinfo is None:
+        if userinfo["user"] is None:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
-        veri = userinfo.verify_password(user.password)
+        veri = userinfo["user"].verify_password(user.password)
         if not veri:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")    
-        access_token = await create_access_token(data = {"user_id": userinfo.id }, db=db)  
-        return {"data": await find_user_email(user.email, db), "access_token": access_token}
+        access_token = await create_access_token(data = {"user_id": userinfo["user"].id }, db=db)  
+        return {"data": userinfo["response_user"], "access_token": access_token}
     
     if user.phone_number:
         if user.country_code == None:
@@ -117,12 +117,12 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
 
 async def find_user_email(email, db: orm.Session):
     found_user = db.query(user_models.User).filter(user_models.User.email == email).first()
-    return auth_schemas.UserCreateOut.from_orm(found_user)
+    return {"user": found_user, "response_user": auth_schemas.UserCreateOut.from_orm(found_user)}
 
 
 async def find_user_phone(phone_number, country_code, db: orm.Session):
     found_user = db.query(user_models.User).filter(user_models.User.phone_number == phone_number and user_models.User.country_code == country_code).first()
-    return auth_schemas.UserCreateOut.from_orm(found_user)
+    return found_user
 
 
 
