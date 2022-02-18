@@ -271,9 +271,8 @@ async def send_code_password_reset_email(
     user = await get_user(db, email= email)
     if user:
         code = await create_forgot_pasword_code(user, codelength)
-        print(email)
         print(code)
-        await send_email_user(email, user, template=settings.PASSWORD_RESET_TEMPLATE, title="Password Reset", code=code)
+        await send_email_user(email, user, template='password_reset.html', title="Password Reset", code=code)
         return code
     else:
         raise fastapi.HTTPException(status_code=401, detail="Email not registered")

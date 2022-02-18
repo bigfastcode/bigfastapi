@@ -14,10 +14,11 @@ from bigfastapi.utils.utils import generate_short_id
 import bigfastapi.db.database as _database
 
 class Comment(_database.Base):
-    __tablename__ = "comments"
+    __tablename__ = "comment"
     id = Column(Integer, primary_key=True, autoincrement=True)
     model_type = Column(String) 
     rel_id = Column(String)
+    commenter_id = Column(String)
     
     email = Column(String(255))
     name = Column(String(255))
@@ -27,12 +28,13 @@ class Comment(_database.Base):
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
-    p_id = Column(Integer, ForeignKey("comments.id", ondelete="cascade"))
+    p_id = Column(Integer, ForeignKey("comment.id", ondelete="cascade"))
     parent = _orm.relationship("Comment", backref=_orm.backref('replies',  cascade="all, delete-orphan"), remote_side=[id], post_update=True, single_parent=True, uselist=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.model_type = kwargs["model_name"] 
+        self.commenter_id = kwargs["commenter_id"] 
         self.rel_id = kwargs["rel_id"]
         self.email = kwargs["email"] 
         self.name = kwargs["name"] 

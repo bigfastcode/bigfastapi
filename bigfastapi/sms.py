@@ -1,6 +1,6 @@
 from .schemas import sms_schema
 from .models import sms_models
-from typing import Optional
+from typing import Optional, Dict
 from uuid import uuid4
 from datetime import datetime
 from fastapi import APIRouter
@@ -19,7 +19,7 @@ class ResponseModel(BaseModel):
     message: str
 
 class SendSMS():
-    providers: dict[str, str] = { 
+    providers: Dict[str, str] = { 
         "nuobject": "https://cloud.nuobjects.com/api/send"
     }
 
