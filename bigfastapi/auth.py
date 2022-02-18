@@ -32,7 +32,7 @@ app = APIRouter(tags=["Auth"])
 async def create_user(user: auth_schemas.TestIn):
     return user
 
-@app.post("/auth/signup", response_model=auth_schemas.UserCreateOut)
+@app.post("/auth/signup", status_code=201)
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.Depends(get_db)):
     if user.email == None and user.phone_number == None:
         raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to sign up") 
@@ -58,8 +58,8 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
             if user_phone != None:
                 raise fastapi.HTTPException(status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
-        # access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
-        return { "data": user_created, "access_token": "access_token"}
+        access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
+        return { "data": user_created, "access_token": access_token}
 
     if user.phone_number:
         user_phone = await find_user_phone(user.phone_number, user.country_code, db)
@@ -111,7 +111,8 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
     db.add(user_obj)
     db.commit()
     db.refresh(user_obj)
-    return user_obj
+    return auth_schemas.UserCreateOut.from_orm(user_obj)
+
 
 
 async def find_user_email(email, db: orm.Session):

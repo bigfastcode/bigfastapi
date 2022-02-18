@@ -46,6 +46,7 @@ class UserCreate(_UserBase):
         orm_mode = True
 
 class UserCreateOut(_UserBase):
+    id: str
     first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[str]
@@ -57,7 +58,8 @@ class UserCreateOut(_UserBase):
     google_id: Optional[str]
     google_image: Optional[str] 
 
-    
+    class Config:
+        orm_mode = True
 
 class UserLogin(_UserBase):
     phone_number: Optional[str]
