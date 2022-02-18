@@ -80,6 +80,7 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
     db.add(organization)
     db.commit()
     db.refresh(organization)
+
     wallet = wallet_models.Wallet(id=uuid4().hex, organization_id=organization_id, balance=0,
                                   last_updated=_dt.datetime.utcnow(), currency_code=organization.currency_preference)
 
