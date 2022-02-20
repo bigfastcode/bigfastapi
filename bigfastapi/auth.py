@@ -28,10 +28,6 @@ ALGORITHM = 'HS256'
 app = APIRouter(tags=["Auth"])
 
 
-@app.post("/auth/test", response_model=auth_schemas.TestOut)
-async def create_user(user: auth_schemas.TestIn):
-    return user
-
 @app.post("/auth/signup", status_code=201)
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.Depends(get_db)):
     if user.email == None and user.phone_number == None:
