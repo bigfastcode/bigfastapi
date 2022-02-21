@@ -55,6 +55,7 @@ def create_customer(
     db.add(customer_instance)
     db.commit()
     db.refresh(customer_instance)
+    print(customer_instance)
     return {"message": "Customer created succesfully", "customer": customer_schemas.Customer.from_orm(customer_instance)}
     
 
