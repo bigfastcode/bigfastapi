@@ -30,7 +30,7 @@ class User(Base):
     country_code = Column(String(225), index= True)
     country = Column(String(225), index = True)
     state =  Column(String(225), index = True)
-    is_deleted = Column(String(225), index = True)
+    is_deleted = Column(String(225), index = True, default=False)
     image = Column(String(), index = True)
     device_id = Column(String(), index = True)
     google_id = Column(String())
