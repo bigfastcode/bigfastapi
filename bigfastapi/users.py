@@ -129,7 +129,7 @@ async def password_change_with_token(
 @app.put("/users/{user_id}/image")
 async def user_image_upload(user_id: str, file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db)):
     user = await get_user(db, id=user_id)
-    image = await upload_image(file, db)
+    image = await upload_image(file, db, bucket_name = user_id)
     user.image = image
     db.commit()
     db.refresh(user)

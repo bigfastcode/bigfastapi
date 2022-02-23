@@ -132,8 +132,8 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
         return schema.File.from_orm(file)
     
 
-async def upload_image(file: fastapi.UploadFile = fastapi.File(...),  db: orm.Session = fastapi.Depends(get_db)):
-    bucket_name = "profileimages"
+async def upload_image( file: fastapi.UploadFile = fastapi.File(...),  db: orm.Session = fastapi.Depends(get_db), bucket_name = str):
+    
     # Make sure the base folder exists
     if settings.FILES_BASE_FOLDER == None or len(settings.FILES_BASE_FOLDER) < 2:
         raise fastapi.HTTPException(status_code=404, detail="base folder does not exist or base folder length too short")
