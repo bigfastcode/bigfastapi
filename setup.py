@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bigfastapi",                     # This is the name of the package
-    version="0.5.6",                        # The initial release version
+    version="0.5.7",                        # The initial release version
     author="BigFastAPI Team",                     # Full name of the author
     author_email="support@rijen.tech",
     description="Adding lots of functionality to FastAPI",
@@ -27,7 +27,7 @@ setuptools.setup(
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
     ],                                  
-    python_requires='>=3.9',               
+    python_requires='>=3.8',               
     install_requires=['Jinja2', 'fastapi',
                         'wheel',
                         'uvicorn',  
@@ -61,11 +61,13 @@ setuptools.setup(
                         'fastapi_pagination',
                         'PyJWT',
                         'pyparsing',
+                        'authlib',
                         'qrcode',
                         'pdfkit',
                         'python-decouple',
                         'python-dotenv',
-                        # 'python-jose[cryptography]',
+                        'cryptography',
+                        'python-jose[cryptography]',
                         'python-multipart',
                         'PyYAML',
                         'requests',
