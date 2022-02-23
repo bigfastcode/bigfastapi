@@ -5,12 +5,12 @@ import fastapi as fastapi
 
 import passlib.hash as _hash
 from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
-
+from .files import upload_file
 
 app = APIRouter(tags=["User"])
 
@@ -52,10 +52,6 @@ async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session 
     await send_code_password_reset_email(email.email, db)
     return f"password reset code has been sent to {email.email}"
 
-# @app.post("/users/recover-password")
-# async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)):
-#     print(email)
-#     return await send_code_password_reset_email(email.email, db)
 
 
 @app.post("/users/reset-password")
@@ -130,6 +126,14 @@ async def password_change_with_token(
     return await password_change_token(password, token, db)
 
 
+@app.put("/users/{user_id}/image")
+async def user_image_upload(user_id: str, file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db)):
+    user = await get_user(db, id=user_id)
+    image = await upload_file(file)
+    user.image = image
+    db.commit()
+    db.refresh(user)
+    return user
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 

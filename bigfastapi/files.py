@@ -1,6 +1,6 @@
 
 import fastapi, os
-
+from fastapi import UploadFile, File
 from .models import file_models as model
 from .schemas import file_schemas as schema
 
@@ -9,7 +9,7 @@ import sqlalchemy.orm as orm
 from typing import List
 from bigfastapi.db.database import get_db
 from bigfastapi.utils import settings as settings
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from datetime import datetime
 
 # Import the Router
@@ -131,3 +131,11 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
 
         return schema.File.from_orm(file)
 
+
+async def upload_file(file: UploadFile = File(...)):
+    with open(file.filename, 'wb') as image:
+        content = await file.read()
+        image.write(content)
+        image.close()
+    return file.filename
+    
