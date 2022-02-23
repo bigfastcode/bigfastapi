@@ -11,7 +11,7 @@ from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import upload_image
-
+import os
 app = APIRouter(tags=["User"])
 
 # app.mount('static', StaticFiles(directory="static"), name='static')
@@ -130,10 +130,15 @@ async def password_change_with_token(
 async def user_image_upload(user_id: str, file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db)):
     user = await get_user(db, id=user_id)
     image = await upload_image(file, db, bucket_name = user_id)
-    user.image = image
+    filename = f"\\{user_id}\\{image}"
+    root_location = os.path.abspath("filestorage")
+    full_image_path =  root_location + filename
+    user.image = full_image_path
     db.commit()
     db.refresh(user)
-    return user
+    return user.image
+   
+
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
