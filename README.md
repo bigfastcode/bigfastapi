@@ -67,8 +67,8 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 5. Create a .env file by copying the .env.sample file
 6. Run `python main.py`. Check the code to understand how to use the library
 7. Build the library using python setup.py sdist bdist_wheel
-7. Install the library using pip install <path to local bigfastapi>\dist\<name of whl file>
-8. twine upload dist/* (install pip install twine)
+8. Install the library using pip install <path to local bigfastapi>\dist\<name of whl file>
+9. twine upload dist/* (install pip install twine)
 
 # Documentation
 
