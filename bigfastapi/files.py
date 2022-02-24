@@ -9,7 +9,7 @@ import sqlalchemy.orm as orm
 from typing import List
 from bigfastapi.db.database import get_db
 from bigfastapi.utils import settings as settings
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from datetime import datetime
 
 # Import the Router
