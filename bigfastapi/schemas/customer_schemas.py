@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from pydantic import BaseModel, EmailStr
 
 class CustomerBase(BaseModel):
@@ -16,7 +16,7 @@ class CustomerBase(BaseModel):
     city: str =None
     region: str =None
     country_code: Optional[str] = None
-    other_information: Optional[dict] =None
+    other_information: Optional[Any] = {}
 
     class Config:
         orm_mode = True
@@ -45,7 +45,7 @@ class CustomerUpdate(BaseModel):
     city: Optional[str] = None
     region: Optional[str] = None
     country_code: Optional[str] = None
-    other_information: Optional[dict] =None
+    other_information: Optional[Any] = {}
 
 class CustomerCreateResponse(BaseModel):
     message: str
