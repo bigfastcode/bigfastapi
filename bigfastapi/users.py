@@ -136,7 +136,7 @@ async def user_image_upload(user_id: str, file: UploadFile = File(...), db: orm.
     user.image = full_image_path
     db.commit()
     db.refresh(user)
-    return user.image
+    return "successfully updated profile image"
    
 
 
