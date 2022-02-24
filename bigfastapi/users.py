@@ -73,7 +73,7 @@ async def updateUserProfile(
 
 
 @app.patch('/users/password/update')
-async def updateUserPassword(
+async def updatePassword(
     payload:_schemas.updatePasswordRequest,
     db: orm.Session = fastapi.Depends(get_db),
     user: str = fastapi.Depends(is_authenticated)):
