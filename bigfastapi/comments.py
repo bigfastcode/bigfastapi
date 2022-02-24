@@ -210,7 +210,8 @@ def db_reply_to_comment(model_name:str, comment_id:int, comment: comments_schema
     p_comment = db.query(comments_models.Comment).filter(comments_models.Comment.model_type == model_name, 
         comments_models.Comment.id == comment_id).first()
     if p_comment:
-        reply = comments_models.Comment(model_name=model_name, rel_id=p_comment.rel_id, email=comment.email, name=comment.name, text=comment.text, p_id=p_comment.id)
+        reply = comments_models.Comment(model_name=model_name, rel_id=p_comment.rel_id, email=comment.email, 
+                name=comment.name, text=comment.text, p_id=p_comment.id, commenter_id=comment.commenter_id)
         db.add(reply)
         db.commit()
         db.refresh(reply)
@@ -233,7 +234,7 @@ def db_delete_comment(object_id: int, model_name:str, db: _orm.Session):
     db.commit()
     return comments_schemas.Comment.from_orm(object)
     
-def db_create_comment_for_object(object_id: str, comment: comments_schemas.CommentCreate, db: _orm.Session, model_name:str):
+def db_create_comment_for_object(object_id: str, comment: comments_schemas.CommentBase, db: _orm.Session, model_name:str):
     """Create a top-level Comment for an object
 
     Args:
@@ -245,10 +246,12 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     Returns:
         Comment: Data of the newly Created Comment
     """
-    obj = comments_models.Comment(rel_id=object_id, model_name=model_name, text=comment.text, name=comment.name, email=comment.email)
+    obj = comments_models.Comment(rel_id=object_id, model_name=model_name, text=comment.text, 
+                    name=comment.name, email=comment.email, commenter_id=comment.commenter_id)
     db.add(obj)
     db.commit()
     db.refresh(obj)
+    print(obj)
     return comments_schemas.Comment.from_orm(obj)
 
 def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_name:str):

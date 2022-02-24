@@ -9,10 +9,12 @@ class CommentBase(pydantic.BaseModel):
     text : str 
     name : str
     email : str
+    commenter_id: str = None
 
 class Comment(CommentBase):
-    id : int
+    id : str
     rel_id : str
+    commenter_id: str = None
     downvotes : int
     upvotes : int
     time_created : datetime.datetime
