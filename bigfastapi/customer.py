@@ -139,6 +139,8 @@ def update_customer(
         customer_instance.city= customer.city
     if customer.region:
         customer_instance.region= customer.region
+    if customer.other_information:
+        customer_instance.other_information = customer.other_information
     customer_instance.last_updated = datetime.now()
     db.commit()
     db.refresh(customer_instance)
