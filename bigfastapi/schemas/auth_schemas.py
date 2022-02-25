@@ -46,7 +46,7 @@ class UserCreate(_UserBase):
         orm_mode = True
 
 class UserCreateOut(_UserBase):
-    id: str
+    id: Optional[str]
     first_name: Optional[str]
     last_name: Optional[str]
     is_deleted: Optional[bool]
