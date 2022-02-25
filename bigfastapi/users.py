@@ -126,17 +126,16 @@ async def password_change_with_token(
     return await password_change_token(password, token, db)
 
 
-@app.put("/users/{user_id}/image")
-async def user_image_upload(user_id: str, file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db)):
-    user = await get_user(db, id=user_id)
-    image = await upload_image(file, db, bucket_name = user_id)
-    filename = f"\\{user_id}\\{image}"
+@app.put("/users/update-image", response_model=_schemas.User)
+async def user_image_upload( file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db), current_user: _schemas.User= fastapi.Depends(is_authenticated)):
+    image = await upload_image(file, db, bucket_name = current_user.id)
+    filename = f"/{current_user.id}/{image}"
     root_location = os.path.abspath("filestorage")
     full_image_path =  root_location + filename
-    user.image = full_image_path
+    current_user.image = full_image_path
     db.commit()
-    db.refresh(user)
-    return "successfully updated profile image"
+    db.refresh(current_user)
+    return current_user
    
 
 
