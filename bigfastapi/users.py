@@ -79,7 +79,7 @@ async def updateUserPassword(
     user: str = fastapi.Depends(is_authenticated)):
     
     dbResponse = await updateUserPassword(db, user.id, payload)
-    return {"data": {"status":True, "message":"Password updated successfully"}}
+    return {"data":  dbResponse }
     
     
 
