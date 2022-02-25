@@ -58,7 +58,7 @@ async def verify_wallet_transaction(
         transaction_id: str,
         db: _orm.Session = fastapi.Depends(get_db),
 ):
-    frontendUrl = config("FRONTEND_URL") + '/credits'
+    frontendUrl = config("FRONTEND_URL")
     if status == 'successful':
         flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
         headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
@@ -66,6 +66,7 @@ async def verify_wallet_transaction(
         verificationRequest = requests.get(url, headers=headers)
         if verificationRequest.status_code == 200:
             jsonResponse = verificationRequest.json()
+            frontendUrl = jsonResponse['data']['meta']['redirect_url']
             if jsonResponse['status'] == 'success':
                 if jsonResponse['data']['status'] == 'successful':
                     user_id, organization_id, _ = tx_ref.split('-')
@@ -79,7 +80,8 @@ async def verify_wallet_transaction(
                         await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency)
                     except fastapi.HTTPException:
                         response = RedirectResponse(
-                            url=frontendUrl + '?status=error&message=An error occurred while refilling your wallet. Please try again')
+                            url=frontendUrl + '?status=error&message=An error occurred while refilling your wallet. '
+                                              'Please try again')
                         return response
 
                     response = RedirectResponse(url=frontendUrl + '?status=success&message=Wallet refilled')
@@ -113,7 +115,8 @@ async def fund_wallet(
     if wallet is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
     else:
-        return await _generate_payment_link(organization_id=organization_id, user=user, amount=body.amount,
+        return await _generate_payment_link(redirect_url=body.redirect_url, organization_id=organization_id, user=user,
+                                            amount=body.amount,
                                             currency=body.currency_code)
 
 
@@ -216,6 +219,7 @@ async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str)
 
 
 async def _generate_payment_link(organization_id: str,
+                                 redirect_url: str,
                                  user: users_schemas.User, currency: str,
                                  amount: float):
     flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
@@ -239,7 +243,11 @@ async def _generate_payment_link(organization_id: str,
             "description": 'Keep track of your debtors',
             "logo": 'https://customerpay.me/frontend/assets/img/favicon.png',
             "title": "CustomerPayMe",
-        }}
+        },
+        "meta": {
+            "redirect_url": redirect_url
+        }
+    }
     response = requests.post(url, headers=headers, json=data)
     if response.status_code == 200:
         jsonResponse = response.json()

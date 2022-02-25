@@ -23,6 +23,7 @@ class Wallet(WalletCreate):
 class WalletUpdate(_pydantic.BaseModel):
     amount: float
     currency_code: str
+    redirect_url: str
 
 
 class PaymentProvider(Enum):
