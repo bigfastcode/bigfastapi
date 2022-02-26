@@ -186,6 +186,7 @@ def schedule_marketing_email(
     return {"message": "Scheduled Marketing Email will be sent in the background"}
 
 
+
 #=================================== EMAIL SERVICES =================================#
 
 conf = ConnectionConfig(
@@ -201,6 +202,15 @@ conf = ConnectionConfig(
     TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email")
 )
 
+def send_invite_email(
+    email_details: email_schema.Email,
+    background_tasks:BackgroundTasks=BackgroundTasks,
+    template: Optional[str] = "invite_email.html",
+    db: orm.Session = fastapi.Depends(get_db)
+    ):
+    
+    send_email(email_details=email_details, background_tasks=background_tasks, template=template, db = db)
+    return { "message": "Invite email will be sent in the background" }
 
 
 def send_email(email_details: email_schema.Email, background_tasks: BackgroundTasks, template: str, db: orm.Session):
