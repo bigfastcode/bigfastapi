@@ -1,5 +1,6 @@
 from typing import Optional
 from unicodedata import name
+from bigfastapi.schemas import email_schema
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
@@ -7,13 +8,13 @@ import os
 
 import passlib.hash as _hash
 from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import upload_image
-from .email import send_invite_email
+from .email import send_email
 from .models import store_invite_model, store_user_model
 
 app = APIRouter(tags=["User"])
@@ -85,25 +86,25 @@ async def updateUserPassword(
     dbResponse = await updateUserPassword(db, user.id, payload)
     return {"data":  dbResponse }
 
-@app.post('/users/accept-invite')
-def accept_invite(
-        payload:_schemas.StoreUser, 
-        token:str, 
-        db: orm.Session =fastapi.Depends(get_db)):
-    # create store user
-    store_user = store_user_model.StoreUser(
-        store_id = payload.organization_id,
-        user_id = payload.user_id,
-        role = payload.role
-    )
-    db.add(store_user)
-    db.commit()
-    db.refresh(store_user)
+# @app.post('/users/accept-invite')
+# def accept_invite(
+#         payload:_schemas.StoreUser, 
+#         token:str, 
+#         db: orm.Session =fastapi.Depends(get_db)):
+#     # create store user
+#     store_user = store_user_model.StoreUser(
+#         store_id = payload.organization_id,
+#         user_id = payload.user_id,
+#         role = payload.role
+#     )
+#     db.add(store_user)
+#     db.commit()
+#     db.refresh(store_user)
 
 @app.post("/users/invite/", status_code=201)
 async def invite_user(
     payload: _schemas.UserInvite,
-    app_url: str,
+    background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
     db: orm.Session = fastapi.Depends(get_db)
     ):
@@ -113,35 +114,24 @@ async def invite_user(
         Returns dict: message
     """
 
-    try:
-        invite_token = uuid4().hex
-        invite_url = f"{app_url}/accept-invite?code={invite_token}"         
+    invite_token = uuid4().hex
+    invite_url = f"{payload.app_url}/users/accept-invite?code={invite_token}"         
+    payload.email_details.link = invite_url
+    email_info = payload.email_details
+    
+    # send invite email to user
+    await send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
 
-        email_details = {
-        "subject": f"Invitation to {payload.store.name}",
-        "recipient": payload.user_email,
-        "title": f"Invitation to {payload.store.name}",
-        "first_name": "",
-        "body": payload.store.name,
-        "link": invite_url
-        }
-        # send invite email to user
-        is_sent = send_invite_email(email_details=email_details, template=template, db=db)
-        if(is_sent):
-            invite = store_invite_model.StoreInvite(
-                store_id = payload.store.id,
-                user_id = payload.user_id,
-                user_email = payload.user_email,
-                user_role = payload.user_role
-            )
-            db.add(invite)
-            db.commit()
-            db.refresh(invite)
-            return is_sent
-        return { "message": "An error occurred while sending invite email" }
+    invite = store_invite_model.StoreInvite(
+        store_id = payload.store.get("id"),
+        user_id = payload.user_id,
+        user_email = payload.email,
+        user_role = payload.user_role
+    )
+    db.add(invite)
+    db.commit()
+    db.refresh(invite)
 
-    except:
-        return { "message": "An error occcured while inviting user" }
         
 
 
