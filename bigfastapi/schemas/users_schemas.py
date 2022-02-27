@@ -7,6 +7,8 @@ from pydantic import Field
 from uuid import UUID
 from typing import List, Optional
 
+from .email_schema import Email
+
 
 class AuthToken(_pydantic.BaseModel):
     id: str
@@ -67,10 +69,11 @@ class UserOrgLogin(_UserBase):
 
 class UserInvite(_UserBase):
     store: dict
-    organization_id:str
     user_id: str
-    user_email: str
     user_role: str
+    app_url: str
+    email_details: Email
+
 
 class StoreUser(_UserBase):
     organization_id: str
