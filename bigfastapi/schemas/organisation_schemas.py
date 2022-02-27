@@ -16,6 +16,8 @@ class _OrganizationBase(_pydantic.BaseModel):
     state: str
     address: str
     currency_preference: str
+    phone_number: str = ''
+    email: str = ''
     current_subscription: Optional[str]
     tagline: Optional[str]
     image: Optional[str]

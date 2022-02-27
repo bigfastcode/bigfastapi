@@ -67,6 +67,9 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 async def get_orgnanization_by_name(name: str, db: _orm.Session):
     return db.query(_models.Organization).filter(_models.Organization.name == name).first()
 
+async def fetch_organization_by_name(name: str, organization_id:str, db: _orm.Session):
+    return db.query(_models.Organization).filter(_models.Organization.name == name).filter(_models.Organization.id != organization_id).first()
+
 
 async def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
     organization_id = uuid4().hex
@@ -137,11 +140,36 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
         organization_db.values = organization.values
 
     if organization.name != "":
-        db_org = await get_orgnanization_by_name(name=organization.name, db=db)
+        db_org = await fetch_organization_by_name(name=organization.name, organization_id=organization_id, db=db)
+
         if db_org:
             raise _fastapi.HTTPException(status_code=400, detail="Organization name already in use")
         else:
             organization_db.name = organization.name
+
+    if organization.phone_number != "":
+        organization_db.phone_number = organization.phone_number
+
+    if organization.email != "":
+        organization_db.email = organization.email
+    
+    if organization.tagline != "":
+        organization_db.tagline = organization.tagline
+
+    if organization.phone_number != "":
+        organization_db.phone_number = organization.phone_number
+    
+    if organization.country != "":
+        organization_db.country = organization.country
+    
+    if organization.state != "":
+        organization_db.state = organization.state
+    
+    if organization.address != "":
+        organization_db.address = organization.address
+    
+    if organization.currency_preference != "":
+        organization_db.currency_preference = organization.currency_preference
 
     organization_db.last_updated = _dt.datetime.utcnow()
 
