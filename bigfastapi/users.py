@@ -121,7 +121,7 @@ async def invite_user(
 
     # check if user_email already exists
     existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.email).first()
-    if (existing_invite is None):
+    if not existing_invite:
 
         # send invite email to user
         send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
