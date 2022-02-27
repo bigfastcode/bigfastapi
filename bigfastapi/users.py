@@ -118,21 +118,26 @@ async def invite_user(
     invite_url = f"{payload.app_url}/users/accept-invite?code={invite_token}"         
     payload.email_details.link = invite_url
     email_info = payload.email_details
-    
-    # send invite email to user
-    await send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
 
-    invite = store_invite_model.StoreInvite(
-        store_id = payload.store.get("id"),
-        user_id = payload.user_id,
-        user_email = payload.email,
-        user_role = payload.user_role
-    )
-    db.add(invite)
-    db.commit()
-    db.refresh(invite)
+    # check if user_email already exists
+    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.email).first()
+    if (existing_invite is None):
 
-        
+        # send invite email to user
+        send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
+        invite = store_invite_model.StoreInvite(
+            store_id = payload.store.get("id"),
+            user_id = payload.user_id,
+            user_email = payload.email,
+            user_role = payload.user_role
+        )
+        db.add(invite)
+        db.commit()
+        db.refresh(invite)
+
+        return { "message": "Store invite email will be sent in the background." }
+    return { "message": "invite already sent" }
+
 
 
 

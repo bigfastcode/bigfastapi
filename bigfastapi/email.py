@@ -204,7 +204,7 @@ conf = ConnectionConfig(
 
 def send_invite_email(
     email_details: email_schema.Email,
-    background_tasks:BackgroundTasks=BackgroundTasks,
+    background_tasks:BackgroundTasks,
     template: Optional[str] = "invite_email.html",
     db: orm.Session = fastapi.Depends(get_db)
     ):
