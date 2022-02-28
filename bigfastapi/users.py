@@ -86,20 +86,20 @@ async def updateUserPassword(
     dbResponse = await updateUserPassword(db, user.id, payload)
     return {"data":  dbResponse }
 
-# @app.post('/users/accept-invite')
-# def accept_invite(
-#         payload:_schemas.StoreUser, 
-#         token:str, 
-#         db: orm.Session =fastapi.Depends(get_db)):
-#     # create store user
-#     store_user = store_user_model.StoreUser(
-#         store_id = payload.organization_id,
-#         user_id = payload.user_id,
-#         role = payload.role
-#     )
-#     db.add(store_user)
-#     db.commit()
-#     db.refresh(store_user)
+@app.post('/users/accept-invite')
+def accept_invite(
+        payload:_schemas.StoreUser, 
+        token:str, 
+        db: orm.Session =fastapi.Depends(get_db)):
+    # create store user
+    store_user = store_user_model.StoreUser(
+        store_id = payload.organization_id,
+        user_id = payload.user_id,
+        role = payload.role
+    )
+    db.add(store_user)
+    db.commit()
+    db.refresh(store_user)
 
 @app.post("/users/invite/", status_code=201)
 async def invite_user(
@@ -129,7 +129,8 @@ async def invite_user(
             store_id = payload.store.get("id"),
             user_id = payload.user_id,
             user_email = payload.email,
-            user_role = payload.user_role
+            user_role = payload.user_role,
+            invite_code = invite_token
         )
         db.add(invite)
         db.commit()
