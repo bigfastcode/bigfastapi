@@ -22,5 +22,5 @@ class StoreUser(database.Base):
     store_id = Column(String(255), index=True)
     user_id = Column(String(255), ForeignKey("users.id"))
     role = Column(String(255), index=True)
-    is_deleted = Column(Boolean,  index=True, default=False) 
+    is_deleted = Column(Boolean, default=False) 
     date_created = Column(DateTime, default=dt.datetime.utcnow)
