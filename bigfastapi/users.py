@@ -5,13 +5,13 @@ import fastapi as fastapi
 
 import passlib.hash as _hash
 from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
-
-
+from .files import upload_image
+import os
 app = APIRouter(tags=["User"])
 
 # app.mount('static', StaticFiles(directory="static"), name='static')
@@ -52,10 +52,6 @@ async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session 
     await send_code_password_reset_email(email.email, db)
     return f"password reset code has been sent to {email.email}"
 
-# @app.post("/users/recover-password")
-# async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)):
-#     print(email)
-#     return await send_code_password_reset_email(email.email, db)
 
 
 @app.post("/users/reset-password")
@@ -83,7 +79,7 @@ async def updateUserPassword(
     user: str = fastapi.Depends(is_authenticated)):
     
     dbResponse = await updateUserPassword(db, user.id, payload)
-    return {"data": {"status":True, "message":"Password updated successfully"}}
+    return {"data":  dbResponse }
     
     
 
@@ -129,6 +125,18 @@ async def password_change_with_token(
     ):
     return await password_change_token(password, token, db)
 
+
+@app.put("/users/update-image", response_model=_schemas.User)
+async def user_image_upload( file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db), current_user: _schemas.User= fastapi.Depends(is_authenticated)):
+    image = await upload_image(file, db, bucket_name = current_user.id)
+    filename = f"/{current_user.id}/{image}"
+    root_location = os.path.abspath("filestorage")
+    full_image_path =  root_location + filename
+    current_user.image = full_image_path
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+   
 
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////

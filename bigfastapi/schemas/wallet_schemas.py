@@ -1,4 +1,5 @@
 import datetime as _dt
+from enum import Enum
 from typing import Optional
 
 import pydantic as _pydantic
@@ -22,3 +23,10 @@ class Wallet(WalletCreate):
 class WalletUpdate(_pydantic.BaseModel):
     amount: float
     currency_code: str
+    redirect_url: str
+
+
+class PaymentProvider(Enum):
+    FLUTTERWAVE = 'flutterwave'
+    MPESA = 'mpesa'
+    MTN_MOBILE_MONEY = 'mtn_mobile_money'
