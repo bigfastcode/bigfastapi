@@ -2,6 +2,7 @@ import datetime as _dt
 from uuid import uuid4
 
 import fastapi as _fastapi
+from fastapi import APIRouter, HTTPException, UploadFile, File
 import sqlalchemy.orm as _orm
 from fastapi import APIRouter
 
@@ -12,6 +13,8 @@ from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
 from .utils.utils import paginate_data
+from .files import upload_image
+import os
 
 app = APIRouter(tags=["Organization"])
 
@@ -53,6 +56,21 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
                               user: users_schemas.User = _fastapi.Depends(is_authenticated),
                               db: _orm.Session = _fastapi.Depends(get_db)):
     return await update_organization(organization_id, organization, user, db)
+
+@app.put("/organizations/{organization_id}/update-image")
+
+async def organization_image_upload(organization_id: str, file: UploadFile = File(...), db: _orm.Session = _fastapi.Depends(get_db), user: users_schemas.User= _fastapi.Depends(is_authenticated)):
+    org = db.query(_models.Organization).filter(_models.Organization.id== organization_id).first()
+
+    image = await upload_image(file, db, bucket_name = org.id)
+    filename = f"/{org.id}/{image}"
+    root_location = os.path.abspath("filestorage")
+    full_image_path =  root_location + filename
+    
+    org.image = full_image_path
+    db.commit()
+    db.refresh(org)
+    return org
 
 
 @app.delete("/organizations/{organization_id}", status_code=204)

@@ -71,7 +71,7 @@ def get_customers(
     organization = db.query(organisation_models.Organization).filter(organisation_models.Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
-    customers = db.query(customer_models.Customer).filter_by(organization_id=organization_id)
+    customers = db.query(customer_models.Customer).filter_by(organization_id=organization_id, is_deleted = False)
     if customers:
         customer_list = list(map(customer_schemas.Customer.from_orm, customers))
         return paginate(customer_list)
@@ -139,6 +139,8 @@ def update_customer(
         customer_instance.city= customer.city
     if customer.region:
         customer_instance.region= customer.region
+    if customer.other_information:
+        customer_instance.other_information = customer.other_information
     customer_instance.last_updated = datetime.now()
     db.commit()
     db.refresh(customer_instance)
@@ -152,14 +154,16 @@ def delete_customer(
     db: orm.Session = fastapi.Depends(get_db),
     #user: users_schemas.User = fastapi.Depends(is_authenticated)
     ):
+    
 
     customer = db.query(customer_models.Customer).filter(
                         customer_models.Customer.customer_id == customer_id).first()
     if not customer:
         return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
-    db.delete(customer)
+    customer.is_deleted = True
     db.commit()
-    return {"message": "Customer deleted succesfully"}
+    db.refresh(customer)
+    return JSONResponse({"message": "Customer deleted succesfully"}, status_code=status.HTTP_200_OK)
 
         
 
