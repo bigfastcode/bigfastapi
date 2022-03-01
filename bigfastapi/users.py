@@ -4,11 +4,12 @@ from bigfastapi.schemas import email_schema
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
+from fastapi.responses import JSONResponse
 import os
 
 import passlib.hash as _hash
-from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks
+from bigfastapi.models import organisation_models, user_models, auth_models
+from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, status
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
@@ -86,20 +87,32 @@ async def updateUserPassword(
     dbResponse = await updateUserPassword(db, user.id, payload)
     return {"data":  dbResponse }
 
-@app.post('/users/accept-invite')
+@app.put('/users/accept-invite/{token}')
 def accept_invite(
         payload:_schemas.StoreUser, 
-        token:str, 
+        token: str,
         db: orm.Session =fastapi.Depends(get_db)):
+
+    # check if the invite token exists in the db.
+    valid_token = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
+    if not valid_token:
+        return JSONResponse({
+            "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=status.HTTP_404_NOT_FOUND)
+    
     # create store user
     store_user = store_user_model.StoreUser(
         store_id = payload.organization_id,
         user_id = payload.user_id,
-        role = payload.role
+        role = valid_token.user_role
     )
     db.add(store_user)
     db.commit()
     db.refresh(store_user)
+
+    return JSONResponse({
+        "message": f"Store user created and added to organization with id {payload.organization_id}" 
+    }, status_code=status.HTTP_200_OK)
 
 @app.post("/users/invite/", status_code=201)
 async def invite_user(
