@@ -15,3 +15,4 @@ class WalletTransaction(_database.Base):
     amount = Column(Float, default=0)
     currency_code = Column(String(4))
     transaction_date = Column(DateTime, default=_dt.datetime.utcnow)
+    transaction_ref = Column(String(255), default='')
