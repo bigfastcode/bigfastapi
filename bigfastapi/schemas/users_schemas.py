@@ -78,7 +78,6 @@ class UserInvite(_UserBase):
 class StoreUser(_UserBase):
     organization_id: str
     user_id: str
-    role: str
     
 class UserLogin(_UserBase):
     password: str
