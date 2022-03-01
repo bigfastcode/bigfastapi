@@ -11,9 +11,9 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as _database
+from bigfastapi.db.database import Base
 
-
-class Organization(_database.Base):
+class Organization(Base):
     __tablename__ = "businesses"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     creator = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))

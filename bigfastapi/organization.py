@@ -165,17 +165,11 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
         else:
             organization_db.name = organization.name
 
-    if organization.phone_number != "":
-        organization_db.phone_number = organization.phone_number
-
-    if organization.email != "":
-        organization_db.email = organization.email
+    organization_db.email = organization.email
     
-    if organization.tagline != "":
-        organization_db.tagline = organization.tagline
+    organization_db.tagline = organization.tagline
 
-    if organization.phone_number != "":
-        organization_db.phone_number = organization.phone_number
+    organization_db.phone_number = organization.phone_number
     
     if organization.country != "":
         organization_db.country = organization.country
