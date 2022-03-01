@@ -61,16 +61,26 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
 
 async def organization_image_upload(organization_id: str, file: UploadFile = File(...), db: _orm.Session = _fastapi.Depends(get_db), user: users_schemas.User= _fastapi.Depends(is_authenticated)):
     org = db.query(_models.Organization).filter(_models.Organization.id== organization_id).first()
-
-    image = await upload_image(file, db, bucket_name = org.id)
-    filename = f"/{org.id}/{image}"
-    root_location = os.path.abspath("filestorage")
-    full_image_path =  root_location + filename
     
-    org.image = full_image_path
+    image = await upload_image(file, db, bucket_name = org.id)
+    
+    org.image = image
     db.commit()
     db.refresh(org)
     return org
+
+@app.get("/organizations/{organization_id}/update-image")
+
+async def get_organization_image_upload(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db), user: users_schemas.User= _fastapi.Depends(is_authenticated)):
+    org = db.query(_models.Organization).filter(_models.Organization.id== organization_id).first()
+   
+    image = org.image
+    filename = f"/{org.id}/{image}"
+
+    root_location = os.path.abspath("filestorage")
+    full_image_path =  root_location + filename
+
+    return full_image_path
 
 
 @app.delete("/organizations/{organization_id}", status_code=204)
