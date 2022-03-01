@@ -50,6 +50,13 @@ async def get_organization(
 ):
     return await get_organization(organization_id, user, db)
 
+@app.get("/organizations/users/{organization_id}", status_code=200)
+async def get_organization_users(
+    organization_id: str,
+    db: _orm.Session = _fastapi.Depends(get_db)
+):
+    pass
+
 
 @app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,
