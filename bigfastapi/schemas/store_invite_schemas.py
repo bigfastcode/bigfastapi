@@ -11,6 +11,9 @@ class _InviteBase(_pydantic.BaseModel):
     is_revoked: Optional[bool]
     is_deleted: Optional[bool]
 
+    class Config:
+        orm_mode=True
+
 class UserInvite(_InviteBase):
     store: dict
     app_url: str
@@ -21,7 +24,7 @@ class Invite(_InviteBase):
     invite_code: str
     
     class Config:
-        orm_mode = True
+        orm_mode=True
 
 
 class StoreUser(_InviteBase):
