@@ -1,9 +1,13 @@
 import datetime as _dt
+import time
 from uuid import uuid4
 
 import fastapi
+import requests
 import sqlalchemy.orm as _orm
+from decouple import config
 from fastapi import APIRouter, status
+from starlette.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
@@ -47,18 +51,80 @@ async def get_organization_wallet(
     return await _get_organization_wallet(organization_id=organization_id, user=user, db=db)
 
 
-@app.post('/wallets/{organization_id}/fund', response_model=schema.Wallet)
+@app.get("/wallets/callback")
+async def verify_wallet_transaction(
+        status: str,
+        tx_ref: str,
+        transaction_id='',
+        db: _orm.Session = fastapi.Depends(get_db),
+):
+    frontendUrl = config("FRONTEND_URL")
+    if status == 'successful':
+        flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
+        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
+        url = 'https://api.flutterwave.com/v3/transactions/' + transaction_id + '/verify'
+        verificationRequest = requests.get(url, headers=headers)
+        if verificationRequest.status_code == 200:
+            jsonResponse = verificationRequest.json()
+            ref = jsonResponse['data']['tx_ref']
+            frontendUrl = jsonResponse['data']['meta']['redirect_url']
+            if jsonResponse['status'] == 'success' and tx_ref == ref:
+                if jsonResponse['data']['status'] == 'successful':
+                    user_id, organization_id, _ = tx_ref.split('-')
+                    amount = jsonResponse['data']['amount']
+                    currency = jsonResponse['data']['currency']
+                    wallet = db.query(model.Wallet).filter_by(organization_id=organization_id).first()
+                    if wallet is None:
+                        response = RedirectResponse(url=frontendUrl + '?status=error&message=Wallet does not exist')
+                        return response
+                    wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(
+                        transaction_ref=tx_ref).first()
+                    if wallet_transaction is not None:
+                        response = RedirectResponse(
+                            url=frontendUrl + '?status=error&message=Payment already processed')
+                        return response
+                    try:
+                        await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
+                    except fastapi.HTTPException:
+                        response = RedirectResponse(
+                            url=frontendUrl + '?status=error&message=An error occurred while refilling your wallet. '
+                                              'Please try again')
+                        return response
+
+                    response = RedirectResponse(url=frontendUrl + '?status=success&message=Wallet refilled')
+                    return response
+
+                else:
+                    response = RedirectResponse(url=frontendUrl + '?status=error&message=Transaction not found')
+                    return response
+
+        response = RedirectResponse(
+            url=frontendUrl + '?status=error&message=An error occurred. Please try again')
+        return response
+
+    else:
+        response = RedirectResponse(url=frontendUrl + '?status=error&message=Payment was not successful')
+        return response
+
+
+@app.post('/wallets/{organization_id}/fund')
 async def fund_wallet(
         organization_id: str,
         body: schema.WalletUpdate,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db)):
-    await _get_organization(organization_id=organization_id, db=db, user=user)
+    if body.amount <= 0:
+        raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Amount can not be negative")
+
+    await _get_organization(organization_id=organization_id, user=user, db=db)
+
     wallet = db.query(model.Wallet).filter_by(organization_id=organization_id).first()
     if wallet is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does have a wallet")
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
     else:
-        return await _update_wallet(wallet=wallet, amount=body.amount, db=db, currency=body.currency_code)
+        return await _generate_payment_link(redirect_url=body.redirect_url, organization_id=organization_id, user=user,
+                                            amount=body.amount,
+                                            currency=body.currency_code)
 
 
 @app.post('/wallets/{organization_id}/debit', response_model=schema.Wallet)
@@ -76,7 +142,7 @@ async def debit_wallet(
     if wallet is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
     elif wallet.balance - body.amount >= 0:
-        return await _update_wallet(wallet, amount=-body.amount, db=db, currency=body.currency_code)
+        return await _update_wallet(wallet, amount=-body.amount, db=db, currency=body.currency_code, tx_ref='')
     else:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient balance in wallet")
 
@@ -142,11 +208,12 @@ async def _get_wallet(wallet_id: str,
     return wallet
 
 
-async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str):
+async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
     # create a wallet transaction
     wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
                                                                      currency_code=currency, amount=amount,
-                                                                     transaction_date=_dt.datetime.utcnow())
+                                                                     transaction_date=_dt.datetime.utcnow(),
+                                                                     transaction_ref=tx_ref)
     db.add(wallet_transaction)
     db.commit()
     db.refresh(wallet_transaction)
@@ -157,3 +224,46 @@ async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str)
     db.commit()
     db.refresh(wallet)
     return wallet
+
+
+async def _generate_payment_link(organization_id: str,
+                                 redirect_url: str,
+                                 user: users_schemas.User, currency: str,
+                                 amount: float):
+    flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
+    rootUrl = config('API_URL')
+    headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
+    url = 'https://api.flutterwave.com/v3/payments/'
+    # prevents two payments with same transaction reference
+    # uniqueStr = ''.join([random.choice("qwertyuiopasdfghjklzxcvbnm1234567890") for x in range(10)])
+    uniqueStr = time.time()
+    txRef = user.id + "-" + organization_id + "-" + str(uniqueStr)
+    username = user.email if user.first_name is None else user.first_name
+    username += '' if user.last_name is None else ' ' + user.last_name
+    data = {
+        "tx_ref": txRef,
+        "amount": amount,
+        "currency": currency,
+        "redirect_url": rootUrl + '/wallets/callback',
+        "customer": {
+            "email": user.email,
+            "phonenumber": user.phone_number,
+            "name": username
+        },
+        "customizations": {
+            "description": 'Keep track of your debtors',
+            "logo": 'https://customerpay.me/frontend/assets/img/favicon.png',
+            "title": "CustomerPayMe",
+        },
+        "meta": {
+            "redirect_url": redirect_url
+        }
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        jsonResponse = response.json()
+        link = (jsonResponse.get('data'))['link']
+        return link
+    else:
+        raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="An error occurred. Please try again later")

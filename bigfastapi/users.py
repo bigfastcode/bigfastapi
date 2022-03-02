@@ -1,17 +1,23 @@
+from typing import Optional
 from unicodedata import name
+from bigfastapi.schemas import email_schema
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
+from fastapi.responses import JSONResponse
+import os
 
 import passlib.hash as _hash
-from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from bigfastapi.models import organisation_models, user_models, auth_models
+from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, status
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import upload_image
-import os
+from .email import send_email
+from .models import store_invite_model, store_user_model
+
 app = APIRouter(tags=["User"])
 
 # app.mount('static', StaticFiles(directory="static"), name='static')
@@ -80,8 +86,72 @@ async def updatePassword(
     
     dbResponse = await updateUserPassword(db, user.id, payload)
     return {"data":  dbResponse }
+
+@app.put('/users/accept-invite/{token}')
+def accept_invite(
+        payload:_schemas.StoreUser, 
+        token: str,
+        db: orm.Session =fastapi.Depends(get_db)):
+
+    # check if the invite token exists in the db.
+    valid_token = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
+    if not valid_token:
+        return JSONResponse({
+            "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=status.HTTP_404_NOT_FOUND)
     
-    
+    # create store user
+    store_user = store_user_model.StoreUser(
+        store_id = payload.organization_id,
+        user_id = payload.user_id,
+        role = valid_token.user_role
+    )
+    db.add(store_user)
+    db.commit()
+    db.refresh(store_user)
+
+    return JSONResponse({
+        "message": f"Store user created and added to organization with id {payload.organization_id}" 
+    }, status_code=status.HTTP_200_OK)
+
+@app.post("/users/invite/", status_code=201)
+async def invite_user(
+    payload: _schemas.UserInvite,
+    background_tasks: BackgroundTasks,
+    template: Optional[str] = "invite_email.html",
+    db: orm.Session = fastapi.Depends(get_db)
+    ):
+    """
+        An endpoint to invite users to a store.
+
+        Returns dict: message
+    """
+
+    invite_token = uuid4().hex
+    invite_url = f"{payload.app_url}/users/accept-invite?code={invite_token}"         
+    payload.email_details.link = invite_url
+    email_info = payload.email_details
+
+    # check if user_email already exists
+    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.email).first()
+    if not existing_invite:
+
+        # send invite email to user
+        send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
+        invite = store_invite_model.StoreInvite(
+            store_id = payload.store.get("id"),
+            user_id = payload.user_id,
+            user_email = payload.email,
+            user_role = payload.user_role,
+            invite_code = invite_token
+        )
+        db.add(invite)
+        db.commit()
+        db.refresh(invite)
+
+        return { "message": "Store invite email will be sent in the background." }
+    return { "message": "invite already sent" }
+
 
 
 
@@ -126,17 +196,16 @@ async def password_change_with_token(
     return await password_change_token(password, token, db)
 
 
-@app.put("/users/{user_id}/image")
-async def user_image_upload(user_id: str, file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db)):
-    user = await get_user(db, id=user_id)
-    image = await upload_image(file, db, bucket_name = user_id)
-    filename = f"\\{user_id}\\{image}"
+@app.put("/users/update-image", response_model=_schemas.User)
+async def user_image_upload( file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db), current_user: _schemas.User= fastapi.Depends(is_authenticated)):
+    image = await upload_image(file, db, bucket_name = current_user.id)
+    filename = f"/{current_user.id}/{image}"
     root_location = os.path.abspath("filestorage")
     full_image_path =  root_location + filename
-    user.image = full_image_path
+    current_user.image = full_image_path
     db.commit()
-    db.refresh(user)
-    return "successfully updated profile image"
+    db.refresh(current_user)
+    return current_user
    
 
 
@@ -240,9 +309,3 @@ async def updateUserPassword(db: orm.Session, userId:str, payload: _schemas.upda
     else:
         raise HTTPException(status_code=422, detail='Password does not match')
         
-    
-
-
-
-
-
