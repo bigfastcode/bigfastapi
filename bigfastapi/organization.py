@@ -88,7 +88,7 @@ async def organization_image_upload(organization_id: str, file: UploadFile = Fil
     root_location = os.path.abspath("filestorage")
     full_image_path =  root_location + filename
 
-    setattr(org, 'image_path_path', full_image_path)
+    setattr(org, 'image_full_path', full_image_path)
     return org
 
 @app.get("/organizations/{organization_id}/update-image")
