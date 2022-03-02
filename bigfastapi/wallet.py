@@ -1,5 +1,5 @@
 import datetime as _dt
-import random
+import time
 from uuid import uuid4
 
 import fastapi
@@ -55,7 +55,7 @@ async def get_organization_wallet(
 async def verify_wallet_transaction(
         status: str,
         tx_ref: str,
-        transaction_id: str,
+        transaction_id='',
         db: _orm.Session = fastapi.Depends(get_db),
 ):
     frontendUrl = config("FRONTEND_URL")
@@ -66,8 +66,9 @@ async def verify_wallet_transaction(
         verificationRequest = requests.get(url, headers=headers)
         if verificationRequest.status_code == 200:
             jsonResponse = verificationRequest.json()
+            ref = jsonResponse['data']['tx_ref']
             frontendUrl = jsonResponse['data']['meta']['redirect_url']
-            if jsonResponse['status'] == 'success':
+            if jsonResponse['status'] == 'success' and tx_ref == ref:
                 if jsonResponse['data']['status'] == 'successful':
                     user_id, organization_id, _ = tx_ref.split('-')
                     amount = jsonResponse['data']['amount']
@@ -76,8 +77,14 @@ async def verify_wallet_transaction(
                     if wallet is None:
                         response = RedirectResponse(url=frontendUrl + '?status=error&message=Wallet does not exist')
                         return response
+                    wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(
+                        transaction_ref=tx_ref).first()
+                    if wallet_transaction is not None:
+                        response = RedirectResponse(
+                            url=frontendUrl + '?status=error&message=Payment already processed')
+                        return response
                     try:
-                        await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency)
+                        await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
                     except fastapi.HTTPException:
                         response = RedirectResponse(
                             url=frontendUrl + '?status=error&message=An error occurred while refilling your wallet. '
@@ -201,11 +208,12 @@ async def _get_wallet(wallet_id: str,
     return wallet
 
 
-async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str):
+async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
     # create a wallet transaction
     wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
                                                                      currency_code=currency, amount=amount,
-                                                                     transaction_date=_dt.datetime.utcnow())
+                                                                     transaction_date=_dt.datetime.utcnow(),
+                                                                     transaction_ref=tx_ref)
     db.add(wallet_transaction)
     db.commit()
     db.refresh(wallet_transaction)
@@ -227,8 +235,11 @@ async def _generate_payment_link(organization_id: str,
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
     url = 'https://api.flutterwave.com/v3/payments/'
     # prevents two payments with same transaction reference
-    uniqueStr = ''.join([random.choice("qwertyuiopasdfghjklzxcvbnm1234567890") for x in range(10)])
-    txRef = user.id + "-" + organization_id + "-wallet" + uniqueStr
+    # uniqueStr = ''.join([random.choice("qwertyuiopasdfghjklzxcvbnm1234567890") for x in range(10)])
+    uniqueStr = time.time()
+    txRef = user.id + "-" + organization_id + "-" + str(uniqueStr)
+    username = user.email if user.first_name is None else user.first_name
+    username += '' if user.last_name is None else ' ' + user.last_name
     data = {
         "tx_ref": txRef,
         "amount": amount,
@@ -237,7 +248,7 @@ async def _generate_payment_link(organization_id: str,
         "customer": {
             "email": user.email,
             "phonenumber": user.phone_number,
-            "name": user.first_name + " " + user.last_name
+            "name": username
         },
         "customizations": {
             "description": 'Keep track of your debtors',
@@ -256,34 +267,3 @@ async def _generate_payment_link(organization_id: str,
     else:
         raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="An error occurred. Please try again later")
-
-
-async def _fund_walle2t(wallet_id: str, amount: float, transaction_id: str, db: _orm.Session,
-                        payment_provider: schema.PaymentProvider):
-    if amount <= 0:
-        raise fastapi.HTTPException(status_code=400, detail="Amount can not be negative")
-
-    if payment_provider is schema.PaymentProvider.FLUTTERWAVE:
-        flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
-        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
-        url = 'https://api.flutterwave.com/v3/transactions/' + transaction_id + '/verify'
-        verificationRequest = requests.get(url, headers=headers)
-        jsonResponse = verificationRequest.json()
-        if jsonResponse['data']['status'] == 'pending':
-            raise fastapi.HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail="Transaction is pending")
-        elif jsonResponse['data']['status'] == 'successful':
-            if amount == jsonResponse['data']['amount']:
-                wallet = db.query(model.Wallet).filter_by(id=wallet_id).first()
-                if wallet is None:
-                    raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wallet does not exist")
-
-                return await _update_wallet(wallet=wallet, amount=amount, db=db)
-            else:
-                raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                            detail="Transaction details do not match")
-        elif jsonResponse['status'] == 'error':
-            raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
-        else:
-            raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not successful")
-    else:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment method not supported")
