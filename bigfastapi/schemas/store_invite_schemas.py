@@ -4,7 +4,7 @@ from .email_schema import Email
 import pydantic as _pydantic
 
 class _InviteBase(_pydantic.BaseModel):
-    user_email: str
+    user_email: Optional[str]
     user_id: Optional[str]
     user_role: Optional[str]
     is_accepted: Optional[bool]
@@ -12,7 +12,7 @@ class _InviteBase(_pydantic.BaseModel):
     is_deleted: Optional[bool]
 
     class Config:
-        orm_mode=True
+        orm_mode = True
 
 class UserInvite(_InviteBase):
     store: dict
@@ -24,7 +24,7 @@ class Invite(_InviteBase):
     invite_code: str
     
     class Config:
-        orm_mode=True
+        orm_mode = True
 
 
 class StoreUser(_InviteBase):
