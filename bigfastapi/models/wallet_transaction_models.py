@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, DateTime, Float
 
-import bigfastapi.db.database as Base
+from bigfastapi.db.database import Base
 
 
 class WalletTransaction(Base):
@@ -15,3 +15,4 @@ class WalletTransaction(Base):
     amount = Column(Float, default=0)
     currency_code = Column(String(4))
     transaction_date = Column(DateTime, default=_dt.datetime.utcnow)
+    transaction_ref = Column(String(255), default='')

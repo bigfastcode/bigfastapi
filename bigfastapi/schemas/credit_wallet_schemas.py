@@ -3,6 +3,12 @@ import datetime
 import pydantic as _pydantic
 
 
+class CreditWalletFund(_pydantic.BaseModel):
+    currency: str
+    amount: float
+    type: str
+
+
 class CreditWalletCreate(_pydantic.BaseModel):
     type: str
     amount: float
