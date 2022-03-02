@@ -142,7 +142,7 @@ async def debit_wallet(
     if wallet is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
     elif wallet.balance - body.amount >= 0:
-        return await _update_wallet(wallet, amount=-body.amount, db=db, currency=body.currency_code)
+        return await _update_wallet(wallet, amount=-body.amount, db=db, currency=body.currency_code, tx_ref='')
     else:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient balance in wallet")
 
