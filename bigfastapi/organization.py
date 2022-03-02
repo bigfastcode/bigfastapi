@@ -89,7 +89,7 @@ async def organization_image_upload(organization_id: str, file: UploadFile = Fil
     image = org.image
 
     appBasePath = config('API_URL')
-    imageURL = appBasePath+f'organizations/{organization_id}/image'
+    imageURL = appBasePath+f'/organizations/{organization_id}/image'
     setattr(org, 'image_full_path', imageURL)
     return org
 
@@ -154,7 +154,7 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
         
         appBasePath = config('API_URL')
 
-        imageURL = appBasePath+f'organizations/{organizationlist[pos].id}/image'
+        imageURL = appBasePath+f'/organizations/{organizationlist[pos].id}/image'
         setattr(organizationlist[pos], 'image_full_path', imageURL)
         organizationCollection.append(organizationlist[pos]) 
 
@@ -173,7 +173,7 @@ async def _organization_selector(organization_id: str, user: users_schemas.User,
         raise _fastapi.HTTPException(status_code=404, detail="Organization does not exist")
 
     appBasePath = config('API_URL')
-    imageURL = appBasePath+f'organizations/{organization_id}/image'
+    imageURL = appBasePath+f'/organizations/{organization_id}/image'
     setattr(organization, 'image_full_path', imageURL)
 
     return organization
