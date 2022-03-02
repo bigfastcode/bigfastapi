@@ -17,8 +17,10 @@ depends_on = None
 
 
 def upgrade():
+    op.add_column('wallet_transactions', sa.Column('transaction_ref', sa.String()))
     pass
 
 
 def downgrade():
+    op.drop_column('wallet_transactions', 'transaction_ref')
     pass
