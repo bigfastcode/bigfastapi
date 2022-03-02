@@ -17,7 +17,7 @@ import bigfastapi.db.database as database
 class StoreInvite(database.Base):
     __tablename__ = "store_invites"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    store_id = Column(String(255), index=True)
+    store_id = Column(String(255), ForeignKey("businesses.id"))
     user_id = Column(String(255), ForeignKey("users.id"))
     user_email = Column(String(255), index=True)
     user_role = Column(String(255), index=True)
@@ -26,3 +26,6 @@ class StoreInvite(database.Base):
     is_revoked = Column(Boolean, default=False)
     is_deleted = Column(Boolean, default=False) 
     date_created = Column(DateTime, default=dt.datetime.utcnow)
+    
+    class Config:
+        orm_mode = True
