@@ -170,7 +170,7 @@ async def invite_user(
         invite = store_invite_model.StoreInvite(
             store_id = payload.store.get("id"),
             user_id = payload.user_id,
-            user_email = payload.email,
+            user_email = payload.user_email,
             user_role = payload.user_role,
             invite_code = invite_token
         )
