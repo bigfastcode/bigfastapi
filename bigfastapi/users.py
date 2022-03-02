@@ -1,5 +1,5 @@
+from operator import inv
 from typing import Optional
-from unicodedata import name
 from bigfastapi.schemas import email_schema
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
@@ -94,22 +94,50 @@ def accept_invite(
         token: str,
         db: orm.Session =fastapi.Depends(get_db)):
 
-    # check if the invite token exists in the db.
-    valid_token = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
-    if not valid_token:
+    existing_invite = db.query(
+        store_invite_model.StoreInvite).filter(
+            store_invite_model.StoreInvite.invite_code == token 
+            and store_invite_model.StoreInvite.is_deleted == False
+            and store_invite_model.StoreInvite.is_revoked == False).first()
+
+    if not existing_invite:
         return JSONResponse({
             "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=404)
+
+    existing_user = db.query(user_models.User).filter(
+        user_models.User.email == existing_invite.user_email).first()
+    
+    if not existing_user:
+        return JSONResponse({
+            "message": "You must log in first"
+        }, status_code=403)
+
+    # check if the invite token exists in the db.
+    invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
+    if not invite:
+        return JSONResponse({
+            "message": "Invite not found!"
         }, status_code=status.HTTP_404_NOT_FOUND)
     
+    # TO-DO
+    # check if the store user exist and update before creating store user
+
     # create store user
     store_user = store_user_model.StoreUser(
         store_id = payload.organization_id,
         user_id = payload.user_id,
-        role = valid_token.user_role
+        role = invite.user_role
     )
     db.add(store_user)
     db.commit()
     db.refresh(store_user)
+
+    invite.is_deleted = True
+    invite.is_accepted = True
+    db.add(invite)
+    db.commit()
+    db.refresh(invite)
 
     return JSONResponse({
         "message": f"Store user created and added to organization with id {payload.organization_id}" 
@@ -161,17 +189,29 @@ async def get_single_invite(
     # user invite code to query the invite table
     existing_invite = db.query(
         store_invite_model.StoreInvite).filter(
-            store_invite_model.StoreInvite.invite_code == invite_code).first()
+            store_invite_model.StoreInvite.invite_code == invite_code 
+            and store_invite_model.StoreInvite.is_deleted == False
+            and store_invite_model.StoreInvite.is_revoked == False).first()
+    existing_user = db.query(user_models.User).filter(
+        user_models.User.email == existing_invite.user_email).first()
+    
+    store = db.query(organisation_models.Organization).filter(
+        organisation_models.Organization.id == existing_invite.store_id).first()
+    
+    # existing_invite.__setattr__('store', store)
+    setattr(existing_invite, 'store', store)
+    if(existing_user is not None):
+        existing_user = 'exists'
     if not existing_invite:
         return JSONResponse({
             "message": "Invite not found! Try again or ask the inviter to invite you again."
-        }, status_code=status.HTTP_404_NOT_FOUND)
-
-    result = _invite_schemas.StoreInvite.from_orm(existing_invite)
+        }, status_code=404)
+    # invite = _invite_schemas.Invite.from_orm(existing_invite)
     # return the data matching the invite code.
-    return JSONResponse({
-        "data": result
-        }, status_code=status.HTTP_200_OK)
+    # return JSONResponse({
+    #     "data": result
+    #     }, status_code=status.HTTP_200_OK)
+    return { "invite": existing_invite, "user": existing_user }
 
 
 
