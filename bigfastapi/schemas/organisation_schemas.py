@@ -22,6 +22,7 @@ class _OrganizationBase(_pydantic.BaseModel):
     tagline: Optional[str]
     image: Optional[str]
     values: Optional[str]
+    image_full_path: str = None
 
     class Config:
         orm_mode = True
