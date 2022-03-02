@@ -13,6 +13,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks,
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
+from .schemas import store_invite_schemas as _invite_schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import upload_image
 from .email import send_email
@@ -89,7 +90,7 @@ async def updateUserPassword(
 
 @app.put('/users/accept-invite/{token}')
 def accept_invite(
-        payload:_schemas.StoreUser, 
+        payload:_invite_schemas.StoreUser, 
         token: str,
         db: orm.Session =fastapi.Depends(get_db)):
 
@@ -116,7 +117,7 @@ def accept_invite(
 
 @app.post("/users/invite/", status_code=201)
 async def invite_user(
-    payload: _schemas.UserInvite,
+    payload: _invite_schemas.UserInvite,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
     db: orm.Session = fastapi.Depends(get_db)
@@ -152,6 +153,25 @@ async def invite_user(
         return { "message": "Store invite email will be sent in the background." }
     return { "message": "invite already sent" }
 
+@app.get('/users/invite/{invite_code}')
+async def get_single_invite(
+        invite_code: str,
+        db: orm.Session = fastapi.Depends(get_db),
+    ):
+    # user invite code to query the invite table
+    existing_invite = db.query(
+        store_invite_model.StoreInvite).filter(
+            store_invite_model.StoreInvite.invite_code == invite_code).first()
+    if not existing_invite:
+        return JSONResponse({
+            "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=status.HTTP_404_NOT_FOUND)
+
+    result = _invite_schemas.StoreInvite.from_orm(existing_invite)
+    # return the data matching the invite code.
+    return JSONResponse({
+        "data": result
+        }, status_code=status.HTTP_200_OK)
 
 
 
