@@ -196,11 +196,10 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
                               db: _orm.Session):
     organization_db = await _organization_selector(organization_id, user, db)
 
-    if organization.mission != "":
-        organization_db.mission = organization.mission
-
-    if organization.vision != "":
-        organization_db.vision = organization.vision
+    
+    organization_db.mission = organization.mission
+    
+    organization_db.vision = organization.vision
 
     if organization.values != "":
         organization_db.values = organization.values
