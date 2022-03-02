@@ -10,10 +10,13 @@ from uuid import UUID, uuid4
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
-import bigfastapi.db.database as _database
 
 
-class Organization(_database.Base):
+
+
+from bigfastapi.db.database import Base
+
+class Organization(Base):
     __tablename__ = "businesses"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     creator = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
@@ -26,11 +29,13 @@ class Organization(_database.Base):
     state = Column(String(255), index=True)
     address = Column(String(), index=True)
     tagline = Column(String(255), index=True)
-    image = Column(String(), default="")
+    image = Column(String(255), default="")
     is_deleted = Column(Boolean(), default=False)
     current_subscription = Column(String(225), default="")
     credit_balance = Column(Integer, default=5000) 
-    currency_preference = Column(String, default="")
+    currency_preference = Column(String(255), default="")
+    email = Column(String(255), default="", index=True)
+    phone_number = Column(String(255), default="", index=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 

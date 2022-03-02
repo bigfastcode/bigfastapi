@@ -10,6 +10,7 @@ from alembic import context
 from bigfastapi.models.user_models import Base as UserBase
 from bigfastapi.models.customer_models import Base as CustomerBase
 from bigfastapi.models.organisation_models import Base as OrganizationBase
+from bigfastapi.models.wallet_transaction_models import Base as WalletTransactionBase
 
 from bigfastapi.db.database import DATABASE_URL 
 
@@ -29,6 +30,7 @@ fileConfig(config.config_file_name)
 target_metadata = UserBase.metadata
 target_metadata = CustomerBase.metadata
 target_metadata = OrganizationBase.metadata
+target_metadata = WalletTransactionBase.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
