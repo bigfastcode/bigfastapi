@@ -153,7 +153,7 @@ async def invite_user(
     """
         An endpoint to invite users to a store.
 
-        Returns dict: message
+        Returns dict: message 
     """
 
     invite_token = uuid4().hex
