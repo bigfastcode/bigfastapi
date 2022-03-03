@@ -162,7 +162,7 @@ async def invite_user(
     email_info = payload.email_details
 
     # check if user_email already exists
-    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.email).first()
+    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.user_email).first()
     if not existing_invite:
 
         # send invite email to user
