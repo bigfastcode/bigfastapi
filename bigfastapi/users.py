@@ -157,7 +157,7 @@ async def invite_user(
     """
 
     invite_token = uuid4().hex
-    invite_url = f"{payload.app_url}/app/accept-invite?code={invite_token}"         
+    invite_url = f"{payload.app_url}/accept-invite?code={invite_token}"         
     payload.email_details.link = invite_url
     email_info = payload.email_details
 
