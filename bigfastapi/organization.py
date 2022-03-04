@@ -9,6 +9,7 @@ from fastapi import APIRouter
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .models import organisation_models as _models
+
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
@@ -26,9 +27,25 @@ async def create_organization(
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
     db_org = await get_orgnanization_by_name(name=organization.name, db=db)
+
     if db_org:
         raise _fastapi.HTTPException(status_code=400, detail="Organization name already in use")
-    return await create_organization(user=user, db=db, organization=organization)
+    created_org = await create_organization(user=user, db=db, organization=organization)
+
+    if organization.add_template == True:
+        template_obj = _models.Templates(
+        id = uuid4().hex, organization_id=created_org.organization_id, subject="Reminder_One",
+        escalation_level=1, email_message="This is the first default email template created for this business.", sms_message="This is the first default sms template created for this business",
+        is_deleted=False, greeting="Reminder_Greetings", template_type= "BOTH"
+        )
+    
+        db.add(template_obj)
+        db.commit()
+        db.refresh(template_obj)
+
+   
+
+    return created_org
 
 
 @app.get("/organizations")

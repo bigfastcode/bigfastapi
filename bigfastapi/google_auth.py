@@ -59,7 +59,7 @@ CREDENTIALS_EXCEPTION = HTTPException(
 )
 
 
-REDIRECT_URL =  'https://v2.api.customerpay.me/google/token'
+REDIRECT_URL =  'https://127.0.0.1:7001/google/token'
 
 
 @app.get('/google/generate_url')

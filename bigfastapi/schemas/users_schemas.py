@@ -1,5 +1,5 @@
 import datetime as dt
-from resource import struct_rusage
+
 from fastapi import File, UploadFile
 
 import pydantic as _pydantic
