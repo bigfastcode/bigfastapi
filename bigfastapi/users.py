@@ -15,9 +15,10 @@ from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
 from .schemas import store_invite_schemas as _invite_schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
-from .files import upload_image
+from .files import deleteFile, isFileExist, upload_image
 from .email import send_email
 from .models import store_invite_model, store_user_model
+
 
 app = APIRouter(tags=["User"])
 
@@ -80,7 +81,7 @@ async def updateUserProfile(
 
 
 @app.patch('/users/password/update')
-async def updateUserPassword(
+async def updatePassword(
     payload:_schemas.updatePasswordRequest,
     db: orm.Session = fastapi.Depends(get_db),
     user: str = fastapi.Depends(is_authenticated)):
@@ -256,21 +257,65 @@ async def password_change_with_token(
     return await password_change_token(password, token, db)
 
 
-@app.put("/users/update-image", response_model=_schemas.User)
-async def user_image_upload( file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db), current_user: _schemas.User= fastapi.Depends(is_authenticated)):
-    image = await upload_image(file, db, bucket_name = current_user.id)
-    filename = f"/{current_user.id}/{image}"
-    root_location = os.path.abspath("filestorage")
-    full_image_path =  root_location + filename
-    current_user.image = full_image_path
-    db.commit()
-    db.refresh(current_user)
-    return current_user
-   
+@app.patch('/users/image/upload')
+async def updatePassword(
+    file: UploadFile = File(...),
+    db: orm.Session = fastapi.Depends(get_db),
+    user: str = fastapi.Depends(is_authenticated)):
+    
+    bucketName = 'profileImages'
+    checkAndDeleteRes = await deleteIfFileExistPrior(user)
+    
+    uploadedImage = await upload_image(file, db, bucketName)
+    imageEndpoint = constructImageEndpoint(uploadedImage, bucketName)
+
+    updatedUser = await updateUserImage(user.id, db, imageEndpoint)
+    return {"data":  updatedUser }
+    
 
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
+async def  deleteIfFileExistPrior(user: _schemas.User):
+     #check if user object contains image endpoint
+     if user.image is not None and len(user.image) > 17:
+        # construct the image path from endpoint
+        prevImagePath = user.image.split('files', 1)
+        fullStoragePath = os.path.abspath("filestorage") + prevImagePath
+        isProfileImageExistPrior = await isFileExist(fullStoragePath)
+        # check if image exist in file prior and delete it
+        if isProfileImageExistPrior:
+            deleteRes = await deleteFile(fullStoragePath)
+            print(f"isFileDeleted: {deleteRes}")
+            return deleteRes
+        else:
+            print("image does not exist prior")
+            return False
+    
+     else:
+        print('prior image endpoint is not a valid image endpoint')
+        return False
+    
+    
+def constructImageEndpoint(Uploadedimage:str, bucketName:str):
+    return f"/files/{bucketName}/{Uploadedimage}"
+
+
+async def updateUserImage(userId:str, db: orm.Session, imageEndpoint:str):
+    user = db.query(user_models.User).filter(user_models.User.id == userId).first()
+    user.image = imageEndpoint
+    try:
+        db.commit()
+        db.refresh(user)
+        print('update user image successfully')
+        return user
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+    
 async def get_password_reset_code_sent_to_email(code: str, db: orm.Session):
     return db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.code == code).first()
 
