@@ -23,6 +23,7 @@ class _OrganizationBase(_pydantic.BaseModel):
     image: Optional[str]
     values: Optional[str]
     image_full_path: str = None
+    add_template: Optional[bool]
 
     class Config:
         orm_mode = True
