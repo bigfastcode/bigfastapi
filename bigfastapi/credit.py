@@ -86,7 +86,7 @@ async def verify_payment_transaction(
         url = 'https://api.flutterwave.com/v3/transactions/' + transaction_id + '/verify'
         verificationRequest = requests.get(url, headers=headers)
         rootUrl = config('API_URL')
-        retryLink = rootUrl + '/credits/callback?status=' + status + '&tx_ref=' + tx_ref
+        retryLink = rootUrl + '/credits/callback&tx_ref=' + tx_ref
         retryLink += '' if transaction_id == '' else ('&transaction_id=' + transaction_id)
         if verificationRequest.status_code == 200:
             jsonResponse = verificationRequest.json()
@@ -109,9 +109,9 @@ async def verify_payment_transaction(
                         await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
 
                         conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
-                        credits_to_add = amount // conversion.rate
+                        credits_to_add = round(amount / conversion.rate)
                         await _update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
-                                             tx_ref=str(credits_to_add) + ' credit refill')
+                                             tx_ref=str(credits_to_add) + ' credits refill')
 
                         credit = db.query(model.CreditWallet).filter_by(organization_id=organization_id).first()
 

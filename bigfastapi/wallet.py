@@ -5,6 +5,7 @@ import fastapi
 import sqlalchemy.orm as _orm
 from fastapi import APIRouter, status
 from fastapi_pagination import Page, paginate, add_pagination
+from sqlalchemy import desc
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
@@ -61,6 +62,18 @@ async def get_organization_wallet(
     return await _get_organization_wallet(organization_id=organization_id, currency=currency, user=user, db=db)
 
 
+@app.get("/wallets/{organization_id}/{currency}/transactions", response_model=Page[schema.WalletTransaction])
+async def get_wallet_transactions(
+        organization_id: str,
+        currency: str,
+        user: users_schemas.User = fastapi.Depends(is_authenticated),
+        db: _orm.Session = fastapi.Depends(get_db),
+):
+    """Get wallet transactions"""
+    wallet = await _get_organization_wallet(organization_id=organization_id, currency=currency, user=user, db=db)
+    return await _get_wallet_transactions(wallet_id=wallet.id, db=db)
+
+
 ############
 # Services #
 ############
@@ -105,6 +118,13 @@ async def _get_organization_wallet(organization_id: str,
                                     detail="Organization does not have a " + currency + " wallet")
 
     return wallet
+
+
+async def _get_wallet_transactions(wallet_id: str, db: _orm.Session):
+    wallet_transactions = db.query(wallet_transaction_models.WalletTransaction).filter_by(wallet_id=wallet_id).order_by(
+        desc(wallet_transaction_models.WalletTransaction.transaction_date))
+
+    return paginate(list(wallet_transactions))
 
 
 async def _get_organization_wallets(organization_id: str,

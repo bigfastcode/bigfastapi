@@ -6,7 +6,7 @@ import pydantic as _pydantic
 class CreditWalletFund(_pydantic.BaseModel):
     currency: str
     amount: float
-    type: str
+    # type: str
     redirect_url: str
 
 
