@@ -34,7 +34,6 @@ async def add_rate(
                                     detail="Currency " + body.currency_code + " already has a conversion rate")
 
     rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
-                                                                  credit_wallet_type=body.credit_wallet_type,
                                                                   rate=body.rate,
                                                                   currency_code=body.currency_code)
 
@@ -54,17 +53,21 @@ async def get_rates(
     return paginate(list(rates))
 
 
-@app.get("/credits/rates/{currency_code}", response_model=credit_wallet_conversion_schemas.CreditWalletConversion)
+@app.get("/credits/rates/{currency}", response_model=credit_wallet_conversion_schemas.CreditWalletConversion)
 async def get_rate(
-        currency_code: str,
+        currency: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
     rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
-        currency_code=currency_code).first()
+        currency_code=currency).first()
     if rate is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                    detail="Currency " + currency_code + " does not have a conversion rate")
+        freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
+        if freeCurrencyApiKey.strip() == '':
+            raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                        detail="Currency " + currency + " does not have a conversion rate")
+        else:
+            rate = await _get_market_rate(currency=currency, db=db)
 
     return rate
 
@@ -106,7 +109,7 @@ async def verify_payment_transaction(
                         await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
 
                         conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
-                        credits_to_add = amount * conversion.rate
+                        credits_to_add = amount // conversion.rate
                         await _update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
                                              tx_ref=str(credits_to_add) + ' credit refill')
 
@@ -182,6 +185,32 @@ async def add_credit(body: schema.CreditWalletFund,
 ############
 # Services #
 ############
+
+async def _get_market_rate(currency: str, db: _orm.Session):
+    currency = currency.upper()
+
+    freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
+    url = 'https://freecurrencyapi.net/api/v2/latest?apikey=' + freeCurrencyApiKey
+    response = requests.get(url)
+    if response.status_code == 200:
+        jsonResponse = response.json()
+        rates = jsonResponse['data']
+        rates['USD'] = 1
+        if currency in rates:
+            rate = jsonResponse['data'][currency]
+            conversion_rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
+                                                                                     rate=rate,
+                                                                                     currency_code=currency)
+
+            db.add(conversion_rate)
+            db.commit()
+            db.refresh(conversion_rate)
+
+            return conversion_rate
+
+    raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Could not get exchange rate. Please try again later")
+
 
 async def _get_organization(organization_id: str, db: _orm.Session,
                             user: users_schemas.User):

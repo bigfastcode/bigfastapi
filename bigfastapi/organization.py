@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .files import upload_image
+from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
@@ -140,6 +141,8 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
     db.refresh(organization)
 
     await create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
+    await create_credit_wallet(organization_id=organization_id, db=db)
+
     return _schemas.Organization.from_orm(organization)
 
 
@@ -254,3 +257,12 @@ async def create_wallet(organization_id: str, currency: str, db: _orm.Session):
         db.add(wallet)
         db.commit()
         db.refresh(wallet)
+
+
+async def create_credit_wallet(organization_id: str, db: _orm.Session):
+    credit = credit_wallet_models.CreditWallet(id=uuid4().hex, organization_id=organization_id, amount=0,
+                                               last_updated=_dt.datetime.utcnow())
+
+    db.add(credit)
+    db.commit()
+    db.refresh(credit)
