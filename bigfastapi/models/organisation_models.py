@@ -40,7 +40,7 @@ class Organization(Base):
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
 class DefaultTemplates(Base):
-    __tablename__ = "templates"
+    __tablename__ = "default_templates"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column( String(), ForeignKey("businesses.id"))
     greeting = Column(String(225), index=True)
