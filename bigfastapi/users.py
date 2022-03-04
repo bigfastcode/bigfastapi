@@ -154,16 +154,16 @@ async def invite_user(
     """
         An endpoint to invite users to a store.
 
-        Returns dict: message
+        Returns dict: message 
     """
 
     invite_token = uuid4().hex
-    invite_url = f"{payload.app_url}/app/accept-invite?code={invite_token}"         
+    invite_url = f"{payload.app_url}/accept-invite?code={invite_token}"         
     payload.email_details.link = invite_url
     email_info = payload.email_details
 
     # check if user_email already exists
-    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.email).first()
+    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.user_email).first()
     if not existing_invite:
 
         # send invite email to user
