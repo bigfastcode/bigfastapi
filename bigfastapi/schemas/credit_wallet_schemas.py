@@ -7,6 +7,11 @@ class CreditWalletFund(_pydantic.BaseModel):
     currency: str
     amount: float
     type: str
+    redirect_url: str
+
+
+class CreditWalletFundResponse(_pydantic.BaseModel):
+    link: str
 
 
 class CreditWalletCreate(_pydantic.BaseModel):
