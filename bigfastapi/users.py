@@ -279,9 +279,11 @@ async def updatePassword(
 async def  deleteIfFileExistPrior(user: _schemas.User):
      #check if user object contains image endpoint
      if user.image is not None and len(user.image) > 17:
-        # construct the image path from endpoint
-        prevImagePath = user.image.split('files', 1)
-        fullStoragePath = os.path.abspath("filestorage") + prevImagePath
+         # construct the image path from endpoint
+        splitPath = user.image.split('profileImages/', 1)
+        imagePath = f"\profileImages\{splitPath[1]}"
+        fullStoragePath = os.path.abspath("filestorage") + imagePath
+        print(f"fullpath: {fullStoragePath}")
         isProfileImageExistPrior = await isFileExist(fullStoragePath)
         # check if image exist in file prior and delete it
         if isProfileImageExistPrior:
