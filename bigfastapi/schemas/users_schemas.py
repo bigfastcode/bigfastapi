@@ -1,13 +1,12 @@
 import datetime as dt
 
+# from resource import struct_rusage
 from fastapi import File, UploadFile
 
 import pydantic as _pydantic
 from pydantic import Field
 from uuid import UUID
 from typing import List, Optional
-
-from .email_schema import Email
 
 
 class AuthToken(_pydantic.BaseModel):
@@ -67,17 +66,6 @@ class UserOrgLogin(_UserBase):
     password: str
     organization: str
 
-class UserInvite(_UserBase):
-    store: dict
-    user_id: str
-    user_role: str
-    app_url: str
-    email_details: Email
-
-
-class StoreUser(_UserBase):
-    organization_id: str
-    user_id: str
     
 class UserLogin(_UserBase):
     password: str
@@ -124,6 +112,11 @@ class UpdateUserReq(_UserBase):
 class updatePasswordRequest(_pydantic.BaseModel):
     password:str
     password_confirmation:str
+    
+
+class ImageUploadReq(_pydantic.BaseModel):
+    image: UploadFile = File(...)
+    
 
 
 

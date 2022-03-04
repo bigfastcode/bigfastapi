@@ -1,4 +1,5 @@
 import datetime as _dt
+from urllib.request import Request
 from uuid import uuid4
 
 import fastapi as _fastapi
@@ -16,6 +17,8 @@ from .schemas import users_schemas
 from .utils.utils import paginate_data
 from .files import upload_image
 import os
+from fastapi.responses import FileResponse
+from decouple import config
 
 app = APIRouter(tags=["Organization"])
 
@@ -84,33 +87,32 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
 @app.put("/organizations/{organization_id}/update-image")
 
 async def organization_image_upload(organization_id: str, file: UploadFile = File(...), db: _orm.Session = _fastapi.Depends(get_db), 
-    user: users_schemas.User= _fastapi.Depends(is_authenticated), bgtask = BackgroundTasks
+    user: users_schemas.User= _fastapi.Depends(is_authenticated) 
     ):
     org = db.query(_models.Organization).filter(_models.Organization.id== organization_id).first()
     #delete existing image
-    if org.image != "":
-        image = org.image
-        filename = f"/{org.id}/{image}"
+    # if org.image != "":
+    #     image = org.image
+    #     filename = f"/{org.id}/{image}"
 
-        root_location = os.path.abspath("filestorage")
-        full_image_path =  root_location + filename
-        os.remove(full_image_path)
+    #     root_location = os.path.abspath("filestorage")
+    #     full_image_path =  root_location + filename
+    #     os.remove(full_image_path)
 
     image = await upload_image(file, db, bucket_name = org.id)
     org.image = image
     db.commit()
     db.refresh(org)
     image = org.image
-    filename = f"/{org.id}/{image}"
-    root_location = os.path.abspath("filestorage")
-    full_image_path =  root_location + filename
 
-    setattr(org, 'image_path_path', full_image_path)
+    appBasePath = config('API_URL')
+    imageURL = appBasePath+f'/organizations/{organization_id}/image'
+    setattr(org, 'image_full_path', imageURL)
     return org
 
-@app.get("/organizations/{organization_id}/update-image")
+@app.get("/organizations/{organization_id}/image")
 
-async def get_organization_image_upload(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db), user: users_schemas.User= _fastapi.Depends(is_authenticated)):
+async def get_organization_image_upload(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
     org = db.query(_models.Organization).filter(_models.Organization.id== organization_id).first()
    
     image = org.image
@@ -119,7 +121,7 @@ async def get_organization_image_upload(organization_id: str, db: _orm.Session =
     root_location = os.path.abspath("filestorage")
     full_image_path =  root_location + filename
 
-    return full_image_path
+    return FileResponse(full_image_path)
 
 
 @app.delete("/organizations/{organization_id}", status_code=204)
@@ -166,13 +168,13 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
     organizationlist = list(map(_schemas.Organization.from_orm, organizations))
     organizationCollection = []
     for pos in range(len(organizationlist)):
-        image = organizationlist[pos].image
-        filename = f"/{organizationlist[pos].id}/{image}"
+        
+        appBasePath = config('API_URL')
 
-        root_location = os.path.abspath("filestorage")
-        full_image_path =  root_location + filename
-        setattr(organizationlist[pos], 'image_full_path', full_image_path)
+        imageURL = appBasePath+f'/organizations/{organizationlist[pos].id}/image'
+        setattr(organizationlist[pos], 'image_full_path', imageURL)
         organizationCollection.append(organizationlist[pos]) 
+
     return organizationCollection
 
 
@@ -186,12 +188,10 @@ async def _organization_selector(organization_id: str, user: users_schemas.User,
 
     if organization is None:
         raise _fastapi.HTTPException(status_code=404, detail="Organization does not exist")
-    image = organization.image
-    filename = f"/{organization.id}/{image}"
 
-    root_location = os.path.abspath("filestorage")
-    full_image_path =  root_location + filename
-    setattr(organization, 'image_full_path', full_image_path)
+    appBasePath = config('API_URL')
+    imageURL = appBasePath+f'/organizations/{organization_id}/image'
+    setattr(organization, 'image_full_path', imageURL)
 
     return organization
 

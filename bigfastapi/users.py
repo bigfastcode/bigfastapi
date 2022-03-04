@@ -1,5 +1,5 @@
+from operator import inv
 from typing import Optional
-from unicodedata import name
 from bigfastapi.schemas import email_schema
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
@@ -13,10 +13,12 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks,
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
+from .schemas import store_invite_schemas as _invite_schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
-from .files import upload_image
+from .files import deleteFile, isFileExist, upload_image
 from .email import send_email
 from .models import store_invite_model, store_user_model
+
 
 app = APIRouter(tags=["User"])
 
@@ -79,7 +81,7 @@ async def updateUserProfile(
 
 
 @app.patch('/users/password/update')
-async def updateUserPassword(
+async def updatePassword(
     payload:_schemas.updatePasswordRequest,
     db: orm.Session = fastapi.Depends(get_db),
     user: str = fastapi.Depends(is_authenticated)):
@@ -89,26 +91,54 @@ async def updateUserPassword(
 
 @app.put('/users/accept-invite/{token}')
 def accept_invite(
-        payload:_schemas.StoreUser, 
+        payload:_invite_schemas.StoreUser, 
         token: str,
         db: orm.Session =fastapi.Depends(get_db)):
 
-    # check if the invite token exists in the db.
-    valid_token = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
-    if not valid_token:
+    existing_invite = db.query(
+        store_invite_model.StoreInvite).filter(
+            store_invite_model.StoreInvite.invite_code == token 
+            and store_invite_model.StoreInvite.is_deleted == False
+            and store_invite_model.StoreInvite.is_revoked == False).first()
+
+    if not existing_invite:
         return JSONResponse({
             "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=404)
+
+    existing_user = db.query(user_models.User).filter(
+        user_models.User.email == existing_invite.user_email).first()
+    
+    if not existing_user:
+        return JSONResponse({
+            "message": "You must log in first"
+        }, status_code=403)
+
+    # check if the invite token exists in the db.
+    invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
+    if not invite:
+        return JSONResponse({
+            "message": "Invite not found!"
         }, status_code=status.HTTP_404_NOT_FOUND)
     
+    # TO-DO
+    # check if the store user exist and update before creating store user
+
     # create store user
     store_user = store_user_model.StoreUser(
         store_id = payload.organization_id,
         user_id = payload.user_id,
-        role = valid_token.user_role
+        role = invite.user_role
     )
     db.add(store_user)
     db.commit()
     db.refresh(store_user)
+
+    invite.is_deleted = True
+    invite.is_accepted = True
+    db.add(invite)
+    db.commit()
+    db.refresh(invite)
 
     return JSONResponse({
         "message": f"Store user created and added to organization with id {payload.organization_id}" 
@@ -116,7 +146,7 @@ def accept_invite(
 
 @app.post("/users/invite/", status_code=201)
 async def invite_user(
-    payload: _schemas.UserInvite,
+    payload: _invite_schemas.UserInvite,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
     db: orm.Session = fastapi.Depends(get_db)
@@ -128,7 +158,7 @@ async def invite_user(
     """
 
     invite_token = uuid4().hex
-    invite_url = f"{payload.app_url}/users/accept-invite?code={invite_token}"         
+    invite_url = f"{payload.app_url}/app/accept-invite?code={invite_token}"         
     payload.email_details.link = invite_url
     email_info = payload.email_details
 
@@ -141,7 +171,7 @@ async def invite_user(
         invite = store_invite_model.StoreInvite(
             store_id = payload.store.get("id"),
             user_id = payload.user_id,
-            user_email = payload.email,
+            user_email = payload.user_email,
             user_role = payload.user_role,
             invite_code = invite_token
         )
@@ -152,6 +182,37 @@ async def invite_user(
         return { "message": "Store invite email will be sent in the background." }
     return { "message": "invite already sent" }
 
+@app.get('/users/invite/{invite_code}')
+async def get_single_invite(
+        invite_code: str,
+        db: orm.Session = fastapi.Depends(get_db),
+    ):
+    # user invite code to query the invite table
+    existing_invite = db.query(
+        store_invite_model.StoreInvite).filter(
+            store_invite_model.StoreInvite.invite_code == invite_code 
+            and store_invite_model.StoreInvite.is_deleted == False
+            and store_invite_model.StoreInvite.is_revoked == False).first()
+    existing_user = db.query(user_models.User).filter(
+        user_models.User.email == existing_invite.user_email).first()
+    
+    store = db.query(organisation_models.Organization).filter(
+        organisation_models.Organization.id == existing_invite.store_id).first()
+    
+    # existing_invite.__setattr__('store', store)
+    setattr(existing_invite, 'store', store)
+    if(existing_user is not None):
+        existing_user = 'exists'
+    if not existing_invite:
+        return JSONResponse({
+            "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=404)
+    # invite = _invite_schemas.Invite.from_orm(existing_invite)
+    # return the data matching the invite code.
+    # return JSONResponse({
+    #     "data": result
+    #     }, status_code=status.HTTP_200_OK)
+    return { "invite": existing_invite, "user": existing_user }
 
 
 
@@ -196,21 +257,65 @@ async def password_change_with_token(
     return await password_change_token(password, token, db)
 
 
-@app.put("/users/update-image", response_model=_schemas.User)
-async def user_image_upload( file: UploadFile = File(...), db: orm.Session = fastapi.Depends(get_db), current_user: _schemas.User= fastapi.Depends(is_authenticated)):
-    image = await upload_image(file, db, bucket_name = current_user.id)
-    filename = f"/{current_user.id}/{image}"
-    root_location = os.path.abspath("filestorage")
-    full_image_path =  root_location + filename
-    current_user.image = full_image_path
-    db.commit()
-    db.refresh(current_user)
-    return current_user
-   
+@app.patch('/users/image/upload')
+async def updatePassword(
+    file: UploadFile = File(...),
+    db: orm.Session = fastapi.Depends(get_db),
+    user: str = fastapi.Depends(is_authenticated)):
+    
+    bucketName = 'profileImages'
+    checkAndDeleteRes = await deleteIfFileExistPrior(user)
+    
+    uploadedImage = await upload_image(file, db, bucketName)
+    imageEndpoint = constructImageEndpoint(uploadedImage, bucketName)
+
+    updatedUser = await updateUserImage(user.id, db, imageEndpoint)
+    return {"data":  updatedUser }
+    
 
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
+async def  deleteIfFileExistPrior(user: _schemas.User):
+     #check if user object contains image endpoint
+     if user.image is not None and len(user.image) > 17:
+        # construct the image path from endpoint
+        prevImagePath = user.image.split('files', 1)
+        fullStoragePath = os.path.abspath("filestorage") + prevImagePath
+        isProfileImageExistPrior = await isFileExist(fullStoragePath)
+        # check if image exist in file prior and delete it
+        if isProfileImageExistPrior:
+            deleteRes = await deleteFile(fullStoragePath)
+            print(f"isFileDeleted: {deleteRes}")
+            return deleteRes
+        else:
+            print("image does not exist prior")
+            return False
+    
+     else:
+        print('prior image endpoint is not a valid image endpoint')
+        return False
+    
+    
+def constructImageEndpoint(Uploadedimage:str, bucketName:str):
+    return f"/files/{bucketName}/{Uploadedimage}"
+
+
+async def updateUserImage(userId:str, db: orm.Session, imageEndpoint:str):
+    user = db.query(user_models.User).filter(user_models.User.id == userId).first()
+    user.image = imageEndpoint
+    try:
+        db.commit()
+        db.refresh(user)
+        print('update user image successfully')
+        return user
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+    
 async def get_password_reset_code_sent_to_email(code: str, db: orm.Session):
     return db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.code == code).first()
 

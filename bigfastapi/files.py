@@ -1,4 +1,5 @@
 
+from logging import raiseExceptions
 import fastapi, os
 
 from .models import file_models as model
@@ -191,3 +192,35 @@ async def upload_image( file: fastapi.UploadFile = fastapi.File(...),  db: orm.S
         db.refresh(file)
 
         return file.filename
+    
+async def isFileExist(filePath: str):
+     """Check the existence of a file in directory
+
+    Args:
+        File path (str): path to the file example "/testImages/test.png".
+        
+    Returns:
+        Boolean: true or false depending if file exist
+    """
+     basePath = os.path.abspath("filestorage")
+     fullPath =  basePath + filePath
+     return os.path.exists(fullPath)
+    
+ 
+async def deleteFile(filePath: str):
+    """Delete a file from directory
+
+    Args:
+        File path (str): path to the file example "/testImages/test.png".
+        
+    Returns:
+        Boolean: true or false depending if operation is successful
+    """
+    try:
+        basePath = os.path.abspath("filestorage")
+        fullPath =  basePath + filePath
+        os.remove(fullPath)
+        return True
+    except Exception as e:
+        print(e)
+        return False
