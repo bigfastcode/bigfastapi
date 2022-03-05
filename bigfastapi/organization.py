@@ -1,4 +1,5 @@
 import datetime as _dt
+from ftplib import all_errors
 from urllib.request import Request
 from uuid import uuid4
 
@@ -10,6 +11,7 @@ from fastapi import APIRouter
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .models import organisation_models as _models
+from .models import store_user_model
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
@@ -41,8 +43,9 @@ async def get_organizations(
         page_size: int = 15,
         page_number: int = 1,
 ):
-    allorgs = await get_organizations(user, db)
-    return paginate_data(allorgs, page_size, page_number)
+    all_orgs = await get_organizations(user, db)
+
+    return paginate_data(all_orgs, page_size, page_number)
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
@@ -58,8 +61,18 @@ async def get_organization_users(
     organization_id: str,
     db: _orm.Session = _fastapi.Depends(get_db)
 ):
-    pass
 
+    """
+        An endpoint that returns the users in an organization.
+    """
+    # query the store_users table with the organization_id
+    store_users = db.query(store_user_model.StoreUser).filter(
+        store_user_model.StoreUser.store_id==organization_id
+    ).all()
+    # return the response alongside the count 
+    if not store_users:
+        return { "message": "Error while fetching store users"}
+    return store_users
 
 @app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,
@@ -146,17 +159,39 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
 
 
 async def get_organizations(user: users_schemas.User, db: _orm.Session):
-    organizations = db.query(_models.Organization).filter_by(creator=user.id)
+    native_orgs = db.query(_models.Organization).filter_by(creator=user.id)
+    
+    invited_orgs_rep = db.query(store_user_model.StoreUser).filter(
+        store_user_model.StoreUser.user_id == user.id
+    ).all()
+    
+    if len(invited_orgs_rep) < 1:
+        # continue to last stage
+        organization_list = list(map(_schemas.Organization.from_orm, native_orgs))
+        organizationCollection = []
+        for pos in range(len(organization_list)):
+            appBasePath = config('API_URL')
+            imageURL = appBasePath+f'/organizations/{organization_list[pos].id}/image'
+            setattr(organization_list[pos], 'image_full_path', imageURL)
+            organizationCollection.append(organization_list[pos]) 
 
-    organizationlist = list(map(_schemas.Organization.from_orm, organizations))
+        return organizationCollection
+
+    store_id_list = list(map(lambda x: x.id, invited_orgs_rep))
+
+    # return the organizations with the ids in id_list if any
+    invite_orgs = list(lambda id: db.query(
+        _models.Organization
+    ).filter(_models.Organization.id == id).first(), store_id_list)
+    
+    org_coll = native_orgs + invite_orgs
+    organization_list = list(map(_schemas.Organization.from_orm, org_coll))
     organizationCollection = []
-    for pos in range(len(organizationlist)):
-        
+    for pos in range(len(organization_list)):
         appBasePath = config('API_URL')
-
-        imageURL = appBasePath+f'/organizations/{organizationlist[pos].id}/image'
-        setattr(organizationlist[pos], 'image_full_path', imageURL)
-        organizationCollection.append(organizationlist[pos]) 
+        imageURL = appBasePath+f'/organizations/{organization_list[pos].id}/image'
+        setattr(organization_list[pos], 'image_full_path', imageURL)
+        organizationCollection.append(organization_list[pos]) 
 
     return organizationCollection
 
