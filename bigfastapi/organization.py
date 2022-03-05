@@ -178,9 +178,11 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
 async def get_organizations(user: users_schemas.User, db: _orm.Session):
     native_orgs = db.query(_models.Organization).filter_by(creator=user.id).all()
     
-    invited_orgs_rep = db.query(store_user_model.StoreUser).filter(
-        store_user_model.StoreUser.user_id == user.id
-    ).all()
+    invited_orgs_rep = (
+        db.query(store_user_model.StoreUser)
+        .filter(store_user_model.StoreUser.user_id == user.id)
+        .all()
+    )
     
     if len(invited_orgs_rep) < 1:
         # continue to last stage
