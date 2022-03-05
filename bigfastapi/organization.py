@@ -176,7 +176,7 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
 
 
 async def get_organizations(user: users_schemas.User, db: _orm.Session):
-    native_orgs = db.query(_models.Organization).filter_by(creator=user.id)
+    native_orgs = db.query(_models.Organization).filter_by(creator=user.id).all()
     
     invited_orgs_rep = db.query(store_user_model.StoreUser).filter(
         store_user_model.StoreUser.user_id == user.id
@@ -184,7 +184,7 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
     
     if len(invited_orgs_rep) < 1:
         # continue to last stage
-        organization_list = list(map(_schemas.Organization.from_orm, native_orgs))
+        organization_list = native_orgs
         organizationCollection = []
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
@@ -194,21 +194,19 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
 
         return organizationCollection
 
-    store_id_list = list(map(lambda x: x.id, invited_orgs_rep))
+    store_id_list = list(map(lambda x: x.store_id, invited_orgs_rep))
 
-    # return the organizations with the ids in id_list if any
-    invite_orgs = list(lambda id: db.query(
-        _models.Organization
-    ).filter(_models.Organization.id == id).first(), store_id_list)
-    
-    org_coll = native_orgs + invite_orgs
-    organization_list = list(map(_schemas.Organization.from_orm, org_coll))
+    org = []
+    for store_id in store_id_list:
+        org = org + db.query(_models.Organization).filter(_models.Organization.id == store_id).all()
+
+    org_coll = native_orgs + org
     organizationCollection = []
-    for pos in range(len(organization_list)):
+    for pos in range(len(org_coll)):
         appBasePath = config('API_URL')
-        imageURL = appBasePath+f'/organizations/{organization_list[pos].id}/image'
-        setattr(organization_list[pos], 'image_full_path', imageURL)
-        organizationCollection.append(organization_list[pos]) 
+        imageURL = appBasePath+f'/organizations/{org_coll[pos].id}/image'
+        setattr(org_coll[pos], 'image_full_path', imageURL)
+        organizationCollection.append(org_coll[pos]) 
 
     return organizationCollection
 
@@ -216,7 +214,6 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-            .filter_by(creator=user.id)
             .filter(_models.Organization.id == organization_id)
             .first()
     )
