@@ -140,7 +140,7 @@ def accept_invite(
     db.refresh(invite)
 
     return JSONResponse({
-        "message": f"Store user created and added to organization with id {payload.organization_id}" 
+        "data": invite.store_id
     }, status_code=status.HTTP_200_OK)
 
 @app.post("/users/invite/", status_code=201)
