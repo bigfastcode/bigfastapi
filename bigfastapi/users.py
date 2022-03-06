@@ -141,7 +141,7 @@ def accept_invite(
     db.refresh(invite)
 
     return JSONResponse({
-        "data": invite.store_id
+        "id": invite.store_id
     }, status_code=status.HTTP_200_OK)
 
 @app.post("/users/invite/", status_code=201)
