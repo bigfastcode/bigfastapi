@@ -228,6 +228,21 @@ async def get_single_invite(
     #     }, status_code=status.HTTP_200_OK)
     return { "invite": existing_invite, "user": existing_user }
 
+@app.put("/users/invite/{invite_code}/decline")
+def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
+    declined_invite = (
+        db.query(store_invite_model.StoreInvite)
+        .filter(store_invite_model.StoreInvite.invite_code == invite_code)
+        .first()
+    )
+
+    declined_invite.is_deleted = True
+    db.add(declined_invite)
+    db.commit()
+    db.refresh(declined_invite)
+    
+    return declined_invite
+
 
 
 # ////////////////////////////////////////////////////CODE ////////////////////////////////////////////////////////////// 
