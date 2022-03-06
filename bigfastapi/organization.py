@@ -14,11 +14,12 @@ from .auth_api import is_authenticated
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
-from .models import store_user_model
-
+from .models import store_user_model, user_models, store_invite_model
 from .models import wallet_models as wallet_models
+
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
+
 from .utils.utils import paginate_data
 
 app = APIRouter(tags=["Organization"])
@@ -82,14 +83,49 @@ async def get_organization_users(
     """
         An endpoint that returns the users in an organization.
     """
+    store_users = []
     # query the store_users table with the organization_id
-    store_users = db.query(store_user_model.StoreUser).filter(
+    invited_list = db.query(store_user_model.StoreUser).filter(
         store_user_model.StoreUser.store_id==organization_id
     ).all()
+
     # return the response alongside the count 
-    if not store_users:
-        return { "message": "Error while fetching store users"}
+    if not invited_list:
+        return { "message": "Error while fetching invited users"}
+        
+    organization = (
+        db.query(_models.Organization)
+            .filter(_models.Organization.id == organization_id)
+            .first()
+    )
+
+    if organization is None:
+        raise _fastapi.HTTPException(status_code=404, detail="Organization does not exist")
+    store_owner_id = organization.creator
+    store_owner = (
+        db.query(user_models.User)
+        .filter(user_models.User.id == store_owner_id)
+        .all())
+
+    invited_users = []
+    for invited in invited_list:
+        invited_users += db.query(user_models.User).filter(user_models.User.id == invited.user_id)
+    
+    store_users = invited_users + store_owner
     return store_users
+    
+
+@app.get("/organizations/invites/{organization_id}")
+def get_pending_invites(
+    organization_id: str,
+    db: _orm.Session = _fastapi.Depends(get_db)
+):
+    pending_invites = (
+        db.query(store_invite_model.StoreInvite)
+        .filter(store_invite_model.StoreInvite.is_accepted == False)
+        .all()
+        )
+    return pending_invites
 
 @app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,
