@@ -162,25 +162,39 @@ async def invite_user(
     payload.email_details.link = invite_url
     email_info = payload.email_details
 
-    # check if user_email already exists
-    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.user_email).first()
-    if not existing_invite:
+    # make sure you can't send invite to yourself
+    invite_ctrl = (
+        db.query(user_models.User)
+        .filter(user_models.User.email == payload.user_email)
+        .first()
+    )
+    if invite_ctrl is None:
+        # check if user_email already exists
+        existing_invite = (
+            db.query(store_invite_model.StoreInvite)
+            .filter(
+                store_invite_model.StoreInvite.user_email == payload.user_email
+                and store_invite_model.StoreInvite.is_deleted == False
+                )
+            .first())
+        if not existing_invite:
 
-        # send invite email to user
-        send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
-        invite = store_invite_model.StoreInvite(
-            store_id = payload.store.get("id"),
-            user_id = payload.user_id,
-            user_email = payload.user_email,
-            user_role = payload.user_role,
-            invite_code = invite_token
-        )
-        db.add(invite)
-        db.commit()
-        db.refresh(invite)
+            # send invite email to user
+            send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
+            invite = store_invite_model.StoreInvite(
+                store_id = payload.store.get("id"),
+                user_id = payload.user_id,
+                user_email = payload.user_email,
+                user_role = payload.user_role,
+                invite_code = invite_token
+            )
+            db.add(invite)
+            db.commit()
+            db.refresh(invite)
 
-        return { "message": "Store invite email will be sent in the background." }
-    return { "message": "invite already sent" }
+            return { "message": "Store invite email will be sent in the background." }
+        return { "message": "invite already sent" }
+    return { "message": "Enter an email you're not logged in with."}
 
 @app.get('/users/invite/{invite_code}')
 async def get_single_invite(
