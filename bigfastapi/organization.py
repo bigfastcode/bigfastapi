@@ -1,24 +1,25 @@
 import datetime as _dt
-from urllib.request import Request
+import os
 from uuid import uuid4
 
 import fastapi as _fastapi
-from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, File
 import sqlalchemy.orm as _orm
+from decouple import config
 from fastapi import APIRouter
+from fastapi import UploadFile, File
+from fastapi.responses import FileResponse
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
+from .files import upload_image
+from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
+from .models import store_user_model
 
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
 from .utils.utils import paginate_data
-from .files import upload_image
-import os
-from fastapi.responses import FileResponse
-from decouple import config
 
 app = APIRouter(tags=["Organization"])
 
@@ -58,8 +59,9 @@ async def get_organizations(
         page_size: int = 15,
         page_number: int = 1,
 ):
-    allorgs = await get_organizations(user, db)
-    return paginate_data(allorgs, page_size, page_number)
+    all_orgs = await get_organizations(user, db)
+
+    return paginate_data(all_orgs, page_size, page_number)
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
@@ -70,13 +72,24 @@ async def get_organization(
 ):
     return await get_organization(organization_id, user, db)
 
+
 @app.get("/organizations/users/{organization_id}", status_code=200)
 async def get_organization_users(
-    organization_id: str,
-    db: _orm.Session = _fastapi.Depends(get_db)
+        organization_id: str,
+        db: _orm.Session = _fastapi.Depends(get_db)
 ):
-    pass
 
+    """
+        An endpoint that returns the users in an organization.
+    """
+    # query the store_users table with the organization_id
+    store_users = db.query(store_user_model.StoreUser).filter(
+        store_user_model.StoreUser.store_id==organization_id
+    ).all()
+    # return the response alongside the count 
+    if not store_users:
+        return { "message": "Error while fetching store users"}
+    return store_users
 
 @app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,
@@ -84,13 +97,14 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
                               db: _orm.Session = _fastapi.Depends(get_db)):
     return await update_organization(organization_id, organization, user, db)
 
-@app.put("/organizations/{organization_id}/update-image")
 
-async def organization_image_upload(organization_id: str, file: UploadFile = File(...), db: _orm.Session = _fastapi.Depends(get_db), 
-    user: users_schemas.User= _fastapi.Depends(is_authenticated) 
-    ):
-    org = db.query(_models.Organization).filter(_models.Organization.id== organization_id).first()
-    #delete existing image
+@app.put("/organizations/{organization_id}/update-image")
+async def organization_image_upload(organization_id: str, file: UploadFile = File(...),
+                                    db: _orm.Session = _fastapi.Depends(get_db),
+                                    user: users_schemas.User = _fastapi.Depends(is_authenticated)
+                                    ):
+    org = db.query(_models.Organization).filter(_models.Organization.id == organization_id).first()
+    # delete existing image
     # if org.image != "":
     #     image = org.image
     #     filename = f"/{org.id}/{image}"
@@ -99,27 +113,27 @@ async def organization_image_upload(organization_id: str, file: UploadFile = Fil
     #     full_image_path =  root_location + filename
     #     os.remove(full_image_path)
 
-    image = await upload_image(file, db, bucket_name = org.id)
+    image = await upload_image(file, db, bucket_name=org.id)
     org.image = image
     db.commit()
     db.refresh(org)
     image = org.image
 
     appBasePath = config('API_URL')
-    imageURL = appBasePath+f'/organizations/{organization_id}/image'
+    imageURL = appBasePath + f'/organizations/{organization_id}/image'
     setattr(org, 'image_full_path', imageURL)
     return org
 
-@app.get("/organizations/{organization_id}/image")
 
+@app.get("/organizations/{organization_id}/image")
 async def get_organization_image_upload(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
-    org = db.query(_models.Organization).filter(_models.Organization.id== organization_id).first()
-   
+    org = db.query(_models.Organization).filter(_models.Organization.id == organization_id).first()
+
     image = org.image
     filename = f"/{org.id}/{image}"
 
     root_location = os.path.abspath("filestorage")
-    full_image_path =  root_location + filename
+    full_image_path = root_location + filename
 
     return FileResponse(full_image_path)
 
@@ -136,8 +150,10 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 async def get_orgnanization_by_name(name: str, db: _orm.Session):
     return db.query(_models.Organization).filter(_models.Organization.name == name).first()
 
-async def fetch_organization_by_name(name: str, organization_id:str, db: _orm.Session):
-    return db.query(_models.Organization).filter(_models.Organization.name == name).filter(_models.Organization.id != organization_id).first()
+
+async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.Session):
+    return db.query(_models.Organization).filter(_models.Organization.name == name).filter(
+        _models.Organization.id != organization_id).first()
 
 
 async def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
@@ -153,27 +169,46 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
     db.commit()
     db.refresh(organization)
 
-    wallet = wallet_models.Wallet(id=uuid4().hex, organization_id=organization_id, balance=0,
-                                  last_updated=_dt.datetime.utcnow(), currency_code=organization.currency_preference)
+    await create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
+    await create_credit_wallet(organization_id=organization_id, db=db)
 
-    db.add(wallet)
-    db.commit()
-    db.refresh(wallet)
     return _schemas.Organization.from_orm(organization)
 
 
 async def get_organizations(user: users_schemas.User, db: _orm.Session):
-    organizations = db.query(_models.Organization).filter_by(creator=user.id)
+    native_orgs = db.query(_models.Organization).filter_by(creator=user.id).all()
+    
+    invited_orgs_rep = (
+        db.query(store_user_model.StoreUser)
+        .filter(store_user_model.StoreUser.user_id == user.id)
+        .all()
+    )
+    
+    if len(invited_orgs_rep) < 1:
+        # continue to last stage
+        organization_list = native_orgs
+        organizationCollection = []
+        for pos in range(len(organization_list)):
+            appBasePath = config('API_URL')
+            imageURL = appBasePath+f'/organizations/{organization_list[pos].id}/image'
+            setattr(organization_list[pos], 'image_full_path', imageURL)
+            organizationCollection.append(organization_list[pos]) 
 
-    organizationlist = list(map(_schemas.Organization.from_orm, organizations))
+        return organizationCollection
+
+    store_id_list = list(map(lambda x: x.store_id, invited_orgs_rep))
+
+    org = []
+    for store_id in store_id_list:
+        org = org + db.query(_models.Organization).filter(_models.Organization.id == store_id).all()
+
+    org_coll = native_orgs + org
     organizationCollection = []
-    for pos in range(len(organizationlist)):
-        
+    for pos in range(len(org_coll)):
         appBasePath = config('API_URL')
-
-        imageURL = appBasePath+f'/organizations/{organizationlist[pos].id}/image'
-        setattr(organizationlist[pos], 'image_full_path', imageURL)
-        organizationCollection.append(organizationlist[pos]) 
+        imageURL = appBasePath+f'/organizations/{org_coll[pos].id}/image'
+        setattr(org_coll[pos], 'image_full_path', imageURL)
+        organizationCollection.append(org_coll[pos]) 
 
     return organizationCollection
 
@@ -181,7 +216,6 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-            .filter_by(creator=user.id)
             .filter(_models.Organization.id == organization_id)
             .first()
     )
@@ -190,7 +224,7 @@ async def _organization_selector(organization_id: str, user: users_schemas.User,
         raise _fastapi.HTTPException(status_code=404, detail="Organization does not exist")
 
     appBasePath = config('API_URL')
-    imageURL = appBasePath+f'/organizations/{organization_id}/image'
+    imageURL = appBasePath + f'/organizations/{organization_id}/image'
     setattr(organization, 'image_full_path', imageURL)
 
     return organization
@@ -212,7 +246,7 @@ async def delete_organization(organization_id: str, user: users_schemas.User, db
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate, user: users_schemas.User,
                               db: _orm.Session):
     organization_db = await _organization_selector(organization_id, user, db)
-
+    currencyUpdated = False
     if organization.mission != "":
         organization_db.mission = organization.mission
 
@@ -231,26 +265,55 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
             organization_db.name = organization.name
 
     organization_db.email = organization.email
-    
+
     organization_db.tagline = organization.tagline
 
     organization_db.phone_number = organization.phone_number
-    
+
     if organization.country != "":
         organization_db.country = organization.country
-    
+
     if organization.state != "":
         organization_db.state = organization.state
-    
+
     if organization.address != "":
         organization_db.address = organization.address
-    
+
     if organization.currency_preference != "":
         organization_db.currency_preference = organization.currency_preference
+        currencyUpdated = True
 
     organization_db.last_updated = _dt.datetime.utcnow()
 
     db.commit()
     db.refresh(organization_db)
 
+    # create a new wallet if the currency is changed
+    if currencyUpdated:
+        await create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
+
     return _schemas.Organization.from_orm(organization_db)
+
+
+async def create_wallet(organization_id: str, currency: str, db: _orm.Session):
+    currency = currency.upper()
+    wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).filter_by(
+        currency_code=currency).first()
+
+    if wallet is None:
+        wallet = wallet_models.Wallet(id=uuid4().hex, organization_id=organization_id, balance=0,
+                                      currency_code=currency,
+                                      last_updated=_dt.datetime.utcnow())
+
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
+
+
+async def create_credit_wallet(organization_id: str, db: _orm.Session):
+    credit = credit_wallet_models.CreditWallet(id=uuid4().hex, organization_id=organization_id, amount=0,
+                                               last_updated=_dt.datetime.utcnow())
+
+    db.add(credit)
+    db.commit()
+    db.refresh(credit)

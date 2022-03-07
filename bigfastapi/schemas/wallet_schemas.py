@@ -5,6 +5,18 @@ from typing import Optional
 import pydantic as _pydantic
 
 
+class WalletTransaction(_pydantic.BaseModel):
+    amount: float
+    transaction_ref: str
+    transaction_date: _dt.datetime
+    currency_code: str
+    id: str
+    wallet_id: str
+
+    class Config:
+        orm_mode = True
+
+
 class WalletCreate(_pydantic.BaseModel):
     organization_id: str
     currency_code: str
