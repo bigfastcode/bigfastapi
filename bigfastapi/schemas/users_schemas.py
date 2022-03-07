@@ -1,5 +1,6 @@
 import datetime as dt
-from resource import struct_rusage
+
+# from resource import struct_rusage
 from fastapi import File, UploadFile
 
 import pydantic as _pydantic
@@ -111,6 +112,11 @@ class UpdateUserReq(_UserBase):
 class updatePasswordRequest(_pydantic.BaseModel):
     password:str
     password_confirmation:str
+    
+
+class ImageUploadReq(_pydantic.BaseModel):
+    image: UploadFile = File(...)
+    
 
 
 
