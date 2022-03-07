@@ -16,10 +16,13 @@ class _OrganizationBase(_pydantic.BaseModel):
     state: str
     address: str
     currency_preference: str
+    phone_number: str = None
+    email: str = None
     current_subscription: Optional[str]
     tagline: Optional[str]
     image: Optional[str]
     values: Optional[str]
+    image_full_path: str = None
 
     class Config:
         orm_mode = True

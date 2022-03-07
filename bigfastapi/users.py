@@ -1,17 +1,24 @@
-from unicodedata import name
+from operator import inv
+from typing import Optional
+from bigfastapi.schemas import email_schema
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
+from fastapi.responses import JSONResponse
+import os
 
 import passlib.hash as _hash
-from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from bigfastapi.models import organisation_models, user_models, auth_models
+from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, status
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
+from .schemas import store_invite_schemas as _invite_schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import upload_image
-import os
+from .email import send_email
+from .models import store_invite_model, store_user_model
+
 app = APIRouter(tags=["User"])
 
 # app.mount('static', StaticFiles(directory="static"), name='static')
@@ -80,8 +87,131 @@ async def updateUserPassword(
     
     dbResponse = await updateUserPassword(db, user.id, payload)
     return {"data":  dbResponse }
+
+@app.put('/users/accept-invite/{token}')
+def accept_invite(
+        payload:_invite_schemas.StoreUser, 
+        token: str,
+        db: orm.Session =fastapi.Depends(get_db)):
+
+    existing_invite = db.query(
+        store_invite_model.StoreInvite).filter(
+            store_invite_model.StoreInvite.invite_code == token 
+            and store_invite_model.StoreInvite.is_deleted == False
+            and store_invite_model.StoreInvite.is_revoked == False).first()
+
+    if not existing_invite:
+        return JSONResponse({
+            "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=404)
+
+    existing_user = db.query(user_models.User).filter(
+        user_models.User.email == existing_invite.user_email).first()
     
+    if not existing_user:
+        return JSONResponse({
+            "message": "You must log in first"
+        }, status_code=403)
+
+    # check if the invite token exists in the db.
+    invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
+    if not invite:
+        return JSONResponse({
+            "message": "Invite not found!"
+        }, status_code=status.HTTP_404_NOT_FOUND)
     
+    # TO-DO
+    # check if the store user exist and update before creating store user
+
+    # create store user
+    store_user = store_user_model.StoreUser(
+        store_id = payload.organization_id,
+        user_id = payload.user_id,
+        role = invite.user_role
+    )
+    db.add(store_user)
+    db.commit()
+    db.refresh(store_user)
+
+    invite.is_deleted = True
+    invite.is_accepted = True
+    db.add(invite)
+    db.commit()
+    db.refresh(invite)
+
+    return JSONResponse({
+        "message": f"Store user created and added to organization with id {payload.organization_id}" 
+    }, status_code=status.HTTP_200_OK)
+
+@app.post("/users/invite/", status_code=201)
+async def invite_user(
+    payload: _invite_schemas.UserInvite,
+    background_tasks: BackgroundTasks,
+    template: Optional[str] = "invite_email.html",
+    db: orm.Session = fastapi.Depends(get_db)
+    ):
+    """
+        An endpoint to invite users to a store.
+
+        Returns dict: message
+    """
+
+    invite_token = uuid4().hex
+    invite_url = f"{payload.app_url}/app/accept-invite?code={invite_token}"         
+    payload.email_details.link = invite_url
+    email_info = payload.email_details
+
+    # check if user_email already exists
+    existing_invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.user_email == payload.email).first()
+    if not existing_invite:
+
+        # send invite email to user
+        send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
+        invite = store_invite_model.StoreInvite(
+            store_id = payload.store.get("id"),
+            user_id = payload.user_id,
+            user_email = payload.user_email,
+            user_role = payload.user_role,
+            invite_code = invite_token
+        )
+        db.add(invite)
+        db.commit()
+        db.refresh(invite)
+
+        return { "message": "Store invite email will be sent in the background." }
+    return { "message": "invite already sent" }
+
+@app.get('/users/invite/{invite_code}')
+async def get_single_invite(
+        invite_code: str,
+        db: orm.Session = fastapi.Depends(get_db),
+    ):
+    # user invite code to query the invite table
+    existing_invite = db.query(
+        store_invite_model.StoreInvite).filter(
+            store_invite_model.StoreInvite.invite_code == invite_code 
+            and store_invite_model.StoreInvite.is_deleted == False
+            and store_invite_model.StoreInvite.is_revoked == False).first()
+    existing_user = db.query(user_models.User).filter(
+        user_models.User.email == existing_invite.user_email).first()
+    
+    store = db.query(organisation_models.Organization).filter(
+        organisation_models.Organization.id == existing_invite.store_id).first()
+    
+    # existing_invite.__setattr__('store', store)
+    setattr(existing_invite, 'store', store)
+    if(existing_user is not None):
+        existing_user = 'exists'
+    if not existing_invite:
+        return JSONResponse({
+            "message": "Invite not found! Try again or ask the inviter to invite you again."
+        }, status_code=404)
+    # invite = _invite_schemas.Invite.from_orm(existing_invite)
+    # return the data matching the invite code.
+    # return JSONResponse({
+    #     "data": result
+    #     }, status_code=status.HTTP_200_OK)
+    return { "invite": existing_invite, "user": existing_user }
 
 
 
@@ -239,9 +369,3 @@ async def updateUserPassword(db: orm.Session, userId:str, payload: _schemas.upda
     else:
         raise HTTPException(status_code=422, detail='Password does not match')
         
-    
-
-
-
-
-

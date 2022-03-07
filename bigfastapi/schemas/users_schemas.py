@@ -1,4 +1,5 @@
 import datetime as dt
+from resource import struct_rusage
 from fastapi import File, UploadFile
 
 import pydantic as _pydantic
@@ -63,13 +64,14 @@ class UserInfo(_UserBase):
 class UserOrgLogin(_UserBase):
     password: str
     organization: str
-    
+
     
 class UserLogin(_UserBase):
     password: str
 
 class UserRecoverPassword(_UserBase):
     pass
+
 
 class User(_UserBase):
     id: str
