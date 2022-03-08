@@ -10,7 +10,10 @@ from uuid import UUID, uuid4
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
-import bigfastapi.db.database as _database
+
+
+
+
 from bigfastapi.db.database import Base
 
 class Organization(Base):
@@ -36,3 +39,15 @@ class Organization(Base):
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
+class DefaultTemplates(Base):
+    __tablename__ = "default_templates"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    organization_id = Column( String(), ForeignKey("businesses.id"))
+    greeting = Column(String(225), index=True)
+    subject = Column(String(255), index=True)
+    escalation_level = Column(Integer, index=True)
+    template_type = Column(String(255), index=True)
+    email_message = Column(String, index=True)
+    sms_message = Column(String, index=True)
+    is_deleted = Column(Boolean, default=False)
+    date_created = Column(DateTime, default=_dt.datetime.utcnow)
