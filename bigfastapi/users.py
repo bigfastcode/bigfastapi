@@ -308,7 +308,7 @@ async def updatePassword(
 
 async def  deleteIfFileExistPrior(user: _schemas.User):
      #check if user object contains image endpoint
-     if user.image is not None and len(user.image) > 17:
+     if user.image is not None and len(user.image) > 17 and 'profileImages/' in user.image:
          # construct the image path from endpoint
         splitPath = user.image.split('profileImages/', 1)
         imagePath = f"\profileImages\{splitPath[1]}"
