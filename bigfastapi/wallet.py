@@ -161,40 +161,50 @@ async def _get_super_admin_wallet(db: _orm.Session, currency: str):
     return wallet
 
 
-async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
-    # create a wallet transaction
-    wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
-                                                                     currency_code=currency, amount=amount,
-                                                                     transaction_date=_dt.datetime.utcnow(),
-                                                                     transaction_ref=tx_ref)
-    db.add(wallet_transaction)
-    db.commit()
-    db.refresh(wallet_transaction)
-
+async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, wallet_transaction_id='', reason=''):
     # update the wallet
     wallet.balance += amount
     wallet.last_updated = _dt.datetime.utcnow()
     db.commit()
     db.refresh(wallet)
 
+    if wallet_transaction_id == '':
+        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
+                                                                         currency_code=currency, amount=amount,
+                                                                         transaction_date=_dt.datetime.utcnow(),
+                                                                         transaction_ref=reason, status=True)
+        db.add(wallet_transaction)
+        db.commit()
+        db.refresh(wallet_transaction)
+
+    else:
+        # update a wallet transaction
+        wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(
+            id=wallet_transaction_id).first()
+        wallet_transaction.status = True
+        if reason != '':
+            wallet_transaction.transaction_ref = reason
+        db.commit()
+        db.refresh(wallet_transaction)
+
     if amount < 0:
         amount = -amount
         # transfer money to admin wallet
 
         adminWallet = await _get_super_admin_wallet(db=db, currency=currency)
-        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
-                                                                         currency_code=currency, amount=amount,
-                                                                         transaction_date=_dt.datetime.utcnow(),
-                                                                         transaction_ref=tx_ref)
-        db.add(wallet_transaction)
-        db.commit()
-        db.refresh(wallet_transaction)
-
         # update admin wallet
         adminWallet.balance += amount
         adminWallet.last_updated = _dt.datetime.utcnow()
         db.commit()
         db.refresh(adminWallet)
+
+        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
+                                                                         currency_code=currency, amount=amount,
+                                                                         transaction_date=_dt.datetime.utcnow(),
+                                                                         transaction_ref=reason, status=True)
+        db.add(wallet_transaction)
+        db.commit()
+        db.refresh(wallet_transaction)
 
     return wallet
 

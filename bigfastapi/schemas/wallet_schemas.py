@@ -11,6 +11,7 @@ class WalletTransaction(_pydantic.BaseModel):
     transaction_date: _dt.datetime
     currency_code: str
     id: str
+    status: bool
     wallet_id: str
 
     class Config:

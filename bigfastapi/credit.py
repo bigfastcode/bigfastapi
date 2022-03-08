@@ -93,26 +93,29 @@ async def verify_payment_transaction(
             jsonResponse = verificationRequest.json()
             ref = jsonResponse['data']['tx_ref']
             frontendUrl = jsonResponse['data']['meta']['redirect_url']
-            if jsonResponse['status'] == 'success' and tx_ref == ref:
-                if jsonResponse['data']['status'] == 'successful':
-                    user_id, organization_id, _ = tx_ref.split('-')
+            wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(id=ref).first()
+            ref = wallet_transaction.transaction_ref
+            if wallet_transaction is not None:
+                if wallet_transaction.status:
+                    response = RedirectResponse(
+                        url=frontendUrl + '?status=error&message=Transaction already processed')
+                    return response
+
+                if jsonResponse['status'] == 'success' and jsonResponse['data']['status'] == 'successful':
+                    user_id, organization_id, _ = ref.split('-')
                     amount = jsonResponse['data']['amount']
                     currency = jsonResponse['data']['currency']
                     wallet = await _get_wallet(organization_id=organization_id, currency=currency, db=db)
 
-                    wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(
-                        transaction_ref=tx_ref).filter_by(wallet_id=wallet.id).first()
-                    if wallet_transaction is not None:
-                        response = RedirectResponse(
-                            url=frontendUrl + '?status=error&message=Transaction already processed')
-                        return response
                     try:
-                        await update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
+                        await update_wallet(wallet=wallet, amount=amount, db=db, currency=currency,
+                                            wallet_transaction_id=wallet_transaction.id,
+                                            reason=currency + " " + str(amount) + " Top Up")
 
                         conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
                         credits_to_add = round(amount / conversion.rate)
                         await update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
-                                            tx_ref=organization_id + ": " + str(credits_to_add) + ' credits refill')
+                                            reason=organization_id + ": " + str(credits_to_add) + ' credits Top Up')
 
                         credit = db.query(model.CreditWallet).filter_by(organization_id=organization_id).first()
 
@@ -132,6 +135,9 @@ async def verify_payment_transaction(
                 else:
                     response = RedirectResponse(url=frontendUrl + '?status=error&message=Transaction not found')
                     return response
+            else:
+                response = RedirectResponse(url=frontendUrl + '?status=error&message=Transaction not found')
+                return response
 
         response = RedirectResponse(
             url=frontendUrl + '?status=error&message=An error occurred. Please try again&link=' + retryLink)
@@ -166,7 +172,8 @@ async def add_credit(body: schema.CreditWalletFund,
     if body.amount <= 0:
         raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                     detail="Amount must be a positive number")
-    wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).first()
+    wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).filter_by(
+        currency_code=body.currency).first()
     if wallet is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
     else:
@@ -175,11 +182,22 @@ async def add_credit(body: schema.CreditWalletFund,
         uniqueStr = time.time()
         txRef = user.id + "-" + organization_id + "-" + str(uniqueStr)
         rootUrl = config('API_URL')
+        # create transaction
+        transaction_id = uuid4().hex
+        wallet_transaction = wallet_transaction_models.WalletTransaction(id=transaction_id, wallet_id=wallet.id,
+                                                                         currency_code=body.currency,
+                                                                         amount=body.amount,
+                                                                         transaction_date=_dt.datetime.utcnow(),
+                                                                         transaction_ref=txRef)
+        db.add(wallet_transaction)
+        db.commit()
+        db.refresh(wallet_transaction)
+
         redirectUrl = rootUrl + '/credits/callback'
         link = await generate_payment_link(front_end_redirect_url=body.redirect_url, api_redirect_url=redirectUrl,
                                            user=user,
                                            amount=body.amount,
-                                           currency=body.currency, tx_ref=txRef)
+                                           currency=body.currency, tx_ref=transaction_id)
         return {"link": link}
 
 
