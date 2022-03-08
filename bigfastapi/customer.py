@@ -127,14 +127,13 @@ async def get_customer(
     #user: users_schemas.User = Depends(is_authenticated)
    ):
     customer = db.query(Customer).filter(Customer.customer_id == customer_id).first()
-    if customer is not None:
-        return customer_schemas.Customer.from_orm(customer)
-    else:
+    if not customer:
         return JSONResponse({"message": "Customer does not exist"},
                     status_code=status.HTTP_404_NOT_FOUND)
+    return customer_schemas.Customer.from_orm(customer)
         
 
-@app.put('/customers/{customer_id}', response_model=customer_schemas.Customer, 
+@app.put('/customers/{customer_id}', response_model=customer_schemas.CustomerCreateResponse, 
         status_code=status.HTTP_202_ACCEPTED)
 async def update_customer(
     customer: customer_schemas.CustomerUpdate, 
@@ -153,10 +152,9 @@ async def update_customer(
             return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         customer_instance.organization_id = organization.id
 
-    updated_customer = put_customer(customer=customer, 
+    updated_customer = await put_customer(customer=customer, 
                 customer_instance=customer_instance, db=db)
-    return {"message": "Customer created succesfully",
-             "customer": customer_schemas.Customer.from_orm(updated_customer)}
+    return {"message": "Customer updated succesfully", "customer": updated_customer}
 
  
 

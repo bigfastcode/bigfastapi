@@ -35,12 +35,14 @@ class Customer(CustomerBase):
     last_updated: datetime
 
 class CustomerUpdate(BaseModel):
+    unique_id: Optional[str] =None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
     organization_id: Optional[str] = None
-    address: Optional[str] = None
+    business_name: str =None
+    location: str =None
     gender: Optional[str] = None
     age: Optional[int] = None
     postal_code: Optional[str] = None

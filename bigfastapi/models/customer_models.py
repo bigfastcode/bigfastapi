@@ -82,7 +82,6 @@ async def add_customer(customer:customer_schemas.CustomerCreate, db: Session = D
     db.add(customer_instance)
     db.commit()
     db.refresh(customer_instance)
-    print(customer_instance)
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
@@ -93,6 +92,8 @@ async def put_customer(customer:customer_schemas.CustomerUpdate,
         customer_instance.first_name = customer.first_name
     if customer.last_name:
         customer_instance.last_name = customer.last_name
+    if customer.unique_id:
+        customer_instance.unique_id = customer.unique_id
     if customer.email:
         customer_instance.email = customer.email
     if customer.phone_number:
