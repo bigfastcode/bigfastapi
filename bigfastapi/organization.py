@@ -33,21 +33,30 @@ async def create_organization(
     db_org = await get_orgnanization_by_name(name=organization.name, db=db)
 
     if db_org:
-        raise _fastapi.HTTPException(status_code=400, detail="Organization name already in use")
+        raise _fastapi.HTTPException(
+            status_code=400, detail="Organization name already in use")
     created_org = await create_organization(user=user, db=db, organization=organization)
 
     if organization.add_template == True:
         template_obj = _models.DefaultTemplates(
-        id = uuid4().hex, organization_id=created_org.organization_id, subject="Reminder_One",
-        escalation_level=1, email_message="This is the first default email template created for this business.", sms_message="This is the first default sms template created for this business",
-        is_deleted=False, greeting="Reminder_Greetings", template_type= "BOTH"
+            id=uuid4().hex, organization_id=created_org.organization_id, subject="Reminder_One",
+            escalation_level=1, email_message="This is the first default email template created for this business.", sms_message="This is the first default sms template created for this business",
+            is_deleted=False, greeting="Reminder_Greetings", template_type="BOTH"
         )
-    
+
         db.add(template_obj)
         db.commit()
         db.refresh(template_obj)
 
-   
+        template_obj = _models.DefaultTemplates(
+            id=uuid4().hex, organization_id=created_org.organization_id, subject="Reminder_Two",
+            escalation_level=1, email_message="This is the second default email template created for this business.", sms_message="This is the second default sms template created for this business",
+            is_deleted=False, greeting="Reminder_Greetings", template_type="BOTH"
+        )
+
+        db.add(template_obj)
+        db.commit()
+        db.refresh(template_obj)
 
     return created_org
 
@@ -84,26 +93,31 @@ async def get_organization_users(
     """
     # query the store_users table with the organization_id
     store_users = db.query(store_user_model.StoreUser).filter(
-        store_user_model.StoreUser.store_id==organization_id
+        store_user_model.StoreUser.store_id == organization_id
     ).all()
-    # return the response alongside the count 
+    # return the response alongside the count
     if not store_users:
-        return { "message": "Error while fetching store users"}
+        return {"message": "Error while fetching store users"}
     return store_users
+
 
 @app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,
-                              user: users_schemas.User = _fastapi.Depends(is_authenticated),
+                              user: users_schemas.User = _fastapi.Depends(
+                                  is_authenticated),
                               db: _orm.Session = _fastapi.Depends(get_db)):
     return await update_organization(organization_id, organization, user, db)
 
 
 @app.put("/organizations/{organization_id}/update-image")
 async def organization_image_upload(organization_id: str, file: UploadFile = File(...),
-                                    db: _orm.Session = _fastapi.Depends(get_db),
-                                    user: users_schemas.User = _fastapi.Depends(is_authenticated)
+                                    db: _orm.Session = _fastapi.Depends(
+                                        get_db),
+                                    user: users_schemas.User = _fastapi.Depends(
+                                        is_authenticated)
                                     ):
-    org = db.query(_models.Organization).filter(_models.Organization.id == organization_id).first()
+    org = db.query(_models.Organization).filter(
+        _models.Organization.id == organization_id).first()
     # delete existing image
     # if org.image != "":
     #     image = org.image
@@ -127,7 +141,8 @@ async def organization_image_upload(organization_id: str, file: UploadFile = Fil
 
 @app.get("/organizations/{organization_id}/image")
 async def get_organization_image_upload(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
-    org = db.query(_models.Organization).filter(_models.Organization.id == organization_id).first()
+    org = db.query(_models.Organization).filter(
+        _models.Organization.id == organization_id).first()
 
     image = org.image
     filename = f"/{org.id}/{image}"
@@ -176,23 +191,25 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
 
 
 async def get_organizations(user: users_schemas.User, db: _orm.Session):
-    native_orgs = db.query(_models.Organization).filter_by(creator=user.id).all()
-    
+    native_orgs = db.query(_models.Organization).filter_by(
+        creator=user.id).all()
+
     invited_orgs_rep = (
         db.query(store_user_model.StoreUser)
         .filter(store_user_model.StoreUser.user_id == user.id)
         .all()
     )
-    
+
     if len(invited_orgs_rep) < 1:
         # continue to last stage
         organization_list = native_orgs
         organizationCollection = []
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
-            imageURL = appBasePath+f'/organizations/{organization_list[pos].id}/image'
+            imageURL = appBasePath + \
+                f'/organizations/{organization_list[pos].id}/image'
             setattr(organization_list[pos], 'image_full_path', imageURL)
-            organizationCollection.append(organization_list[pos]) 
+            organizationCollection.append(organization_list[pos])
 
         return organizationCollection
 
@@ -200,7 +217,9 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
 
     org = []
     for store_id in store_id_list:
-        org = org + db.query(_models.Organization).filter(_models.Organization.id == store_id).all()
+        org = org + \
+            db.query(_models.Organization).filter(
+                _models.Organization.id == store_id).all()
 
     org_coll = native_orgs + org
     organizationCollection = []
@@ -208,7 +227,7 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
         appBasePath = config('API_URL')
         imageURL = appBasePath+f'/organizations/{org_coll[pos].id}/image'
         setattr(org_coll[pos], 'image_full_path', imageURL)
-        organizationCollection.append(org_coll[pos]) 
+        organizationCollection.append(org_coll[pos])
 
     return organizationCollection
 
@@ -216,12 +235,13 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
+        .filter(_models.Organization.id == organization_id)
+        .first()
     )
 
     if organization is None:
-        raise _fastapi.HTTPException(status_code=404, detail="Organization does not exist")
+        raise _fastapi.HTTPException(
+            status_code=404, detail="Organization does not exist")
 
     appBasePath = config('API_URL')
     imageURL = appBasePath + f'/organizations/{organization_id}/image'
@@ -260,7 +280,8 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
         db_org = await fetch_organization_by_name(name=organization.name, organization_id=organization_id, db=db)
 
         if db_org:
-            raise _fastapi.HTTPException(status_code=400, detail="Organization name already in use")
+            raise _fastapi.HTTPException(
+                status_code=400, detail="Organization name already in use")
         else:
             organization_db.name = organization.name
 
