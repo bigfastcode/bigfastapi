@@ -39,7 +39,7 @@ async def create_organization(
 
     if organization.add_template == True:
         template_obj = _models.DefaultTemplates(
-            id=uuid4().hex, organization_id=created_org.organization_id, subject="Reminder_One",
+            id=uuid4().hex, organization_id=created_org.id, subject="Reminder_One",
             escalation_level=1, email_message="This is the first default email template created for this business.", sms_message="This is the first default sms template created for this business",
             is_deleted=False, greeting="Reminder_Greetings", template_type="BOTH"
         )
@@ -49,7 +49,7 @@ async def create_organization(
         db.refresh(template_obj)
 
         template_obj = _models.DefaultTemplates(
-            id=uuid4().hex, organization_id=created_org.organization_id, subject="Reminder_Two",
+            id=uuid4().hex, organization_id=created_org.id, subject="Reminder_Two",
             escalation_level=1, email_message="This is the second default email template created for this business.", sms_message="This is the second default sms template created for this business",
             is_deleted=False, greeting="Reminder_Greetings", template_type="BOTH"
         )
