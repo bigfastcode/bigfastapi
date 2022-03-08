@@ -1,11 +1,15 @@
 import datetime as _dt
+import time
 from uuid import uuid4
 
 import fastapi
+import requests
 import sqlalchemy.orm as _orm
+from decouple import config
 from fastapi import APIRouter
 from fastapi_pagination import Page, paginate, add_pagination
 from starlette import status
+from starlette.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
@@ -13,51 +17,9 @@ from .models import credit_wallet_models as model, organisation_models, credit_w
     wallet_transaction_models
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
+from .utils.utils import generate_payment_link
 
 app = APIRouter(tags=["CreditWallet"], )
-
-
-@app.post("/credits/{organization_id}/fund", response_model=schema.CreditWalletResponse)
-async def add_credit(body: schema.CreditWalletFund,
-                     organization_id: str,
-                     user: users_schemas.User = fastapi.Depends(is_authenticated),
-                     db: _orm.Session = fastapi.Depends(get_db)):
-    organization = await _get_organization(organization_id=organization_id, db=db, user=user)
-    conversion = await _get_credit_wallet_conversion(currency=body.currency, db=db)
-    if conversion is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                    detail="Currency " + body.currency + " does not have a conversion rate")
-    if body.amount <= 0:
-        raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail="Amount must be a positive number")
-    credit = db.query(model.CreditWallet).filter_by(organization_id=organization_id).first()
-    if credit is None:
-        credit = model.CreditWallet(id=uuid4().hex, organization_id=organization_id, amount=body.amount,
-                                    type=body.type,
-                                    last_updated=_dt.datetime.utcnow())
-
-        db.add(credit)
-        db.commit()
-        db.refresh(credit)
-
-    await _debit_wallet(organization_id=organization_id, currency=organization.currency, amount=body.amount, db=db)
-    credits_to_add = body.amount * conversion.rate
-    credit.amount += credits_to_add
-    credit.last_updated = _dt.datetime.utcnow()
-    db.commit()
-    db.refresh(credit)
-
-    return credit
-
-
-@app.get("/credits/{organization_id}/balance", response_model=schema.CreditWalletResponse)
-async def get_credit(
-        organization_id: str,
-        user: users_schemas.User = fastapi.Depends(is_authenticated),
-        db: _orm.Session = fastapi.Depends(get_db),
-):
-    """Gets the credit of an organization"""
-    return await _get_credit(organization_id=organization_id, user=user, db=db)
 
 
 @app.post("/credits/rates", response_model=credit_wallet_conversion_schemas.CreditWalletConversion)
@@ -72,7 +34,6 @@ async def add_rate(
                                     detail="Currency " + body.currency_code + " already has a conversion rate")
 
     rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
-                                                                  credit_wallet_type=body.credit_wallet_type,
                                                                   rate=body.rate,
                                                                   currency_code=body.currency_code)
 
@@ -92,44 +53,163 @@ async def get_rates(
     return paginate(list(rates))
 
 
-@app.get("/credits/rates/{currency_code}", response_model=credit_wallet_conversion_schemas.CreditWalletConversion)
+@app.get("/credits/rates/{currency}", response_model=credit_wallet_conversion_schemas.CreditWalletConversion)
 async def get_rate(
-        currency_code: str,
+        currency: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
     rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
-        currency_code=currency_code).first()
+        currency_code=currency).first()
     if rate is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                    detail="Currency " + currency_code + " does not have a conversion rate")
+        freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
+        if freeCurrencyApiKey.strip() == '':
+            raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                        detail="Currency " + currency + " does not have a conversion rate")
+        else:
+            rate = await _get_market_rate(currency=currency, db=db)
 
     return rate
+
+
+@app.get("/credits/callback")
+async def verify_payment_transaction(
+        status: str,
+        tx_ref: str,
+        transaction_id='',
+        db: _orm.Session = fastapi.Depends(get_db),
+):
+    frontendUrl = config("FRONTEND_URL")
+    if status == 'successful':
+        flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
+        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
+        url = 'https://api.flutterwave.com/v3/transactions/' + transaction_id + '/verify'
+        verificationRequest = requests.get(url, headers=headers)
+        rootUrl = config('API_URL')
+        retryLink = rootUrl + '/credits/callback&tx_ref=' + tx_ref
+        retryLink += '' if transaction_id == '' else ('&transaction_id=' + transaction_id)
+        if verificationRequest.status_code == 200:
+            jsonResponse = verificationRequest.json()
+            ref = jsonResponse['data']['tx_ref']
+            frontendUrl = jsonResponse['data']['meta']['redirect_url']
+            if jsonResponse['status'] == 'success' and tx_ref == ref:
+                if jsonResponse['data']['status'] == 'successful':
+                    user_id, organization_id, _ = tx_ref.split('-')
+                    amount = jsonResponse['data']['amount']
+                    currency = jsonResponse['data']['currency']
+                    wallet = await _get_wallet(organization_id=organization_id, currency=currency, db=db)
+
+                    wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(
+                        transaction_ref=tx_ref).filter_by(wallet_id=wallet.id).first()
+                    if wallet_transaction is not None:
+                        response = RedirectResponse(
+                            url=frontendUrl + '?status=error&message=Transaction already processed')
+                        return response
+                    try:
+                        await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
+
+                        conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
+                        credits_to_add = round(amount / conversion.rate)
+                        await _update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
+                                             tx_ref=str(credits_to_add) + ' credits refill')
+
+                        credit = db.query(model.CreditWallet).filter_by(organization_id=organization_id).first()
+
+                        credit.amount += credits_to_add
+                        credit.last_updated = _dt.datetime.utcnow()
+                        db.commit()
+                        db.refresh(credit)
+
+                        response = RedirectResponse(url=frontendUrl + '?status=success&message=Credit refilled')
+                        return response
+                    except fastapi.HTTPException:
+                        response = RedirectResponse(
+                            url=frontendUrl + '?status=error&message=An error occurred while refilling your credit. '
+                                              'Please try again&link=' + retryLink)
+                        return response
+
+                else:
+                    response = RedirectResponse(url=frontendUrl + '?status=error&message=Transaction not found')
+                    return response
+
+        response = RedirectResponse(
+            url=frontendUrl + '?status=error&message=An error occurred. Please try again&link=' + retryLink)
+        return response
+
+    else:
+        response = RedirectResponse(url=frontendUrl + '?status=error&message=Payment was not successful')
+        return response
+
+
+@app.get("/credits/{organization_id}", response_model=schema.CreditWalletResponse)
+async def get_credit(
+        organization_id: str,
+        user: users_schemas.User = fastapi.Depends(is_authenticated),
+        db: _orm.Session = fastapi.Depends(get_db),
+):
+    """Gets the credit of an organization"""
+    return await _get_credit(organization_id=organization_id, user=user, db=db)
+
+
+@app.post("/credits/{organization_id}", response_model=schema.CreditWalletFundResponse)
+async def add_credit(body: schema.CreditWalletFund,
+                     organization_id: str,
+                     user: users_schemas.User = fastapi.Depends(is_authenticated),
+                     db: _orm.Session = fastapi.Depends(get_db)):
+    """Creates and returns a payment link"""
+    await _get_organization(organization_id=organization_id, db=db, user=user)
+    conversion = await _get_credit_wallet_conversion(currency=body.currency, db=db)
+    if conversion is None:
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="Currency " + body.currency + " does not have a conversion rate")
+    if body.amount <= 0:
+        raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Amount must be a positive number")
+    wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).first()
+    if wallet is None:
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
+    else:
+        # prevents two payments with same transaction reference
+        # uniqueStr = ''.join([random.choice("qwertyuiopasdfghjklzxcvbnm1234567890") for x in range(10)])
+        uniqueStr = time.time()
+        txRef = user.id + "-" + organization_id + "-" + str(uniqueStr)
+        rootUrl = config('API_URL')
+        redirectUrl = rootUrl + '/credits/callback'
+        link = await generate_payment_link(front_end_redirect_url=body.redirect_url, api_redirect_url=redirectUrl,
+                                           user=user,
+                                           amount=body.amount,
+                                           currency=body.currency, tx_ref=txRef)
+        return {"link": link}
 
 
 ############
 # Services #
 ############
 
+async def _get_market_rate(currency: str, db: _orm.Session):
+    currency = currency.upper()
 
-async def _debit_wallet(organization_id: str, currency: str, amount: float, db: _orm.Session):
-    wallet = await _get_wallet(organization_id=organization_id, db=db)
-    if wallet.balance - amount < 0:
-        raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient fund in wallet")
-    else:
-        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
-                                                                         currency_code=currency,
-                                                                         amount=-amount,
-                                                                         transaction_date=_dt.datetime.utcnow())
-        db.add(wallet_transaction)
-        db.commit()
-        db.refresh(wallet_transaction)
+    freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
+    url = 'https://freecurrencyapi.net/api/v2/latest?apikey=' + freeCurrencyApiKey
+    response = requests.get(url)
+    if response.status_code == 200:
+        jsonResponse = response.json()
+        rates = jsonResponse['data']
+        rates['USD'] = 1
+        if currency in rates:
+            rate = jsonResponse['data'][currency]
+            conversion_rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
+                                                                                     rate=rate,
+                                                                                     currency_code=currency)
 
-        # update the wallet
-        wallet.balance -= amount
-        wallet.last_updated = _dt.datetime.utcnow()
-        db.commit()
-        db.refresh(wallet)
+            db.add(conversion_rate)
+            db.commit()
+            db.refresh(conversion_rate)
+
+            return conversion_rate
+
+    raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Could not get exchange rate. Please try again later")
 
 
 async def _get_organization(organization_id: str, db: _orm.Session,
@@ -157,10 +237,17 @@ async def _get_credit_wallet_conversion(currency: str, db: _orm.Session):
     return conversion
 
 
-async def _get_wallet(organization_id: str, db: _orm.Session):
-    wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).first()
+async def _get_wallet(organization_id: str, currency: str, db: _orm.Session):
+    wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).filter_by(
+        currency_code=currency).first()
     if wallet is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not have a wallet")
+        wallet = wallet_models.Wallet(id=uuid4().hex, organization_id=organization_id, balance=0,
+                                      currency_code=currency,
+                                      last_updated=_dt.datetime.utcnow())
+
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
 
     return wallet
 
@@ -182,6 +269,24 @@ async def _get_credit(organization_id: str,
         db.refresh(credit)
 
     return credit
+
+
+async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
+    # create a wallet transaction
+    wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
+                                                                     currency_code=currency, amount=amount,
+                                                                     transaction_date=_dt.datetime.utcnow(),
+                                                                     transaction_ref=tx_ref)
+    db.add(wallet_transaction)
+    db.commit()
+    db.refresh(wallet_transaction)
+
+    # update the wallet
+    wallet.balance += amount
+    wallet.last_updated = _dt.datetime.utcnow()
+    db.commit()
+    db.refresh(wallet)
+    return wallet
 
 
 add_pagination(app)
