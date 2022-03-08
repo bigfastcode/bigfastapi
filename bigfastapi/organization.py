@@ -8,6 +8,7 @@ from decouple import config
 from fastapi import APIRouter
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
+from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
@@ -74,7 +75,7 @@ async def get_organization(
     return await get_organization(organization_id, user, db)
 
 
-@app.get("/organizations/users/{organization_id}", status_code=200)
+@app.get("/organizations/{organization_id}/users", status_code=200)
 async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -88,10 +89,6 @@ async def get_organization_users(
     invited_list = db.query(store_user_model.StoreUser).filter(
         store_user_model.StoreUser.store_id==organization_id
     ).all()
-
-    # return the response alongside the count 
-    if not invited_list:
-        return { "message": "Error while fetching invited users"}
         
     organization = (
         db.query(_models.Organization)
@@ -108,12 +105,19 @@ async def get_organization_users(
         .all())
 
     invited_users = []
-    for invited in invited_list:
-        invited_users += db.query(user_models.User).filter(user_models.User.id == invited.user_id)
+    if len(invited_list) > 0:
+        for invited in invited_list:
+            invited_users += db.query(user_models.User).filter(user_models.User.id == invited.user_id)
     
     store_users = invited_users + store_owner
     return store_users
     
+
+@app.get('/organization/{organization_id}/roles')
+def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
+    # fetch the roles available in an organization.
+    
+    pass
 
 @app.get("/organizations/invites/{organization_id}")
 def get_pending_invites(
@@ -122,9 +126,14 @@ def get_pending_invites(
 ):
     pending_invites = (
         db.query(store_invite_model.StoreInvite)
-        .filter(store_invite_model.StoreInvite.is_accepted == False)
+        .filter(
+            and_(store_invite_model.StoreInvite.store_id == organization_id,
+            store_invite_model.StoreInvite.is_deleted == False,
+             store_invite_model.StoreInvite.is_accepted == False
+        ))
         .all()
         )
+        
     return pending_invites
 
 @app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)

@@ -1,10 +1,12 @@
 from operator import inv
+from re import L
 from typing import Optional
 from bigfastapi.schemas import email_schema
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
 from fastapi.responses import JSONResponse
+from sqlalchemy import and_
 import os
 
 import passlib.hash as _hash
@@ -79,7 +81,6 @@ async def updateUserProfile(
     updatedUser = await updateUserDetails(db, user.id, payload)
     return {"data": updatedUser}
 
-
 @app.patch('/users/password/update')
 async def updatePassword(
     payload:_schemas.updatePasswordRequest,
@@ -97,11 +98,13 @@ def accept_invite(
 
     existing_invite = db.query(
         store_invite_model.StoreInvite).filter(
-            store_invite_model.StoreInvite.invite_code == token 
-            and store_invite_model.StoreInvite.is_deleted == False
-            and store_invite_model.StoreInvite.is_revoked == False).first()
+            and_(
+                store_invite_model.StoreInvite.invite_code == token, 
+                store_invite_model.StoreInvite.is_deleted == False,
+                store_invite_model.StoreInvite.is_revoked == False
+            )).first()
 
-    if not existing_invite:
+    if existing_invite is None:
         return JSONResponse({
             "message": "Invite not found! Try again or ask the inviter to invite you again."
         }, status_code=404)
@@ -109,14 +112,14 @@ def accept_invite(
     existing_user = db.query(user_models.User).filter(
         user_models.User.email == existing_invite.user_email).first()
     
-    if not existing_user:
+    if existing_user is None:
         return JSONResponse({
             "message": "You must log in first"
         }, status_code=403)
 
     # check if the invite token exists in the db.
     invite = db.query(store_invite_model.StoreInvite).filter(store_invite_model.StoreInvite.invite_code == token).first()
-    if not invite:
+    if invite is None:
         return JSONResponse({
             "message": "Invite not found!"
         }, status_code=status.HTTP_404_NOT_FOUND)
@@ -173,11 +176,11 @@ async def invite_user(
         existing_invite = (
             db.query(store_invite_model.StoreInvite)
             .filter(
-                store_invite_model.StoreInvite.user_email == payload.user_email
-                and store_invite_model.StoreInvite.is_deleted == False
-                )
-            .first())
-        if not existing_invite:
+                and_(
+                    store_invite_model.StoreInvite.user_email == payload.user_email,
+                    store_invite_model.StoreInvite.is_deleted == False
+                )).first())
+        if existing_invite is not None:
 
             # send invite email to user
             send_email(email_details=email_info, background_tasks=background_tasks, template=template, db=db)
@@ -204,9 +207,11 @@ async def get_single_invite(
     # user invite code to query the invite table
     existing_invite = db.query(
         store_invite_model.StoreInvite).filter(
-            store_invite_model.StoreInvite.invite_code == invite_code 
-            and store_invite_model.StoreInvite.is_deleted == False
-            and store_invite_model.StoreInvite.is_revoked == False).first()
+            and_(
+                store_invite_model.StoreInvite.invite_code == invite_code, 
+                store_invite_model.StoreInvite.is_deleted == False,
+                store_invite_model.StoreInvite.is_revoked == False
+            )).first()
     existing_user = db.query(user_models.User).filter(
         user_models.User.email == existing_invite.user_email).first()
     
