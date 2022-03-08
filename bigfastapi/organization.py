@@ -37,7 +37,7 @@ async def create_organization(
     created_org = await create_organization(user=user, db=db, organization=organization)
 
     if organization.add_template == True:
-        template_obj = _models.Templates(
+        template_obj = _models.default_templates(
         id = uuid4().hex, organization_id=created_org.organization_id, subject="Reminder_One",
         escalation_level=1, email_message="This is the first default email template created for this business.", sms_message="This is the first default sms template created for this business",
         is_deleted=False, greeting="Reminder_Greetings", template_type= "BOTH"

@@ -1,13 +1,15 @@
 from datetime import datetime
+from enum import unique
 from typing import Optional, Any
 from pydantic import BaseModel, EmailStr
 
 class CustomerBase(BaseModel):
     first_name: str
     last_name: str
-    email: EmailStr
+    unique_id:str
+    email: EmailStr = None
     phone_number: str = None
-    address: str =None
+    location: str =None
     gender: str=None
     age: int =None
     postal_code: str =None
