@@ -36,7 +36,7 @@ async def create_customer(
     return {"message": "Customer created succesfully", "customer": customer_instance}
 
 
-@app.post("/customers/bulk",
+@app.post("/customers/import/{organization_id}",
                          status_code=status.HTTP_201_CREATED, )# response_model=customer_schemas.CustomerCreateResponse,
 async def create_bulk_customer(organization_id: str, file: UploadFile = File(...), 
     db: Session = Depends(get_db),
