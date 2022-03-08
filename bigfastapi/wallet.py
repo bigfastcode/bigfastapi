@@ -9,7 +9,7 @@ from sqlalchemy import desc
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
-from .models import organisation_models as organisation_models
+from .models import organisation_models as organisation_models, user_models
 from .models import wallet_models as model
 from .models import wallet_transaction_models as wallet_transaction_models
 from .schemas import users_schemas
@@ -149,7 +149,19 @@ async def _get_wallet(wallet_id: str,
     return wallet
 
 
-async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
+async def _get_super_admin_wallet(db: _orm.Session, currency: str):
+    admin = db.query(user_models.User).filter_by(is_superuser=True).filter_by(is_deleted=False).first()
+    organization = db.query(organisation_models.Organization).filter_by(creator=admin.id).filter_by(
+        is_deleted=False).first()
+    wallet = db.query(model.Wallet).filter_by(organization_id=organization.id).filter_by(
+        currency_code=currency).first()
+    if wallet is None:
+        wallet = await _create_wallet(organization_id=organization.id, db=db, currency_code=currency)
+
+    return wallet
+
+
+async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
     # create a wallet transaction
     wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
                                                                      currency_code=currency, amount=amount,
@@ -164,6 +176,26 @@ async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str,
     wallet.last_updated = _dt.datetime.utcnow()
     db.commit()
     db.refresh(wallet)
+
+    if amount < 0:
+        amount = -amount
+        # transfer money to admin wallet
+
+        adminWallet = await _get_super_admin_wallet(db=db, currency=currency)
+        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
+                                                                         currency_code=currency, amount=amount,
+                                                                         transaction_date=_dt.datetime.utcnow(),
+                                                                         transaction_ref=tx_ref)
+        db.add(wallet_transaction)
+        db.commit()
+        db.refresh(wallet_transaction)
+
+        # update admin wallet
+        adminWallet.balance += amount
+        adminWallet.last_updated = _dt.datetime.utcnow()
+        db.commit()
+        db.refresh(adminWallet)
+
     return wallet
 
 

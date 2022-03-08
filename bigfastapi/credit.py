@@ -18,6 +18,7 @@ from .models import credit_wallet_models as model, organisation_models, credit_w
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
 from .utils.utils import generate_payment_link
+from .wallet import update_wallet
 
 app = APIRouter(tags=["CreditWallet"], )
 
@@ -106,12 +107,12 @@ async def verify_payment_transaction(
                             url=frontendUrl + '?status=error&message=Transaction already processed')
                         return response
                     try:
-                        await _update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
+                        await update_wallet(wallet=wallet, amount=amount, db=db, currency=currency, tx_ref=ref)
 
                         conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
                         credits_to_add = round(amount / conversion.rate)
-                        await _update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
-                                             tx_ref=str(credits_to_add) + ' credits refill')
+                        await update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
+                                            tx_ref=organization_id + ": " + str(credits_to_add) + ' credits refill')
 
                         credit = db.query(model.CreditWallet).filter_by(organization_id=organization_id).first()
 
@@ -269,24 +270,6 @@ async def _get_credit(organization_id: str,
         db.refresh(credit)
 
     return credit
-
-
-async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
-    # create a wallet transaction
-    wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
-                                                                     currency_code=currency, amount=amount,
-                                                                     transaction_date=_dt.datetime.utcnow(),
-                                                                     transaction_ref=tx_ref)
-    db.add(wallet_transaction)
-    db.commit()
-    db.refresh(wallet_transaction)
-
-    # update the wallet
-    wallet.balance += amount
-    wallet.last_updated = _dt.datetime.utcnow()
-    db.commit()
-    db.refresh(wallet)
-    return wallet
 
 
 add_pagination(app)
