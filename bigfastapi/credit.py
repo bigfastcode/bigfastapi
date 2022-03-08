@@ -94,8 +94,9 @@ async def verify_payment_transaction(
             ref = jsonResponse['data']['tx_ref']
             frontendUrl = jsonResponse['data']['meta']['redirect_url']
             wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(id=ref).first()
-            ref = wallet_transaction.transaction_ref
             if wallet_transaction is not None:
+                ref = wallet_transaction.transaction_ref
+
                 if wallet_transaction.status:
                     response = RedirectResponse(
                         url=frontendUrl + '?status=error&message=Transaction already processed')
