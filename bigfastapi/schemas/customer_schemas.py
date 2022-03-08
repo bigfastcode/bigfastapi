@@ -9,6 +9,7 @@ class CustomerBase(BaseModel):
     unique_id:str
     email: EmailStr = None
     phone_number: str = None
+    business_name: str =None
     location: str =None
     gender: str=None
     age: int =None
@@ -25,6 +26,7 @@ class CustomerBase(BaseModel):
 
 class CustomerCreate(CustomerBase):
     organization_id: str
+    
 
 class Customer(CustomerBase):
     organization_id: str
