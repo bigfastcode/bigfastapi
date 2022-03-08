@@ -109,12 +109,15 @@ async def verify_payment_transaction(
                     wallet = await _get_wallet(organization_id=organization_id, currency=currency, db=db)
 
                     try:
+                        # add money to wallet
                         await update_wallet(wallet=wallet, amount=amount, db=db, currency=currency,
                                             wallet_transaction_id=wallet_transaction.id,
                                             reason=currency + " " + str(amount) + " Top Up")
 
                         conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
                         credits_to_add = round(amount / conversion.rate)
+
+                        # debit money from wallet to buy credits
                         await update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
                                             reason=organization_id + ": " + str(credits_to_add) + ' credits Top Up')
 
