@@ -226,11 +226,7 @@ async def get_single_invite(
         return JSONResponse({
             "message": "Invite not found! Try again or ask the inviter to invite you again."
         }, status_code=404)
-    # invite = _invite_schemas.Invite.from_orm(existing_invite)
-    # return the data matching the invite code.
-    # return JSONResponse({
-    #     "data": result
-    #     }, status_code=status.HTTP_200_OK)
+    
     return { "invite": existing_invite, "user": existing_user }
 
 @app.put("/users/invite/{invite_code}/decline")
