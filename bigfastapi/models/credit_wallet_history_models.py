@@ -8,8 +8,8 @@ from sqlalchemy.types import String, DateTime, Float
 from bigfastapi.db.database import Base
 
 
-class CreditHistory(Base):
-    __tablename__ = "credit_history"
+class CreditWalletHistory(Base):
+    __tablename__ = "credit_wallet_history"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     credit_wallet_id = Column(String(255), ForeignKey("credit_wallets.id"))
     amount = Column(Float, default=0)

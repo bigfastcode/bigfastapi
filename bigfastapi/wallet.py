@@ -179,10 +179,10 @@ async def _get_super_admin_wallet(db: _orm.Session, currency: str):
 
 async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, wallet_transaction_id='', reason=''):
     # update the wallet
-    wallet.balance += amount
-    wallet.last_updated = _dt.datetime.utcnow()
-    db.commit()
-    db.refresh(wallet)
+    # wallet.balance += amount
+    # wallet.last_updated = _dt.datetime.utcnow()
+    # db.commit()
+    # db.refresh(wallet)
 
     if wallet_transaction_id == '':
         wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
