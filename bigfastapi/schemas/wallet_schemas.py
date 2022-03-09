@@ -26,7 +26,7 @@ class WalletCreate(_pydantic.BaseModel):
 
 class Wallet(WalletCreate):
     id: str
-    balance: int
+    balance: float
     last_updated: _dt.datetime
 
     class Config:
