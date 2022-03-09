@@ -25,13 +25,8 @@ async def create_customer(
     customer: customer_schemas.CustomerCreate,
     db: Session = Depends(get_db),
     #user: users_schemas.User = Depends(is_authenticated)
-<<<<<<< HEAD
 ):
-=======
-    ):
-    
-    
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+
     organization = db.query(Organization).filter(
         Organization.id == customer.organization_id).first()
     if not organization:
@@ -41,8 +36,8 @@ async def create_customer(
     existing_customers = await fetch_customers(organization_id=customer.organization_id, db=db)
     for item in existing_customers:
         if customer.unique_id == item.unique_id:
-            return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []}, 
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE)
+            return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []},
+                                status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     customer_instance = await add_customer(customer=customer, db=db)
     return {"message": "Customer created succesfully", "customer": customer_instance}
@@ -56,13 +51,8 @@ async def create_bulk_customer(organization_id: str, file: UploadFile = File(...
                                ):
 
     if file.content_type != "text/csv":
-<<<<<<< HEAD
         return JSONResponse({"message": "file must be a valid csv", "customer": []},
-                            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
-=======
-        return JSONResponse({"message":"file must be a valid csv", "customer": []},
-                        status_code=status.HTTP_406_NOT_ACCEPTABLE)
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+                            status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
@@ -77,17 +67,12 @@ async def create_bulk_customer(organization_id: str, file: UploadFile = File(...
             return JSONResponse({"message": "first_name is a required field", "customer": []},
                                 status_code=status.HTTP_406_NOT_ACCEPTABLE)
         if "last_name" not in customer:
-<<<<<<< HEAD
             return JSONResponse({"message": "last_name is a required field", "customer": []},
                                 status_code=status.HTTP_406_NOT_ACCEPTABLE)
-=======
-            return JSONResponse ({"message": "last_name is a required field", "customer": []}, 
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE)
-                    
+
         if "unique_id" not in customer:
-            return JSONResponse ({"message": "unique_id is a required field", "customer": []}, 
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE)
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+            return JSONResponse({"message": "unique_id is a required field", "customer": []},
+                                status_code=status.HTTP_406_NOT_ACCEPTABLE)
         if "email" not in customer:
             customer["email"] = ""
         if "phone_number" not in customer:
@@ -120,78 +105,40 @@ async def create_bulk_customer(organization_id: str, file: UploadFile = File(...
 
 
 @app.get('/customers', response_model=Page[customer_schemas.Customer],
-<<<<<<< HEAD
          status_code=status.HTTP_200_OK)
-def get_customers(
+async def get_customers(
     organization_id: str,
+    search_value: str = None,
     db: Session = Depends(get_db),
     #user: users_schemas.User = Depends(is_authenticated)
 ):
-    customers = []
+
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
-    customers = db.query(Customer).filter_by(
-        organization_id=organization_id, is_deleted=False)
-    if customers:
-        customer_list = list(
-            map(customer_schemas.Customer.from_orm, customers))
-        return paginate(customer_list)
-=======
-            status_code=status.HTTP_200_OK)
-async def get_customers(
-    organization_id: str,
-    search_value:str = None,
-    db: Session = Depends(get_db), 
-    #user: users_schemas.User = Depends(is_authenticated)
-    ):
-    
-    organization = db.query(Organization).filter(Organization.id == organization_id).first()
-    if not organization:
-        return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
-    customers = await fetch_customers(organization_id = organization_id, name=search_value, db=db)
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+    customers = await fetch_customers(organization_id=organization_id, name=search_value, db=db)
     return paginate(customers)
 
+
 @app.get('/customers/{customer_id}', response_model=customer_schemas.Customer)
-<<<<<<< HEAD
-def get_customer(
+async def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
     #user: users_schemas.User = Depends(is_authenticated)
 ):
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
-    if customer is not None:
-        return customer_schemas.Customer.from_orm(customer)
-    else:
-        return JSONResponse({"message": "Customer does not exist"},
-                            status_code=status.HTTP_404_NOT_FOUND)
-
-
-@app.put('/customers/{customer_id}', response_model=customer_schemas.Customer,
-         status_code=status.HTTP_202_ACCEPTED)
-def update_customer(
-    customer: customer_schemas.CustomerUpdate,
-=======
-async def get_customer(
-    customer_id: str, 
-    db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated)
-   ):
-    customer = db.query(Customer).filter(Customer.customer_id == customer_id).first()
     if not customer:
         return JSONResponse({"message": "Customer does not exist"},
-                    status_code=status.HTTP_404_NOT_FOUND)
+                            status_code=status.HTTP_404_NOT_FOUND)
     return customer_schemas.Customer.from_orm(customer)
-        
 
-@app.put('/customers/{customer_id}', response_model=customer_schemas.CustomerCreateResponse, 
-        status_code=status.HTTP_202_ACCEPTED)
+
+@app.put('/customers/{customer_id}', response_model=customer_schemas.CustomerCreateResponse,
+         status_code=status.HTTP_202_ACCEPTED)
 async def update_customer(
-    customer: customer_schemas.CustomerUpdate, 
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+    customer: customer_schemas.CustomerUpdate,
     customer_id: str, db: Session = Depends(get_db),
     #user: users_schemas.User = Depends(is_authenticated)
 ):
@@ -207,29 +154,15 @@ async def update_customer(
             return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         customer_instance.organization_id = organization.id
 
-<<<<<<< HEAD
-    updated_customer = put_customer(customer=customer,
-                                    customer_instance=customer_instance, db=db)
-    return {"message": "Customer created succesfully",
-            "customer": customer_schemas.Customer.from_orm(updated_customer)}
-=======
-    updated_customer = await put_customer(customer=customer, 
-                customer_instance=customer_instance, db=db)
+    updated_customer = await put_customer(customer=customer,
+                                          customer_instance=customer_instance, db=db)
     return {"message": "Customer updated succesfully", "customer": updated_customer}
-
- 
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
 
 
 @app.delete('/customers/{customer_id}',
             response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
-<<<<<<< HEAD
-def soft_delete_customer(
-    customer_id: str,
-=======
 async def soft_delete_customer(
-    customer_id: str, 
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+    customer_id: str,
     db: Session = Depends(get_db),
     #user: users_schemas.User = Depends(is_authenticated)
 ):
@@ -244,17 +177,10 @@ async def soft_delete_customer(
     return JSONResponse({"message": "Customer deleted succesfully"}, status_code=status.HTTP_200_OK)
 
 
-<<<<<<< HEAD
-@app.delete('/customers/organization/{org_id}',
-            response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
-def soft_delete_all_customers(
-    org_id: str,
-=======
-@app.delete('/customers/organization/{organization_id}', 
+@app.delete('/customers/organization/{organization_id}',
             response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
 async def soft_delete_all_customers(
-    organization_id: str, 
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+    organization_id: str,
     user_id: str,
     db: Session = Depends(get_db),
     #user: users_schemas.User = Depends(is_authenticated)
@@ -264,23 +190,14 @@ async def soft_delete_all_customers(
         return JSONResponse({"message": "User has no authority to delete all customers"},
                             status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
-<<<<<<< HEAD
     organization = db.query(Organization).filter(
-        Organization.id == org_id).first()
+        Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"},
                             status_code=status.HTTP_404_NOT_FOUND)
 
     customers = db.query(Customer).filter_by(
-        organization_id=org_id, is_deleted=False)
-=======
-    organization = db.query(Organization).filter(Organization.id == organization_id).first()
-    if not organization:
-        return JSONResponse({"message": "Organization does not exist"}, 
-                                    status_code=status.HTTP_404_NOT_FOUND)
-    
-    customers = db.query(Customer).filter_by(organization_id=organization_id, is_deleted = False)
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+        organization_id=organization_id, is_deleted=False)
     for customer in customers:
         customer.is_deleted = True
         db.commit()

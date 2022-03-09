@@ -206,20 +206,14 @@ async def invite_user(
 
 @app.get('/users/invite/{invite_code}')
 async def get_single_invite(
-<<<<<<< HEAD
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db),
 ):
-=======
-        invite_code: str,
-        db: orm.Session = fastapi.Depends(get_db),
-    ):
-    
+
     """
         Get single invite by invite code.
     """
 
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
     # user invite code to query the invite table
     existing_invite = db.query(
         store_invite_model.StoreInvite).filter(
@@ -248,7 +242,6 @@ async def get_single_invite(
 
 @app.put("/users/invite/{invite_code}/decline")
 def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
-    
     """
         Decline store invite
     """
@@ -266,12 +259,12 @@ def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
 
     return declined_invite
 
+
 @app.delete("/users/revoke-invite/{invite_code}")
 def revoke_invite(
-    invite_code: str, 
+    invite_code: str,
     db: orm.Session = fastapi.Depends(get_db)
-    ):
-     
+):
     """
         Revokes the invitation of a previously invited user.
     """
@@ -281,16 +274,14 @@ def revoke_invite(
         .first()
     )
 
-<<<<<<< HEAD
-# ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
-=======
     revoked_invite.is_revoked = True
     revoked_invite.is_deleted = True
     db.add(revoked_invite)
     db.commit()
     db.refresh(revoked_invite)
-    
+
     return revoked_invite
+
 
 @app.patch("/users/{user_id}")
 def update_user_role(
@@ -313,14 +304,13 @@ def update_user_role(
         db.commit()
         db.refresh(existing_user)
 
-        return { 
-            "message": "User role successfully updated", 
+        return {
+            "message": "User role successfully updated",
             "data": existing_user
-            }
-    return { "message": "User does not exist" }
+        }
+    return {"message": "User does not exist"}
 
-# ////////////////////////////////////////////////////CODE ////////////////////////////////////////////////////////////// 
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
+# ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
 
 # @app.post("/users/verify/code/{code}")
 # async def verify_user_with_code(
@@ -377,17 +367,10 @@ async def updatePassword(
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
-<<<<<<< HEAD
 async def deleteIfFileExistPrior(user: _schemas.User):
     # check if user object contains image endpoint
-    if user.image is not None and len(user.image) > 17:
+    if user.image is not None and len(user.image) > 17 and 'profileImages/' in user.image:
         # construct the image path from endpoint
-=======
-async def  deleteIfFileExistPrior(user: _schemas.User):
-     #check if user object contains image endpoint
-     if user.image is not None and len(user.image) > 17 and 'profileImages/' in user.image:
-         # construct the image path from endpoint
->>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
         splitPath = user.image.split('profileImages/', 1)
         imagePath = f"\profileImages\{splitPath[1]}"
         fullStoragePath = os.path.abspath("filestorage") + imagePath
