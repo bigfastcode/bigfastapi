@@ -141,7 +141,8 @@ def get_pending_invites(
         .filter(
             and_(store_invite_model.StoreInvite.store_id == organization_id,
                  store_invite_model.StoreInvite.is_deleted == False,
-                 store_invite_model.StoreInvite.is_accepted == False
+                 store_invite_model.StoreInvite.is_accepted == False,
+                 store_invite_model.StoreInvite.is_revoked == False
                  ))
         .all()
     )
