@@ -41,8 +41,13 @@ class Customer(Base):
     last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
     
     
-async def fetch_customers(organization_id: str,  name:str=None, db: Session = Depends(get_db)):
-    customers =  db.query(Customer).filter(Customer.organization_id==organization_id).filter(Customer.is_deleted == False)
+async def fetch_customers(organization_id: str,  
+    name:str=None, 
+    db: Session = Depends(get_db)):
+    customers =  db.query(Customer).filter(
+        Customer.organization_id==organization_id).filter(
+        Customer.is_deleted == False
+        )
     customer_list = list(map(customer_schemas.Customer.from_orm, customers))
     if not name:
         return customer_list
@@ -53,8 +58,10 @@ async def fetch_customers(organization_id: str,  name:str=None, db: Session = De
     return found_customers
 
 
-async def add_customer(customer:customer_schemas.CustomerCreate, db: Session = Depends(get_db)): 
-
+async def add_customer(
+    customer:customer_schemas.CustomerCreate, 
+    db: Session = Depends(get_db)
+    ): 
     customer_instance = Customer(
         id = uuid4().hex,
         customer_id = generate_short_id(size=12),
@@ -77,7 +84,6 @@ async def add_customer(customer:customer_schemas.CustomerCreate, db: Session = D
         country_code = customer.country_code,
         date_created = datetime.now(),
         last_updated = datetime.now()
-
     )
     db.add(customer_instance)
     db.commit()
@@ -85,9 +91,11 @@ async def add_customer(customer:customer_schemas.CustomerCreate, db: Session = D
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
-async def put_customer(customer:customer_schemas.CustomerUpdate, 
-                    customer_instance,  db: Session = Depends(get_db)):
-    
+async def put_customer(
+    customer:customer_schemas.CustomerUpdate, 
+    customer_instance,  
+    db: Session = Depends(get_db)
+    ):
     if customer.first_name:
         customer_instance.first_name = customer.first_name
     if customer.last_name:
