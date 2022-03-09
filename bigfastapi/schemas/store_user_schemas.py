@@ -1,19 +1,19 @@
 import datetime as dt
 from typing import Optional
 from .email_schema import Email
-import pydantic as _pydantic
+import pydantic
+from typing import Optional
 
-class _StoreUserBase(_pydantic.BaseModel):
-    store_id = str
-    user_id = str
-    role = str
-    is_deleted = str
-    date_created = str
+
+class StoreUserBase(pydantic.BaseModel):
+    store_id = Optional[str]
+    user_id = Optional[str]
+    role = Optional[str]
+    is_deleted = Optional[str]
+    date_created = Optional[str]
 
     class Config:
-        orm_mode = True
+        arbitrary_types_allowed = True
 
-class UserUpdate(_StoreUserBase):
-    store_id: str
-    user_id: str
-    role: str
+class UserUpdate(StoreUserBase):
+    email: str
