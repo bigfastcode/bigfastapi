@@ -277,30 +277,35 @@ def revoke_invite(
     
     return revoked_invite
 
-@app.patch("/users/{user_id}")
+@app.patch("/users/{user_id}/change")
 def update_user_role(
     payload: store_user_schemas.UserUpdate,
     db: orm.Session = fastapi.Depends(get_db)
 ):
     # check if the user exists with the user_id and store_id
+    # look up existing user with email in the users table and fetch the id to update the role in store_users
     existing_user = (
-        db.query(store_user_model.StoreUser)
+        db.query(user_models.User)
         .filter(and_(
-            store_user_model.StoreUser.store_id == payload.store_id,
-            store_user_model.StoreUser.user_id == payload.user_id,
+            user_models.User.email == payload.email,
         ))
         .first()
     )
 
     if existing_user is not None:
-        existing_user.role = payload.role
-        db.add(existing_user)
+        existing_store_user = (
+            db.query(store_user_model.StoreUser)
+            .filter(store_user_model.StoreUser.user_id == existing_user.id)
+            .first()
+        )
+        existing_store_user.role = payload.role
+        db.add(existing_store_user)
         db.commit()
-        db.refresh(existing_user)
+        db.refresh(existing_store_user)
 
         return { 
             "message": "User role successfully updated", 
-            "data": existing_user
+            "data": existing_store_user
             }
     return { "message": "User does not exist" }
 
