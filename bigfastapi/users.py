@@ -1,7 +1,7 @@
 from operator import inv
 from re import L
 from typing import Optional
-from bigfastapi.schemas import email_schema
+from bigfastapi.schemas import email_schema, store_user_schemas
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
@@ -183,7 +183,7 @@ async def invite_user(
                     store_invite_model.StoreInvite.user_email == payload.user_email,
                     store_invite_model.StoreInvite.is_deleted == False
                 )).first())
-        if existing_invite is not None:
+        if existing_invite is None:
 
             # send invite email to user
             send_email(email_details=email_info,
@@ -206,9 +206,20 @@ async def invite_user(
 
 @app.get('/users/invite/{invite_code}')
 async def get_single_invite(
+<<<<<<< HEAD
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db),
 ):
+=======
+        invite_code: str,
+        db: orm.Session = fastapi.Depends(get_db),
+    ):
+    
+    """
+        Get single invite by invite code.
+    """
+
+>>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
     # user invite code to query the invite table
     existing_invite = db.query(
         store_invite_model.StoreInvite).filter(
@@ -237,6 +248,11 @@ async def get_single_invite(
 
 @app.put("/users/invite/{invite_code}/decline")
 def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
+    
+    """
+        Decline store invite
+    """
+
     declined_invite = (
         db.query(store_invite_model.StoreInvite)
         .filter(store_invite_model.StoreInvite.invite_code == invite_code)
@@ -250,8 +266,61 @@ def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
 
     return declined_invite
 
+@app.delete("/users/revoke-invite/{invite_code}")
+def revoke_invite(
+    invite_code: str, 
+    db: orm.Session = fastapi.Depends(get_db)
+    ):
+     
+    """
+        Revokes the invitation of a previously invited user.
+    """
+    revoked_invite = (
+        db.query(store_invite_model.StoreInvite)
+        .filter(store_invite_model.StoreInvite.invite_code == invite_code)
+        .first()
+    )
 
+<<<<<<< HEAD
 # ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
+=======
+    revoked_invite.is_revoked = True
+    revoked_invite.is_deleted = True
+    db.add(revoked_invite)
+    db.commit()
+    db.refresh(revoked_invite)
+    
+    return revoked_invite
+
+@app.patch("/users/{user_id}")
+def update_user_role(
+    payload: store_user_schemas.UserUpdate,
+    db: orm.Session = fastapi.Depends(get_db)
+):
+    # check if the user exists with the user_id and store_id
+    existing_user = (
+        db.query(store_user_model.StoreUser)
+        .filter(and_(
+            store_user_model.StoreUser.store_id == payload.store_id,
+            store_user_model.StoreUser.user_id == payload.user_id,
+        ))
+        .first()
+    )
+
+    if existing_user is not None:
+        existing_user.role = payload.role
+        db.add(existing_user)
+        db.commit()
+        db.refresh(existing_user)
+
+        return { 
+            "message": "User role successfully updated", 
+            "data": existing_user
+            }
+    return { "message": "User does not exist" }
+
+# ////////////////////////////////////////////////////CODE ////////////////////////////////////////////////////////////// 
+>>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
 
 # @app.post("/users/verify/code/{code}")
 # async def verify_user_with_code(
@@ -308,10 +377,17 @@ async def updatePassword(
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 async def deleteIfFileExistPrior(user: _schemas.User):
     # check if user object contains image endpoint
     if user.image is not None and len(user.image) > 17:
         # construct the image path from endpoint
+=======
+async def  deleteIfFileExistPrior(user: _schemas.User):
+     #check if user object contains image endpoint
+     if user.image is not None and len(user.image) > 17 and 'profileImages/' in user.image:
+         # construct the image path from endpoint
+>>>>>>> dbabd9ea83e41d2e44184a20bec1130abc58004b
         splitPath = user.image.split('profileImages/', 1)
         imagePath = f"\profileImages\{splitPath[1]}"
         fullStoragePath = os.path.abspath("filestorage") + imagePath
