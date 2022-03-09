@@ -112,7 +112,7 @@ async def create_bulk_customer(
 
 
 @app.get('/customers', 
-    # response_model=Page[customer_schemas.Customer],
+    response_model=Page[customer_schemas.Customer],
     status_code=status.HTTP_200_OK
     )
 async def get_customers(
@@ -131,10 +131,9 @@ async def get_customers(
     customers = await fetch_customers(organization_id = organization_id, name=search_value, db=db)
 
     if not sorting_key or not customers or sorting_key not in customers[0]:
-        return customers
-    # sort_by = attrgetter(sorting_key)
+        return paginate(customers)
     customers.sort(key=lambda x: getattr(x, sorting_key), reverse=reverse_sort)
-    return customers
+    return paginate(customers)
     
 
     
