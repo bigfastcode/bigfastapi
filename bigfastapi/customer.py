@@ -1,4 +1,6 @@
+from audioop import reverse
 from typing import List
+from xmlrpc.client import boolean
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile
 from bigfastapi.models.organisation_models import Organization
 from bigfastapi.models.user_models import User
@@ -12,6 +14,7 @@ from .auth_api import is_authenticated
 from fastapi_pagination import Page, add_pagination, paginate
 import csv, io
 from collections import namedtuple
+from operator import attrgetter
 
 
 
@@ -19,15 +22,15 @@ app = APIRouter(tags=["Customers 💁"],)
 
 
 
-@app.post("/customers", response_model=customer_schemas.CustomerCreateResponse,
-                         status_code=status.HTTP_201_CREATED)
+@app.post("/customers",
+    response_model=customer_schemas.CustomerCreateResponse,
+    status_code=status.HTTP_201_CREATED
+    )
 async def create_customer(
     customer: customer_schemas.CustomerCreate, 
     db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
     ):
-    
-    
     organization = db.query(Organization).filter(
                     Organization.id == customer.organization_id).first()
     if not organization: 
@@ -45,10 +48,14 @@ async def create_customer(
 
 
 @app.post("/customers/import/{organization_id}",
-                         status_code=status.HTTP_201_CREATED, )# response_model=customer_schemas.CustomerCreateResponse,
-async def create_bulk_customer(organization_id: str, file: UploadFile = File(...), 
+    # response_model=customer_schemas.CustomerCreateResponse,
+    status_code=status.HTTP_201_CREATED
+    )
+async def create_bulk_customer(
+    organization_id: str, 
+    file: UploadFile = File(...), 
     db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated) 
+    user: users_schemas.User = Depends(is_authenticated) 
     ):
 
     if file.content_type != "text/csv":
@@ -104,27 +111,41 @@ async def create_bulk_customer(organization_id: str, file: UploadFile = File(...
     return {"message": "Customer created succesfully", "customer": posted_customers}
 
 
-@app.get('/customers', response_model=Page[customer_schemas.Customer],
-            status_code=status.HTTP_200_OK)
+@app.get('/customers', 
+    # response_model=Page[customer_schemas.Customer],
+    status_code=status.HTTP_200_OK
+    )
 async def get_customers(
     organization_id: str,
     search_value:str = None,
+    sorting_key: str = None,
+    reverse_sort: bool = False,
     db: Session = Depends(get_db), 
-    #user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
     ):
     
     organization = db.query(Organization).filter(Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
+
     customers = await fetch_customers(organization_id = organization_id, name=search_value, db=db)
-    return paginate(customers)
+
+    if not sorting_key or not customers or sorting_key not in customers[0]:
+        return customers
+    # sort_by = attrgetter(sorting_key)
+    customers.sort(key=lambda x: getattr(x, sorting_key), reverse=reverse_sort)
+    return customers
     
 
-@app.get('/customers/{customer_id}', response_model=customer_schemas.Customer)
+    
+@app.get('/customers/{customer_id}', 
+    response_model=customer_schemas.Customer,
+    status_code=status.HTTP_200_OK
+    )
 async def get_customer(
     customer_id: str, 
     db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
    ):
     customer = db.query(Customer).filter(Customer.customer_id == customer_id).first()
     if not customer:
@@ -133,12 +154,14 @@ async def get_customer(
     return customer_schemas.Customer.from_orm(customer)
         
 
-@app.put('/customers/{customer_id}', response_model=customer_schemas.CustomerCreateResponse, 
-        status_code=status.HTTP_202_ACCEPTED)
+@app.put('/customers/{customer_id}', 
+    response_model=customer_schemas.CustomerCreateResponse, 
+    status_code=status.HTTP_202_ACCEPTED
+    )
 async def update_customer(
     customer: customer_schemas.CustomerUpdate, 
     customer_id: str, db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
     ):
     customer_instance = db.query(Customer).filter(
                     Customer.customer_id == customer_id).first()
@@ -160,41 +183,47 @@ async def update_customer(
 
 
 @app.delete('/customers/{customer_id}', 
-            response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
+    response_model=customer_schemas.ResponseModel, 
+    status_code=status.HTTP_200_OK
+    )
 async def soft_delete_customer(
     customer_id: str, 
     db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
     ):
     
 
     customer = db.query(Customer).filter(
-                        Customer.customer_id == customer_id).first()
+                Customer.customer_id == customer_id).first()
     if not customer:
-        return JSONResponse({"message": "Customer does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
+        return JSONResponse({"message": "Customer does not exist"}, 
+                status_code=status.HTTP_404_NOT_FOUND)
     customer.is_deleted = True
     db.commit()
     db.refresh(customer)
-    return JSONResponse({"message": "Customer deleted succesfully"}, status_code=status.HTTP_200_OK)
+    return JSONResponse({"message": "Customer deleted succesfully"}, 
+            status_code=status.HTTP_200_OK)
 
 
 @app.delete('/customers/organization/{organization_id}', 
-            response_model=customer_schemas.ResponseModel, status_code=status.HTTP_200_OK)
+    response_model=customer_schemas.ResponseModel, 
+    status_code=status.HTTP_200_OK
+    )
 async def soft_delete_all_customers(
     organization_id: str, 
     user_id: str,
     db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
     ):
     user = db.query(User).filter(User.id == user_id).first()
     if user.is_superuser != True:
         return JSONResponse({"message": "User has no authority to delete all customers"},
-                                 status_code=status.HTTP_406_NOT_ACCEPTABLE)
+                status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     organization = db.query(Organization).filter(Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, 
-                                    status_code=status.HTTP_404_NOT_FOUND)
+                status_code=status.HTTP_404_NOT_FOUND)
     
     customers = db.query(Customer).filter_by(organization_id=organization_id, is_deleted = False)
     for customer in customers:
@@ -203,8 +232,8 @@ async def soft_delete_all_customers(
         db.refresh(customer)
         print(customer)
 
-    return JSONResponse({"message": "Customers deleted succesfully"}, status_code=status.HTTP_200_OK)
-
+    return JSONResponse({"message": "Customers deleted succesfully"},
+                 status_code=status.HTTP_200_OK)
 
 add_pagination(app)
 
