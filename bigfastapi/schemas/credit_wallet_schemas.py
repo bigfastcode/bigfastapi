@@ -3,6 +3,18 @@ import datetime
 import pydantic as _pydantic
 
 
+class CreditWalletHistory(_pydantic.BaseModel):
+    id: str
+
+    amount: float
+    date: datetime.datetime
+    reference: str
+    credit_wallet_id: str
+
+    class Config:
+        orm_mode = True
+
+
 class CreditWalletFund(_pydantic.BaseModel):
     currency: str
     amount: float
