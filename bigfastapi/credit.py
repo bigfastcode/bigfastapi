@@ -8,13 +8,14 @@ import sqlalchemy.orm as _orm
 from decouple import config
 from fastapi import APIRouter
 from fastapi_pagination import Page, paginate, add_pagination
+from sqlalchemy import desc
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, wallet_models, \
-    wallet_transaction_models
+    wallet_transaction_models, credit_wallet_history_models
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
 from .utils.utils import generate_payment_link
@@ -118,15 +119,14 @@ async def verify_payment_transaction(
                         credits_to_add = round(amount / conversion.rate)
 
                         # debit money from wallet to buy credits
+                        reference = str(credits_to_add) + ' credits Top Up'
                         await update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
-                                            reason=organization_id + ": " + str(credits_to_add) + ' credits Top Up')
+                                            reason=organization_id + ": " + reference)
 
-                        credit = db.query(model.CreditWallet).filter_by(organization_id=organization_id).first()
-
-                        credit.amount += credits_to_add
-                        credit.last_updated = _dt.datetime.utcnow()
-                        db.commit()
-                        db.refresh(credit)
+                        # update credit here
+                        await _update_credit_wallet(organization_id=organization_id, reference=reference,
+                                                    credits_to_add=credits_to_add,
+                                                    db=db)
 
                         response = RedirectResponse(url=frontendUrl + '?status=success&message=Credit refilled')
                         return response
@@ -205,9 +205,39 @@ async def add_credit(body: schema.CreditWalletFund,
         return {"link": link}
 
 
+@app.get("/credits/{organization_id}/history", response_model=Page[schema.CreditWalletHistory])
+async def get_credit_history(
+        organization_id: str,
+        user: users_schemas.User = fastapi.Depends(is_authenticated),
+        db: _orm.Session = fastapi.Depends(get_db)):
+    """Returns credit wallet history"""
+    credit = await _get_credit(organization_id=organization_id, user=user, db=db)
+    history = db.query(credit_wallet_history_models.CreditWalletHistory).filter_by(credit_wallet_id=credit.id).order_by(
+        desc(credit_wallet_history_models.CreditWalletHistory.date))
+    return paginate(list(history))
+
+
 ############
 # Services #
 ############
+
+async def _update_credit_wallet(organization_id: str, credits_to_add: int, reference: str, db: _orm.Session):
+    credit = db.query(model.CreditWallet).filter_by(organization_id=organization_id).first()
+
+    credit.amount += credits_to_add
+    credit.last_updated = _dt.datetime.utcnow()
+    db.commit()
+    db.refresh(credit)
+
+    credit_wallet_history = credit_wallet_history_models.CreditWalletHistory(id=uuid4().hex,
+                                                                             credit_wallet_id=credit.id,
+                                                                             amount=credits_to_add,
+                                                                             date=_dt.datetime.utcnow(),
+                                                                             reference=reference)
+    db.add(credit_wallet_history)
+    db.commit()
+    db.refresh(credit_wallet_history)
+
 
 async def _get_market_rate(currency: str, db: _orm.Session):
     currency = currency.upper()
