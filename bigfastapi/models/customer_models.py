@@ -6,9 +6,7 @@ from bigfastapi.db.database import Base
 from uuid import uuid4
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, status
-from bigfastapi.models.organisation_models import Organization
-from fastapi.responses import JSONResponse
+from fastapi import Depends
 from datetime import datetime
 from bigfastapi.schemas import customer_schemas
 from bigfastapi.db.database import get_db
@@ -59,7 +57,8 @@ async def fetch_customers(organization_id: str,
 
 
 async def add_customer(
-    customer:customer_schemas.CustomerCreate, 
+    customer:customer_schemas.CustomerCreate,
+    organization_id: str, 
     db: Session = Depends(get_db)
     ): 
     customer_instance = Customer(
@@ -68,7 +67,7 @@ async def add_customer(
         first_name = customer.first_name,
         last_name= customer.last_name,
         unique_id= customer.unique_id,
-        organization_id= customer.organization_id,
+        organization_id= organization_id,
         email= customer.email,
         phone_number= customer.phone_number, 
         location= customer.location,

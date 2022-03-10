@@ -1,7 +1,7 @@
 from audioop import reverse
 from typing import List
 from xmlrpc.client import boolean
-from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
 from bigfastapi.models.organisation_models import Organization
 from bigfastapi.models.user_models import User
 from bigfastapi.models.customer_models import Customer, add_customer, put_customer, fetch_customers
@@ -15,7 +15,7 @@ from fastapi_pagination import Page, add_pagination, paginate
 import csv, io
 from collections import namedtuple
 from operator import attrgetter
-
+import pandas as pd 
 
 
 app = APIRouter(tags=["Customers 💁"],)
@@ -43,16 +43,17 @@ async def create_customer(
             return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []}, 
                     status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
-    customer_instance = await add_customer(customer=customer, db=db)
+    customer_instance = await add_customer(customer=customer, organization_id=customer.organization_id, db=db)
     return {"message": "Customer created succesfully", "customer": customer_instance}
 
 
 @app.post("/customers/import/{organization_id}",
-    # response_model=customer_schemas.CustomerCreateResponse,
+    response_model=List[customer_schemas.CustomerCreateResponse],
     status_code=status.HTTP_201_CREATED
     )
 async def create_bulk_customer(
     organization_id: str, 
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...), 
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated) 
@@ -68,47 +69,22 @@ async def create_bulk_customer(
         return JSONResponse({"message": "Organization does not exist", "customer": []}, 
                     status_code=status.HTTP_404_NOT_FOUND)
 
-    posted_customers = []
     list_customers= await file_to_list_converter(file)
-    for customer in list_customers:
-        if "first_name" not in customer: 
-            return JSONResponse ({"message": "first_name is a required field", "customer": []}, 
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE)
-        if "last_name" not in customer:
-            return JSONResponse ({"message": "last_name is a required field", "customer": []}, 
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE)
-                    
-        if "unique_id" not in customer:
-            return JSONResponse ({"message": "unique_id is a required field", "customer": []}, 
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE)
-        if "email" not in customer:
-            customer["email"] = ""
-        if "phone_number" not in customer:
-            customer["phone_number"] = ""
-        if "address" not in customer:
-            customer["address"] = ""
-        if "gender" not in customer:
-            customer["gender"] = ""
-        if "age" not in customer:
-            customer["age"] = 0
-        if "postal_code" not in customer:
-            customer["postal_code"] = ""
-        if "language" not in customer:
-            customer["language"] = ""
-        if "country" not in customer:
-            customer["country"] = ""
-        if "city" not in customer:
-            customer["city"] = ""
-        if "region" not in customer:
-            customer["region"] = ""
-        if "other_information" not in customer:
-            customer["other_information"] = {}
-        if "country_code" not in customer:
-            customer["country_code"] = ""
-        d_customer = namedtuple("Customer", customer.keys())(*customer.values())
-        added_customer = await add_customer(customer=d_customer, organization=organization, db=db)
-        posted_customers.append(added_customer)
-    return {"message": "Customer created succesfully", "customer": posted_customers}
+    required_cols = ["first_name", "last_name", "unique_id"]
+ 
+    df_customers = pd.DataFrame(list_customers)
+    sent_columns = df_customers.columns
+    
+    for col in required_cols:
+        if col not in sent_columns:
+            return JSONResponse ({"message": f"A required field {col} is missing", "customer": []}, 
+                        status_code=status.HTTP_406_NOT_ACCEPTABLE)
+
+    background_tasks.add_task(unpack_create_customers, df_customers, organization_id, db)
+    
+    return JSONResponse ({"message": "Creating Customers...", "customer": list_customers}, 
+                    status_code=status.HTTP_201_CREATED)
+
 
 
 @app.get('/customers', 
@@ -247,3 +223,13 @@ async def file_to_list_converter(file: UploadFile = File(...)):
     for records in reader:
         list_customers.append(records)
     return list_customers
+
+
+
+async def unpack_create_customers(df_customers, organization_id: str, db: Session = Depends(get_db)):
+    posted_customers = []
+    for kwargs in df_customers.to_dict(orient='records'):
+        customer = Customer(**kwargs)
+        added_customer = await add_customer(customer=customer, organization_id=organization_id, db=db)
+        posted_customers.append(added_customer)
+    return posted_customers
