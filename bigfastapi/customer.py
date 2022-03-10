@@ -210,14 +210,14 @@ async def soft_delete_customer(
     )
 async def soft_delete_all_customers(
     organization_id: str, 
-    user_id: str,
+    # user_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
-    user = db.query(User).filter(User.id == user_id).first()
-    if user.is_superuser != True:
-        return JSONResponse({"message": "User has no authority to delete all customers"},
-                status_code=status.HTTP_406_NOT_ACCEPTABLE)
+    # user = db.query(User).filter(User.id == user_id).first()
+    # if user.is_superuser != True:
+    #     return JSONResponse({"message": "User has no authority to delete all customers"},
+    #             status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     organization = db.query(Organization).filter(Organization.id == organization_id).first()
     if not organization:
