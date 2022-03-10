@@ -12,195 +12,194 @@ from uuid import uuid4
 from fastapi.responses import JSONResponse
 from .auth_api import is_authenticated
 from fastapi_pagination import Page, add_pagination, paginate
-import csv, io
+import csv
+import io
 from collections import namedtuple
 from operator import attrgetter
-import pandas as pd 
-
+import pandas as pd
 
 app = APIRouter(tags=["Customers 💁"],)
 
 
-
 @app.post("/customers",
-    response_model=customer_schemas.CustomerCreateResponse,
-    status_code=status.HTTP_201_CREATED
-    )
+          response_model=customer_schemas.CustomerCreateResponse,
+          status_code=status.HTTP_201_CREATED
+          )
 async def create_customer(
-    customer: customer_schemas.CustomerCreate, 
+    customer: customer_schemas.CustomerCreate,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-    ):
+):
     organization = db.query(Organization).filter(
-                    Organization.id == customer.organization_id).first()
-    if not organization: 
-        return JSONResponse({"message": "Organization does not exist", "customer": []}, 
-                    status_code=status.HTTP_404_NOT_FOUND)
+        Organization.id == customer.organization_id).first()
+    if not organization:
+        return JSONResponse({"message": "Organization does not exist", "customer": []},
+                            status_code=status.HTTP_404_NOT_FOUND)
 
     existing_customers = await fetch_customers(organization_id=customer.organization_id, db=db)
     for item in existing_customers:
         if customer.unique_id == item.unique_id:
-            return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []}, 
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE)
+            return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []},
+                                status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     customer_instance = await add_customer(customer=customer, organization_id=customer.organization_id, db=db)
     return {"message": "Customer created succesfully", "customer": customer_instance}
 
 
 @app.post("/customers/import/{organization_id}",
-    response_model=List[customer_schemas.CustomerCreateResponse],
-    status_code=status.HTTP_201_CREATED
-    )
+          response_model=List[customer_schemas.CustomerCreateResponse],
+          status_code=status.HTTP_201_CREATED
+          )
 async def create_bulk_customer(
-    organization_id: str, 
+    organization_id: str,
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...), 
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated) 
-    ):
+    user: users_schemas.User = Depends(is_authenticated)
+):
 
     if file.content_type != "text/csv":
-        return JSONResponse({"message":"file must be a valid csv", "customer": []},
-                        status_code=status.HTTP_406_NOT_ACCEPTABLE)
+        return JSONResponse({"message": "file must be a valid csv", "customer": []},
+                            status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     organization = db.query(Organization).filter(
-                    Organization.id == organization_id).first()
-    if not organization: 
-        return JSONResponse({"message": "Organization does not exist", "customer": []}, 
-                    status_code=status.HTTP_404_NOT_FOUND)
+        Organization.id == organization_id).first()
+    if not organization:
+        return JSONResponse({"message": "Organization does not exist", "customer": []},
+                            status_code=status.HTTP_404_NOT_FOUND)
 
-    list_customers= await file_to_list_converter(file)
+    list_customers = await file_to_list_converter(file)
     required_cols = ["first_name", "last_name", "unique_id"]
- 
+
     df_customers = pd.DataFrame(list_customers)
     sent_columns = df_customers.columns
-    
+
     for col in required_cols:
         if col not in sent_columns:
-            return JSONResponse ({"message": f"A required field {col} is missing", "customer": []}, 
-                        status_code=status.HTTP_406_NOT_ACCEPTABLE)
+            return JSONResponse({"message": f"A required field {col} is missing", "customer": []},
+                                status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
-    background_tasks.add_task(unpack_create_customers, df_customers, organization_id, db)
-    
-    return JSONResponse ({"message": "Creating Customers...", "customer": list_customers}, 
-                    status_code=status.HTTP_201_CREATED)
+    background_tasks.add_task(unpack_create_customers,
+                              df_customers, organization_id, db)
+
+    return JSONResponse({"message": "Creating Customers...", "customer": list_customers},
+                        status_code=status.HTTP_201_CREATED)
 
 
-
-@app.get('/customers', 
-    response_model=Page[customer_schemas.Customer],
-    status_code=status.HTTP_200_OK
-    )
+@app.get('/customers',
+         response_model=Page[customer_schemas.Customer],
+         status_code=status.HTTP_200_OK
+         )
 async def get_customers(
     organization_id: str,
-    search_value:str = None,
+    search_value: str = None,
     sorting_key: str = None,
     reverse_sort: bool = False,
-    db: Session = Depends(get_db), 
+    db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-    ):
-    
-    organization = db.query(Organization).filter(Organization.id == organization_id).first()
+):
+
+    organization = db.query(Organization).filter(
+        Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
 
-    customers = await fetch_customers(organization_id = organization_id, name=search_value, db=db)
+    customers = await fetch_customers(organization_id=organization_id, name=search_value, db=db)
 
     if not sorting_key or not customers or sorting_key not in customers[0]:
         return paginate(customers)
     customers.sort(key=lambda x: getattr(x, sorting_key), reverse=reverse_sort)
     return paginate(customers)
-    
 
-    
-@app.get('/customers/{customer_id}', 
-    response_model=customer_schemas.Customer,
-    status_code=status.HTTP_200_OK
-    )
+
+@app.get('/customers/{customer_id}',
+         response_model=customer_schemas.Customer,
+         status_code=status.HTTP_200_OK
+         )
 async def get_customer(
-    customer_id: str, 
+    customer_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-   ):
-    customer = db.query(Customer).filter(Customer.customer_id == customer_id).first()
+):
+    customer = db.query(Customer).filter(
+        Customer.customer_id == customer_id).first()
     if not customer:
         return JSONResponse({"message": "Customer does not exist"},
-                    status_code=status.HTTP_404_NOT_FOUND)
+                            status_code=status.HTTP_404_NOT_FOUND)
     return customer_schemas.Customer.from_orm(customer)
-        
 
-@app.put('/customers/{customer_id}', 
-    response_model=customer_schemas.CustomerCreateResponse, 
-    status_code=status.HTTP_202_ACCEPTED
-    )
+
+@app.put('/customers/{customer_id}',
+         response_model=customer_schemas.CustomerCreateResponse,
+         status_code=status.HTTP_202_ACCEPTED
+         )
 async def update_customer(
-    customer: customer_schemas.CustomerUpdate, 
+    customer: customer_schemas.CustomerUpdate,
     customer_id: str, db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-    ):
+):
     customer_instance = db.query(Customer).filter(
-                    Customer.customer_id == customer_id).first()
-    if not customer_instance :
-        raise HTTPException (status_code=status.HTTP_404_NOT_FOUND, 
+        Customer.customer_id == customer_id).first()
+    if not customer_instance:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail={"message": "Customer does not exist"})
     if customer.organization_id:
         organization = db.query(Organization).filter(
-                                Organization.id == customer.organization_id).first()
+            Organization.id == customer.organization_id).first()
         if not organization:
             return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         customer_instance.organization_id = organization.id
 
-    updated_customer = await put_customer(customer=customer, 
-                customer_instance=customer_instance, db=db)
+    updated_customer = await put_customer(customer=customer,
+                                          customer_instance=customer_instance, db=db)
     return {"message": "Customer updated succesfully", "customer": updated_customer}
 
- 
 
-
-@app.delete('/customers/{customer_id}', 
-    response_model=customer_schemas.ResponseModel, 
-    status_code=status.HTTP_200_OK
-    )
+@app.delete('/customers/{customer_id}',
+            response_model=customer_schemas.ResponseModel,
+            status_code=status.HTTP_200_OK
+            )
 async def soft_delete_customer(
-    customer_id: str, 
+    customer_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-    ):
-    
+):
 
     customer = db.query(Customer).filter(
-                Customer.customer_id == customer_id).first()
+        Customer.customer_id == customer_id).first()
     if not customer:
-        return JSONResponse({"message": "Customer does not exist"}, 
-                status_code=status.HTTP_404_NOT_FOUND)
+        return JSONResponse({"message": "Customer does not exist"},
+                            status_code=status.HTTP_404_NOT_FOUND)
     customer.is_deleted = True
     db.commit()
     db.refresh(customer)
-    return JSONResponse({"message": "Customer deleted succesfully"}, 
-            status_code=status.HTTP_200_OK)
+    return JSONResponse({"message": "Customer deleted succesfully"},
+                        status_code=status.HTTP_200_OK)
 
 
-@app.delete('/customers/organization/{organization_id}', 
-    response_model=customer_schemas.ResponseModel, 
-    status_code=status.HTTP_200_OK
-    )
+@app.delete('/customers/organization/{organization_id}',
+            response_model=customer_schemas.ResponseModel,
+            status_code=status.HTTP_200_OK
+            )
 async def soft_delete_all_customers(
-    organization_id: str, 
+    organization_id: str,
     # user_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-    ):
+):
     # user = db.query(User).filter(User.id == user_id).first()
     # if user.is_superuser != True:
     #     return JSONResponse({"message": "User has no authority to delete all customers"},
     #             status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
-    organization = db.query(Organization).filter(Organization.id == organization_id).first()
+    organization = db.query(Organization).filter(
+        Organization.id == organization_id).first()
     if not organization:
-        return JSONResponse({"message": "Organization does not exist"}, 
-                status_code=status.HTTP_404_NOT_FOUND)
-    
-    customers = db.query(Customer).filter_by(organization_id=organization_id, is_deleted = False)
+        return JSONResponse({"message": "Organization does not exist"},
+                            status_code=status.HTTP_404_NOT_FOUND)
+
+    customers = db.query(Customer).filter_by(
+        organization_id=organization_id, is_deleted=False)
     for customer in customers:
         customer.is_deleted = True
         db.commit()
@@ -208,7 +207,7 @@ async def soft_delete_all_customers(
         print(customer)
 
     return JSONResponse({"message": "Customers deleted succesfully"},
-                 status_code=status.HTTP_200_OK)
+                        status_code=status.HTTP_200_OK)
 
 add_pagination(app)
 
@@ -223,7 +222,6 @@ async def file_to_list_converter(file: UploadFile = File(...)):
     for records in reader:
         list_customers.append(records)
     return list_customers
-
 
 
 async def unpack_create_customers(df_customers, organization_id: str, db: Session = Depends(get_db)):
