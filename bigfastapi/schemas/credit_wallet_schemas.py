@@ -2,6 +2,8 @@ import datetime
 
 import pydantic as _pydantic
 
+from bigfastapi.schemas.wallet_schemas import PaymentProvider
+
 
 class CreditWalletHistory(_pydantic.BaseModel):
     id: str
@@ -18,6 +20,7 @@ class CreditWalletHistory(_pydantic.BaseModel):
 class CreditWalletFund(_pydantic.BaseModel):
     currency: str
     amount: float
+    provider: PaymentProvider
     # type: str
     redirect_url: str
 
