@@ -220,10 +220,3 @@ async def file_to_list_converter(file: UploadFile = File(...)):
     for records in reader:
         list_customers.append(records)
     return list_customers
-
-
-async def get_customer_by_id(customer_id: str, organization_id: str, db: Session):
-    customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id and Customer.organization_id == organization_id).first()
-
-    return customer
