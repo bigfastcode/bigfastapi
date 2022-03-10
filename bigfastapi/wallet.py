@@ -9,7 +9,7 @@ from sqlalchemy import desc
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
-from .models import organisation_models as organisation_models
+from .models import organisation_models as organisation_models, user_models
 from .models import wallet_models as model
 from .models import wallet_transaction_models as wallet_transaction_models
 from .schemas import users_schemas
@@ -104,6 +104,18 @@ async def _create_wallet(organization_id: str,
     return wallet
 
 
+async def _get_wallet_balance(wallet_id: str, db: _orm.Session):
+    query = db.execute(
+        'select round(sum(amount),2) as amount from wallet_transactions where status = 1 and wallet_id="' + wallet_id + '"')
+
+    wallet_balance = query.first()[0]
+
+    if wallet_balance is None:
+        return 0
+    else:
+        return wallet_balance
+
+
 async def _get_organization_wallet(organization_id: str,
                                    currency: str,
                                    user: users_schemas.User,
@@ -111,11 +123,13 @@ async def _get_organization_wallet(organization_id: str,
     # verify if the organization exists under the user's account
 
     await _get_organization(organization_id=organization_id, db=db, user=user)
-
     wallet = db.query(model.Wallet).filter_by(organization_id=organization_id).filter_by(currency_code=currency).first()
     if wallet is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="Organization does not have a " + currency + " wallet")
+
+    wallet_balance = await _get_wallet_balance(wallet_id=wallet.id, db=db)
+    wallet.balance = wallet_balance
 
     return wallet
 
@@ -135,6 +149,8 @@ async def _get_organization_wallets(organization_id: str,
     await _get_organization(organization_id=organization_id, db=db, user=user)
 
     wallets = db.query(model.Wallet).filter_by(organization_id=organization_id)
+    for index, wallet in enumerate(wallets):
+        wallets[index].balance = await _get_wallet_balance(wallet_id=wallet.id, db=db)
 
     return paginate(list(wallets))
 
@@ -149,21 +165,63 @@ async def _get_wallet(wallet_id: str,
     return wallet
 
 
-async def _update_wallet(wallet, amount: float, db: _orm.Session, currency: str, tx_ref: str):
-    # create a wallet transaction
-    wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
-                                                                     currency_code=currency, amount=amount,
-                                                                     transaction_date=_dt.datetime.utcnow(),
-                                                                     transaction_ref=tx_ref)
-    db.add(wallet_transaction)
-    db.commit()
-    db.refresh(wallet_transaction)
+async def _get_super_admin_wallet(db: _orm.Session, currency: str):
+    admin = db.query(user_models.User).filter_by(is_superuser=True).filter_by(is_deleted=False).first()
+    organization = db.query(organisation_models.Organization).filter_by(creator=admin.id).filter_by(
+        is_deleted=False).first()
+    wallet = db.query(model.Wallet).filter_by(organization_id=organization.id).filter_by(
+        currency_code=currency).first()
+    if wallet is None:
+        wallet = await _create_wallet(organization_id=organization.id, db=db, currency_code=currency)
 
+    return wallet
+
+
+async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, wallet_transaction_id='', reason=''):
     # update the wallet
-    wallet.balance += amount
-    wallet.last_updated = _dt.datetime.utcnow()
-    db.commit()
-    db.refresh(wallet)
+    # wallet.balance += amount
+    # wallet.last_updated = _dt.datetime.utcnow()
+    # db.commit()
+    # db.refresh(wallet)
+
+    if wallet_transaction_id == '':
+        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
+                                                                         currency_code=currency, amount=amount,
+                                                                         transaction_date=_dt.datetime.utcnow(),
+                                                                         transaction_ref=reason, status=True)
+        db.add(wallet_transaction)
+        db.commit()
+        db.refresh(wallet_transaction)
+
+    else:
+        # update a wallet transaction
+        wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(
+            id=wallet_transaction_id).first()
+        wallet_transaction.status = True
+        if reason != '':
+            wallet_transaction.transaction_ref = reason
+        db.commit()
+        db.refresh(wallet_transaction)
+
+    if amount < 0:
+        amount = -amount
+        # transfer money to admin wallet
+
+        adminWallet = await _get_super_admin_wallet(db=db, currency=currency)
+        # update admin wallet
+        adminWallet.balance += amount
+        adminWallet.last_updated = _dt.datetime.utcnow()
+        db.commit()
+        db.refresh(adminWallet)
+
+        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
+                                                                         currency_code=currency, amount=amount,
+                                                                         transaction_date=_dt.datetime.utcnow(),
+                                                                         transaction_ref=reason, status=True)
+        db.add(wallet_transaction)
+        db.commit()
+        db.refresh(wallet_transaction)
+
     return wallet
 
 

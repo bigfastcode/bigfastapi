@@ -11,6 +11,7 @@ class WalletTransaction(_pydantic.BaseModel):
     transaction_date: _dt.datetime
     currency_code: str
     id: str
+    status: bool
     wallet_id: str
 
     class Config:
@@ -25,7 +26,7 @@ class WalletCreate(_pydantic.BaseModel):
 
 class Wallet(WalletCreate):
     id: str
-    balance: int
+    balance: float
     last_updated: _dt.datetime
 
     class Config:

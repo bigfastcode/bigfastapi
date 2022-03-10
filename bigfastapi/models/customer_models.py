@@ -6,9 +6,7 @@ from bigfastapi.db.database import Base
 from uuid import uuid4
 from sqlalchemy.schema import Column
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, status
-from bigfastapi.models.organisation_models import Organization
-from fastapi.responses import JSONResponse
+from fastapi import Depends
 from datetime import datetime
 from bigfastapi.schemas import customer_schemas
 from bigfastapi.db.database import get_db
@@ -43,9 +41,13 @@ class Customer(Base):
                           server_default=func.now(), onupdate=func.now())
 
 
-async def fetch_customers(organization_id: str,  name: str = None, db: Session = Depends(get_db)):
+async def fetch_customers(organization_id: str,
+                          name: str = None,
+                          db: Session = Depends(get_db)):
     customers = db.query(Customer).filter(
-        Customer.organization_id == organization_id).filter(Customer.is_deleted == False)
+        Customer.organization_id == organization_id).filter(
+        Customer.is_deleted == False
+    )
     customer_list = list(map(customer_schemas.Customer.from_orm, customers))
     if not name:
         return customer_list
@@ -56,15 +58,18 @@ async def fetch_customers(organization_id: str,  name: str = None, db: Session =
     return found_customers
 
 
-async def add_customer(customer: customer_schemas.CustomerCreate, db: Session = Depends(get_db)):
-
+async def add_customer(
+    customer: customer_schemas.CustomerCreate,
+    organization_id: str,
+    db: Session = Depends(get_db)
+):
     customer_instance = Customer(
         id=uuid4().hex,
         customer_id=generate_short_id(size=12),
         first_name=customer.first_name,
         last_name=customer.last_name,
         unique_id=customer.unique_id,
-        organization_id=customer.organization_id,
+        organization_id=organization_id,
         email=customer.email,
         phone_number=customer.phone_number,
         location=customer.location,
@@ -80,7 +85,6 @@ async def add_customer(customer: customer_schemas.CustomerCreate, db: Session = 
         country_code=customer.country_code,
         date_created=datetime.now(),
         last_updated=datetime.now()
-
     )
     db.add(customer_instance)
     db.commit()
@@ -88,9 +92,11 @@ async def add_customer(customer: customer_schemas.CustomerCreate, db: Session = 
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
-async def put_customer(customer: customer_schemas.CustomerUpdate,
-                       customer_instance,  db: Session = Depends(get_db)):
-
+async def put_customer(
+    customer: customer_schemas.CustomerUpdate,
+    customer_instance,
+    db: Session = Depends(get_db)
+):
     if customer.first_name:
         customer_instance.first_name = customer.first_name
     if customer.last_name:
