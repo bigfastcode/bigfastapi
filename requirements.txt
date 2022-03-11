@@ -56,3 +56,4 @@ authlib
 itsdangerous
 aiofiles
 Pillow
+pandas
