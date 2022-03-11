@@ -4,8 +4,9 @@ from xmlrpc.client import boolean
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
 from bigfastapi.models.organisation_models import Organization
 from bigfastapi.models.user_models import User
-from bigfastapi.models.customer_models import Customer, add_customer, put_customer, fetch_customers
+from bigfastapi.models.customer_models import Customer, OtherInformation, add_customer, put_customer, fetch_customers, add_other_info
 from bigfastapi.schemas import customer_schemas, users_schemas
+from bigfastapi.models import customer_models
 from sqlalchemy.orm import Session
 from bigfastapi.db.database import get_db
 from uuid import uuid4
@@ -26,7 +27,9 @@ app = APIRouter(tags=["Customers 💁"],)
           status_code=status.HTTP_201_CREATED
           )
 async def create_customer(
+    background_tasks: BackgroundTasks,
     customer: customer_schemas.CustomerCreate,
+    other_info: List[customer_schemas.OtherInfo] = None, 
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
 ):
@@ -43,6 +46,10 @@ async def create_customer(
                                 status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     customer_instance = await add_customer(customer=customer, organization_id=customer.organization_id, db=db)
+
+    if other_info:
+        background_tasks.add_task(add_other_info, other_info, db)
+
     return {"message": "Customer created succesfully", "customer": customer_instance}
 
 
@@ -113,7 +120,7 @@ async def get_customers(
 
 
 @app.get('/customers/{customer_id}',
-         response_model=customer_schemas.Customer,
+         response_model=customer_schemas.SingleResponse,
          status_code=status.HTTP_200_OK
          )
 async def get_customer(
@@ -126,7 +133,13 @@ async def get_customer(
     if not customer:
         return JSONResponse({"message": "Customer does not exist"},
                             status_code=status.HTTP_404_NOT_FOUND)
-    return customer_schemas.Customer.from_orm(customer)
+
+    other_info = db.query(customer_models.OtherInformation).filter(
+        OtherInformation.customer_id == customer_id)
+    
+    setattr(customer, 'other_info', other_info)
+    
+    return customer_schemas.SingleResponse.from_orm(customer)
 
 
 @app.put('/customers/{customer_id}',
@@ -134,8 +147,11 @@ async def get_customer(
          status_code=status.HTTP_202_ACCEPTED
          )
 async def update_customer(
+     background_tasks: BackgroundTasks,
     customer: customer_schemas.CustomerUpdate,
-    customer_id: str, db: Session = Depends(get_db),
+    customer_id: str, 
+    other_info: List[customer_schemas.OtherInfo] = None, 
+    db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
 ):
     customer_instance = db.query(Customer).filter(
@@ -152,6 +168,10 @@ async def update_customer(
 
     updated_customer = await put_customer(customer=customer,
                                           customer_instance=customer_instance, db=db)
+    
+    if other_info:
+        background_tasks.add_task(add_other_info, other_info, db)
+
     return {"message": "Customer updated succesfully", "customer": updated_customer}
 
 

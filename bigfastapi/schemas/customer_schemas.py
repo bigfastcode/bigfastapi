@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import unique
-from typing import Optional, Any
+from typing import Optional, Any, List
 from pydantic import BaseModel, EmailStr
 
 class CustomerBase(BaseModel):
@@ -59,3 +59,16 @@ class CustomerCreateResponse(BaseModel):
 
 class ResponseModel(BaseModel):
     message: str
+
+
+class OtherInfo(BaseModel):
+    customer_id: str
+    value: str
+    key: str
+    class Config:
+        orm_mode = True
+
+class SingleResponse(Customer):
+    
+    other_info: List[OtherInfo]
+    
