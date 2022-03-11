@@ -5,11 +5,11 @@ import pydantic as _pydantic
 from typing import Optional
 
 class _StoreUserBase(_pydantic.BaseModel):
-    store_id : str
-    user_id : str
-    role : str
-    is_deleted : str
-    date_created : str
+    store_id = str
+    user_id = str
+    role = str
+    is_deleted = str
+    date_created = str
 
 class StoreUserBase(_pydantic.BaseModel):
     store_id = Optional[str]
@@ -19,4 +19,4 @@ class StoreUserBase(_pydantic.BaseModel):
     date_created = Optional[str]
 
 class UserUpdate(StoreUserBase):
-    email: str
+    email = str
