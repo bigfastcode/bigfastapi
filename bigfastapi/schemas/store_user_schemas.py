@@ -12,8 +12,5 @@ class StoreUserBase(pydantic.BaseModel):
     is_deleted = Optional[str]
     date_created = Optional[str]
 
-    class Config:
-        arbitrary_types_allowed = True
-
 class UserUpdate(StoreUserBase):
     email: str
