@@ -287,13 +287,12 @@ def update_user_role(
     payload: store_user_schemas.UserUpdate,
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    # check if the user exists with the user_id and store_id
-    # look up existing user with email in the users table and fetch the id to update the role in store_users
+    
     existing_user = (
         db.query(user_models.User)
-        .filter(and_(
-            user_models.User.email == payload.email,
-        ))
+        .filter(
+            user_models.User.email == payload.email
+        )
         .first()
     )
 
