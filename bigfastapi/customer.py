@@ -1,10 +1,9 @@
-from audioop import reverse
 from typing import List
 from xmlrpc.client import boolean
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
 from bigfastapi.models.organisation_models import Organization
 from bigfastapi.models.user_models import User
-from bigfastapi.models.customer_models import Customer, OtherInformation, add_customer, put_customer, fetch_customers, add_other_info
+from bigfastapi.models.customer_models import Customer
 from bigfastapi.schemas import customer_schemas, users_schemas
 from bigfastapi.models import customer_models
 from sqlalchemy.orm import Session
@@ -15,23 +14,21 @@ from .auth_api import is_authenticated
 from fastapi_pagination import Page, add_pagination, paginate
 import csv
 import io
-from collections import namedtuple
-from operator import attrgetter
 import pandas as pd
 
 app = APIRouter(tags=["Customers 💁"],)
 
 
 @app.post("/customers",
-          response_model=customer_schemas.CustomerCreateResponse,
+          response_model=customer_schemas.CustomerResponse,
           status_code=status.HTTP_201_CREATED
           )
 async def create_customer(
     background_tasks: BackgroundTasks,
-    customer: customer_schemas.CustomerCreate,
-    other_info: List[customer_schemas.OtherInfo] = None, 
+    customer: customer_schemas.CustomerBase,
+
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
     organization = db.query(Organization).filter(
         Organization.id == customer.organization_id).first()
@@ -39,22 +36,22 @@ async def create_customer(
         return JSONResponse({"message": "Organization does not exist", "customer": []},
                             status_code=status.HTTP_404_NOT_FOUND)
 
-    existing_customers = await fetch_customers(organization_id=customer.organization_id, db=db)
+    existing_customers = await customer_models.fetch_customers(organization_id=customer.organization_id, db=db)
     for item in existing_customers:
         if customer.unique_id == item.unique_id:
             return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []},
                                 status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
-    customer_instance = await add_customer(customer=customer, organization_id=customer.organization_id, db=db)
+    customer_instance = await customer_models.add_customer(customer=customer, organization_id=customer.organization_id, db=db)
 
-    if other_info:
-        background_tasks.add_task(add_other_info, other_info, db)
+    if customer.other_info:
+        background_tasks.add_task(customer_models.add_other_info, customer.other_info, customer_instance.customer_id, db)
 
     return {"message": "Customer created succesfully", "customer": customer_instance}
 
 
 @app.post("/customers/import/{organization_id}",
-          response_model=List[customer_schemas.CustomerCreateResponse],
+          response_model=List[customer_schemas.CustomerResponse],
           status_code=status.HTTP_201_CREATED
           )
 async def create_bulk_customer(
@@ -62,7 +59,7 @@ async def create_bulk_customer(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
 
     if file.content_type != "text/csv":
@@ -103,7 +100,7 @@ async def get_customers(
     sorting_key: str = None,
     reverse_sort: bool = False,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
 
     organization = db.query(Organization).filter(
@@ -111,7 +108,7 @@ async def get_customers(
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
 
-    customers = await fetch_customers(organization_id=organization_id, name=search_value, db=db)
+    customers = await customer_models.fetch_customers(organization_id=organization_id, name=search_value, db=db)
 
     if not sorting_key or not customers or sorting_key not in customers[0]:
         return paginate(customers)
@@ -120,13 +117,13 @@ async def get_customers(
 
 
 @app.get('/customers/{customer_id}',
-         response_model=customer_schemas.SingleResponse,
+         response_model=customer_schemas.CustomerResponse,
          status_code=status.HTTP_200_OK
          )
 async def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
@@ -135,24 +132,25 @@ async def get_customer(
                             status_code=status.HTTP_404_NOT_FOUND)
 
     other_info = db.query(customer_models.OtherInformation).filter(
-        OtherInformation.customer_id == customer_id)
+        customer_models.OtherInformation.customer_id == customer_id)
+
+    list_other_info = list(map( customer_schemas.OtherInfo.from_orm, other_info))
     
-    setattr(customer, 'other_info', other_info)
+    setattr(customer, 'other_info', list_other_info)
     
-    return customer_schemas.SingleResponse.from_orm(customer)
+    return {"message": "Customer updated succesfully", "customer": customer_schemas.Customer.from_orm(customer)}
 
 
 @app.put('/customers/{customer_id}',
-         response_model=customer_schemas.CustomerCreateResponse,
+         response_model=customer_schemas.CustomerResponse,
          status_code=status.HTTP_202_ACCEPTED
          )
 async def update_customer(
-     background_tasks: BackgroundTasks,
+    background_tasks: BackgroundTasks,
     customer: customer_schemas.CustomerUpdate,
     customer_id: str, 
-    other_info: List[customer_schemas.OtherInfo] = None, 
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
     customer_instance = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
@@ -166,23 +164,23 @@ async def update_customer(
             return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         customer_instance.organization_id = organization.id
 
-    updated_customer = await put_customer(customer=customer,
+    updated_customer = await customer_models.put_customer(customer=customer,
                                           customer_instance=customer_instance, db=db)
     
-    if other_info:
-        background_tasks.add_task(add_other_info, other_info, db)
+    if customer.other_info:
+        background_tasks.add_task(customer_models.add_other_info, customer.other_info, customer_id, db)
 
     return {"message": "Customer updated succesfully", "customer": updated_customer}
 
 
 @app.delete('/customers/{customer_id}',
-            response_model=customer_schemas.ResponseModel,
+            response_model=customer_schemas.CustomerResponse,
             status_code=status.HTTP_200_OK
             )
 async def soft_delete_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
 
     customer = db.query(Customer).filter(
@@ -198,14 +196,14 @@ async def soft_delete_customer(
 
 
 @app.delete('/customers/organization/{organization_id}',
-            response_model=customer_schemas.ResponseModel,
+            response_model=customer_schemas.CustomerResponse,
             status_code=status.HTTP_200_OK
             )
 async def soft_delete_all_customers(
     organization_id: str,
     # user_id: str,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
     # user = db.query(User).filter(User.id == user_id).first()
     # if user.is_superuser != True:
@@ -248,6 +246,6 @@ async def unpack_create_customers(df_customers, organization_id: str, db: Sessio
     posted_customers = []
     for kwargs in df_customers.to_dict(orient='records'):
         customer = Customer(**kwargs)
-        added_customer = await add_customer(customer=customer, organization_id=organization_id, db=db)
+        added_customer = await customer_models.add_customer(customer=customer, organization_id=organization_id, db=db)
         posted_customers.append(added_customer)
     return posted_customers

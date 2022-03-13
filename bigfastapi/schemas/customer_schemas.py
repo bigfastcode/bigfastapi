@@ -1,12 +1,20 @@
 from datetime import datetime
 from enum import unique
-from typing import Optional, Any, List
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr
+
+
+class OtherInfo(BaseModel):
+    value: str
+    key: str
+    class Config:
+        orm_mode = True
 
 class CustomerBase(BaseModel):
     first_name: str
     last_name: str
     unique_id:str
+    organization_id: str
     email: EmailStr = None
     phone_number: str = None
     business_name: str =None
@@ -18,18 +26,13 @@ class CustomerBase(BaseModel):
     country: str = None
     city: str =None
     region: str =None
-    country_code: Optional[str] = None
-    other_information: Optional[Any] = {}
+    country_code: str = None
+    other_info: List[OtherInfo] = None
 
     class Config:
         orm_mode = True
 
-class CustomerCreate(CustomerBase):
-    organization_id: str
-    
-
 class Customer(CustomerBase):
-    organization_id: str
     customer_id: str
     date_created: datetime
     last_updated: datetime
@@ -51,24 +54,9 @@ class CustomerUpdate(BaseModel):
     city: Optional[str] = None
     region: Optional[str] = None
     country_code: Optional[str] = None
-    other_information: Optional[Any] = {}
-
-class CustomerCreateResponse(BaseModel):
-    message: str
-    customer: Customer
-
-class ResponseModel(BaseModel):
-    message: str
-
-
-class OtherInfo(BaseModel):
-    customer_id: str
-    value: str
-    key: str
-    class Config:
-        orm_mode = True
-
-class SingleResponse(Customer):
+    other_info: List[OtherInfo] = None
     
-    other_info: List[OtherInfo]
-    
+
+class CustomerResponse(BaseModel):
+    message: str 
+    customer: Customer =None
