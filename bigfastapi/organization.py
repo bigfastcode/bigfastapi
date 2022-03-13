@@ -93,11 +93,18 @@ async def get_organization_users(
     """
         An endpoint that returns the users in an organization.
     """
-    store_users = []
     # query the store_users table with the organization_id
     invited_list = db.query(store_user_model.StoreUser).filter(
         store_user_model.StoreUser.store_id == organization_id
     ).all()
+
+    def row_to_dict(row):
+        d = {}
+        for column in row.__table__.columns:
+            d[column.name] = str(getattr(row, column.name))
+        return d
+
+    invited_list = list(map(lambda x: row_to_dict(x), invited_list))
 
     organization = (
         db.query(_models.Organization)
@@ -112,16 +119,19 @@ async def get_organization_users(
     store_owner = (
         db.query(user_models.User)
         .filter(user_models.User.id == store_owner_id)
-        .all())
+        .first())
 
     invited_users = []
     if len(invited_list) > 0:
         for invited in invited_list:
-            invited_users += db.query(user_models.User).filter(
-                user_models.User.id == invited.user_id)
+            user =  db.query(user_models.User).filter(
+                user_models.User.id == invited["user_id"]).first()
+            if(user.id == invited["user_id"]):
+                invited["email"] = user.email
 
-    store_users = invited_users + store_owner
-    return store_users
+            invited_users.append(invited)
+
+    return { "owner": store_owner, "users": invited_users}
 
 
 @app.get('/organization/{organization_id}/roles')
