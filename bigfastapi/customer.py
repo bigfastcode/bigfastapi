@@ -97,8 +97,8 @@ async def create_bulk_customer(
 async def get_customers(
     organization_id: str,
     search_value: str = None,
-    sorting_key: str = None,
-    reverse_sort: bool = False,
+    sorting_key: str = "date_created",
+    reverse_sort: bool = True,
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
 ):
@@ -110,10 +110,9 @@ async def get_customers(
 
     customers = await customer_models.fetch_customers(organization_id=organization_id, name=search_value, db=db)
 
-    if not sorting_key or not customers or sorting_key not in customers[0]:
-        return paginate(customers)
-    customers.sort(key=lambda x: getattr(x, sorting_key), reverse=reverse_sort)
+    customers.sort(key=lambda x: getattr(x, sorting_key, "firt_name"), reverse=reverse_sort)
     return paginate(customers)
+
 
 
 @app.get('/customers/{customer_id}',
@@ -138,7 +137,8 @@ async def get_customer(
     
     setattr(customer, 'other_info', list_other_info)
     
-    return {"message": "Customer updated succesfully", "customer": customer_schemas.Customer.from_orm(customer)}
+    return {"message": "successfully fetched details", "customer": customer_schemas.Customer.from_orm(customer)}
+
 
 
 @app.put('/customers/{customer_id}',
@@ -249,3 +249,5 @@ async def unpack_create_customers(df_customers, organization_id: str, db: Sessio
         added_customer = await customer_models.add_customer(customer=customer, organization_id=organization_id, db=db)
         posted_customers.append(added_customer)
     return posted_customers
+
+
