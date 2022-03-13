@@ -5,7 +5,7 @@ from sqlalchemy.types import String, DateTime
 from uuid import UUID, uuid4
 import bigfastapi.db.database as database
 
-class SMS(database.Base):
+class Role(database.Base):
     __tablename__ = "roles"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     role_name = Column(String(255), index=True)
