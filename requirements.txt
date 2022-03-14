@@ -56,4 +56,5 @@ authlib
 itsdangerous
 aiofiles
 Pillow
+stripe
 pandas

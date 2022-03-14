@@ -5,6 +5,7 @@ from uuid import uuid4
 import fastapi
 import requests
 import sqlalchemy.orm as _orm
+import stripe
 from decouple import config
 from fastapi import APIRouter
 from fastapi_pagination import Page, paginate, add_pagination
@@ -18,6 +19,7 @@ from .models import credit_wallet_models as model, organisation_models, credit_w
     wallet_transaction_models, credit_wallet_history_models
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
+from .schemas.wallet_schemas import PaymentProvider
 from .utils.utils import generate_payment_link
 from .wallet import update_wallet
 
@@ -74,8 +76,70 @@ async def get_rate(
     return rate
 
 
-@app.get("/credits/callback")
-async def verify_payment_transaction(
+@app.get("/credits/callback/stripe")
+async def verify_stripe_payment(status: str, tx_ref: str, transaction_id: str,
+                                db: _orm.Session = fastapi.Depends(get_db)):
+    stripe.api_key = config('STRIPE_SEC_KEY')
+    session = stripe.checkout.Session.retrieve(transaction_id)
+    frontendUrl = session.metadata.redirect_url
+    if status == 'successful' and session.url is None:
+        rootUrl = config('API_URL')
+        retryLink = rootUrl + '/credits/callback&tx_ref=' + tx_ref + '&transaction_id=' + transaction_id
+        ref = session.client_reference_id
+        wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(id=ref).first()
+        if wallet_transaction is not None:
+            ref = wallet_transaction.transaction_ref
+
+            if wallet_transaction.status:
+                response = RedirectResponse(
+                    url=frontendUrl + '?status=error&message=Transaction already processed')
+                return response
+
+            user_id, organization_id, _ = ref.split('-')
+            amount = session.amount_total
+            currency = session.currency.upper()
+            wallet = await _get_wallet(organization_id=organization_id, currency=currency, db=db)
+
+            try:
+                # add money to wallet
+                await update_wallet(wallet=wallet, amount=amount, db=db, currency=currency,
+                                    wallet_transaction_id=wallet_transaction.id,
+                                    reason="Stripe: " + currency + " " + str(amount) + " Top Up")
+
+                conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
+                credits_to_add = round(amount / conversion.rate)
+
+                # debit money from wallet to buy credits
+                reference = str(credits_to_add) + ' credits Top Up'
+                await update_wallet(wallet=wallet, amount=-amount, db=db, currency=currency,
+                                    reason=organization_id + ": " + reference)
+
+                # update credit here
+                await _update_credit_wallet(organization_id=organization_id, reference=reference,
+                                            credits_to_add=credits_to_add,
+                                            db=db)
+
+                response = RedirectResponse(url=frontendUrl + '?status=success&message=Credit refilled')
+                return response
+            except fastapi.HTTPException:
+                response = RedirectResponse(
+                    url=frontendUrl + '?status=error&message=An error occurred while refilling your credit. '
+                                      'Please try again&link=' + retryLink)
+                return response
+
+
+        else:
+            response = RedirectResponse(
+                url=frontendUrl + '?status=error&message=Transaction not found Please try again&link=' + retryLink)
+            return response
+
+    else:
+        response = RedirectResponse(url=frontendUrl + '?status=error&message=Payment was not successful')
+        return response
+
+
+@app.get("/credits/callback/flutterwave")
+async def verify_flutterwave_payment(
         status: str,
         tx_ref: str,
         transaction_id='',
@@ -113,7 +177,7 @@ async def verify_payment_transaction(
                         # add money to wallet
                         await update_wallet(wallet=wallet, amount=amount, db=db, currency=currency,
                                             wallet_transaction_id=wallet_transaction.id,
-                                            reason=currency + " " + str(amount) + " Top Up")
+                                            reason="Flutterwave: " + currency + " " + str(amount) + " Top Up")
 
                         conversion = await _get_credit_wallet_conversion(currency=currency, db=db)
                         credits_to_add = round(amount / conversion.rate)
@@ -198,10 +262,14 @@ async def add_credit(body: schema.CreditWalletFund,
         db.refresh(wallet_transaction)
 
         redirectUrl = rootUrl + '/credits/callback'
+        if body.provider == PaymentProvider.STRIPE:
+            redirectUrl += '/stripe'
+        else:
+            redirectUrl += '/flutterwave'
         link = await generate_payment_link(front_end_redirect_url=body.redirect_url, api_redirect_url=redirectUrl,
                                            user=user,
                                            amount=body.amount,
-                                           currency=body.currency, tx_ref=transaction_id)
+                                           currency=body.currency, tx_ref=transaction_id, provider=body.provider)
         return {"link": link}
 
 
