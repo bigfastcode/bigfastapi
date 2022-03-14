@@ -1,14 +1,11 @@
 from typing import List
-from xmlrpc.client import boolean
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
 from bigfastapi.models.organisation_models import Organization
-from bigfastapi.models.user_models import User
 from bigfastapi.models.customer_models import Customer
 from bigfastapi.schemas import customer_schemas, users_schemas
 from bigfastapi.models import customer_models
 from sqlalchemy.orm import Session
 from bigfastapi.db.database import get_db
-from uuid import uuid4
 from fastapi.responses import JSONResponse
 from .auth_api import is_authenticated
 from fastapi_pagination import Page, add_pagination, paginate
@@ -28,7 +25,7 @@ async def create_customer(
     customer: customer_schemas.CustomerBase,
 
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
 ):
     organization = db.query(Organization).filter(
         Organization.id == customer.organization_id).first()
@@ -59,7 +56,7 @@ async def create_bulk_customer(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
 ):
 
     if file.content_type != "text/csv":
@@ -100,7 +97,7 @@ async def get_customers(
     sorting_key: str = "date_created",
     reverse_sort: bool = True,
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
 ):
 
     organization = db.query(Organization).filter(
@@ -122,7 +119,7 @@ async def get_customers(
 async def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
 ):
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
@@ -150,7 +147,7 @@ async def update_customer(
     customer: customer_schemas.CustomerUpdate,
     customer_id: str, 
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
 ):
     customer_instance = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
@@ -180,7 +177,7 @@ async def update_customer(
 async def soft_delete_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
 ):
 
     customer = db.query(Customer).filter(
@@ -201,15 +198,9 @@ async def soft_delete_customer(
             )
 async def soft_delete_all_customers(
     organization_id: str,
-    # user_id: str,
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
 ):
-    # user = db.query(User).filter(User.id == user_id).first()
-    # if user.is_superuser != True:
-    #     return JSONResponse({"message": "User has no authority to delete all customers"},
-    #             status_code=status.HTTP_406_NOT_ACCEPTABLE)
-
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:
