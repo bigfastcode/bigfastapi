@@ -48,6 +48,17 @@ async def update_schedule(schedule_id: str, schedule: Schema.UpdateSchedule, use
     return updated_schedule
 
 
+@app.delete("/schdule/{schdule_id}")
+async def delete_schedule(schedule_id: str, schedule: Schema.DeleteSchedule, user: UserSchema.User = fastapi.Depends(is_authenticated),  db: orm.Session = Depends(get_db)):
+    db_schedule = await get_schedule_by_id(db, schedule_id)
+    organization = await get_organization(organization_id=db_schedule.organization_id, user=user, db=db)
+    if organization.creator != user.id:
+        raise fastapi.HTTPException(
+            status_code=403, detail="you dont have access to this organization")
+    deleted_schedule = await delete_schedule(schedule, db_schedule, db)
+    return deleted_schedule
+
+
 async def create_schedule(schedule: Schema.CreateReminderSchedule, db: orm.Session):
     schedule_obj = ScheduleModels.Schedule(
         id=uuid4().hex, organization_id=schedule.organization_id,
@@ -71,12 +82,12 @@ async def create_schedule(schedule: Schema.CreateReminderSchedule, db: orm.Sessi
 async def get_schedule(db: orm.Session, organization_id):
     if organization_id != "":
         return db.query(ScheduleModels.Schedule).filter(
-            ScheduleModels.Schedule.organization_id == organization_id).all()
+            ScheduleModels.Schedule.organization_id == organization_id and ScheduleModels.Schedule.is_deleted == False).all()
 
 
 async def get_schedule_by_id(db: orm.Session, schedule_id):
     return db.query(ScheduleModels.Schedule).filter(
-        ScheduleModels.Schedule.id == schedule_id).first()
+        ScheduleModels.Schedule.id == schedule_id and ScheduleModels.Schedule.is_deleted == False).first()
 
 
 async def update_schedule(schedule: Schema.UpdateSchedule, db_schedule, db: orm.Session):
@@ -97,3 +108,9 @@ async def update_schedule(schedule: Schema.UpdateSchedule, db_schedule, db: orm.
     db.refresh(db_schedule)
 
     return db_schedule
+
+
+async def delete_schedule(db_schedule, db: orm.Session):
+    db_schedule.is_deleted = True
+    db.commit()
+    db.refresh(db_schedule)

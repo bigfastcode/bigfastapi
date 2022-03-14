@@ -48,7 +48,7 @@ class CreateReminderSchedule(BaseModel):
     first_template: Optional[str]
     second_template: Optional[str]
     third_template: Optional[str]
-    template_after_due_date: str
+    template_after_due_date: Optional[str]
     frequency_of_reminder_after_due_date: ReminderAfterDueDate
 
     class Config:
@@ -56,7 +56,7 @@ class CreateReminderSchedule(BaseModel):
 
 
 class UpdateSchedule(BaseModel):
-    organization_id: str
+
     schedule_type: Optional[ScheduleType]
     # when to start reminder before due date
     start_reminder: Optional[StartReminder]
@@ -66,6 +66,14 @@ class UpdateSchedule(BaseModel):
     third_template: Optional[str]
     template_after_due_date: Optional[str]
     frequency_of_reminder_after_due_date: Optional[ReminderAfterDueDate]
+
+    class Config:
+        orm_mode = True
+
+
+class DeleteSchedule(BaseModel):
+    organization_id: str
+    is_deleted: bool
 
     class Config:
         orm_mode = True
