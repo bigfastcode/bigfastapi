@@ -1,6 +1,9 @@
 import datetime as _dt
 import os
+import uu
 from uuid import uuid4
+import uuid
+from bigfastapi.schemas import roles_schemas
 
 import fastapi as _fastapi
 import sqlalchemy.orm as _orm
@@ -15,7 +18,7 @@ from .auth_api import is_authenticated
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
-from .models import store_user_model, user_models, store_invite_model
+from .models import store_user_model, user_models, store_invite_model, role_models
 from .models import wallet_models as wallet_models
 
 from .schemas import organisation_schemas as _schemas
@@ -134,12 +137,37 @@ async def get_organization_users(
     return { "owner": store_owner, "users": invited_users}
 
 
-@app.get('/organization/{organization_id}/roles')
+@app.get("/organization/{organization_id}/roles")
 def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
-    # fetch the roles available in an organization.
+    roles = db.query(role_models.Role)
+    roles = list(map(roles_schemas.Role.from_orm, roles))    
 
-    pass
+    return roles
 
+@app.post("/organization/{organization_id}/roles")
+def add_role(payload:roles_schemas.AddRole,
+            organization_id: str,
+            db: _orm.Session = _fastapi.Depends(get_db)
+            ):
+    existing_role = (
+        db.query(role_models.Role)
+        .filter(role_models.Role.role_name == payload.role_name.lower())
+        .first()
+    )
+    if existing_role is None:
+        role = role_models.Role(
+            id=uuid4().hex,
+            organization_id=organization_id.strip(),
+            role_name=payload.role_name.lower()
+        )
+
+        db.add(role)
+        db.commit()
+        db.refresh(role)
+        
+        return role
+    
+    return { "message": "role already exist" }
 
 @app.get("/organizations/invites/{organization_id}")
 def get_pending_invites(
