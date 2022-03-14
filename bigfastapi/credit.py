@@ -32,20 +32,24 @@ async def add_rate(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
-    conversion = await _get_credit_wallet_conversion(currency=body.currency_code, db=db)
-    if conversion is not None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                    detail="Currency " + body.currency_code + " already has a conversion rate")
+    if user.is_superuser:
+        conversion = await _get_credit_wallet_conversion(currency=body.currency_code, db=db)
+        if conversion is not None:
+            raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                        detail="Currency " + body.currency_code + " already has a conversion rate")
 
-    rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
-                                                                  rate=body.rate,
-                                                                  currency_code=body.currency_code)
+        rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
+                                                                      rate=body.rate,
+                                                                      currency_code=body.currency_code)
 
-    db.add(rate)
-    db.commit()
-    db.refresh(rate)
+        db.add(rate)
+        db.commit()
+        db.refresh(rate)
 
-    return rate
+        return rate
+    else:
+        raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                                    detail="You are not allowed to perform this request", )
 
 
 @app.get("/credits/rates", response_model=Page[credit_wallet_conversion_schemas.CreditWalletConversion])
@@ -74,6 +78,26 @@ async def get_rate(
             rate = await _get_market_rate(currency=currency, db=db)
 
     return rate
+
+
+@app.put("/credits/rates/{currency}", response_model=credit_wallet_conversion_schemas.CreditWalletConversion)
+async def update_rate(
+        currency: str,
+        body: credit_wallet_conversion_schemas.UpdateCreditWalletConversion,
+        user: users_schemas.User = fastapi.Depends(is_authenticated),
+        db: _orm.Session = fastapi.Depends(get_db),
+):
+    rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
+        currency_code=currency).first()
+    if rate is None:
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="Currency " + currency + " does not have a conversion rate")
+    else:
+        rate.rate = body.rate
+        db.commit()
+        db.refresh(rate)
+
+        return rate
 
 
 @app.get("/credits/callback/stripe")
