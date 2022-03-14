@@ -14,7 +14,7 @@ class Email(database.Base):
     recipient = Column(MutableList.as_mutable(PickleType), default=[])
     title = Column(String(255), index=True)
     first_name = Column(String(255), index=True)
-    body = Column(Text(), index=True, nullable=True, default=None)
+    body = Column(String(255), index=True, nullable=True, default=None)
     amount = Column(String(255), index=True, nullable=True, default=None)
     due_date = Column(String(255), index=True, nullable=True, default=None)
     link = Column(String(255), index=True, nullable=True, default=None)
