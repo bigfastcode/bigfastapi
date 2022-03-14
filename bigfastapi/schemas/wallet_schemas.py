@@ -41,5 +41,4 @@ class WalletUpdate(_pydantic.BaseModel):
 
 class PaymentProvider(Enum):
     FLUTTERWAVE = 'flutterwave'
-    MPESA = 'mpesa'
-    MTN_MOBILE_MONEY = 'mtn_mobile_money'
+    STRIPE = 'stripe'

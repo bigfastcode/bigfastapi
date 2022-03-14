@@ -246,7 +246,7 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     Returns:
         Comment: Data of the newly Created Comment
     """
-    obj = comments_models.Comment(rel_id=object_id, model_name=model_name, text=comment.text, 
+    obj = comments_models.Comment(id=uuid4().hex, rel_id=object_id, model_name=model_name, text=comment.text, 
                     name=comment.name, email=comment.email, commenter_id=comment.commenter_id)
     db.add(obj)
     db.commit()
