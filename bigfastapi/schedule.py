@@ -48,15 +48,15 @@ async def update_schedule(schedule_id: str, schedule: Schema.UpdateSchedule, use
     return updated_schedule
 
 
-@app.delete("/schdule/{schdule_id}")
-async def delete_schedule(schedule_id: str, schedule: Schema.DeleteSchedule, user: UserSchema.User = fastapi.Depends(is_authenticated),  db: orm.Session = Depends(get_db)):
-    db_schedule = await get_schedule_by_id(db, schedule_id)
-    organization = await get_organization(organization_id=db_schedule.organization_id, user=user, db=db)
-    if organization.creator != user.id:
-        raise fastapi.HTTPException(
-            status_code=403, detail="you dont have access to this organization")
-    deleted_schedule = await delete_schedule(schedule, db_schedule, db)
-    return deleted_schedule
+@app.delete("/schedule/delete/{schedule_id}")
+async def delete_schedule(schedule_id: str, user: UserSchema.User = fastapi.Depends(is_authenticated),  db: orm.Session = Depends(get_db)):
+    # db_schedule = await get_schedule_by_id(db, schedule_id)
+    # organization = await get_organization(organization_id=db_schedule["organization_id"], user=user, db=db)
+    # if organization.creator != user.id:
+    #     raise fastapi.HTTPException(
+    #         status_code=403, detail="you dont have access to this organization")
+    # deleted_schedule = await delete_schedule(db_schedule, db)
+    return schedule_id
 
 
 async def create_schedule(schedule: Schema.CreateReminderSchedule, db: orm.Session):
