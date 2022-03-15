@@ -9,7 +9,7 @@ import bigfastapi.db.database as database
 
 
 class Schedule(database.Base):
-    __tablename__ = "scheduless"
+    __tablename__ = "schedule"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(), ForeignKey("businesses.id"))
     # when can you start reminding a customer of a debt before due date
