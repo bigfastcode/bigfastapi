@@ -11,6 +11,7 @@ from datetime import datetime
 from bigfastapi.schemas import customer_schemas
 from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
+from typing import List
 
 
 class Customer(Base):
@@ -40,6 +41,15 @@ class Customer(Base):
     last_updated = Column(DateTime, nullable=False,
                           server_default=func.now(), onupdate=func.now())
 
+class OtherInformation(Base):
+    __tablename__ = "extra_customer_info"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    customer_id = Column(String(255), ForeignKey("customer.customer_id"))
+    key = Column(String(255), index=True, default="")
+    value = Column(String(255), index=True, default="")
+
+
+#==============================Database Services=============================#
 
 async def fetch_customers(organization_id: str,
                           name: str = None,
@@ -59,10 +69,10 @@ async def fetch_customers(organization_id: str,
 
 
 async def add_customer(
-    customer: customer_schemas.CustomerCreate,
+    customer: customer_schemas.CustomerBase,
     organization_id: str,
     db: Session = Depends(get_db)
-):
+    ):
     customer_instance = Customer(
         id=uuid4().hex,
         customer_id=generate_short_id(size=12),
@@ -81,7 +91,6 @@ async def add_customer(
         country=customer.country,
         city=customer.city,
         region=customer.region,
-        other_information=customer.other_information,
         country_code=customer.country_code,
         date_created=datetime.now(),
         last_updated=datetime.now()
@@ -90,6 +99,27 @@ async def add_customer(
     db.commit()
     db.refresh(customer_instance)
     return customer_schemas.Customer.from_orm(customer_instance)
+
+
+async def add_other_info(
+    list_other_info: List[customer_schemas.OtherInfo],
+    customer_id:str,
+    db: Session = Depends(get_db)
+    ):
+    res_obj = []
+    for other_info in list_other_info:
+        other_info_instance = OtherInformation(
+            id = uuid4().hex,
+            customer_id = customer_id,
+            key = other_info.key,
+            value = other_info.value
+        )
+        db.add(other_info_instance)
+        db.commit()
+        db.refresh(other_info_instance)
+        res_obj.append(other_info_instance)
+
+    return list(map(customer_schemas.OtherInfo.from_orm, res_obj))
 
 
 async def put_customer(
@@ -125,8 +155,6 @@ async def put_customer(
         customer_instance.city = customer.city
     if customer.region:
         customer_instance.region = customer.region
-    if customer.other_information:
-        customer_instance.other_information = customer.other_information
     if customer.country_code:
         customer_instance.region = customer.country_code
     customer_instance.last_updated = datetime.now()
@@ -138,5 +166,4 @@ async def put_customer(
 async def get_customer_by_id(customer_id: str, organization_id: str, db: Session):
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id and Customer.organization_id == organization_id).first()
-
     return customer

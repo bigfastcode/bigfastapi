@@ -38,6 +38,7 @@ from bigfastapi.tutorial import app as tutorial
 from bigfastapi.users import app as accounts_router
 from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
+from bigfastapi.schedule import app as schedule
 
 # Create the application
 app = FastAPI()
@@ -85,6 +86,7 @@ app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(customer)
 app.include_router(sms)
+app.include_router(schedule)
 
 
 @app.get("/", tags=["Home"])
