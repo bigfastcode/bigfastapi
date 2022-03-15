@@ -133,7 +133,7 @@ def accept_invite(
     store_user = store_user_model.StoreUser(
         store_id=payload.organization_id,
         user_id=payload.user_id,
-        role=invite.user_role
+        role_id=invite.role_id
     )
     db.add(store_user)
     db.commit()

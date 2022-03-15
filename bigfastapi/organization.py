@@ -129,8 +129,11 @@ async def get_organization_users(
         for invited in invited_list:
             user =  db.query(user_models.User).filter(
                 user_models.User.id == invited["user_id"]).first()
+            role = db.query(role_models.Role).filter(
+                role_models.Role.id == invited["role_id"]).first()
             if(user.id == invited["user_id"]):
                 invited["email"] = user.email
+                invited["role"] = role.role_name 
 
             invited_users.append(invited)
 
