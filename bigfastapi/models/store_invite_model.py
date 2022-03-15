@@ -20,7 +20,7 @@ class StoreInvite(database.Base):
     store_id = Column(String(255), ForeignKey("businesses.id"))
     user_id = Column(String(255), ForeignKey("users.id"))
     user_email = Column(String(255), index=True)
-    user_role = Column(String(255), index=True)
+    role_id = Column(String(255), ForeignKey("roles.id"))
     invite_code = Column(String(255), index=True)
     is_accepted = Column(Boolean, default=False)
     is_revoked = Column(Boolean, default=False)
