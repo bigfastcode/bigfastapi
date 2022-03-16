@@ -15,10 +15,17 @@ import bigfastapi.db.database as _database
 
 class Comment(_database.Base):
     __tablename__ = "comment"
+
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     model_type = Column(String(255)) 
     rel_id = Column(String(255))
     commenter_id = Column(String(255))
+
+#     id = Column(Integer, primary_key=True, autoincrement=True)
+#     model_type = Column(String) 
+#     rel_id = Column(String)
+#     commenter_id = Column(String)
+# >>>>>>> dev
     
     email = Column(String(255))
     name = Column(String(255))
@@ -33,6 +40,7 @@ class Comment(_database.Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
+        
         self.model_type = kwargs["model_name"] 
         self.commenter_id = kwargs["commenter_id"] 
         self.rel_id = kwargs["rel_id"]

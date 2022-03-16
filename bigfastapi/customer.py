@@ -28,7 +28,7 @@ async def create_customer(
     customer: customer_schemas.CustomerBase,
 
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
     organization = db.query(Organization).filter(
         Organization.id == customer.organization_id).first()
@@ -59,7 +59,7 @@ async def create_bulk_customer(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
 
     if file.content_type != "text/csv":
@@ -100,7 +100,7 @@ async def get_customers(
     sorting_key: str = "date_created",
     reverse_sort: bool = True,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
 
     organization = db.query(Organization).filter(
@@ -122,7 +122,7 @@ async def get_customers(
 async def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
@@ -150,7 +150,7 @@ async def update_customer(
     customer: customer_schemas.CustomerUpdate,
     customer_id: str, 
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
     customer_instance = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
@@ -180,7 +180,7 @@ async def update_customer(
 async def soft_delete_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
 
     customer = db.query(Customer).filter(
@@ -202,7 +202,7 @@ async def soft_delete_customer(
 async def soft_delete_all_customers(
     organization_id: str,
     db: Session = Depends(get_db),
-    user: users_schemas.User = Depends(is_authenticated)
+    # user: users_schemas.User = Depends(is_authenticated)
 ):
    
     organization = db.query(Organization).filter(
