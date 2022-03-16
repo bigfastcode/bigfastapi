@@ -8,7 +8,7 @@ import datetime as dt
 class Contact(database.Base):
     __tablename__ = "contact"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    address = Column(Text(), index=True)
+    address = Column(String(500), index=True)
     phone = Column(String(255), index=True)
     map_coordinates = Column(String(255), index=True)
     date_created = Column(DateTime, default=dt.datetime.utcnow)
