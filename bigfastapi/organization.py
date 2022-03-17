@@ -177,7 +177,7 @@ def delete_organization_user(
 
 @app.get("/organizations/{organization_id}/roles")
 def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
-    roles = db.query(role_models.Role)
+    roles = db.query(role_models.Role).filter(role_models.Role.organization_id == organization_id)
     roles = list(map(roles_schemas.Role.from_orm, roles))    
 
     return roles
