@@ -96,7 +96,10 @@ async def get_organization_users(
     """
     # query the store_users table with the organization_id
     invited_list = db.query(store_user_model.StoreUser).filter(
-        store_user_model.StoreUser.store_id == organization_id
+        and_(
+            store_user_model.StoreUser.store_id == organization_id,
+            store_user_model.StoreUser.is_deleted == False
+        )
     ).all()
 
     invited_list = list(map(lambda x: row_to_dict(x), invited_list))
@@ -132,9 +135,9 @@ async def get_organization_users(
 
             invited_users.append(invited)
 
-        users = {
-            "user":store_owner,
-            "invited": invited_users
+    users = {
+        "user":store_owner,
+        "invited": invited_users
         }
     return users
 
@@ -184,25 +187,31 @@ def add_role(payload:roles_schemas.AddRole,
             organization_id: str,
             db: _orm.Session = _fastapi.Depends(get_db)
             ):
-    existing_role = (
-        db.query(role_models.Role)
-        .filter(role_models.Role.role_name == payload.role_name.lower())
-        .first()
-    )
-    if existing_role is None:
-        role = role_models.Role(
-            id=uuid4().hex,
-            organization_id=organization_id.strip(),
-            role_name=payload.role_name.lower()
-        )
-
-        db.add(role)
-        db.commit()
-        db.refresh(role)
-        
-        return role
     
-    return { "message": "role already exist" }
+    roles = db.query(role_models.Role).filter(
+        role_models.Role.organization_id == organization_id
+    ).all()
+    if len(roles) < 1:
+        existing_role = (
+            db.query(role_models.Role)
+            .filter(role_models.Role.role_name == payload.role_name.lower())
+            .first()
+        )
+        if existing_role is None:
+            role = role_models.Role(
+                id=uuid4().hex,
+                organization_id=organization_id.strip(),
+                role_name=payload.role_name.lower()
+            )
+
+            db.add(role)
+            db.commit()
+            db.refresh(role)
+            
+            return role
+        
+        return { "message": "role already exist" }
+    return
 
 @app.get("/organizations/invites/{organization_id}")
 def get_pending_invites(
@@ -302,9 +311,22 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
                                         tagline=organization.tagline, image=organization.image, is_deleted=False,
                                         current_subscription=organization.current_subscription,
                                         currency_preference=organization.currency_preference)
+    
     db.add(organization)
     db.commit()
     db.refresh(organization)
+    
+    roles = ["Assistant", "Admin", "Owner"]
+
+    for role in roles: 
+        new_role = role_models.Role(
+            id=uuid4().hex,
+            organization_id=organization.id.strip(),
+            role_name=role.lower()
+        )
+        db.add(new_role)
+        db.commit()
+        db.refresh(new_role)
 
     await create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
     await create_credit_wallet(organization_id=organization_id, db=db)
