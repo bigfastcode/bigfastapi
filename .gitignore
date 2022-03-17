@@ -13,6 +13,8 @@ BigFastAPI.egg-info
 database.db
 test.db
 
+/.history
+
 .DS_Store
 bigfastapi/.DS_Store
 
