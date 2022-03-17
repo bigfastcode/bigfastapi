@@ -1,8 +1,6 @@
 import datetime as _dt
 import os
-import uu
 from uuid import uuid4
-import uuid
 from bigfastapi.schemas import roles_schemas
 
 import fastapi as _fastapi
@@ -24,7 +22,7 @@ from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
 
-from .utils.utils import paginate_data
+from .utils.utils import paginate_data, row_to_dict
 
 app = APIRouter(tags=["Organization"])
 
@@ -101,12 +99,6 @@ async def get_organization_users(
         store_user_model.StoreUser.store_id == organization_id
     ).all()
 
-    def row_to_dict(row):
-        d = {}
-        for column in row.__table__.columns:
-            d[column.name] = str(getattr(row, column.name))
-        return d
-
     invited_list = list(map(lambda x: row_to_dict(x), invited_list))
 
     organization = (
@@ -128,7 +120,10 @@ async def get_organization_users(
     if len(invited_list) > 0:
         for invited in invited_list:
             user =  db.query(user_models.User).filter(
-                user_models.User.id == invited["user_id"]).first()
+                and_(
+                    user_models.User.id == invited["user_id"],
+                    user_models.User.is_deleted == False
+                )).first()
             role = db.query(role_models.Role).filter(
                 role_models.Role.id == invited["role_id"]).first()
             if(user.id == invited["user_id"]):
@@ -137,17 +132,54 @@ async def get_organization_users(
 
             invited_users.append(invited)
 
-    return { "owner": store_owner, "users": invited_users}
+        users = {
+            "user":store_owner,
+            "invited": invited_users
+        }
+    return users
 
+@app.delete("/organizations/{organization_id}/users/{user_id}")
+def delete_organization_user(
+    organization_id: str,
+    user_id: str,
+    db: _orm.Session = _fastapi.Depends(get_db)
+    ):
+    # fetch the organization user from the user table
+    user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
 
-@app.get("/organization/{organization_id}/roles")
+    if user is not None:
+        # fetch the store user from the store user table.
+        store_user = (
+            db.query(store_user_model.StoreUser)
+            .filter(and_(
+                store_user_model.StoreUser.user_id == user_id,
+                store_user_model.StoreUser.store_id == organization_id
+                ))
+            .first()
+            )
+        
+        store_user.is_deleted = True
+        user.is_deleted = True
+        db.add(store_user)
+        db.commit()
+        db.refresh(store_user)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return { "message": f"User with email {user.email} successfully removed from the store" }
+    
+    return { "message": "User does not exist" }
+    
+
+@app.get("/organizations/{organization_id}/roles")
 def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
     roles = db.query(role_models.Role)
     roles = list(map(roles_schemas.Role.from_orm, roles))    
 
     return roles
 
-@app.post("/organization/{organization_id}/roles")
+@app.post("/organizations/{organization_id}/roles")
 def add_role(payload:roles_schemas.AddRole,
             organization_id: str,
             db: _orm.Session = _fastapi.Depends(get_db)
