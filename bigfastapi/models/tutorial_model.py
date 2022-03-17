@@ -19,14 +19,14 @@ from operator import or_
 
 
 class Tutorial(_database.Base):
-    __tablename__ = "Tutirial"
+    __tablename__ = "tutorial"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     category = Column(String(255), index=True)
     title = Column(String(255), index=True)
-    description = Column(Text, index=True, default="")
-    thumbnail = Column(Text, index=True, default="")
-    stream_url = Column(Text, index=True)
-    text = Column(Text, index=True, default="")
+    description = Column(String(700), index=True, default="")
+    thumbnail = Column(String(255), index=True, default="")
+    stream_url = Column(String(255), index=True)
+    text = Column(String(700), index=True, default="")
     added_by = Column(String(255), ForeignKey("users.id"))
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)

@@ -27,53 +27,22 @@ class NumberOfRemindersBeforeDueDate(int, Enum):
 
 
 class StartReminder(str, Enum):
-    One_Week = "ONE_WEEK before due date"
-    Two_Weeks = "TWO_WEEKS before due date"
-    Three_Weeks = "THREE_WEEKS before due date"
-    Four_Weeks = "FOUR_WEEKS before due date"
-
-
-class ReminderBeforeDueDate(str, Enum):
-    once_a_week = "ONCE_A_WEEK"
-    twice_a_week = "TWICE_A_WEEK"
-    once_a_month = "ONCE_A_MONTH"
+    Before_due_date = "Before Due Date"
+    After_due_date = "After Due Date"
 
 
 class CreateReminderSchedule(BaseModel):
     organization_id: str
-    schedule_type: ScheduleType
-    # when to start reminder before due date
     start_reminder: StartReminder
-    frequency_of_reminder_before_due_date: ReminderBeforeDueDate
-    first_template: Optional[str]
-    second_template: Optional[str]
-    third_template: Optional[str]
-    template_after_due_date: Optional[str]
-    frequency_of_reminder_after_due_date: ReminderAfterDueDate
+    no_of_days: int
 
     class Config:
         orm_mode = True
 
 
 class UpdateSchedule(BaseModel):
-
-    schedule_type: Optional[ScheduleType]
-    # when to start reminder before due date
     start_reminder: Optional[StartReminder]
-    frequency_of_reminder_before_due_date: Optional[ReminderBeforeDueDate]
-    first_template: Optional[str]
-    second_template: Optional[str]
-    third_template: Optional[str]
-    template_after_due_date: Optional[str]
-    frequency_of_reminder_after_due_date: Optional[ReminderAfterDueDate]
-
-    class Config:
-        orm_mode = True
-
-
-class DeleteSchedule(BaseModel):
-    organization_id: str
-    is_deleted: bool
+    no_of_days: Optional[int]
 
     class Config:
         orm_mode = True

@@ -144,3 +144,10 @@ async def generate_payment_link(api_redirect_url: str,
         else:
             raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                         detail="An error occurred. Please try again later")
+
+
+def row_to_dict(row):
+        d = {}
+        for column in row.__table__.columns:
+            d[column.name] = str(getattr(row, column.name))
+        return d
