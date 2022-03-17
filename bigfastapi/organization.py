@@ -20,7 +20,7 @@ from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
 from .models import store_user_model, user_models, store_invite_model, role_models
 from .models import wallet_models as wallet_models
-
+from fastapi import BackgroundTasks
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
 
