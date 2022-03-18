@@ -58,7 +58,6 @@ def getActivitiesLog(
         return JSONResponse({"message": "Organization does not exist"},
                             status_code=status.HTTP_400_BAD_REQUEST)
 
-    user_id = user.id
     logs = getOrganizationActivitiesLog(organization_id, db)
 
     return logs
