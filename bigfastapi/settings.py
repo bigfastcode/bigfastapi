@@ -12,6 +12,8 @@ from .models import organisation_models as _models
 from .models import settings_models as models
 from .schemas import settings_schemas as schemas
 from .schemas import users_schemas
+from typing import List
+
 
 app = APIRouter(tags=["Settings"])
 
@@ -72,7 +74,7 @@ async def update_organization_settings(
 
 # APP SETTINGS
 
-@app.get('/settings', response_model=list[schemas.AppSetting])
+@app.get('/settings', response_model=List[schemas.AppSetting])
 async def get_app_settings(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: orm.Session = fastapi.Depends(get_db)

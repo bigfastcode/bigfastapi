@@ -24,7 +24,11 @@ else:
 # db_engine = create_engine(DATABASE_URL, connect_args={
 #                           "check_same_thread": False})
 
-db_engine = create_engine(DATABASE_URL)
+if DB_TYPE == "sqlite":
+     db_engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+   db_engine = create_engine(DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
 
 Base = declarative_base()
