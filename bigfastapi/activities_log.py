@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.models.organisation_models import Organization
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+import requests
 
 
 
@@ -112,6 +113,11 @@ def createActivityLog(model_name, object_id, user, log, db):
 
     setattr(activityLog, 'user', userInfo)
     setattr(activityLog, 'organization', organization)
+
+    #send request to slack
+    # requests.post(url='', 
+    #     json={"text" : user.first_name +' '+user.last_name +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
+    # )
 
     return activityLog
 
