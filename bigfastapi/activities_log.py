@@ -115,9 +115,9 @@ def createActivityLog(model_name, object_id, user, log, db):
     setattr(activityLog, 'organization', organization)
 
     #send request to slack
-    requests.post(url='https://hooks.slack.com/services/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', 
-        json={"text" : user.first_name +' '+user.last_name +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
-    )
+    # requests.post(url='', 
+    #     json={"text" : user.first_name +' '+user.last_name +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
+    # )
 
     return activityLog
 
