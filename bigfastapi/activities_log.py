@@ -1,3 +1,4 @@
+from decouple import config
 from fastapi import APIRouter
 import fastapi as _fastapi
 from fastapi.param_functions import Depends
@@ -115,9 +116,9 @@ def createActivityLog(model_name, object_id, user, log, db):
     setattr(activityLog, 'organization', organization)
 
     #send request to slack
-    # requests.post(url='', 
-    #     json={"text" : user.first_name +' '+user.last_name +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
-    # )
+    requests.post(url=config('LOG_WEBHOOK_URL'), 
+        json={"text" : user.first_name +' '+user.last_name +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
+    )
 
     return activityLog
 
