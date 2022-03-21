@@ -13,7 +13,7 @@ DB_PORT = config("DB_PORT")
 DATABASE_URL = ""
 
 if DB_TYPE == "mysql":
-    DATABASE_URL = f"mysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DATABASE_URL = f"mysql+mysqldb://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 elif DB_TYPE == "postgresql":
     DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 else:
@@ -24,11 +24,7 @@ else:
 # db_engine = create_engine(DATABASE_URL, connect_args={
 #                           "check_same_thread": False})
 
-if DB_TYPE == "sqlite":
-     db_engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-else:
-   db_engine = create_engine(DATABASE_URL)
-
+db_engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
 
 Base = declarative_base()
