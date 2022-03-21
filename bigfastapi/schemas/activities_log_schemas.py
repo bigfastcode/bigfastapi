@@ -32,6 +32,7 @@ class ActivitiesLogOutput(pydantic.BaseModel):
     user : list = []
     user_id : str
     is_deleted : bool
+    created_at : date_type
 
     class Config:
         orm_mode = True
