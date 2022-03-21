@@ -123,6 +123,8 @@ async def verify_stripe_payment(status: str, tx_ref: str, transaction_id: str,
             amount = session.amount_total
             currency = session.currency.upper()
             wallet = await _get_wallet(organization_id=organization_id, currency=currency, db=db)
+            if currency == "NGN":
+                amount /= 100
 
             try:
                 # add money to wallet
@@ -286,13 +288,16 @@ async def add_credit(body: schema.CreditWalletFund,
         db.refresh(wallet_transaction)
 
         redirectUrl = rootUrl + '/credits/callback'
+        amount = body.amount
         if body.provider == PaymentProvider.STRIPE:
             redirectUrl += '/stripe'
+            if body.currency.upper() == "NGN":
+                amount *= 100
         else:
             redirectUrl += '/flutterwave'
         link = await generate_payment_link(front_end_redirect_url=body.redirect_url, api_redirect_url=redirectUrl,
                                            user=user,
-                                           amount=body.amount,
+                                           amount=amount,
                                            currency=body.currency, tx_ref=transaction_id, provider=body.provider)
         return {"link": link}
 

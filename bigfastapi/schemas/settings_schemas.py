@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -41,4 +41,4 @@ class AppSetting(CreateAppSetting):
 
 
 class CreateAppSettingBody(BaseModel):
-    settings: list[AppSetting]
+    settings: List[AppSetting]
