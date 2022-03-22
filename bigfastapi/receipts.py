@@ -26,7 +26,7 @@ app = APIRouter()
 
 
 #send receipt endpoint
-@app.post("/receipt", status_code=201, response_model=[receipt_schemas.ResponseModel])
+@app.post("/receipt", status_code=201, response_model=receipt_schemas.ResponseModel)
 def send_receipt(payload: receipt_schemas.atrributes, background_tasks: BackgroundTasks, db: orm.Session = Depends(get_db)):
 
     """

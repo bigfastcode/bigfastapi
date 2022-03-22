@@ -9,5 +9,5 @@ class atrributes(BaseModel):
     message: str
     subject: str
 
-class ResponseModel:
+class ResponseModel(BaseModel):
     message: str
