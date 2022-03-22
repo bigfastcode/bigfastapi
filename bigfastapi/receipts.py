@@ -15,7 +15,6 @@ import random
 from fastapi.encoders import jsonable_encoder
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
-from .models import file_models as file_model
 from .models import receipt_models as receiptmodel
 from uuid import uuid4
 from fastapi import BackgroundTasks
@@ -27,47 +26,44 @@ app = APIRouter()
 
 
 #send receipt endpoint
-@app.post("/sendreceipt")
-def sendReceipt(body: receipt_schemas.atrributes, background_tasks: BackgroundTasks, db: orm.Session = Depends(get_db)):
-    #define pdf schema
-    pdfname = (body.subject)+str(uuid4().hex)+".pdf"
+@app.post("/receipt", status_code=201, response_model=receipt_schemas.ResponseModel)
+def send_receipt(payload: receipt_schemas.atrributes, background_tasks: BackgroundTasks, db: orm.Session = Depends(get_db)):
+
+    """
+        An endpoint to send receipts. 
+        Note: The message field in the payload should be HTML formatted.
+    """
+    pdf_name = (payload.subject)+str(uuid4().hex)+".pdf"
     
-    pdfSchema = {
-            "htmlString": body.message,
-            "pdfName": pdfname
+
+    schema = {
+            "htmlString": payload.message,
+            "pdfName": pdf_name
     }
     
-    #convert receipt message to pdf
-    fileresponse = convertToPdf(pdf_schema.Format(**pdfSchema), db=db)
-    #save to db
-    saveReceiptDetails(body.sender, fileresponse.id, db)
+    file = convert_to_pdf(pdf_schema.Format(**schema), db=db)
+
+    save_receipt(payload.sender, file.id, db)
     
-    #send mail
-    send_email(body, background_tasks=background_tasks, template="email/mail_receipt.html", db=db, file="./filestorage/pdfs/"+pdfname)
-    #save to db
+    send_receipt_email(payload, background_tasks=background_tasks, template="email/mail_receipt.html", db=db, file="./filestorage/pdfs/"+pdf_name)
 
-    return responseMessage()
-
-#response message
-def responseMessage():
-    return {'message' : "receipt sent"}
+    return JSONResponse({'message' : "receipt sent"}, status_code=status.HTTP_201_CREATED)
 
 #convert to pdf
-def convertToPdf(pdfSchema, db: orm.Session = Depends(get_db)):
-    return pdfs.convertToPdf(pdfSchema, db=db) 
+def convert_to_pdf(pdfSchema, db: orm.Session = Depends(get_db)):
+    return pdfs.convert_to_pdf(pdfSchema, db=db) 
 
-#save deatisl to db
-def saveReceiptDetails(sender, file_id, db):
-    # Create a db entry for this recepit. 
+def save_receipt(sender, file_id, db):
+
     receipt = receiptmodel.Receipt(id=uuid4().hex, sender_email=sender, file_id=file_id)
     db.add(receipt)
     db.commit()
     db.refresh(receipt)
-    return
+
 
 #send mail
-def send_email(
-    email_details,
+def send_receipt_email(
+    email_details: receipt_schemas.atrributes,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "mail_receipt.html",
     db: orm.Session = fastapi.Depends(get_db),
@@ -88,7 +84,6 @@ def send_email(
     fm = FastMail(conf)
     background_tasks.add_task(fm.send_message, message, template_name=template)
 
-    return
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -97,8 +92,8 @@ conf = ConnectionConfig(
     MAIL_PORT=settings.MAIL_PORT,
     MAIL_SERVER=settings.MAIL_SERVER,
     MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
-    MAIL_TLS=True,
-    MAIL_SSL=False,
+    MAIL_TLS=False,
+    MAIL_SSL=True,
     USE_CREDENTIALS=True,
     TEMPLATE_FOLDER=settings.TEMPLATE_FOLDER,
 )
