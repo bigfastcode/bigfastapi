@@ -8,4 +8,6 @@ class atrributes(BaseModel):
     recipient: List[EmailStr] = []
     message: str
     subject: str
-    
+
+class ResponseModel(BaseModel):
+    message: str

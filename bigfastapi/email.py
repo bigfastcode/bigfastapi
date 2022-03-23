@@ -316,7 +316,7 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         return await fm.send_message(message, template)
 
 
-async def send_email_debts(email: str, user, template, title: str, amount=int, due_date="", description="", date="", invoice_id=str, email_message=""):
+async def send_email_debts(email: str, user, template, title: str, amount=int, due_date="", description="", date="", invoice_id=str, email_message="", business_name=""):
 
     message = MessageSchema(
         subject=title,
@@ -329,7 +329,8 @@ async def send_email_debts(email: str, user, template, title: str, amount=int, d
             "description": description,
             "date": date,
             "invoice_id": invoice_id,
-            "email_message": email_message
+            "email_message": email_message,
+            "business_name": business_name
         },
         subtype="html",
     )

@@ -15,7 +15,7 @@ app = APIRouter()
 
 @app.post("/exporttopdf", response_model=file_schema.File)
 
-def convertToPdf(body: pdfSchema.Format, db: orm.Session = fastapi.Depends(get_db)):
+def convert_to_pdf(body: pdfSchema.Format, db: orm.Session = fastapi.Depends(get_db)):
 
     if pdfkit.from_string(body.htmlString, body.pdfName):
         bucketname = 'pdfs' #bucketname

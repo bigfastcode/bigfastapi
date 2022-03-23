@@ -95,9 +95,9 @@ async def generate_payment_link(api_redirect_url: str,
                     'price_data': {
                         'currency': currency,
                         'product_data': {
-                            'name': 'Wallet Top Up',
+                            'name': 'Stripe Payment',
                         },
-                        'unit_amount': int(amount),
+                        'unit_amount': int(amount)
                     },
                     'quantity': 1,
                 }],
@@ -127,11 +127,6 @@ async def generate_payment_link(api_redirect_url: str,
                 "phonenumber": user.phone_number,
                 "name": username
             },
-            "customizations": {
-                "description": 'Keep track of your debtors',
-                "logo": 'https://customerpay.me/frontend/assets/img/favicon.png',
-                "title": "CustomerPayMe",
-            },
             "meta": {
                 "redirect_url": front_end_redirect_url
             }
@@ -147,7 +142,7 @@ async def generate_payment_link(api_redirect_url: str,
 
 
 def row_to_dict(row):
-        d = {}
-        for column in row.__table__.columns:
-            d[column.name] = str(getattr(row, column.name))
-        return d
+    d = {}
+    for column in row.__table__.columns:
+        d[column.name] = str(getattr(row, column.name))
+    return d
