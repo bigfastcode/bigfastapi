@@ -30,7 +30,7 @@ class SendSMS():
         db: orm.Session = fastapi.Depends(get_db)
     ):
 
-        """ 
+        """
             An endpoint used to send an sms
 
             Returns:
@@ -62,3 +62,19 @@ class SendSMS():
             return {"code": req.status_code, "message": req.text}
 
         return {"message": "An error occured while sending sms"}
+
+    async def send_sms_reminder(
+        username: str, passkey: str, sender: str, recipient: str, body: str
+    ):
+
+        req = requests.put(
+            SendSMS.providers.get("nuobject"),
+            params={
+                "user": username,
+                "pass": passkey,
+                "from": sender,
+                "to": recipient,
+                "msg": body
+            }
+        )
+        return req
