@@ -8,6 +8,7 @@ from pydantic import Field
 from uuid import UUID
 from typing import List, Optional
 
+
 class _OrganizationBase(_pydantic.BaseModel):
     mission: Optional[str]
     vision: Optional[str]
@@ -22,12 +23,12 @@ class _OrganizationBase(_pydantic.BaseModel):
     tagline: Optional[str]
     image: Optional[str]
     values: Optional[str]
+    credit_balance: Optional[int]
     image_full_path: str = None
     add_template: Optional[bool]
 
     class Config:
         orm_mode = True
-  
 
 
 class OrganizationCreate(_OrganizationBase):
@@ -38,14 +39,12 @@ class OrganizationUpdate(_OrganizationBase):
     pass
 
 
-
 class Organization(_OrganizationBase):
     id: str
     creator: str
+
     date_created: _dt.datetime
     last_updated: _dt.datetime
 
     class Config:
         orm_mode = True
-
-
