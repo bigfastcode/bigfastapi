@@ -201,6 +201,10 @@ async def soft_delete_all_customers(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
 ):
+<<<<<<< HEAD
+=======
+   
+>>>>>>> 87376928f25b12b87524455f84cb5a009e831b22
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:

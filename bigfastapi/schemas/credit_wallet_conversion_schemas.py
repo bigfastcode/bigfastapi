@@ -7,3 +7,7 @@ class CreditWalletConversion(_pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UpdateCreditWalletConversion(_pydantic.BaseModel):
+    rate: float

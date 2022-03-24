@@ -15,7 +15,7 @@ class CustomerBase(BaseModel):
     last_name: str
     unique_id:str
     organization_id: str
-    email: EmailStr = None
+    email: str = None
     phone_number: str = None
     business_name: str =None
     location: str =None
@@ -41,7 +41,7 @@ class CustomerUpdate(BaseModel):
     unique_id: Optional[str] =None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     phone_number: Optional[str] = None
     organization_id: Optional[str] = None
     business_name: str =None

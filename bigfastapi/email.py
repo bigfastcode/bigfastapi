@@ -316,5 +316,24 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         return await fm.send_message(message, template)
 
 
-async def password_reset_email():
-    return "hey"
+async def send_email_debts(email: str, user, template, title: str, amount=int, due_date="", description="", date="", invoice_id=str, email_message="", business_name=""):
+
+    message = MessageSchema(
+        subject=title,
+        recipients=[email],
+        template_body={
+            "title": title,
+            "first_name": user.first_name,
+            "amount": amount,
+            "due_date": due_date,
+            "description": description,
+            "date": date,
+            "invoice_id": invoice_id,
+            "email_message": email_message,
+            "business_name": business_name
+        },
+        subtype="html",
+    )
+    fm = FastMail(conf)
+
+    return await fm.send_message(message, template)

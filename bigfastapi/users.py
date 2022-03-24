@@ -1,7 +1,7 @@
 from operator import inv
 from re import L
 from typing import Optional
-from bigfastapi.schemas import email_schema, store_user_schemas
+from bigfastapi.schemas import store_user_schemas
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
@@ -19,7 +19,7 @@ from .schemas import store_invite_schemas as _invite_schemas
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import deleteFile, isFileExist, upload_image
 from .email import send_email
-from .models import store_invite_model, store_user_model
+from .models import store_invite_model, store_user_model, role_models
 
 
 app = APIRouter(tags=["User"])
@@ -133,7 +133,7 @@ def accept_invite(
     store_user = store_user_model.StoreUser(
         store_id=payload.organization_id,
         user_id=payload.user_id,
-        role=invite.user_role
+        role_id=invite.role_id
     )
     db.add(store_user)
     db.commit()
@@ -168,6 +168,12 @@ async def invite_user(
     payload.email_details.link = invite_url
     email_info = payload.email_details
 
+    role = (
+        db.query(role_models.Role)
+        .filter(role_models.Role.role_name == payload.user_role.lower())
+        .first()
+        )
+
     # make sure you can't send invite to yourself
     invite_ctrl = (
         db.query(user_models.User)
@@ -189,10 +195,11 @@ async def invite_user(
             send_email(email_details=email_info,
                        background_tasks=background_tasks, template=template, db=db)
             invite = store_invite_model.StoreInvite(
+                id=uuid4().hex,
                 store_id=payload.store.get("id"),
                 user_id=payload.user_id,
                 user_email=payload.user_email,
-                user_role=payload.user_role,
+                role_id=role.id,
                 invite_code=invite_token
             )
             db.add(invite)
@@ -282,33 +289,44 @@ def revoke_invite(
 
     return revoked_invite
 
-
-@app.patch("/users/{user_id}")
+@app.patch("/users/{user_id}/change")
 def update_user_role(
     payload: store_user_schemas.UserUpdate,
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    # check if the user exists with the user_id and store_id
+    
     existing_user = (
-        db.query(store_user_model.StoreUser)
-        .filter(and_(
-            store_user_model.StoreUser.store_id == payload.store_id,
-            store_user_model.StoreUser.user_id == payload.user_id,
-        ))
+        db.query(user_models.User)
+        .filter(
+            user_models.User.email == payload.email
+        )
         .first()
     )
 
     if existing_user is not None:
-        existing_user.role = payload.role
-        db.add(existing_user)
-        db.commit()
-        db.refresh(existing_user)
+        existing_store_user = (
+            db.query(store_user_model.StoreUser)
+            .filter(store_user_model.StoreUser.user_id == existing_user.id)
+            .first()
+        )
 
-        return {
-            "message": "User role successfully updated",
-            "data": existing_user
-        }
-    return {"message": "User does not exist"}
+        # fetch the role id of payload.role from the role table
+        # update the role id in existing store user to use that.
+        role = (
+        db.query(role_models.Role)
+        .filter(role_models.Role.role_name == payload.role.lower())
+        .first()
+        )
+        existing_store_user.role_id = role.id
+        db.add(existing_store_user)
+        db.commit()
+        db.refresh(existing_store_user)
+
+        return { 
+            "message": "User role successfully updated", 
+            "data": existing_store_user
+            }
+    return { "message": "User does not exist" }
 
 # ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
 
