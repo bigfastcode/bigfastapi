@@ -1,0 +1,63 @@
+
+# Software Pattern
+-----
+
+The main file of an endpoint has to contain all the endpoints and external items related
+to that. For example, comments.py has to contain the definitation of all GET and POST that
+have to do with comments. The parts that handle the API are at the top of the file, and the
+parts that are API independent (the services) are at the bottom of the file, with a comment
+separating them
+
+Inside the models folder, a corresponding file with the models for that endpoint should belong
+created that contains the model. For example, we have a comments_model.py file in the models
+folder. This file has to contain the definition of the model, as well as all functions that
+are related to retrieving data.
+
+A single model, e.g a 'comment' can be thought of as an OOP entity. The functions of this class
+have to be anything that manipulate that particular comment, for example - edit_comment, save_comment
+and so on. All these belong as class functions.
+
+Inside this same file, we have as file-level functions all functions that act on a list of comments.
+For example get_all_comments, create_new_comment and so on. All these will be in the comments_models.py
+file.
+
+If a piece of functionality has multiple models, they go into the same file. For example, auth.py could
+have two models - Sessions and Tokens. These all go in the same models file.
+
+All other functionality related to the endpoint has to be in the other file. That means we have just two
+files for each functionality - the main file and the models file. These files should not import any other
+files so far as possible.
+
+A schemas folder for all the pydantic schemas.
+
+# Imports
+
+When importing the schema and the model, simply refer to them as schema and model in the way below
+
+from .models import file_models as model
+from .schemas import file_schemas as schema
+
+# Naming Variables
+---
+
+Models should be capitalised, e.g class User, and should inherit from bigfastapi.database. This should be
+imported as import bigfastapi.database as database.
+
+All functions should be like this: def get_country_states(country_code: str):
+
+Underscores should not be used to name any variables.
+
+# Errors
+---
+
+Check for all possible errors and raise a FastAPI errors
+
+
+# Documentation
+
+All API functions should be documented in the controller file. Each controller file should have a summary
+section at the top.
+
+# functions
+
+A space after function declaration before the body. Add comments for all endpoint functions
