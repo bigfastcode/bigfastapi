@@ -17,5 +17,5 @@ class Activitieslog(Base):
     object_url = Column(String(255),default='')
     model_name = Column(String(255))
     action = Column(String(255), default='')
-    created_at = Column(DateTime, default=_dt.datetime.utcnow)
+    created_at = Column(DateTime, default=_dt.datetime.now())
     is_deleted = Column(Boolean, default=False)

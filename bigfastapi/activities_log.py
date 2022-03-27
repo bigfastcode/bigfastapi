@@ -99,7 +99,7 @@ def createActivityLog(model_name, object_id, user, log, db):
     activityLog = ActivitiesModel(
         id= uuid4().hex, organization_id = log.organization_id, 
         user_id= user.id, object_id= object_id, object_url=log.object_url,
-        model_name=model_name, action=log.action
+        model_name=model_name, action=log.action, created_at=datetime.now()
     )
 
     db.add(activityLog)
