@@ -1,4 +1,4 @@
-name: bigfastapi test
+name: Bigfastapi Staging
 on:
   push:
     branches: [ staging ]
