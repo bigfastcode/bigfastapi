@@ -1,34 +1,17 @@
 name: bigfastapi test
- on:
-   push:
-     branches: [ dev ]
+on:
+  push:
+    branches: [ dev ]
 
-   pull_request:
-     branches: [ staging, dev ]
+  pull_request:
+    branches: [ staging, dev ]
 
- jobs:
-   test:
-     runs-on: self-hosted
-     strategy:
-       matrix:
-         python-version: [3.8, 3.9]
-
-    #  steps:
-    #    - name: Checkout Repository
-    #      uses: actions/checkout@v2
-
-    #    - name: Use Node.js ${{ matrix.node-version }}
-    #      uses: actions/setup-node@v1
-    #      with:
-    #        node-version: ${{ matrix.node-version }}
-
-    #    - name: Install dependencies
-    #      working-directory: ./server
-    #      run: yarn install && yarn build && yarn test
-
-    #    - name: Install dependencies test
-    #      working-directory: ./server
-    #      run: yarn test
+jobs:
+  test:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9]
 
     steps:
         # Checkout the latest code from the repo
