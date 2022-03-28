@@ -1,3 +1,19 @@
+"""Customers
+
+This file contains a group of API routes related to customers. 
+You can create, retrieve, update and delete a customer object.
+
+Importing the routes: import customers from bigfastapi and FastAPI
+Then include with app.include_router(customers, tags=["Customers"])
+After that, the following endpoints will become available:
+
+ * /customers
+ * /customers/import/{organization_id}
+ * /customers/{customer_id}
+ * /customers/organization/{organization_id}
+
+"""
+
 from typing import List
 from xmlrpc.client import boolean
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
@@ -30,6 +46,42 @@ async def create_customer(
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
 ):
+    """Creates a new customer object.
+    Args:
+        customer: A pydantic schema that defines the customer request parameters. e.g
+                        { "first_name" (required): "string", 
+                        "last_name" (required): "string",
+                        "unique_id" (required): "string",
+                        "organization_id" (required): "09512826638748bd9bd06d22812cc06b",
+                        "email": "string@gmail.com",
+                        "phone_number": "string",
+                        "business_name": "string",
+                        "location": "string",
+                        "gender": "string",
+                        "age": 0,
+                        "postal_code": "string",
+                        "language": "string",
+                        "country": "string",
+                        "city": "string",
+                        "region": "string",
+                        "country_code": "string",
+                        "other_info": [{"value": "string",
+                            "key": "string"}]
+                        }
+        db (Session): Session database connection for storing the customer object.
+        background_tasks: A parameter that allows tasks to be performed at the background
+        user: user authentication validator
+        
+    Returns:
+        status_code: HTTP_201_CREATED (new customer created)
+        response_model: CustomerResponse e.g
+                {message: str, customer: customer_instance}
+    Raises
+        HTTP_404_NOT_FOUND: object does not exist in db
+        HTTP_401_FORBIDDEN: Not Authenticated
+        HTTP_406_NOT_ACCEPTABLE: The given unique_id already exist in the organization
+        HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
+    """
     organization = db.query(Organization).filter(
         Organization.id == customer.organization_id).first()
     if not organization:
@@ -61,6 +113,42 @@ async def create_bulk_customer(
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
 ):
+    """Creates a multiple customer objects from a valid csv file.
+    Args:
+        organization_id: A unique identifier of an organisation
+        background_tasks: A parameter that allows tasks to be performed at the background
+        file: A standard csv file containing specific customer information to be created. e.g
+                        { "first_name" (required): "string", 
+                        "last_name" (required): "string",
+                        "unique_id" (required): "string",
+                        "organization_id" (required): "09512826638748bd9bd06d22812cc06b",
+                        "email": "string@gmail.com",
+                        "phone_number": "string",
+                        "business_name": "string",
+                        "location": "string",
+                        "gender": "string",
+                        "age": 0,
+                        "postal_code": "string",
+                        "language": "string",
+                        "country": "string",
+                        "city": "string",
+                        "region": "string",
+                        "country_code": "string",
+                        "other_info": [{"value": "string",
+                            "key": "string"}]
+                        }
+        db (Session): Session database connection for storing the customer object.
+        user: user authentication validator
+        
+    Returns:
+        status_code: HTTP_201_CREATED (new customer created)
+        response_model: CustomerResponse e.g
+                {message: str, customer: customer_instance}
+    Raises
+        HTTP_404_NOT_FOUND: object does not exist in db
+        HTTP_401_FORBIDDEN: Not Authenticated
+        HTTP_406_NOT_ACCEPTABLE: missing required fields or invalid file
+    """
 
     if file.content_type != "text/csv":
         return JSONResponse({"message": "file must be a valid csv", "customer": []},
@@ -102,7 +190,25 @@ async def get_customers(
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
 ):
-
+    """fetches all customers registered in an organisation sorted by most recently added.
+    Args:
+        organization_id: A unique identifier of an organisation
+        search_value (optional): A search string for filtering customers to be fetched
+        sorting_key (optional): A string by which to sort the list of customers
+             (most be a field in the customer object). defaults to "date_created" 
+        reverse_sort (optional): A boolean to determine if objects 
+            should be sorted in ascending or descending order. defaults to True (ascending order)
+        db (Session): Session database connection for storing the customer object.
+        user: user authentication validator
+        
+    Returns:
+        status_code: HTTP_200_OK (request successful)
+        response_model: paginated list of customers
+    Raises
+        HTTP_404_NOT_FOUND: orgainization not found
+        HTTP_401_FORBIDDEN: Not Authenticated
+        HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
+    """ 
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:
@@ -124,6 +230,19 @@ async def get_customer(
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
 ):
+    """Fetches a single customer object from the database using a unique customer id.
+    Args:
+        customer_id: A unique identifier of a customer
+        db (Session): Session database connection for storing the customer object.
+        user: user authentication validator
+        
+    Returns:
+        status_code: HTTP_200_OK (request successful)
+        response_model: CustomerResponse (schema)
+    Raises
+        HTTP_404_NOT_FOUND: object does not exist in db
+        HTTP_401_FORBIDDEN: Not Authenticated
+    """
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
     if not customer:
@@ -152,6 +271,40 @@ async def update_customer(
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
 ):
+    """Updates a customer's detail.
+    Args:
+        customer_id: A unique identifier of a customer
+        background_tasks: A parameter that allows tasks to be performed at the background
+        db (Session): Session database connection for storing the customer object.
+        user: user authentication validator
+        customer: A pydantic schema that defines the customer request parameters to be updated.
+                All fields are optional e.g
+                        { unique_id: Optional[str] =None
+                        first_name: Optional[str] = None
+                        last_name: Optional[str] = None
+                        email: Optional[str] = None
+                        phone_number: Optional[str] = None
+                        organization_id: Optional[str] = None
+                        business_name: str =None
+                        location: str =None
+                        gender: Optional[str] = None
+                        age: Optional[int] = None
+                        postal_code: Optional[str] = None
+                        language: Optional[str] = None
+                        country: Optional[str] = None
+                        city: Optional[str] = None
+                        region: Optional[str] = None
+                        country_code: Optional[str] = None
+                        other_info: [{"value": "string",
+                            "key": "string"}]
+                        }
+    Returns:
+        status_code: HTTP_200_OK (request successful)
+        response_model: CustomerResponse (schema)
+    Raises
+        HTTP_404_NOT_FOUND: object does not exist in db
+        HTTP_401_FORBIDDEN: Not Authenticated
+    """ 
     customer_instance = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
     if not customer_instance:
@@ -182,7 +335,19 @@ async def soft_delete_customer(
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
 ):
-
+    """Deletes a single customer object from the database using a unique customer id.
+    Args:
+        customer_id: A unique identifier of a customer
+        db (Session): Session database connection for storing the customer object.
+        user: user authentication validator
+        
+    Returns:
+        status_code: HTTP_200_OK (request successful)
+        response_model: {"message": "Customer deleted succesfully"}
+    Raises
+        HTTP_404_NOT_FOUND: object does not exist in db
+        HTTP_401_FORBIDDEN: Not Authenticated
+    """ 
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
     if not customer:
@@ -203,8 +368,20 @@ async def soft_delete_all_customers(
     organization_id: str,
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
-):
-   
+):  
+    """Deletes all customers in an organization.
+    Args:
+        organization_id: A unique identifier of an organisation
+        db (Session): Session database connection for storing the customer object.
+        user: user authentication validator
+        
+    Returns:
+        status_code: HTTP_200_OK (request successful)
+        response_model: {"message": "Customers deleted succesfully"}
+    Raises
+        HTTP_404_NOT_FOUND: object does not exist in db
+        HTTP_401_FORBIDDEN: Not Authenticated
+    """    
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:
