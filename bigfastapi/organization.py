@@ -1,7 +1,6 @@
 import datetime as _dt
 import os
 from uuid import uuid4
-from bigfastapi.schemas import roles_schemas
 
 import fastapi as _fastapi
 import sqlalchemy.orm as _orm
@@ -12,16 +11,15 @@ from fastapi.responses import FileResponse
 from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
+from bigfastapi.schemas import roles_schemas
 from .auth_api import is_authenticated
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
 from .models import store_user_model, user_models, store_invite_model, role_models
 from .models import wallet_models as wallet_models
-from fastapi import BackgroundTasks
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
-
 from .utils.utils import paginate_data, row_to_dict
 
 app = APIRouter(tags=["Organization"])
@@ -43,7 +41,8 @@ async def create_organization(
     if organization.add_template == True:
         template_obj = _models.DefaultTemplates(
             id=uuid4().hex, organization_id=created_org.id, subject="Reminder_One",
-            escalation_level=1, email_message="This is the first default email template created for this business.", sms_message="This is the first default sms template created for this business",
+            escalation_level=1, email_message="This is the first default email template created for this business.",
+            sms_message="This is the first default sms template created for this business",
             is_deleted=False, greeting="Reminder_Greetings", template_type="BOTH"
         )
 
@@ -53,7 +52,8 @@ async def create_organization(
 
         template_obj = _models.DefaultTemplates(
             id=uuid4().hex, organization_id=created_org.id, subject="Reminder_Two",
-            escalation_level=1, email_message="This is the second default email template created for this business.", sms_message="This is the second default sms template created for this business",
+            escalation_level=1, email_message="This is the second default email template created for this business.",
+            sms_message="This is the second default sms template created for this business",
             is_deleted=False, greeting="Reminder_Greetings", template_type="BOTH"
         )
 
@@ -90,7 +90,6 @@ async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
 ):
-
     """
         An endpoint that returns the users in an organization.
     """
@@ -106,8 +105,8 @@ async def get_organization_users(
 
     organization = (
         db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
+            .filter(_models.Organization.id == organization_id)
+            .first()
     )
 
     if organization is None:
@@ -116,37 +115,38 @@ async def get_organization_users(
     store_owner_id = organization.creator
     store_owner = (
         db.query(user_models.User)
-        .filter(user_models.User.id == store_owner_id)
-        .first())
+            .filter(user_models.User.id == store_owner_id)
+            .first())
 
     invited_users = []
     if len(invited_list) > 0:
         for invited in invited_list:
-            user =  db.query(user_models.User).filter(
+            user = db.query(user_models.User).filter(
                 and_(
                     user_models.User.id == invited["user_id"],
                     user_models.User.is_deleted == False
                 )).first()
             role = db.query(role_models.Role).filter(
                 role_models.Role.id == invited["role_id"]).first()
-            if(user.id == invited["user_id"]):
+            if (user.id == invited["user_id"]):
                 invited["email"] = user.email
-                invited["role"] = role.role_name 
+                invited["role"] = role.role_name
 
             invited_users.append(invited)
 
     users = {
-        "user":store_owner,
+        "user": store_owner,
         "invited": invited_users
-        }
+    }
     return users
+
 
 @app.delete("/organizations/{organization_id}/users/{user_id}")
 def delete_organization_user(
-    organization_id: str,
-    user_id: str,
-    db: _orm.Session = _fastapi.Depends(get_db)
-    ):
+        organization_id: str,
+        user_id: str,
+        db: _orm.Session = _fastapi.Depends(get_db)
+):
     # fetch the organization user from the user table
     user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
 
@@ -154,13 +154,13 @@ def delete_organization_user(
         # fetch the store user from the store user table.
         store_user = (
             db.query(store_user_model.StoreUser)
-            .filter(and_(
+                .filter(and_(
                 store_user_model.StoreUser.user_id == user_id,
                 store_user_model.StoreUser.store_id == organization_id
-                ))
-            .first()
-            )
-        
+            ))
+                .first()
+        )
+
         store_user.is_deleted = True
         user.is_deleted = True
         db.add(store_user)
@@ -170,32 +170,32 @@ def delete_organization_user(
         db.commit()
         db.refresh(user)
 
-        return { "message": f"User with email {user.email} successfully removed from the store" }
-    
-    return { "message": "User does not exist" }
-    
+        return {"message": f"User with email {user.email} successfully removed from the store"}
+
+    return {"message": "User does not exist"}
+
 
 @app.get("/organizations/{organization_id}/roles")
 def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
     roles = db.query(role_models.Role).filter(role_models.Role.organization_id == organization_id)
-    roles = list(map(roles_schemas.Role.from_orm, roles))    
+    roles = list(map(roles_schemas.Role.from_orm, roles))
 
     return roles
 
+
 @app.post("/organizations/{organization_id}/roles")
-def add_role(payload:roles_schemas.AddRole,
-            organization_id: str,
-            db: _orm.Session = _fastapi.Depends(get_db)
-            ):
-    
+def add_role(payload: roles_schemas.AddRole,
+             organization_id: str,
+             db: _orm.Session = _fastapi.Depends(get_db)
+             ):
     roles = db.query(role_models.Role).filter(
         role_models.Role.organization_id == organization_id
     ).all()
     if len(roles) < 1:
         existing_role = (
             db.query(role_models.Role)
-            .filter(role_models.Role.role_name == payload.role_name.lower())
-            .first()
+                .filter(role_models.Role.role_name == payload.role_name.lower())
+                .first()
         )
         if existing_role is None:
             role = role_models.Role(
@@ -207,26 +207,27 @@ def add_role(payload:roles_schemas.AddRole,
             db.add(role)
             db.commit()
             db.refresh(role)
-            
+
             return role
-        
-        return { "message": "role already exist" }
+
+        return {"message": "role already exist"}
     return
+
 
 @app.get("/organizations/invites/{organization_id}")
 def get_pending_invites(
-    organization_id: str,
-    db: _orm.Session = _fastapi.Depends(get_db)
+        organization_id: str,
+        db: _orm.Session = _fastapi.Depends(get_db)
 ):
     pending_invites = (
         db.query(store_invite_model.StoreInvite)
-        .filter(
+            .filter(
             and_(store_invite_model.StoreInvite.store_id == organization_id,
                  store_invite_model.StoreInvite.is_deleted == False,
                  store_invite_model.StoreInvite.is_accepted == False,
                  store_invite_model.StoreInvite.is_revoked == False
                  ))
-        .all()
+            .all()
     )
 
     return pending_invites
@@ -311,14 +312,14 @@ async def create_organization(user: users_schemas.User, db: _orm.Session, organi
                                         tagline=organization.tagline, image=organization.image, is_deleted=False,
                                         current_subscription=organization.current_subscription,
                                         currency_preference=organization.currency_preference)
-    
+
     db.add(organization)
     db.commit()
     db.refresh(organization)
-    
+
     roles = ["Assistant", "Admin", "Owner"]
 
-    for role in roles: 
+    for role in roles:
         new_role = role_models.Role(
             id=uuid4().hex,
             organization_id=organization.id.strip(),
@@ -340,8 +341,8 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
 
     invited_orgs_rep = (
         db.query(store_user_model.StoreUser)
-        .filter(store_user_model.StoreUser.user_id == user.id)
-        .all()
+            .filter(store_user_model.StoreUser.user_id == user.id)
+            .all()
     )
 
     if len(invited_orgs_rep) < 1:
@@ -351,7 +352,7 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
             imageURL = appBasePath + \
-                f'/organizations/{organization_list[pos].id}/image'
+                       f'/organizations/{organization_list[pos].id}/image'
             setattr(organization_list[pos], 'image_full_path', imageURL)
             organizationCollection.append(organization_list[pos])
 
@@ -362,14 +363,14 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
     org = []
     for store_id in store_id_list:
         org = org + \
-            db.query(_models.Organization).filter(
-                _models.Organization.id == store_id).all()
+              db.query(_models.Organization).filter(
+                  _models.Organization.id == store_id).all()
 
     org_coll = native_orgs + org
     organizationCollection = []
     for pos in range(len(org_coll)):
         appBasePath = config('API_URL')
-        imageURL = appBasePath+f'/organizations/{org_coll[pos].id}/image'
+        imageURL = appBasePath + f'/organizations/{org_coll[pos].id}/image'
         setattr(org_coll[pos], 'image_full_path', imageURL)
         organizationCollection.append(org_coll[pos])
 
@@ -379,8 +380,8 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
+            .filter(_models.Organization.id == organization_id)
+            .first()
     )
 
     if organization is None:
@@ -476,7 +477,9 @@ async def create_wallet(organization_id: str, currency: str, db: _orm.Session):
 
 
 async def create_credit_wallet(organization_id: str, db: _orm.Session):
-    credit = credit_wallet_models.CreditWallet(id=uuid4().hex, organization_id=organization_id, amount=0,
+    default_credit_wallet_balance = int(config('DEFAULT_CREDIT_WALLET_BALANCE'))
+    credit = credit_wallet_models.CreditWallet(id=uuid4().hex, organization_id=organization_id,
+                                               amount=default_credit_wallet_balance,
                                                last_updated=_dt.datetime.utcnow())
 
     db.add(credit)
