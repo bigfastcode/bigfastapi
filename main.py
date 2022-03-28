@@ -42,7 +42,31 @@ from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
 
 # Create the application
-app = FastAPI()
+tags_metadata = [
+    {
+        "name": "blog",
+        "description": " BigFast's blog api includes various standard blog api patterns from blog creation to various api querying operations. With this group you can easily get your blog client up and running in no time 📝",
+    },
+     {
+        "name": "auth",
+        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specific parameters",
+    },
+    {
+        "name": "countries",
+        "description": "BigFast's countries api allows you to get all countries in the world and thier respective states, you can also query for country codes including dial codes and sample phone formats",
+    },
+    {
+        "name": "pages",
+        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion on pages seamlessly. You can create pages with a specified title and content body",
+    },
+    {
+        "name": "notification",
+        "description": "BigFast's notifications api  allows you to create notifications and manage the notification flow in your application. You can easily make queries like marking a specific notification as read, marking all notifications as read e.t.c.",
+    },
+
+]
+
+app = FastAPI(openapi_tags=tags_metadata)
 app.add_middleware(SessionMiddleware, secret_key=env_var.JWT_SECRET)
 
 client = TestClient(app)
