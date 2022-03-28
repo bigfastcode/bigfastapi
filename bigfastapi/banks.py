@@ -24,8 +24,8 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
                         
     """Creates a new bank object.
     Args:
-        request: A pydantic schema that defines the room request parameters
-        db (Session): The database for storing the article object
+        request: A pydantic schema that defines the bank request parameters
+        db (Session): The database for storing the bank object
     Returns:
         HTTP_201_CREATED (new bank details added)
     Raises
