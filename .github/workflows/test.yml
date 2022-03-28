@@ -1,0 +1,50 @@
+name: bigfastapi test
+ on:
+   push:
+     branches: [ dev ]
+
+   pull_request:
+     branches: [ staging, dev ]
+
+ jobs:
+   test:
+     runs-on: self-hosted
+     strategy:
+       matrix:
+         python-version: [3.8, 3.9]
+
+    #  steps:
+    #    - name: Checkout Repository
+    #      uses: actions/checkout@v2
+
+    #    - name: Use Node.js ${{ matrix.node-version }}
+    #      uses: actions/setup-node@v1
+    #      with:
+    #        node-version: ${{ matrix.node-version }}
+
+    #    - name: Install dependencies
+    #      working-directory: ./server
+    #      run: yarn install && yarn build && yarn test
+
+    #    - name: Install dependencies test
+    #      working-directory: ./server
+    #      run: yarn test
+
+    steps:
+        # Checkout the latest code from the repo
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        # Setup which version of Python to use
+      - name: Set Up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+        # Display the Python version being used
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+        # Install the package using the setup.py
+      - name: Install pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        # Run the tests. I'm using pytest and the file is in the tests directory.
