@@ -1,4 +1,5 @@
 import datetime as _dt
+from email.policy import default
 from sqlite3 import Timestamp
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -30,6 +31,7 @@ class Organization(Base):
     address = Column(String(255), index=True)
     tagline = Column(String(255), index=True)
     image = Column(String(255), default="")
+    active_menu = Column(String(2000), default="")
     is_deleted = Column(Boolean(), default=False)
     current_subscription = Column(String(225), default="")
     credit_balance = Column(Integer, default=5000) 
