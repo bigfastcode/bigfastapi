@@ -30,6 +30,26 @@ app = APIRouter(tags=["Auth"])
 
 @app.post("/auth/signup", status_code=201)
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.Depends(get_db)):
+
+    """intro-This endpoint allows creation of a new user. To create a new user, you need to send a post request to the /auth/signup endpoint with a body of request containing details of the new user.
+    paramDesc-
+        reqBody-email: This is the email of the new user.
+        reqBody-password: This is the unique password of the new user .
+        reqBody-first_name: This is the first name of the new user.
+        reqBody-last_name: This is the last name of the new user.
+        reqBody-phone_number: This is the phone number of the new user.
+        reqBody-country_code: This is the country code of the new user.
+        reqBody-image: This is an image file of the new user, can be of any format.
+        reqBody-device_id: This is the id of the device used at signup.
+        reqBody-country: This is the country name of the new user.
+        reqBody-state: This is the state name of the new user.
+        reqBody-google_id: This is a unique id of the new user's google account.
+        reqBody-google_image: This is the image of the user's google account.
+
+    returnDesc-On sucessful request, it returns
+        returnBody- "success".
+    """
+
     if user.email == None and user.phone_number == None:
         raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to sign up") 
     if user.phone_number and user.country_code == None:
@@ -69,6 +89,18 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
 
 @app.post("/auth/login", status_code=200)
 async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(get_db)):
+    """intro-This endpoint allows you to login an existing user, to login a user you need to make a post request to the /auth/login endpoint with a required body of requst as specified below
+
+    paramDesc-
+        reqBody-email: This is the email of the existing user.
+        reqBody-phone_number: This is the phone number of the existing user.
+        reqBody-country_code: This is the country code of the existing user.
+        reqBody-password: This is the password of the existing user.
+
+    returnDesc-On sucessful request, it returns
+        returnBody- "success".
+    """
+
     if user.email == None and user.phone_number == None:
         raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to login") 
     if user.email:    

@@ -17,10 +17,14 @@ app = APIRouter(tags=["Blog"])
 @app.post("/blog", response_model=schema.Blog)
 def create_blog(blog: schema.BlogCreate, user: user_schema.User = fastapi.Depends(is_authenticated), db: orm.Session = fastapi.Depends(get_db)):
     
-    """Create a new blog
-    
-    Returns:
-        schema.Blog: Details of the newly created blog
+    """intro-This endpoint allows you to create a create a new blog post on the fly and takes in about two paramenters. To create a blog, you need to make a post request to the /blog endpoint
+
+    paramDesc-
+        reqBody-title: This is the title of the blog post to be created.
+        reqBody-content: This is the content of the blog post to be created.
+
+    returnDesc-On sucessful request, it returns
+        returnBody- the blog object.
     """
     
     db_blog = model.get_blog_by_title(title=blog.title, db=db)
@@ -36,13 +40,13 @@ def create_blog(blog: schema.BlogCreate, user: user_schema.User = fastapi.Depend
 @app.get("/blog/{blog_id}")
 def get_blog(blog_id: str, db: orm.Session = fastapi.Depends(get_db), ):
 
-    """Get the details of a blog
-    
-    Args:
-        blog_id (str): the id of the blog
+    """intro-This endpoint allows you to retreive a blog post based on it's id which is included in the request url. To get a blog post, you need to make a get request to the /blog/blog_id endpoint in which "id" is the unique identifier of the blog item.
 
-    Returns:
-        schema.Blog: Details of the requested blog
+    paramDesc-On get request the url takes a query parameter "blog_id" i.e /blog/blog_id:
+        param-blog_id: This is the id of the blog item
+
+    returnDesc-On sucessful request, it returns
+        returnBody- "success"
     """
 
     return db.query(model.Blog).filter(model.Blog.id == blog_id).first()
@@ -50,10 +54,10 @@ def get_blog(blog_id: str, db: orm.Session = fastapi.Depends(get_db), ):
 @app.get("/blogs", response_model=List[schema.Blog])
 def get_all_blogs(db: orm.Session = fastapi.Depends(get_db)):
 
-    """Get all the blogs in the database
+    """intro-This endpoint allows you to retreive all blog posts in the database. To retreive all blog posts, you need to make a get request to the /blog endpoint.
     
-    Returns:
-        List of schema.Blog: A list of all the blogs
+     returnDesc-On sucessful request, it returns:
+        returnBody- an array of blog objects.
     """
 
     blogs = db.query(model.Blog).all()
@@ -62,13 +66,13 @@ def get_all_blogs(db: orm.Session = fastapi.Depends(get_db)):
 @app.get("/blogs/{user_id}", response_model=List[schema.Blog])
 def get_user_blogs(user_id: str, db: orm.Session = fastapi.Depends(get_db)):
 
-    """Get all the blogs created by a user
-    
-    Args:
-        user_id (str): the id of the user
+    """intro-This endpoint allows you to retreive all blog posts created by a particular user. To retreive all blog posts by a user, you need to make a get request to the /blog/userId endpoint where userId is the unique identifier for the user.
 
-    Returns:
-        List of schema.Blog: A list of all the blogs created by the user
+   paramDesc-On get request the url takes a query parameter "user_id" i.e /blog/user_id:
+        param-user_id: This is the id of the user
+
+    returnDesc-On sucessful request, it returns
+         returnBody- an array of blog post objects created by the queried user.
     """
 
     user_blogs = db.query(model.Blog).filter(model.Blog.creator == user_id).all()
@@ -77,13 +81,14 @@ def get_user_blogs(user_id: str, db: orm.Session = fastapi.Depends(get_db)):
 @app.put("/blog/{blog_id}", response_model=schema.Blog)
 def update_blog(blog: schema.BlogUpdate, blog_id: str, user: user_schema.User = fastapi.Depends(is_authenticated), db: orm.Session = fastapi.Depends(get_db)):
 
-    """Update the details of a blog
+    """intro-This endpoint allows you to update a particular blog post. To update a blog posts, you need to make a put request to the /blog/blog_id endpoint where blog_id is the unique identifier for the blog.
     
-    Args:
-        blog_id (str): the id of the blog to be updated
+    paramDesc-This request can take any or both of the following parameters:
+        reqBody-title: This is the title of the blog post to be created.
+        reqBody-content: This is the content of the blog post to be created.
 
-    Returns:
-        schema.Blog: Refreshed data of the updated blog
+    returnDesc-On sucessful request, it returns
+       returnBody- a refreshed object of the updated blog
     """
 
     blog_db = model.blog_selector(user=user, id=blog_id, db=db)
@@ -108,17 +113,18 @@ def update_blog(blog: schema.BlogUpdate, blog_id: str, user: user_schema.User = 
     db.refresh(blog_db)
 
     return schema.Blog.from_orm(blog_db)
-
+    
 @app.delete("/blog/{blog_id}")
 def delete_blog(blog_id: str, user: user_schema.User = fastapi.Depends(is_authenticated), db: orm.Session = fastapi.Depends(get_db)):
     
-    """Delete a blog from the database
+    """intro-This endpoint allows you to delete a particular blog post. To delete a blog posts, you need to make a delete request to the /blog/blog_id endpoint where blog_id is the unique identifier for the blog.
     
-    Args:
-        blog_id (str): the id of the blog to be deleted
+    paramDesc-On delete request the url takes a query parameter "blog_id" i.e /blog/blog_id:
+        param-blog_id: This is the unique id of the blog item
 
-    Returns:
-        object (dict): successfully deleted
+
+    returnDesc-On sucessful request, it returns an Object with message
+       returnBody- "successfully deleted"
     """
     
     blog = model.blog_selector(user=user, id=blog_id, db=db)
