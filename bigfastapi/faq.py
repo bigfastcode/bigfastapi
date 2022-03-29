@@ -26,6 +26,8 @@ def create_faq(
     db: orm.Session = fastapi.Depends(get_db), 
     user: users_schemas.User = fastapi.Depends(is_authenticated)):
 
+     
+
     if user.is_superuser == True:
         faq = faq_models.Faq(
             id = uuid4().hex, 
@@ -43,6 +45,16 @@ def create_faq(
 
 @app.get('/support/faqs', response_model=List[faq_schemas.FaqInDB])
 def get_faqs(db: orm.Session = fastapi.Depends(get_db)):
+
+    """model for support and faqs
+    
+    Args:
+        id (str): 
+
+    Returns:
+        Faq created succesfully
+    """
+    
     faqs = db.query(faq_models.Faq).all()
     return list(map(faq_schemas.FaqInDB.from_orm, faqs))
 
