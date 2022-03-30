@@ -423,7 +423,7 @@ def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Se
     organization = _organization_selector(
         organization_id=organization_id, user=user, db=db)
 
-    return _schemas.Organization.from_orm(organization)
+    return organization
 
 
 async def delete_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
