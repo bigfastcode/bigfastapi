@@ -23,6 +23,7 @@ class _OrganizationBase(_pydantic.BaseModel):
     tagline: Optional[str]
     image: Optional[str]
     values: Optional[str]
+    business_type: str = "retail"
     credit_balance: Optional[int]
     image_full_path: str = None
     add_template: Optional[bool]
@@ -45,6 +46,22 @@ class Organization(_OrganizationBase):
 
     date_created: _dt.datetime
     last_updated: _dt.datetime
+
+    class Config:
+        orm_mode = True
+
+
+class BusinessSwitch(_pydantic.BaseModel):
+    id: str
+    business_type: str
+
+    class Config:
+        orm_mode = True
+
+
+class PinOrUnpin(BusinessSwitch):
+    menu_item: str
+    action: str
 
     class Config:
         orm_mode = True
