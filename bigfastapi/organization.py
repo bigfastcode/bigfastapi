@@ -83,25 +83,26 @@ def create_organization(
 
 
 @app.get("/organizations")
-async def get_organizations(
+def get_organizations(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
         page_size: int = 15,
         page_number: int = 1,
 ):
-    all_orgs = await get_organizations(user, db)
+    all_orgs = get_organizations(user, db)
 
     return paginate_data(all_orgs, page_size, page_number)
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
-async def get_organization(
+def get_organization(
         organization_id: str,
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
-    organization = await get_organization(organization_id, user, db)
-    menu = await getOrgMenu(organization_id, db)
+
+    organization = get_organization(organization_id, user, db)
+    menu = getOrgMenu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
 
 
@@ -358,7 +359,7 @@ def runWalletCreation(newOrganization: organisation_models.Organization, db: _or
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
-async def get_organizations(user: users_schemas.User, db: _orm.Session):
+def get_organizations(user: users_schemas.User, db: _orm.Session):
     native_orgs = db.query(_models.Organization).filter_by(
         creator=user.id).all()
 
@@ -400,7 +401,7 @@ async def get_organizations(user: users_schemas.User, db: _orm.Session):
     return organizationCollection
 
 
-async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
+def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
         .filter(_models.Organization.id == organization_id)
@@ -418,10 +419,11 @@ async def _organization_selector(organization_id: str, user: users_schemas.User,
     return organization
 
 
-async def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
-    organization = await _organization_selector(organization_id=organization_id, user=user, db=db)
+def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
+    organization = _organization_selector(
+        organization_id=organization_id, user=user, db=db)
 
-    return _schemas.Organization.from_orm(organization)
+    return organization
 
 
 async def delete_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
