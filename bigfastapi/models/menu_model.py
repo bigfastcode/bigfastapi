@@ -36,5 +36,11 @@ def addDefaultMenuList(orgId: str, business_type: str, db: _orm.Session):
     return {"active_menu": menuConstruct.active_menu, "menu_list": menuConstruct.menu_list}
 
 
-async def getOrgMenu(orgId: str, db: _orm.Session):
-    return db.query(Menu).filter(Menu.orgaization_id == orgId).first()
+def getOrgMenu(orgId: str, db: _orm.Session):
+    organizationMenu = db.query(Menu).filter(
+        Menu.orgaization_id == orgId).first()
+    if organizationMenu:
+        return organizationMenu
+    else:
+        # Add Default Menu
+        return addDefaultMenuList(orgId, 'retail', db)
