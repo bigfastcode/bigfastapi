@@ -43,7 +43,7 @@ def create_organization(
         user=user, db=db, organization=organization)
 
     assocMenu = addDefaultMenuList(
-        created_org.id, created_org.busines_type, db)
+        created_org.id, created_org.business_type, db)
 
     runWalletCreation(created_org, db)
 
@@ -329,7 +329,7 @@ def create_organization(user: users_schemas.User, db: _orm.Session, organization
     organization_id = uuid4().hex
     newOrganization = _models.Organization(id=organization_id, creator=user.id, mission=organization.mission,
                                            vision=organization.vision, values=organization.values, name=organization.name,
-                                           country=organization.country,
+                                           country=organization.country, business_type=organization.business_type,
                                            state=organization.state, address=organization.address,
                                            tagline=organization.tagline, image=organization.image, is_deleted=False,
                                            current_subscription=organization.current_subscription,

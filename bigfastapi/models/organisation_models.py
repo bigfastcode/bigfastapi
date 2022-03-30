@@ -30,7 +30,7 @@ class Organization(Base):
     values = Column(String(255), index=True)
     currency = Column(String(5), index=True)
     name = Column(String(255), unique=True, index=True, default="")
-    busines_type = Column(String(225), default="retail")
+    business_type = Column(String(225), default="retail")
     country = Column(String(255), index=True)
     state = Column(String(255), index=True)
     address = Column(String(255), index=True)
@@ -71,24 +71,3 @@ def getActiveMenu(businessType):
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
     return db.query(Organization).filter(Organization.id == orgId).first()
-
-
-async def switchType(switchObj: BusinessSwitch, db: _orm.Session):
-    org = await fetchOrganization(switchObj.id, db)
-    if org:
-        menuList = json.loads(org.menu_list)
-        org.active_menu = json.dumps(menuList[switchObj.business_type])
-        del menuList[switchObj.business_type]
-        org.active_menu = json.dumps(menuList)
-        db.commit()
-        db.refresh(org)
-        return org
-    else:
-        raise LookupError("We could not find Business")
-
-
-async def pinMenuItem(pinObj: organisation_schemas.PinOrUnpin, db: _orm.Session):
-    org = await fetchOrganization(pinObj.id, db)
-    if org:
-        menuList = json.loads(org.menu_list)
-        # activeMenu =
