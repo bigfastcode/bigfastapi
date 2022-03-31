@@ -42,7 +42,7 @@ class Organization(Base):
     currency_preference = Column(String(255), default="")
     standard_debt_percentage = Column(String(255), default=None)
     auto_reminders = Column(String(255), default=None)
-    bank_details = Column(String(255), ForeignKey("banks.id", ondelete="CASCADE"), default=None)
+    bank_details = Column(String(255), default=None)
     email = Column(String(255), default="", index=True)
     phone_number = Column(String(255), default="", index=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
