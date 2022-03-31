@@ -100,8 +100,8 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
     db.commit()
     db.refresh(user_obj)
 
-    response = '{BASE_URL}/app/google/authenticate?token=' + \
-        access_token["id_token"] + '&user_id=' + user_obj.id
+    token = access_token["id_token"]
+    response = f"{BASE_URL}/app/google/authenticate?token={token}&user_id={user_obj.id}"
     return RedirectResponse(url=response)
 
 
