@@ -354,7 +354,7 @@ async def auto_send_email_debts(email: str, first_name: str, template, title: st
             "invoice_id": invoice_id,
             "email_message": email_message,
             "business_name": business_name,
-            "link": payment_link
+            "payment_link": payment_link
         },
         subtype="html",
     )
