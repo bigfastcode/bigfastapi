@@ -37,6 +37,12 @@ async def get_schedules(organization_id: str = "", user: UserSchema.User = fasta
     return schedules
 
 
+@app.get("/single-schedule/{schedule_id}")
+async def get_schedules(schedule_id: str = "", user: UserSchema.User = fastapi.Depends(is_authenticated),  db: orm.Session = Depends(get_db)):
+    schedule = await get_schedule_by_id(db, schedule_id)
+    return schedule
+
+
 @app.put("/schedule/{schedule_id}")
 async def update_schedule(schedule_id: str, schedule: Schema.UpdateSchedule, user: UserSchema.User = fastapi.Depends(is_authenticated),  db: orm.Session = Depends(get_db)):
     db_schedule = await get_schedule_by_id(db, schedule_id)
