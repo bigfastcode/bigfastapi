@@ -36,11 +36,11 @@ async def add_rate(
         conversion = await _get_credit_wallet_conversion(currency=body.currency_code, db=db)
         if conversion is not None:
             raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                        detail="Currency " + body.currency_code + " already has a conversion rate")
+                                        detail="Currency " + body.currency_code.upper() + " already has a conversion rate")
 
         rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
                                                                       rate=body.rate,
-                                                                      currency_code=body.currency_code)
+                                                                      currency_code=body.currency_code.upper())
 
         db.add(rate)
         db.commit()
@@ -337,6 +337,11 @@ async def _update_credit_wallet(organization_id: str, credits_to_add: int, refer
 
 
 async def _get_market_rate(currency: str, db: _orm.Session):
+    usd_rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
+        currency_code='USD').first()
+    if usd_rate is None:
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="Currency " + currency + " does not have a conversion rate")
     currency = currency.upper()
 
     freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
@@ -345,9 +350,9 @@ async def _get_market_rate(currency: str, db: _orm.Session):
     if response.status_code == 200:
         jsonResponse = response.json()
         rates = jsonResponse['data']
-        rates['USD'] = 1
+        # rates['USD'] = 1
         if currency in rates:
-            rate = jsonResponse['data'][currency]
+            rate = usd_rate.rate * jsonResponse['data'][currency]
             conversion_rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
                                                                                      rate=rate,
                                                                                      currency_code=currency)
