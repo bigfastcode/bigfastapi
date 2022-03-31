@@ -7,7 +7,7 @@ import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, DateTime, Boolean, ARRAY, Text
+from sqlalchemy.types import String, Integer, DateTime, Boolean, ARRAY
 from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
@@ -40,8 +40,9 @@ class Organization(Base):
     current_subscription = Column(String(225), default="")
     credit_balance = Column(Integer, default=5000)
     currency_preference = Column(String(255), default="")
-    standard_debt_percentage = Column(String(255), nullable=True)
-    auto_reminders = Column(ARRAY, nullable=True)
+    standard_debt_percentage = Column(String(255), default=None)
+    auto_reminders = Column(String(255), default=None)
+    bank_details = Column(String(255), ForeignKey("banks.id", ondelete="CASCADE"), default=None)
     email = Column(String(255), default="", index=True)
     phone_number = Column(String(255), default="", index=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
