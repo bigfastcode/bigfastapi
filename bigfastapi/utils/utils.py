@@ -52,18 +52,22 @@ def find_country(ctry):
     with open(DATA_PATH + "/countries.json") as file:
         cap_country = ctry.capitalize()
         countries = json.load(file)
-        found_country = next((country for country in countries if country['name'] == cap_country), None)
+        found_country = next(
+            (country for country in countries if country['name'] == cap_country), None)
         if found_country is None:
-            raise fastapi.HTTPException(status_code=403, detail="This country doesn't exist")
+            raise fastapi.HTTPException(
+                status_code=403, detail="This country doesn't exist")
         return found_country['name']
 
 
 def dialcode(dcode):
     with open(DATA_PATH + "/dialcode.json") as file:
         dialcodes = json.load(file)
-        found_dialcode = next((dialcode for dialcode in dialcodes if dialcode['dial_code'] == dcode), None)
+        found_dialcode = next(
+            (dialcode for dialcode in dialcodes if dialcode['dial_code'] == dcode), None)
         if found_dialcode is None:
-            raise fastapi.HTTPException(status_code=403, detail="This is an invalid dialcode")
+            raise fastapi.HTTPException(
+                status_code=403, detail="This is an invalid dialcode")
         return found_dialcode['dial_code']
 
 
@@ -72,7 +76,8 @@ def generate_code(new_length: int = None):
     if new_length is not None:
         length = new_length
     if length < 4:
-        raise fastapi.HTTPException(status_code=400, detail="Minimum code lenght is 4")
+        raise fastapi.HTTPException(
+            status_code=400, detail="Minimum code lenght is 4")
     code = ""
     for i in range(length):
         code += str(random.randint(0, 9))
@@ -104,8 +109,10 @@ async def generate_payment_link(api_redirect_url: str,
                 client_reference_id=tx_ref,
                 metadata={'redirect_url': front_end_redirect_url},
                 mode='payment',
-                success_url=api_redirect_url + "?status=successful&tx_ref=" + tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
-                cancel_url=api_redirect_url + "?status=cancelled&tx_ref=" + tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
+                success_url=api_redirect_url + "?status=successful&tx_ref=" +
+                tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
+                cancel_url=api_redirect_url + "?status=cancelled&tx_ref=" +
+                tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
             )
             return session.url
         except InvalidRequestError as e:
@@ -113,7 +120,8 @@ async def generate_payment_link(api_redirect_url: str,
                                         detail=str(e))
     else:
         flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
-        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + flutterwaveKey}
+        headers = {'Content-Type': 'application/json',
+                   'Authorization': 'Bearer ' + flutterwaveKey}
         url = 'https://api.flutterwave.com/v3/payments/'
         username = user.email if user.first_name is None else user.first_name
         username += '' if user.last_name is None else ' ' + user.last_name
@@ -146,3 +154,26 @@ def row_to_dict(row):
     for column in row.__table__.columns:
         d[column.name] = str(getattr(row, column.name))
     return d
+
+
+# MENU RELATED DEFAULTS
+def defaultManu():
+    default_more_list = ['reports', 'invoice', 'fees', 'tutorials',
+                         'sales', 'debts', 'receipts', 'products', 'payments']
+
+    default_retail = ['dashboard', 'customers',
+                      'debts', 'payments', 'settings', 'more']
+
+    default_edu = ['dashboard', 'student', 'settings', 'more']
+
+    default_hos = ['dashboard', 'reservations',
+                   'customers', 'settings', 'more']
+
+    default_freeLance = ['dashboard', 'clients', 'settings', 'more']
+
+    return {
+        "education": {"menu": default_edu, 'more': default_more_list},
+        "hospitality": {"menu": default_hos, "more": default_more_list},
+        "retail": {"menu": default_retail, 'more': default_more_list},
+        "freelancce": {"menu": default_freeLance, "more": default_more_list}
+    }
