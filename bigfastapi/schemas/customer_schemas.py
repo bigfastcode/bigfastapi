@@ -11,10 +11,10 @@ class OtherInfo(BaseModel):
         orm_mode = True
 
 class CustomerBase(BaseModel):
-    first_name: str
-    last_name: str
-    unique_id:str
-    organization_id: str
+    first_name: str = None
+    last_name: str = None
+    unique_id:str =None
+    organization_id: str =None
     email: str = None
     phone_number: str = None
     business_name: str =None
