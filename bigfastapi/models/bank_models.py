@@ -1,7 +1,8 @@
+from email.policy import default
 from sqlalchemy import func, ForeignKey, orm
 import bigfastapi.db.database as database
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, DateTime
+from sqlalchemy.types import String, Integer, DateTime, Boolean
 from uuid import uuid4
 from bigfastapi.db import database
 from bigfastapi.schemas import bank_schemas, users_schemas
@@ -10,20 +11,23 @@ from fastapi.responses import JSONResponse
 
 
 class   BankModels(database.Base):
-    __tablename__ = "bank_models"
+    __tablename__ = "banks"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organisation_id = Column(String(255), ForeignKey("businesses.id"))
     creator_id = Column(String(255))
     account_number= Column(Integer, unique=True, index=True)
     bank_name = Column(String(255))
-    account_name = Column(String(255), index=True, default=None)  
+    recipient_name = Column(String(255), index=True, default=None)
+    recipient_address = Column(String(255), index=True, default=None)  
     country = Column(String(255), index=True) 
     sort_code = Column(String(255), index=True, default=None) 
     swift_code= Column(String(255), index=True,  default=None)
-    address= Column(String(255), index=True, default=None)
+    bank_address= Column(String(255), index=True, default=None)
     bank_type= Column(String(255), index=True, default=None)
+    account_type = Column(String(255), index=True, default=None)
     aba_routing_number = Column(String(255), index=True, default=None)
     iban= Column(String(255), index=True, default=None)
+    is_deleted = Column(Boolean(), default=False)
     date_created = Column(DateTime(timezone=True), server_default=func.now())
 
 
