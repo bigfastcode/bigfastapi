@@ -63,7 +63,9 @@ async def fetch_customers(organization_id: str,
         return customer_list
     found_customers = []
     for customer in customer_list:
-        if name.lower() in customer.first_name.lower() or name.lower() in customer.last_name.lower():
+        first_name = str(" " if customer.first_name is None else customer.first_name).lower()
+        last_name = str(" " if customer.last_name is None else customer.last_name).lower()
+        if name.lower() in first_name or name.lower() in last_name:
             found_customers.append(customer)
     return found_customers
 
