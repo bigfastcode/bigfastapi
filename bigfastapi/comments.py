@@ -178,7 +178,7 @@ def db_retrieve_all_comments_for_object(object_id: int, model_type:str, db: _orm
         comments_models.Comment.model_type == model_type, comments_models.Comment.p_id == None).all()
     
     object_qs = list(map(comments_schemas.Comment.from_orm, object_qs))
-    return object_qs
+    return object_qs[::-1]
 
 def db_retrieve_all_model_comments(model_type:str, db: _orm.Session):
     """Retrieve all comments of model type
