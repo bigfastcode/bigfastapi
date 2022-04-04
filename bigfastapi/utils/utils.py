@@ -175,5 +175,5 @@ def defaultManu():
         "education": {"menu": default_edu, 'more': default_more_list},
         "hospitality": {"menu": default_hos, "more": default_more_list},
         "retail": {"menu": default_retail, 'more': default_more_list},
-        "freelancce": {"menu": default_freeLance, "more": default_more_list}
+        "freelance": {"menu": default_freeLance, "more": default_more_list}
     }
