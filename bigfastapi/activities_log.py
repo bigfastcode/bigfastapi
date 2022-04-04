@@ -117,7 +117,7 @@ def createActivityLog(model_name, object_id, user, log, db):
 
     #send request to slack
     requests.post(url=config('LOG_WEBHOOK_URL'), 
-        json={"text" : user.first_name +' '+user.last_name +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
+        json={"text" : str(" " if user.first_name is None else user.first_name) +' '+ str(" " if user.last_name is None else user.last_name) +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
     )
 
     return activityLog
