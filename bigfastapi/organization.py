@@ -47,6 +47,54 @@ def create_organization(
 
     runWalletCreation(created_org, db)
 
+    defaultTemplates = [
+        {
+            "escalation_level": 1,
+            "email_message":
+            'Trust this meets you well This is to remind you that your payment for $debt is due. Please take a moment to make the payment by clicking here - $paymentlink. If you have any questions dont hesitate to reply to this email.',
+            "subject": 'Reminder: Your Debt Is Due',
+            "sms_message":
+            'a kind reminder that your debt of $amount is due. Please click the this link to pay the balance owed - ',
+        },
+        {
+            store_id,
+            escalation_level: 2,
+            greeting: 'Hello',
+            email_message:
+            'Trust this meets you well Your debt with us is overdue and you have limited time to clear it. Please click here to pay - $paymentLink or request for payment options.',
+            subject: 'Important',
+            sms_message:
+            'your debt of $amount is overdue. To clear it, click this link to pay - ',
+            added_by: user_id,
+            end_greeting: 'Regards',
+        },
+        {
+            store_id,
+            escalation_level: 3,
+            greeting: 'Hello',
+            email_message:
+            'We are yet to receive your overdue payment for $debt. This is becoming really problematic for us and a late payment fee will be applied. Please settle your outstanding balance immediately to avoid this. Click here to pay - $paymentLink',
+            subject:
+            'Payment Reminder: Pay Debt Today to Avoid Late Payment Chargest',
+            sms_message:
+            'your long overdue debt of $amount has not been paid, please make payment to avoid charges. Pay here -       ',
+            added_by: user_id,
+            end_greeting: 'Regards',
+        },
+        {
+            store_id,
+            escalation_level: 4,
+            subject: 'Alert',
+            greeting: 'Hello',
+            email_message:
+            'This is a reminder that your debt is now overdue by weeks since the due date and a late payment fee now applies. Please arrange your payment today.',
+            sms_message:
+            ' your debt of $amount has not been paid despite previous reminders and a late payment fee now applies. Hurry and pay now - ',
+            added_by: user_id,
+            end_greeting: 'Regards',
+        },
+    ]
+
     try:
         if organization.add_template == True:
             template_obj = _models.DefaultTemplates(
