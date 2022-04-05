@@ -1,4 +1,5 @@
 import datetime as _dt
+from email.policy import default
 from uuid import uuid4
 
 from sqlalchemy import ForeignKey
@@ -14,6 +15,10 @@ class WalletTransaction(Base):
     wallet_id = Column(String(255), ForeignKey("wallets.id"))
     status = Column(Boolean, default=0)
     amount = Column(Float, default=0)
+    on_model = Column(String(255), default=None)
+    payment_method = Column(String(255), default=None)
+    is_inflow = Column(Boolean, default=False)
+    customer_id = Column(String(255), ForeignKey("customers.id"))
     currency_code = Column(String(4))
     transaction_date = Column(DateTime, default=_dt.datetime.utcnow)
     transaction_ref = Column(String(255), default='')
