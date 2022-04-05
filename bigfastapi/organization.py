@@ -102,8 +102,16 @@ def create_organization(
                 db.commit()
                 db.refresh(template_obj)
 
-    except print("ail To Create Templates"):
-        pass
+            autoreminder_obj = _models.DefaultAutoReminder(
+                id=uuid4().hex, organization_id=created_org.id, days_before_debt=3,
+                first_template="escalation_level_1", second_template="escalation_level_3")
+
+            db.add(autoreminder_obj)
+            db.commit()
+            db.refresh(autoreminder_obj)
+
+    except:
+        print("ail To Create Templates")
 
     newOrId = created_org.id
     newOrg = created_org
