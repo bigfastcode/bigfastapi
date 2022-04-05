@@ -21,8 +21,8 @@ class Customer(Base):
                          default=generate_short_id(size=12))
     organization_id = Column(String(255), ForeignKey("businesses.id"))
     email = Column(String(255), index=True,  default="")
-    first_name = Column(String(255), index=True)
-    last_name = Column(String(255), index=True)
+    first_name = Column(String(255), default="", index=True)
+    last_name = Column(String(255), default="", index=True)
     unique_id = Column(String(255), index=True)
     phone_number = Column(String(255), index=True, default="")
     business_name = Column(String(255), index=True,  default="")
@@ -35,7 +35,6 @@ class Customer(Base):
     city = Column(String(255), index=True, default="")
     region = Column(String(255), index=True, default="")
     country_code = Column(String(255), index=True, default="")
-    other_information = Column(JSON, default=text("'null'"))
     is_deleted = Column(Boolean,  index=True, default=False)
     date_created = Column(DateTime, server_default=func.now())
     last_updated = Column(DateTime, nullable=False,
@@ -44,7 +43,8 @@ class Customer(Base):
 class OtherInformation(Base):
     __tablename__ = "extra_customer_info"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    customer_id = Column(String(255), ForeignKey("customer.customer_id"))
+    customer_id = Column(String(255))
+    # , ForeignKey("customer.customer_id"))
     key = Column(String(255), index=True, default="")
     value = Column(String(255), index=True, default="")
 
@@ -63,7 +63,9 @@ async def fetch_customers(organization_id: str,
         return customer_list
     found_customers = []
     for customer in customer_list:
-        if name.lower() in customer.first_name.lower() or name.lower() in customer.last_name.lower():
+        first_name = str(" " if customer.first_name is None else customer.first_name).lower()
+        last_name = str(" " if customer.last_name is None else customer.last_name).lower()
+        if name.lower() in first_name or name.lower() in last_name:
             found_customers.append(customer)
     return found_customers
 

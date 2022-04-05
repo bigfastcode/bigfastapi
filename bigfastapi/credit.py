@@ -345,7 +345,7 @@ async def _get_market_rate(currency: str, db: _orm.Session):
     currency = currency.upper()
 
     freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
-    url = 'https://freecurrencyapi.net/api/v2/latest?apikey=' + freeCurrencyApiKey
+    url = 'https://api.currencyapi.com/v2/latest?apikey=' + freeCurrencyApiKey
     response = requests.get(url)
     if response.status_code == 200:
         jsonResponse = response.json()

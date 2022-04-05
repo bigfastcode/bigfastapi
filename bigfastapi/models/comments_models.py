@@ -28,18 +28,18 @@ class Comment(_database.Base):
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
-    # p_id = Column(String(255), ForeignKey("comment.id", ondelete="cascade"))
-    # parent = _orm.relationship("Comment", backref=_orm.backref('replies',  cascade="all, delete-orphan"), remote_side=[id], post_update=True, single_parent=True, uselist=True)
+    p_id = Column(String(255), ForeignKey("comment.id", ondelete="cascade"))
+    parent = _orm.relationship("Comment", backref=_orm.backref('replies',  cascade="all, delete-orphan"), remote_side=[id], post_update=True, single_parent=True, uselist=True)
 
     # def __init__(self, *args, **kwargs):
     #     super().__init__()
         
-    #     self.model_type = kwargs["model_name", None] 
-    #     self.commenter_id = kwargs["commenter_id", None] 
-    #     self.rel_id = kwargs["rel_id", None]
-    #     self.email = kwargs["email", None] 
-    #     self.name = kwargs["name", None] 
-    #     self.text = kwargs["text", None] 
+    #     self.model_type = kwargs["model_type"] 
+    #     self.commenter_id = kwargs["commenter_id"] 
+    #     self.rel_id = kwargs["rel_id"]
+    #     self.email = kwargs["email"] 
+    #     self.name = kwargs["name"] 
+    #     self.text = kwargs["text"] 
     #     self.p_id = kwargs.get("p_id", None)
 
     @hybrid_method
