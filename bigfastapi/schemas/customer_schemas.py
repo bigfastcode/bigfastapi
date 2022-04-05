@@ -11,23 +11,23 @@ class OtherInfo(BaseModel):
         orm_mode = True
 
 class CustomerBase(BaseModel):
-    first_name: str = None
-    last_name: str = None
-    unique_id:str =None
-    organization_id: str =None
-    email: str = None
-    phone_number: str = None
-    business_name: str =None
-    location: str =None
-    gender: str=None
-    age: int =None
-    postal_code: str =None
-    language: str =None
-    country: str = None
-    city: str =None
-    region: str =None
-    country_code: str = None
-    other_info: List[OtherInfo] = None
+    first_name: str = " "
+    last_name: str = " "
+    unique_id:Optional[str]
+    organization_id: Optional[str]
+    email: Optional[str]
+    phone_number: Optional[str]
+    business_name: Optional[str]
+    location: Optional[str]
+    gender: Optional[str]
+    age: Optional[int]
+    postal_code: Optional[str]
+    language: Optional[str]
+    country: Optional[str]
+    city: Optional[str]
+    region: Optional[str]
+    country_code: Optional[str]
+    other_info: List[OtherInfo] = []
 
     class Config:
         orm_mode = True
@@ -38,25 +38,25 @@ class Customer(CustomerBase):
     last_updated: datetime
 
 class CustomerUpdate(BaseModel):
-    unique_id: Optional[str] =None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    email: Optional[str] = None
-    phone_number: Optional[str] = None
-    organization_id: Optional[str] = None
-    business_name: str =None
-    location: str =None
-    gender: Optional[str] = None
-    age: Optional[int] = None
-    postal_code: Optional[str] = None
-    language: Optional[str] = None
-    country: Optional[str] = None
-    city: Optional[str] = None
-    region: Optional[str] = None
-    country_code: Optional[str] = None
-    other_info: List[OtherInfo] = None
+    unique_id: Optional[str] 
+    first_name: Optional[str]
+    last_name: Optional[str]
+    email: Optional[str]
+    phone_number: Optional[str] 
+    organization_id: Optional[str]
+    business_name: Optional[str]
+    location: Optional[str]
+    gender: Optional[str]
+    age: Optional[int] 
+    postal_code: Optional[str] 
+    language: Optional[str]
+    country: Optional[str]
+    city: Optional[str]
+    region: Optional[str]
+    country_code: Optional[str]
+    other_info: List[OtherInfo]
     
 
 class CustomerResponse(BaseModel):
-    message: str 
-    customer: Customer =None
+    message: Optional[str]
+    customer: Optional[Customer]
