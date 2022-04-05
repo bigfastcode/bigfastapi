@@ -401,7 +401,7 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
     return organizationCollection
 
 
-def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
+async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
         .filter(_models.Organization.id == organization_id)
