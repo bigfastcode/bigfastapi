@@ -61,12 +61,10 @@ CREDENTIALS_EXCEPTION = HTTPException(
 )
 
 
-REDIRECT_URL = f"{settings.API_REDIRECT_URL}/google/token"
-
-
 @app.get('/google/generate_url')
 async def login(request: Request):
-    redirect_uri = REDIRECT_URL  # This creates the url for our /auth endpoint
+    # This creates the url for our /auth endpoint
+    redirect_uri = f"{settings.API_REDIRECT_URL}/google/token"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
