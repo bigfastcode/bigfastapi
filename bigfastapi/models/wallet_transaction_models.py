@@ -18,7 +18,7 @@ class WalletTransaction(Base):
     on_model = Column(String(255), default=None)
     payment_method = Column(String(255), default=None)
     is_inflow = Column(Boolean, default=False)
-    customer_id = Column(String(255), ForeignKey("customers.id"))
+    customer_id = Column(String(255), ForeignKey("customer.id"))
     currency_code = Column(String(4))
     transaction_date = Column(DateTime, default=_dt.datetime.utcnow)
     transaction_ref = Column(String(255), default='')
