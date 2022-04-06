@@ -88,13 +88,16 @@ def create_organization(
         },
     ]
 
-    try:
-        if organization.add_template == True:
+    if organization.add_template == True:
+        try:
+
             for temp in defaultTemplates:
-                template_obj = _models.DefaultTemplates(
-                    id=uuid4().hex, organization_id=created_org.id, subject=temp.subject,
-                    escalation_level=1, email_message=temp.email_message,
-                    sms_message=temp.sms_message,
+
+                template_obj = organisation_models.DefaultTemplates(
+                    id=uuid4(
+                    ).hex, organization_id=created_org.id, subject=temp["subject"],
+                    escalation_level=temp["escalation_level"], email_message=temp["email_message"],
+                    sms_message=temp["sms_message"],
                     is_deleted=False, template_type="BOTH"
                 )
 
@@ -102,7 +105,12 @@ def create_organization(
                 db.commit()
                 db.refresh(template_obj)
 
-            autoreminder_obj = _models.DefaultAutoReminder(
+        except:
+            print("ail To Create Templates")
+
+        try:
+
+            autoreminder_obj = organisation_models.DefaultAutoReminder(
                 id=uuid4().hex, organization_id=created_org.id, days_before_debt=3,
                 first_template="escalation_level_1", second_template="escalation_level_3")
 
@@ -110,8 +118,8 @@ def create_organization(
             db.commit()
             db.refresh(autoreminder_obj)
 
-    except:
-        print("ail To Create Templates")
+        except:
+            print('could not create auto reminder default')
 
     newOrId = created_org.id
     newOrg = created_org
