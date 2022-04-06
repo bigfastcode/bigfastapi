@@ -1,6 +1,6 @@
 from enum import unique
 from sqlalchemy.types import String, DateTime, Text, Integer, JSON, Boolean
-from sqlalchemy import ForeignKey, text
+from sqlalchemy import ForeignKey, text, desc
 from sqlalchemy.sql import func
 from bigfastapi.db.database import Base
 from uuid import uuid4
@@ -13,6 +13,7 @@ from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
 from typing import List
 
+from operator import and_, or_
 
 class Customer(Base):
     __tablename__ = "customer"
@@ -51,23 +52,37 @@ class OtherInformation(Base):
 
 #==============================Database Services=============================#
 
-async def fetch_customers(organization_id: str,
-                          name: str = None,
-                          db: Session = Depends(get_db)):
+async def fetch_customers(
+    organization_id: str, 
+    offset: int, size:int = 50,    
+    db: Session = Depends(get_db)
+    ): 
     customers = db.query(Customer).filter(
         Customer.organization_id == organization_id).filter(
-        Customer.is_deleted == False
-    )
+        Customer.is_deleted == False).offset(offset=offset).limit(limit=size).all()
     customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    if not name:
-        return customer_list
-    found_customers = []
-    for customer in customer_list:
-        first_name = str(" " if customer.first_name is None else customer.first_name).lower()
-        last_name = str(" " if customer.last_name is None else customer.last_name).lower()
-        if name.lower() in first_name or name.lower() in last_name:
-            found_customers.append(customer)
-    return found_customers
+    return customer_list
+
+    # search_text = f"%{search_value}%"
+    # customers = db.query(Customer).filter(and_(
+    #     Customer.organization_id == organization_id,
+    #     Customer.is_deleted == False)).offset(offset=offset).limit(limit=size).all()
+        # .filter(or_(
+        # Customer.first_name.like(search_text),
+        # Customer.last_name.like(search_text))).filter(or_(
+        # Customer.customer_id.like(search_value),
+        # Customer.unique_id.like(search_text))).order_by(
+        # Customer.first_name)
+    # customer_list = list(map(customer_schemas.Customer.from_orm, customers))
+    # return customer_list
+
+    # found_customers = []
+    # for customer in customer_list:
+    #     first_name = str(" " if customer.first_name is None else customer.first_name).lower()
+    #     last_name = str(" " if customer.last_name is None else customer.last_name).lower()
+    #     if name.lower() in first_name or name.lower() in last_name:
+    #         found_customers.append(customer)
+    # return found_customers
 
 
 async def add_customer(
