@@ -1,5 +1,4 @@
 import datetime as _dt
-import json
 import os
 from uuid import uuid4
 
@@ -12,7 +11,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
-from bigfastapi.models import menu_model, organisation_models
+from bigfastapi.models import organisation_models
 from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
 from bigfastapi.schemas import roles_schemas
 from .auth_api import is_authenticated
@@ -23,7 +22,7 @@ from .models import store_user_model, user_models, store_invite_model, role_mode
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
-from .utils.utils import defaultManu, paginate_data, row_to_dict
+from .utils.utils import paginate_data, row_to_dict
 
 app = APIRouter(tags=["Organization"])
 
@@ -51,39 +50,39 @@ def create_organization(
         {
             "escalation_level": 1,
             "email_message":
-            'Trust this meets you well This is to remind you that your payment for $debt is due. Please take a moment to make the payment by clicking here - $paymentlink. If you have any questions dont hesitate to reply to this email.',
+                'Trust this meets you well This is to remind you that your payment for $debt is due. Please take a moment to make the payment by clicking here - $paymentlink. If you have any questions dont hesitate to reply to this email.',
             "subject": 'Reminder: Your Debt Is Due',
             "sms_message":
-            'a kind reminder that your debt of $amount is due. Please click the this link to pay the balance owed - ',
+                'a kind reminder that your debt of $amount is due. Please click the this link to pay the balance owed - ',
         },
         {
 
             "escalation_level": 2,
             "email_message":
-            'Trust this meets you well Your debt with us is overdue and you have limited time to clear it. Please click here to pay - $paymentLink or request for payment options.',
+                'Trust this meets you well Your debt with us is overdue and you have limited time to clear it. Please click here to pay - $paymentLink or request for payment options.',
             "subject": 'Important',
             "sms_message":
-            'your debt of $amount is overdue. To clear it, click this link to pay - '
+                'your debt of $amount is overdue. To clear it, click this link to pay - '
         },
         {
 
             "escalation_level": 3,
 
             "email_message":
-            'We are yet to receive your overdue payment for $debt. This is becoming really problematic for us and a late payment fee will be applied. Please settle your outstanding balance immediately to avoid this. Click here to pay - $paymentLink',
+                'We are yet to receive your overdue payment for $debt. This is becoming really problematic for us and a late payment fee will be applied. Please settle your outstanding balance immediately to avoid this. Click here to pay - $paymentLink',
             "subject":
-            'Payment Reminder: Pay Debt Today to Avoid Late Payment Chargest',
+                'Payment Reminder: Pay Debt Today to Avoid Late Payment Chargest',
             "sms_message":
-            'your long overdue debt of $amount has not been paid, please make payment to avoid charges. Pay here - ',
+                'your long overdue debt of $amount has not been paid, please make payment to avoid charges. Pay here - ',
         },
         {
 
             "escalation_level": 4,
             "subject": 'Alert',
             "email_message":
-            'This is a reminder that your debt is now overdue by weeks since the due date and a late payment fee now applies. Please arrange your payment today.',
+                'This is a reminder that your debt is now overdue by weeks since the due date and a late payment fee now applies. Please arrange your payment today.',
             "sms_message":
-            ' your debt of $amount has not been paid despite previous reminders and a late payment fee now applies. Hurry and pay now - ',
+                ' your debt of $amount has not been paid despite previous reminders and a late payment fee now applies. Hurry and pay now - ',
 
         },
     ]
@@ -92,7 +91,6 @@ def create_organization(
         try:
 
             for temp in defaultTemplates:
-
                 template_obj = organisation_models.DefaultTemplates(
                     id=uuid4(
                     ).hex, organization_id=created_org.id, subject=temp["subject"],
@@ -147,7 +145,6 @@ async def get_organization(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
-
     organization = await get_organization(organization_id, user, db)
     menu = getOrgMenu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
@@ -173,8 +170,8 @@ async def get_organization_users(
 
     organization = (
         db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
+            .filter(_models.Organization.id == organization_id)
+            .first()
     )
 
     if organization is None:
@@ -183,8 +180,8 @@ async def get_organization_users(
     store_owner_id = organization.creator
     store_owner = (
         db.query(user_models.User)
-        .filter(user_models.User.id == store_owner_id)
-        .first())
+            .filter(user_models.User.id == store_owner_id)
+            .first())
 
     invited_users = []
     if len(invited_list) > 0:
@@ -223,11 +220,11 @@ def delete_organization_user(
         # fetch the store user from the store user table.
         store_user = (
             db.query(store_user_model.StoreUser)
-            .filter(and_(
-                    store_user_model.StoreUser.user_id == user_id,
-                    store_user_model.StoreUser.store_id == organization_id
-                    ))
-            .first()
+                .filter(and_(
+                store_user_model.StoreUser.user_id == user_id,
+                store_user_model.StoreUser.store_id == organization_id
+            ))
+                .first()
         )
 
         store_user.is_deleted = True
@@ -264,8 +261,8 @@ def add_role(payload: roles_schemas.AddRole,
     if len(roles) < 1:
         existing_role = (
             db.query(role_models.Role)
-            .filter(role_models.Role.role_name == payload.role_name.lower())
-            .first()
+                .filter(role_models.Role.role_name == payload.role_name.lower())
+                .first()
         )
         if existing_role is None:
             role = role_models.Role(
@@ -291,13 +288,13 @@ def get_pending_invites(
 ):
     pending_invites = (
         db.query(store_invite_model.StoreInvite)
-        .filter(
+            .filter(
             and_(store_invite_model.StoreInvite.store_id == organization_id,
                  store_invite_model.StoreInvite.is_deleted == False,
                  store_invite_model.StoreInvite.is_accepted == False,
                  store_invite_model.StoreInvite.is_revoked == False
                  ))
-        .all()
+            .all()
     )
 
     return pending_invites
@@ -376,7 +373,8 @@ async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.S
 def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
     organization_id = uuid4().hex
     newOrganization = _models.Organization(id=organization_id, creator=user.id, mission=organization.mission,
-                                           vision=organization.vision, values=organization.values, name=organization.name,
+                                           vision=organization.vision, values=organization.values,
+                                           name=organization.name,
                                            country=organization.country, business_type=organization.business_type,
                                            state=organization.state, address=organization.address,
                                            tagline=organization.tagline, image=organization.image, is_deleted=False,
@@ -412,8 +410,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 
     invited_orgs_rep = (
         db.query(store_user_model.StoreUser)
-        .filter(store_user_model.StoreUser.user_id == user.id)
-        .all()
+            .filter(store_user_model.StoreUser.user_id == user.id)
+            .all()
     )
 
     if len(invited_orgs_rep) < 1:
@@ -423,7 +421,7 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
             imageURL = appBasePath + \
-                f'/organizations/{organization_list[pos].id}/image'
+                       f'/organizations/{organization_list[pos].id}/image'
             setattr(organization_list[pos], 'image_full_path', imageURL)
             organizationCollection.append(organization_list[pos])
 
@@ -434,8 +432,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
     org = []
     for store_id in store_id_list:
         org = org + \
-            db.query(_models.Organization).filter(
-                _models.Organization.id == store_id).all()
+              db.query(_models.Organization).filter(
+                  _models.Organization.id == store_id).all()
 
     org_coll = native_orgs + org
     organizationCollection = []
@@ -451,8 +449,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
+            .filter(_models.Organization.id == organization_id)
+            .first()
     )
 
     if organization is None:
@@ -528,7 +526,7 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
 
     # create a new wallet if the currency is changed
     if currencyUpdated:
-        await create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
+        create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
 
     return _schemas.Organization.from_orm(organization_db)
 
