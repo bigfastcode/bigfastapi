@@ -63,6 +63,15 @@ class DefaultTemplates(Base):
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
 
 
+class DefaultAutoReminder(Base):
+    __tablename__ = "default_auto_reminder"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    organization_id = Column(String(255), index=True)
+    days_before_debt = Column(Integer, index=True)
+    first_template = Column(String(255), index=True)
+    second_template = Column(String(255), index=True)
+
+
 # --------------------------------------------------------------------------------------------------#
 #                                    REPOSITORY AND HELPERS
 # --------------------------------------------------------------------------------------------------#
