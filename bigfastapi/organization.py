@@ -134,13 +134,13 @@ def get_organizations(
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
-def get_organization(
+async def get_organization(
         organization_id: str,
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
 
-    organization = get_organization(organization_id, user, db)
+    organization = await get_organization(organization_id, user, db)
     menu = getOrgMenu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
 
@@ -458,8 +458,8 @@ async def _organization_selector(organization_id: str, user: users_schemas.User,
     return organization
 
 
-def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
-    organization = _organization_selector(
+async def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
+    organization = await _organization_selector(
         organization_id=organization_id, user=user, db=db)
 
     return organization
