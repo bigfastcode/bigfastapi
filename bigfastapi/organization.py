@@ -526,14 +526,14 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
     db.commit()
     db.refresh(organization_db)
 
-    # create a new wallet if the currency is changed
-    if currencyUpdated:
-        await create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
+    # # create a new wallet if the currency is changed
+    # if currencyUpdated:
+    #     await create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
 
     return _schemas.Organization.from_orm(organization_db)
 
 
-def create_wallet(organization_id: str, currency: str, db: _orm.Session):
+async def create_wallet(organization_id: str, currency: str, db: _orm.Session):
     currency = currency.upper()
     wallet = db.query(wallet_models.Wallet).filter_by(organization_id=organization_id).filter_by(
         currency_code=currency).first()
