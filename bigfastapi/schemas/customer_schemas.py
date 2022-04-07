@@ -28,6 +28,7 @@ class CustomerBase(BaseModel):
     region: Optional[str]
     country_code: Optional[str]
     other_info: List[OtherInfo] = []
+    is_deleted: bool = False
 
     class Config:
         orm_mode = True
@@ -39,7 +40,7 @@ class Customer(CustomerBase):
 
 class CustomerUpdate(BaseModel):
     unique_id: Optional[str] 
-    first_name: Optional[str]
+    first_name: Optional[str] = " "
     last_name: Optional[str]
     email: Optional[str]
     phone_number: Optional[str] 
