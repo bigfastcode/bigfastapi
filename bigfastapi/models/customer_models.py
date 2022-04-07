@@ -1,6 +1,7 @@
+from email.policy import default
 from enum import unique
 from sqlalchemy.types import String, DateTime, Text, Integer, JSON, Boolean
-from sqlalchemy import ForeignKey, text, desc
+from sqlalchemy import ForeignKey, text, desc, asc
 from sqlalchemy.sql import func
 from bigfastapi.db.database import Base
 from uuid import uuid4
@@ -12,7 +13,6 @@ from bigfastapi.schemas import customer_schemas
 from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
 from typing import List
-
 from operator import and_, or_
 
 class Customer(Base):
@@ -59,31 +59,58 @@ async def fetch_customers(
     ): 
     customers = db.query(Customer).filter(
         Customer.organization_id == organization_id).filter(
-        Customer.is_deleted == False).offset(offset=offset).limit(limit=size).all()
+        Customer.is_deleted == False).order_by(
+        Customer.date_created.desc()
+        ).offset(offset=offset).limit(limit=size).all()
     customer_list = list(map(customer_schemas.Customer.from_orm, customers))
     return customer_list
 
-    # search_text = f"%{search_value}%"
-    # customers = db.query(Customer).filter(and_(
-    #     Customer.organization_id == organization_id,
-    #     Customer.is_deleted == False)).offset(offset=offset).limit(limit=size).all()
-        # .filter(or_(
-        # Customer.first_name.like(search_text),
-        # Customer.last_name.like(search_text))).filter(or_(
-        # Customer.customer_id.like(search_value),
-        # Customer.unique_id.like(search_text))).order_by(
-        # Customer.first_name)
-    # customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    # return customer_list
+async def search_customers(
+    organization_id:str,
+    search_value: str,
+    offset: int, size:int=50,
+    db:Session = Depends(get_db)
+):  
+    search_text = f"%{search_value}%"
+    customers_by_name = db.query(Customer).filter(and_(
+        Customer.organization_id == organization_id,
+        Customer.is_deleted == False)).filter(or_(
+        Customer.first_name.like(search_text),
+        Customer.last_name.like(search_text))).order_by(
+        Customer.date_created.desc()
+        ).offset(offset=offset).limit(limit=size).all()
+    map_names = list(map(customer_schemas.Customer.from_orm, customers_by_name))
+    customers_by_id =db.query(Customer).filter(and_(
+        Customer.organization_id == organization_id,
+        Customer.is_deleted == False)).filter(or_(
+        Customer.unique_id.like(search_value),
+        Customer.customer_id.like(search_value))).order_by(
+        Customer.date_created.desc()
+        ).offset(offset=offset).limit(limit=size).all()
+    map_ids = list(map(customer_schemas.Customer.from_orm, customers_by_id))
+    customer_list = [*map_names, *map_ids]
+    return customer_list
 
-    # found_customers = []
-    # for customer in customer_list:
-    #     first_name = str(" " if customer.first_name is None else customer.first_name).lower()
-    #     last_name = str(" " if customer.last_name is None else customer.last_name).lower()
-    #     if name.lower() in first_name or name.lower() in last_name:
-    #         found_customers.append(customer)
-    # return found_customers
-
+async def sort_customers(
+    organization_id:str,
+    sort_key: str,
+    offset: int, size:int=50,
+    sort_dir: str = "asc",
+    db:Session = Depends(get_db)
+):  
+    if sort_dir == "desc":
+        customers = db.query(Customer).filter(
+            Customer.organization_id == organization_id).filter(
+            Customer.is_deleted == False).order_by(
+            desc(getattr(Customer, sort_key, "first_name"))
+            ).offset(offset=offset).limit(limit=size).all()
+    else:
+        customers = db.query(Customer).filter(
+            Customer.organization_id == organization_id).filter(
+            Customer.is_deleted == False).order_by(
+            getattr(Customer, sort_key, "first_name")
+            ).offset(offset=offset).limit(limit=size).all()
+    return customers
 
 async def add_customer(
     customer: customer_schemas.CustomerBase,

@@ -80,7 +80,6 @@ async def create_customer(
     Raises
         HTTP_404_NOT_FOUND: object does not exist in db
         HTTP_401_FORBIDDEN: Not Authenticated
-        HTTP_406_NOT_ACCEPTABLE: The given unique_id already exist in the organization
         HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
     """
     organization = db.query(Organization).filter(
@@ -88,12 +87,6 @@ async def create_customer(
     if not organization:
         return JSONResponse({"message": "Organization does not exist", "customer": []},
                             status_code=status.HTTP_404_NOT_FOUND)
-
-    existing_customers = await customer_models.fetch_customers(organization_id=customer.organization_id, db=db)
-    for item in existing_customers:
-        if customer.unique_id == item.unique_id:
-            return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []},
-                                status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     customer_instance = await customer_models.add_customer(customer=customer, organization_id=customer.organization_id, db=db)
 
@@ -212,7 +205,7 @@ async def get_customers(
         HTTP_401_FORBIDDEN: Not Authenticated
         HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
     """ 
-    sort_dir = "desc" if reverse_sort == True else "asc"
+    sort_dir = "asc" if reverse_sort == True else "desc"
     page_size = 50 if size < 1 or size > 100 else size
     offset = await paginator.off_set(page=page, size=page_size)
     total_items = await paginator.total_row_count(model=Customer, organization_id=organization_id, db=db)
@@ -223,10 +216,17 @@ async def get_customers(
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
 
-    customers = await customer_models.fetch_customers(organization_id=organization_id, offset=offset, 
-             size=page_size, db=db)
-    print(len(customers))
-    response = {"page": page, "size": page_size, "total": total_items, 
+    if search_value:
+        customers = await customer_models.search_customers(organization_id=organization_id, search_value=search_value,
+            offset=offset, size=page_size, db=db)
+    elif sorting_key:
+        customers = await customer_models.sort_customers(organization_id=organization_id, sort_key=sorting_key, 
+            offset=offset, size=page_size, sort_dir=sort_dir, db=db)
+    else:
+        customers = await customer_models.fetch_customers(organization_id=organization_id, offset=offset, 
+                size=page_size, db=db)
+    
+    response = {"page": page, "size": page_size, "total": total_items,
         "previous_page":pointers['previous'], "next_page": pointers["next"], "items": customers,  }
     # customers.sort(key=lambda x: getattr(x, sorting_key, "firt_name"), reverse=reverse_sort)
     return response
