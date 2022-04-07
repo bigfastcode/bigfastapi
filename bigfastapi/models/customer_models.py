@@ -1,3 +1,4 @@
+from email.policy import default
 from enum import unique
 from sqlalchemy.types import String, DateTime, Text, Integer, JSON, Boolean
 from sqlalchemy import ForeignKey, text, desc
@@ -14,6 +15,7 @@ from bigfastapi.utils.utils import generate_short_id
 from typing import List
 
 from operator import and_, or_
+
 
 class Customer(Base):
     __tablename__ = "customer"
@@ -35,11 +37,13 @@ class Customer(Base):
     country = Column(String(255), index=True, default="")
     city = Column(String(255), index=True, default="")
     region = Column(String(255), index=True, default="")
+    auto_reminder = Column(Boolean, index=True, default=False)
     country_code = Column(String(255), index=True, default="")
     is_deleted = Column(Boolean,  index=True, default=False)
     date_created = Column(DateTime, server_default=func.now())
     last_updated = Column(DateTime, nullable=False,
                           server_default=func.now(), onupdate=func.now())
+
 
 class OtherInformation(Base):
     __tablename__ = "extra_customer_info"
@@ -53,10 +57,10 @@ class OtherInformation(Base):
 #==============================Database Services=============================#
 
 async def fetch_customers(
-    organization_id: str, 
-    offset: int, size:int = 50,    
+    organization_id: str,
+    offset: int, size: int = 50,
     db: Session = Depends(get_db)
-    ): 
+):
     customers = db.query(Customer).filter(
         Customer.organization_id == organization_id).filter(
         Customer.is_deleted == False).offset(offset=offset).limit(limit=size).all()
@@ -67,12 +71,12 @@ async def fetch_customers(
     # customers = db.query(Customer).filter(and_(
     #     Customer.organization_id == organization_id,
     #     Customer.is_deleted == False)).offset(offset=offset).limit(limit=size).all()
-        # .filter(or_(
-        # Customer.first_name.like(search_text),
-        # Customer.last_name.like(search_text))).filter(or_(
-        # Customer.customer_id.like(search_value),
-        # Customer.unique_id.like(search_text))).order_by(
-        # Customer.first_name)
+    # .filter(or_(
+    # Customer.first_name.like(search_text),
+    # Customer.last_name.like(search_text))).filter(or_(
+    # Customer.customer_id.like(search_value),
+    # Customer.unique_id.like(search_text))).order_by(
+    # Customer.first_name)
     # customer_list = list(map(customer_schemas.Customer.from_orm, customers))
     # return customer_list
 
@@ -89,7 +93,7 @@ async def add_customer(
     customer: customer_schemas.CustomerBase,
     organization_id: str,
     db: Session = Depends(get_db)
-    ):
+):
     customer_instance = Customer(
         id=uuid4().hex,
         customer_id=generate_short_id(size=12),
@@ -120,16 +124,16 @@ async def add_customer(
 
 async def add_other_info(
     list_other_info: List[customer_schemas.OtherInfo],
-    customer_id:str,
+    customer_id: str,
     db: Session = Depends(get_db)
-    ):
+):
     res_obj = []
     for other_info in list_other_info:
         other_info_instance = OtherInformation(
-            id = uuid4().hex,
-            customer_id = customer_id,
-            key = other_info.key,
-            value = other_info.value
+            id=uuid4().hex,
+            customer_id=customer_id,
+            key=other_info.key,
+            value=other_info.value
         )
         db.add(other_info_instance)
         db.commit()
