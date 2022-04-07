@@ -1,3 +1,4 @@
+from email.policy import default
 from enum import unique
 from sqlalchemy.types import String, DateTime, Text, Integer, JSON, Boolean
 from sqlalchemy import ForeignKey, text
@@ -34,11 +35,13 @@ class Customer(Base):
     country = Column(String(255), index=True, default="")
     city = Column(String(255), index=True, default="")
     region = Column(String(255), index=True, default="")
+    auto_reminder = Column(Boolean, index=True, default=False)
     country_code = Column(String(255), index=True, default="")
     is_deleted = Column(Boolean,  index=True, default=False)
     date_created = Column(DateTime, server_default=func.now())
     last_updated = Column(DateTime, nullable=False,
                           server_default=func.now(), onupdate=func.now())
+
 
 class OtherInformation(Base):
     __tablename__ = "extra_customer_info"
@@ -63,8 +66,10 @@ async def fetch_customers(organization_id: str,
         return customer_list
     found_customers = []
     for customer in customer_list:
-        first_name = str(" " if customer.first_name is None else customer.first_name).lower()
-        last_name = str(" " if customer.last_name is None else customer.last_name).lower()
+        first_name = str(
+            " " if customer.first_name is None else customer.first_name).lower()
+        last_name = str(
+            " " if customer.last_name is None else customer.last_name).lower()
         if name.lower() in first_name or name.lower() in last_name:
             found_customers.append(customer)
     return found_customers
@@ -74,7 +79,7 @@ async def add_customer(
     customer: customer_schemas.CustomerBase,
     organization_id: str,
     db: Session = Depends(get_db)
-    ):
+):
     customer_instance = Customer(
         id=uuid4().hex,
         customer_id=generate_short_id(size=12),
@@ -105,16 +110,16 @@ async def add_customer(
 
 async def add_other_info(
     list_other_info: List[customer_schemas.OtherInfo],
-    customer_id:str,
+    customer_id: str,
     db: Session = Depends(get_db)
-    ):
+):
     res_obj = []
     for other_info in list_other_info:
         other_info_instance = OtherInformation(
-            id = uuid4().hex,
-            customer_id = customer_id,
-            key = other_info.key,
-            value = other_info.value
+            id=uuid4().hex,
+            customer_id=customer_id,
+            key=other_info.key,
+            value=other_info.value
         )
         db.add(other_info_instance)
         db.commit()
