@@ -72,11 +72,22 @@ async def login(request: Request):
 @app.get('/google/token')
 async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
+    print('ERICCCCCC')
+
     access_token = await oauth.google.authorize_access_token(request)
-    print(access_token)
-    user_data = await oauth.google.parse_id_token(request, access_token)
-    print(user_data)
+    print('AAAA')
+    print(f"access_token: {access_token}")
+    user_data = {}
+    try:
+        user_data = await oauth.google.parse_id_token(request, access_token)
+    except:
+        return 'cant get user data'
+    print('BBBBB')
+    print(f"user: {user_data}")
+
     check_user = valid_email_from_db(user_data['email'], db)
+
+    print('CCCCCCC')
 
     if check_user:
         user_id = str(check_user.id)
