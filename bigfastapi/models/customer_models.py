@@ -113,7 +113,8 @@ async def sort_customers(
             Customer.is_deleted == False).order_by(
             getattr(Customer, sort_key, "first_name")
             ).offset(offset=offset).limit(limit=size).all()
-    return customers
+    customer_list = list(map(customer_schemas.Customer.from_orm, customers))
+    return customer_list
 
 async def add_customer(
     customer: customer_schemas.CustomerBase,

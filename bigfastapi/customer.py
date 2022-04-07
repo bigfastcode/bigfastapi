@@ -179,7 +179,7 @@ async def create_bulk_customer(
 async def get_customers(
     organization_id: str,
     search_value: str = None,
-    sorting_key: str = "date_created",
+    sorting_key: str = None,
     page: int = 1,
     size: int = 50,
     reverse_sort: bool = True,
