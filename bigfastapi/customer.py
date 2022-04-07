@@ -31,6 +31,7 @@ from fastapi_pagination import Page, add_pagination, paginate
 import csv
 import io
 import pandas as pd
+from bigfastapi.utils import paginator
 
 app = APIRouter(tags=["Customers 💁"],)
 
@@ -179,13 +180,15 @@ async def create_bulk_customer(
 
 
 @app.get('/customers',
-         response_model=Page[customer_schemas.Customer],
+        #  response_model=customer_schemas.Customer,
          status_code=status.HTTP_200_OK
          )
 async def get_customers(
     organization_id: str,
     search_value: str = None,
     sorting_key: str = "date_created",
+    page: int = 1,
+    size: int = 50,
     reverse_sort: bool = True,
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
@@ -209,15 +212,24 @@ async def get_customers(
         HTTP_401_FORBIDDEN: Not Authenticated
         HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
     """ 
+    sort_dir = "desc" if reverse_sort == True else "asc"
+    page_size = 50 if size < 1 or size > 100 else size
+    offset = await paginator.off_set(page=page, size=page_size)
+    total_items = await paginator.total_row_count(model=Customer, organization_id=organization_id, db=db)
+    pointers = await paginator.page_urls(page=page, size=page_size, count=total_items, endpoint="/customers")
+
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
 
-    customers = await customer_models.fetch_customers(organization_id=organization_id, name=search_value, db=db)
-
-    customers.sort(key=lambda x: getattr(x, sorting_key, "firt_name"), reverse=reverse_sort)
-    return paginate(customers)
+    customers = await customer_models.fetch_customers(organization_id=organization_id, offset=offset, 
+             size=page_size, db=db)
+    print(len(customers))
+    response = {"page": page, "size": page_size, "total": total_items, 
+        "previous_page":pointers['previous'], "next_page": pointers["next"], "items": customers,  }
+    # customers.sort(key=lambda x: getattr(x, sorting_key, "firt_name"), reverse=reverse_sort)
+    return response
 
 
 
