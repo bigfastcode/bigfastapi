@@ -195,6 +195,11 @@ def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
                 db.refresh(template_obj)
 
 
+@app.delete("/st")
+def delete_un(db: _orm.Session = _fastapi.Depends(get_db)):
+    return db.query(organisation_models.DefaultTemplates).filter(organisation_models.DefaultTemplates.organization_id == "IRZyXi2KRYDI").delete()
+
+
 @app.get("/organizations")
 def get_organizations(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
