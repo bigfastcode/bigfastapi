@@ -129,63 +129,6 @@ def create_organization(
 
 @app.post("/st-paul")
 def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
-    defaultTemplates = [
-        {
-            "escalation_level": 1,
-            "email_message":
-                'Trust this meets you well This is to remind you that your payment for $debt is due. Please take a moment to make the payment by clicking here - $paymentlink. If you have any questions dont hesitate to reply to this email.',
-            "subject": 'Reminder: Your Debt Is Due',
-            "sms_message":
-                'a kind reminder that your debt of $amount is due. Please click the this link to pay the balance owed - ',
-        },
-        {
-
-            "escalation_level": 2,
-            "email_message":
-                'Trust this meets you well Your debt with us is overdue and you have limited time to clear it. Please click here to pay - $paymentLink or request for payment options.',
-            "subject": 'Important',
-            "sms_message":
-                'your debt of $amount is overdue. To clear it, click this link to pay - '
-        },
-        {
-
-            "escalation_level": 3,
-
-            "email_message":
-                'We are yet to receive your overdue payment for $debt. This is becoming really problematic for us and a late payment fee will be applied. Please settle your outstanding balance immediately to avoid this. Click here to pay - $paymentLink',
-            "subject":
-                'Payment Reminder: Pay Debt Today to Avoid Late Payment Chargest',
-            "sms_message":
-                'your long overdue debt of $amount has not been paid, please make payment to avoid charges. Pay here - ',
-        },
-        {
-
-            "escalation_level": 4,
-            "subject": 'Alert',
-            "email_message":
-                'This is a reminder that your debt is now overdue by weeks since the due date and a late payment fee now applies. Please arrange your payment today.',
-            "sms_message":
-                ' your debt of $amount has not been paid despite previous reminders and a late payment fee now applies. Hurry and pay now - ',
-
-        },
-    ]
-
-    for temp in defaultTemplates:
-        template_obj = _models.DefaultTemplates(
-            id=uuid4(
-            ).hex, organization_id="IRZyXi2KRYDI", subject=temp["subject"],
-            escalation_level=temp["escalation_level"], email_message=temp["email_message"],
-            sms_message=temp["sms_message"],
-            is_deleted=False, template_type="BOTH"
-        )
-
-        db.add(template_obj)
-        db.commit()
-        db.refresh(template_obj)
-
-
-@app.post("/st-paul")
-def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
     orgs = db.query(_models.Organization).filter(
         _models.Organization.is_deleted == False).all()
 
