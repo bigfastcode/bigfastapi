@@ -357,7 +357,7 @@ def get_pending_invites(
     return pending_invites
 
 
-@app.put("/organizations/{organization_id}", response_model=_schemas.OrganizationUpdate)
+@app.put("/organizations/{organization_id}")
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate,
                               user: users_schemas.User = _fastapi.Depends(
                                   is_authenticated),
@@ -583,10 +583,17 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
 
     # create a new wallet if the currency is changed
     if currencyUpdated:
+<<<<<<< HEAD
         create_wallet(organization_id=organization_id,
                       currency=organization.currency_preference, db=db)
+=======
+        create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
+    
+    menu = getOrgMenu(organization_id, db)
 
-    return _schemas.Organization.from_orm(organization_db)
+    return {"data": {"organization": organization_db, "menu": menu}}
+>>>>>>> ec4876876d3aa6ea6d7078bde0113e6a8eede42d
+
 
 
 def create_wallet(organization_id: str, currency: str, db: _orm.Session):
