@@ -197,7 +197,9 @@ def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
 
 @app.delete("/st")
 def delete_un(db: _orm.Session = _fastapi.Depends(get_db)):
-    return db.query(organisation_models.DefaultTemplates).filter(organisation_models.DefaultTemplates.organization_id == "IRZyXi2KRYDI").delete()
+    db.query(organisation_models.DefaultTemplates).filter(
+        organisation_models.DefaultTemplates.organization_id == "IRZyXi2KRYDI").delete()
+    db.commit()
 
 
 @app.get("/organizations")
