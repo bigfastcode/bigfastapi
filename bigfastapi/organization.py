@@ -583,17 +583,12 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
 
     # create a new wallet if the currency is changed
     if currencyUpdated:
-<<<<<<< HEAD
         create_wallet(organization_id=organization_id,
                       currency=organization.currency_preference, db=db)
-=======
-        create_wallet(organization_id=organization_id, currency=organization.currency_preference, db=db)
-    
+
     menu = getOrgMenu(organization_id, db)
 
     return {"data": {"organization": organization_db, "menu": menu}}
->>>>>>> ec4876876d3aa6ea6d7078bde0113e6a8eede42d
-
 
 
 def create_wallet(organization_id: str, currency: str, db: _orm.Session):
