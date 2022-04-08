@@ -255,20 +255,15 @@ async def get_customer(
         HTTP_404_NOT_FOUND: object does not exist in db
         HTTP_401_FORBIDDEN: Not Authenticated
     """
-    customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id).first()
+    customer = await customer_models.get_customer_by_id(customer_id=customer_id, db=db)
     if not customer:
         return JSONResponse({"message": "Customer does not exist"},
-                            status_code=status.HTTP_404_NOT_FOUND)
+            status_code=status.HTTP_404_NOT_FOUND)
+    other_info = await customer_models.get_other_customer_info(customer_id=customer_id, db=db)
+    setattr(customer, 'other_info', other_info)
 
-    other_info = db.query(customer_models.OtherInformation).filter(
-        customer_models.OtherInformation.customer_id == customer_id)
-
-    list_other_info = list(map( customer_schemas.OtherInfo.from_orm, other_info))
-    
-    setattr(customer, 'other_info', list_other_info)
-    
-    return {"message": "successfully fetched details", "customer": customer_schemas.Customer.from_orm(customer)}
+    return {"message": "successfully fetched details", 
+        "customer": customer_schemas.Customer.from_orm(customer)}
 
 
 
