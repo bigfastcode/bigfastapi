@@ -1,23 +1,13 @@
-from ast import Str
 import datetime as _dt
-from email.policy import default
-import json
-from sqlite3 import Timestamp
-import sqlalchemy as _sql
-import sqlalchemy.orm as _orm
-import passlib.hash as _hash
-from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, DateTime, Boolean, ARRAY
-from sqlalchemy import ForeignKey
-from uuid import UUID, uuid4
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-from sqlalchemy.sql import func
-from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
+from uuid import uuid4
 
+import sqlalchemy.orm as _orm
+from sqlalchemy import ForeignKey
+from sqlalchemy.schema import Column
+from sqlalchemy.types import String, Integer, DateTime, Boolean
 
 from bigfastapi.db.database import Base
-from bigfastapi.schemas import organisation_schemas
-from bigfastapi.schemas.organisation_schemas import BusinessSwitch
+from bigfastapi.models import store_user_model
 from bigfastapi.utils.utils import defaultManu
 
 
@@ -83,3 +73,19 @@ def getActiveMenu(businessType):
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
     return db.query(Organization).filter(Organization.id == orgId).first()
+
+
+async def is_organization_member(user_id: str, organization_id: str, db: _orm.Session):
+    organization = (
+        db.query(Organization)
+            .filter_by(creator=user_id)
+            .filter(Organization.id == organization_id)
+            .first()
+    )
+
+    store_user = db.query(store_user_model.StoreUser).filter_by(store_id=organization_id).filter_by(
+        user_id=user_id).first()
+    if store_user is None and organization is None:
+        print("nof found")
+        return False
+    return True
