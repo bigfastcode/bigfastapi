@@ -65,6 +65,7 @@ CREDENTIALS_EXCEPTION = HTTPException(
 async def login(request: Request):
     # This creates the url for our /auth endpoint
     redirect_uri = f"{settings.API_REDIRECT_URL}/google/token"
+    print(redirect_uri)
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
@@ -73,6 +74,7 @@ async def auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
     access_token = await oauth.google.authorize_access_token(request)
     user_data = await oauth.google.parse_id_token(request, access_token)
+
     check_user = valid_email_from_db(user_data['email'], db)
 
     if check_user:

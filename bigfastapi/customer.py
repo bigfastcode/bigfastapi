@@ -31,6 +31,7 @@ from fastapi_pagination import Page, add_pagination, paginate
 import csv
 import io
 import pandas as pd
+from bigfastapi.utils import paginator
 
 app = APIRouter(tags=["Customers 💁"],)
 
@@ -79,7 +80,6 @@ async def create_customer(
     Raises
         HTTP_404_NOT_FOUND: object does not exist in db
         HTTP_401_FORBIDDEN: Not Authenticated
-        HTTP_406_NOT_ACCEPTABLE: The given unique_id already exist in the organization
         HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
     """
     organization = db.query(Organization).filter(
@@ -87,12 +87,6 @@ async def create_customer(
     if not organization:
         return JSONResponse({"message": "Organization does not exist", "customer": []},
                             status_code=status.HTTP_404_NOT_FOUND)
-
-    existing_customers = await customer_models.fetch_customers(organization_id=customer.organization_id, db=db)
-    for item in existing_customers:
-        if customer.unique_id == item.unique_id:
-            return JSONResponse({"message": "The given unique_id already exist in the organization", "customer": []},
-                                status_code=status.HTTP_406_NOT_ACCEPTABLE)
 
     customer_instance = await customer_models.add_customer(customer=customer, organization_id=customer.organization_id, db=db)
 
@@ -179,13 +173,15 @@ async def create_bulk_customer(
 
 
 @app.get('/customers',
-         response_model=Page[customer_schemas.Customer],
+        #  response_model=customer_schemas.Customer,
          status_code=status.HTTP_200_OK
          )
 async def get_customers(
     organization_id: str,
     search_value: str = None,
-    sorting_key: str = "date_created",
+    sorting_key: str = None,
+    page: int = 1,
+    size: int = 50,
     reverse_sort: bool = True,
     db: Session = Depends(get_db),
     # user: users_schemas.User = Depends(is_authenticated)
@@ -209,15 +205,31 @@ async def get_customers(
         HTTP_401_FORBIDDEN: Not Authenticated
         HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
     """ 
+    sort_dir = "asc" if reverse_sort == True else "desc"
+    page_size = 50 if size < 1 or size > 100 else size
+    offset = await paginator.off_set(page=page, size=page_size)
+    total_items = await paginator.total_row_count(model=Customer, organization_id=organization_id, db=db)
+    pointers = await paginator.page_urls(page=page, size=page_size, count=total_items, endpoint="/customers")
+
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:
         return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
 
-    customers = await customer_models.fetch_customers(organization_id=organization_id, name=search_value, db=db)
-
-    customers.sort(key=lambda x: getattr(x, sorting_key, "firt_name"), reverse=reverse_sort)
-    return paginate(customers)
+    if search_value:
+        customers = await customer_models.search_customers(organization_id=organization_id, search_value=search_value,
+            offset=offset, size=page_size, db=db)
+    elif sorting_key:
+        customers = await customer_models.sort_customers(organization_id=organization_id, sort_key=sorting_key, 
+            offset=offset, size=page_size, sort_dir=sort_dir, db=db)
+    else:
+        customers = await customer_models.fetch_customers(organization_id=organization_id, offset=offset, 
+                size=page_size, db=db)
+    
+    response = {"page": page, "size": page_size, "total": total_items,
+        "previous_page":pointers['previous'], "next_page": pointers["next"], "items": customers,  }
+    # customers.sort(key=lambda x: getattr(x, sorting_key, "firt_name"), reverse=reverse_sort)
+    return response
 
 
 
@@ -243,20 +255,15 @@ async def get_customer(
         HTTP_404_NOT_FOUND: object does not exist in db
         HTTP_401_FORBIDDEN: Not Authenticated
     """
-    customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id).first()
+    customer = await customer_models.get_customer_by_id(customer_id=customer_id, db=db)
     if not customer:
         return JSONResponse({"message": "Customer does not exist"},
-                            status_code=status.HTTP_404_NOT_FOUND)
+            status_code=status.HTTP_404_NOT_FOUND)
+    other_info = await customer_models.get_other_customer_info(customer_id=customer_id, db=db)
+    setattr(customer, 'other_info', other_info)
 
-    other_info = db.query(customer_models.OtherInformation).filter(
-        customer_models.OtherInformation.customer_id == customer_id)
-
-    list_other_info = list(map( customer_schemas.OtherInfo.from_orm, other_info))
-    
-    setattr(customer, 'other_info', list_other_info)
-    
-    return {"message": "successfully fetched details", "customer": customer_schemas.Customer.from_orm(customer)}
+    return {"message": "successfully fetched details", 
+        "customer": customer_schemas.Customer.from_orm(customer)}
 
 
 
