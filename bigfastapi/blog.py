@@ -24,7 +24,7 @@ def create_blog(blog: schema.BlogCreate, user: user_schema.User = fastapi.Depend
         reqBody-content: This is the content of the blog post to be created.
 
     returnDesc-On sucessful request, it returns
-        returnBody- the blog object.
+        returnBody- the blog object with details specified below.
     """
     
     db_blog = model.get_blog_by_title(title=blog.title, db=db)
@@ -42,10 +42,11 @@ def get_blog(blog_id: str, db: orm.Session = fastapi.Depends(get_db), ):
 
     """intro-This endpoint allows you to retreive a blog post based on it's id which is included in the request url. To get a blog post, you need to make a get request to the /blog/blog_id endpoint in which "id" is the unique identifier of the blog item.
 
-    paramDesc-On get request the url takes a query parameter "blog_id" i.e /blog/blog_id:
+    paramDesc-On get request the url takes a query parameter "blog_id":
+        url-: /blog/${blog_id}
         param-blog_id: This is the id of the blog item
 
-    returnDesc-On sucessful request, it returns
+    returnDesc-On sucessful request, it returns message,
         returnBody- "success"
     """
 
@@ -68,7 +69,7 @@ def get_user_blogs(user_id: str, db: orm.Session = fastapi.Depends(get_db)):
 
     """intro-This endpoint allows you to retreive all blog posts created by a particular user. To retreive all blog posts by a user, you need to make a get request to the /blog/userId endpoint where userId is the unique identifier for the user.
 
-   paramDesc-On get request the url takes a query parameter "user_id" i.e /blog/user_id:
+   paramDesc-On get request the url takes a query parameter "user_id"   
         param-user_id: This is the id of the user
 
     returnDesc-On sucessful request, it returns
@@ -83,7 +84,7 @@ def update_blog(blog: schema.BlogUpdate, blog_id: str, user: user_schema.User = 
 
     """intro-This endpoint allows you to update a particular blog post. To update a blog posts, you need to make a put request to the /blog/blog_id endpoint where blog_id is the unique identifier for the blog.
     
-    paramDesc-This request can take any or both of the following parameters:
+    paramDesc-On query, this request takes the blod id of the blog to be updated:
         reqBody-title: This is the title of the blog post to be created.
         reqBody-content: This is the content of the blog post to be created.
 
@@ -119,7 +120,7 @@ def delete_blog(blog_id: str, user: user_schema.User = fastapi.Depends(is_authen
     
     """intro-This endpoint allows you to delete a particular blog post. To delete a blog posts, you need to make a delete request to the /blog/blog_id endpoint where blog_id is the unique identifier for the blog.
     
-    paramDesc-On delete request the url takes a query parameter "blog_id" i.e /blog/blog_id:
+    paramDesc-On delete request the url takes a query parameter "blog_id":
         param-blog_id: This is the unique id of the blog item
 
 

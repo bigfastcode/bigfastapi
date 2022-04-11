@@ -46,7 +46,7 @@ def get_countries():
 def get_country_states(country_code: str):
     """intro-This endpoint returns a list of all states in a queried country. To get this data you need to make a get request to the /countries/{country_code}/states endpoint.
     
-    paramDesc-On get request, the url takes a query parameter "country_code" i.e /countries/{country_code}/states:
+    paramDesc-On get request, the url takes a query parameter "country_code":
         param-country_code: This is the country code of the country of interest
 
     returnDesc-On sucessful request, it returns
@@ -73,9 +73,9 @@ def get_country_states(country_code: str):
 
 @app.get("/countries/codes", response_model=Country, status_code=200)
 def get_countries_dial_codes(country_code: str = None):
-    """intro-This endpoint returns a list of all countries and thier respective codes including dial codes and sample phone formats. To get, you need to make a get request to the /countries/codes enpoint
+    """intro-This endpoint returns a list of all countries and thier respective codes including dial codes and sample phone formats. To use this endpoint, you need to make a get request to the /countries/codes enpoint
     
-    paramDesc-To query for a particular country, you need to make a get request to /countries/codes?country_code={country_code}
+    paramDesc-To query for a particular country, you need to make a get request to /countries/codes endpoint and make query using the format /countries/codes?country_code={country_code}
         param-country_code: This is the country code of the country of interest
     
     returnDesc-On sucessful request, it returns

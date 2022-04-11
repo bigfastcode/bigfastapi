@@ -17,7 +17,7 @@ def get_a_notification(notification_id: str, db: orm.Session = Depends(get_db)):
 
     """intro-This endpoint allows you to details of a particular notification. You need to make a get request to the /notification/{notification_id} 
 
-    paramDesc- On get request the url takes a query parameter "notification_id" i.e /notification/notification_id:
+    paramDesc- On get request the url takes a query parameter "notification_id"
         param-notification_id: This is the unique identifier of the notification
 
     returnDesc-On sucessful request, it returns
@@ -42,7 +42,7 @@ def get_all_notifications(db: orm.Session = Depends(get_db)):
 @app.post("/notification", response_model=schema.Notification)
 def create_notification(notification: schema.NotificationCreate, user: user_schema.User = Depends(is_authenticated),db: orm.Session = Depends(get_db)):
 
-    """intro-This endpoint allows you to create a new notification. To create, you need to make a post request to the /notification endpoint
+    """intro-This endpoint allows you to create a new notification. To create, you need to make a post request to the /notification endpoint with a required body of request as specified below
 
         reqBody-content: This is the content of the notification
         reqBody-recipient: This the receiver of the notification
@@ -70,7 +70,7 @@ def mark_notification_read(notification_id: str,db: orm.Session = Depends(get_db
 
     """intro-This endpoint allows you mark a queried notifications as read. To use, you need to make a put request to the /notification/{notification_id}/read enpoint. 
 
-    paramDesc- On put request the url takes a query parameter "notification_id" i.e /notification/notification_id/read:
+    paramDesc- On put request the url takes a query parameter "notification_id" 
         param-notification_id: This is the unique identifier of the notification
 
     returnDesc-On sucessful request, it returns
@@ -95,7 +95,7 @@ def mark_notifications_read(db: orm.Session = Depends(get_db)):
 
     """intro-This endpoint allows you mark all notifications as read. To use, you need to make a put request to the /notification/read enpoint. 
 
-    returnDesc-On sucessful request, it returns
+    returnDesc-On sucessful request it returns 
         returnBody- an array of the notifications.
     """
 
@@ -117,13 +117,13 @@ def update_notification(notification_id: str, notification: schema.NotificationU
     
     """intro-This endpoint allows you to update a particular notification. You need to make a put request to the /notification/{notification_id} endpoint.
 
-    paramDesc- -On put request the url takes a query parameter "notification_id" i.e /notification/notification_id:
+    paramDesc- -On put request the url takes a query parameter "notification_id" 
         param-notification_id: This is the unique identifier of the notification
         reqBody-content: This is the content of the notification
         reqBody-recipient: This the receiver of the notification
         reqBody-reference: This is a unique identifier of the notification
 
-    returnDesc-On sucessful request, it returns
+    returnDesc-On sucessful request, it returns message,
         returnBody- "success".
     """
     notification_from_db = model.notification_selector(id=notification_id, db=db)
@@ -148,10 +148,10 @@ def update_notification(notification_id: str, notification: schema.NotificationU
 def delete_notification(notification_id: str,db: orm.Session = Depends(get_db)):
     """intro-This endpoint allows you to delete a particular notification from the database. You need to make a delete request to the /notification/{notification_id} endpoint.
 
-    paramDesc- -On delete request the url takes a query parameter "notification_id" i.e /notification/notification_id:
+    paramDesc-On delete request the url takes a query parameter "notification_id" 
         param-notification_id: This is the unique identifier of the notification
 
-    returnDesc-On sucessful request, it returns
+    returnDesc-On sucessful request, it returns message,
         returnBody- "success".
     """
 

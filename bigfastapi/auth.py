@@ -33,6 +33,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
 
     """intro-This endpoint allows creation of a new user. To create a new user, you need to send a post request to the /auth/signup endpoint with a body of request containing details of the new user.
     paramDesc-
+
         reqBody-email: This is the email of the new user.
         reqBody-password: This is the unique password of the new user .
         reqBody-first_name: This is the first name of the new user.
@@ -92,6 +93,7 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
     """intro-This endpoint allows you to login an existing user, to login a user you need to make a post request to the /auth/login endpoint with a required body of requst as specified below
 
     paramDesc-
+        param-auth: /auth/login
         reqBody-email: This is the email of the existing user.
         reqBody-phone_number: This is the phone number of the existing user.
         reqBody-country_code: This is the country code of the existing user.

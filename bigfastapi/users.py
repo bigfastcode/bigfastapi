@@ -44,7 +44,17 @@ async def update_user(
 # user must be a super user to perform this
 @app.put("/users/{user_id}/activate")
 async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user: _schemas.User = fastapi.Depends(is_authenticated),
-                        db: orm.Session = fastapi.Depends(get_db)):
+    db: orm.Session = fastapi.Depends(get_db)):
+    """intro-This endpoint allows a super user to activate a user, to use this endpoint user must be a super user. You need to make a put request to the  /users/{user_id}/activate endpoint with a specified body of request to activate a user 
+
+    paramDesc- On put request the url takes a query parameter "user_id" 
+        param-notification_id: This is the unique identifier of the user
+        reqBody-email: This is the email address of the user
+        reqBody-is_active: This is the current state of user, this is set to true when the user is active and false otherwise.
+
+    returnDesc-On sucessful request, it returns message,
+        returnBody- "success".
+    """
     if user.is_superuser == False:
         raise fastapi.HTTPException(
             status_code=403, detail="only super admins can perform this operation")
@@ -57,6 +67,13 @@ async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user
 
 @app.post("/users/recover-password")
 async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint allows for password recovery, to use this endpoint you need to make a post request to the /users/recover-password endpoint
+
+        reqBody-->email: This is the email address of the user
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "success".
+    """
     user = await get_user(db=db, email=email.email)
     await delete_password_reset_code(db, user.id)
     await send_code_password_reset_email(email.email, db)

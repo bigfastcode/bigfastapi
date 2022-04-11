@@ -49,7 +49,7 @@ tags_metadata = [
     },
      {
         "name": "auth",
-        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specific parameters",
+        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specified parameters",
     },
     {
         "name": "countries",
@@ -57,7 +57,7 @@ tags_metadata = [
     },
     {
         "name": "pages",
-        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion on pages seamlessly. You can create pages with a specified title and content body",
+        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion of pages seamlessly. You can create pages with a specified title and content body",
     },
     {
         "name": "notification",
