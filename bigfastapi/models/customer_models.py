@@ -65,8 +65,7 @@ async def fetch_customers(
         Customer.is_deleted == False).order_by(
         Customer.date_created.desc()
         ).offset(offset=offset).limit(limit=size).all()
-    customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    return customer_list
+    return list(map(customer_schemas.Customer.from_orm, customers))
 
 async def search_customers(
     organization_id:str,
@@ -113,8 +112,8 @@ async def sort_customers(
             Customer.is_deleted == False).order_by(
             getattr(Customer, sort_key, "first_name")
             ).offset(offset=offset).limit(limit=size).all()
-    customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    return customer_list
+
+    return list(map(customer_schemas.Customer.from_orm, customers))
 
 async def add_customer(
     customer: customer_schemas.CustomerBase,
@@ -211,7 +210,12 @@ async def put_customer(
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
-async def get_customer_by_id(customer_id: str, organization_id: str, db: Session):
+async def get_customer_by_id(customer_id: str, db: Session):
     customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id and Customer.organization_id == organization_id).first()
-    return customer
+        Customer.customer_id == customer_id).first()
+    return customer_schemas.Customer.from_orm(customer)
+
+async def get_other_customer_info(customer_id:str, db:Session):
+    other_info = db.query(OtherInformation).filter(
+        OtherInformation.customer_id == customer_id)
+    return list(map( customer_schemas.OtherInfo.from_orm, other_info))
