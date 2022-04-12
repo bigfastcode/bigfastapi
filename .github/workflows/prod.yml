@@ -1,7 +1,7 @@
-name: Bigfastapi Staging
+name: Bigfastapi Production
 on:
   push:
-    branches: [ staging ]
+    branches: [ prod ]
 
 #   pull_request:
 #     branches: [ staging ]
@@ -40,7 +40,7 @@ jobs:
 
       - name: Deployment to Production
         run: |
-          cd ${{ secrets.STAGING_PATH }}
+          cd ${{ secrets.PROD_PATH }}
           source env/bin/activate
           bash deploy.sh > deploy.log
           cat deploy.log
