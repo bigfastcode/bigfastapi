@@ -28,11 +28,11 @@ class BankBase(pydantic.BaseModel):
 class AddBank(BankBase):
     organisation_id: str
     bank_address: str
-    swift_code: str
-    sort_code: str
+    swift_code: Optional[str]
+    sort_code: Optional[str]
     country: Countries
-    aba_routing_number: str
-    iban: str
+    aba_routing_number: Optional[str]
+    iban: Optional[str]
     date_created: Optional[date.datetime]
 
 
