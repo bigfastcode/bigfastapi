@@ -1,0 +1,46 @@
+name: Bigfastapi Production
+on:
+  push:
+    branches: [ prod ]
+
+#   pull_request:
+#     branches: [ staging ]
+
+jobs:
+  test:
+    runs-on: self-hosted
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9]
+
+    steps:
+        # Checkout the latest code from the repo
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        # Setup which version of Python to use
+      - name: Set Up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+        # Display the Python version being used
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+        # Install the package using the setup.py
+      - name: Install pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        # Run the tests. I'm using pytest and the file is in the tests directory.
+
+  deploy:                        #Deploy Job
+    needs: test                  #Making Deploy Job's Run depends on Test Job
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deployment to Production
+        run: |
+          cd ${{ secrets.PROD_PATH }}
+          source env/bin/activate
+          bash deploy.sh > deploy.log
+          cat deploy.log
