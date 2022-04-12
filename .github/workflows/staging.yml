@@ -1,9 +1,9 @@
 
-name: Bigfastapi CI/CD
+name: Bigfastapi Staging
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ staging ]
  
 
   workflow_dispatch:
