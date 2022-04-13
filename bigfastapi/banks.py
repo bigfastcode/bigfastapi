@@ -80,7 +80,7 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to access this resource")
 
-    banks = db.query(bank_models.BankModels).filter_by(organisation_id=organization_id)
+    banks = db.query(bank_models.BankModels).filter_by(organisation_id=organization_id).filter_by(is_deleted=False)
     banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
     return paginate(banks_list)
 
@@ -172,8 +172,9 @@ async def delete_bank(bank_id: str,
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to carry out this operation")
-    db.delete(bank)
+    bank.is_deleted = True
     db.commit()
+    db.refresh(bank)
     return JSONResponse({"detail": "bank details successfully deleted"},
                         status_code=status.HTTP_200_OK)
 
