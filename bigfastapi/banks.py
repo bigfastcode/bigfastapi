@@ -136,8 +136,16 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
     bank_account.swift_code = bank.swift_code
     bank_account.bank_address = bank.bank_address
     bank_account.account_type = bank.account_type
+    bank_account.is_preferred = bank.is_preferred
     bank_account.aba_routing_number = bank.aba_routing_number
     bank_account.iban = bank.iban
+
+    if bank.is_preferred:
+        current_preferred_bank = db.query(bank_models.BankModels).filter_by(is_preferred=True).first()
+        if current_preferred_bank is not None:
+            current_preferred_bank.is_preferred = False
+            db.commit()
+            db.refresh(current_preferred_bank)
 
     return await bank_models.update_bank(addBank=bank_account, db=db)
 
