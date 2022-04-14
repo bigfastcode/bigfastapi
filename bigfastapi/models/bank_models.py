@@ -10,8 +10,11 @@ from bigfastapi.db import database
 from bigfastapi.schemas import bank_schemas, users_schemas
 from bigfastapi.schemas.bank_schemas import AddBank
 
+from bigfastapi.db.database import Base
 
-class BankModels(database.Base):
+
+
+class BankModels(Base):
     __tablename__ = "banks"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organisation_id = Column(String(255), ForeignKey("businesses.id"))
@@ -28,6 +31,7 @@ class BankModels(database.Base):
     account_type = Column(String(255), index=True, default=None)
     aba_routing_number = Column(String(255), index=True, default=None)
     iban = Column(String(255), index=True, default=None)
+    is_preferred = Column(Boolean(), default=False)
     is_deleted = Column(Boolean(), default=False)
     date_created = Column(DateTime(timezone=True), server_default=func.now())
 
