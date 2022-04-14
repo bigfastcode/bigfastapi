@@ -30,9 +30,10 @@ class AddBank(BankBase):
     bank_address: str
     swift_code: Optional[str]
     sort_code: Optional[str]
-    country: Countries
+    country: str
     aba_routing_number: Optional[str]
     iban: Optional[str]
+    is_preferred: bool = False
     date_created: Optional[date.datetime]
 
 

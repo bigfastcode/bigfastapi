@@ -51,6 +51,7 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
                                      sort_code=bank.sort_code,
                                      swift_code=bank.swift_code,
                                      bank_address=bank.bank_address,
+                                     is_preferred=bank.is_preferred,
                                      account_type=bank.account_type,
                                      aba_routing_number=bank.aba_routing_number,
                                      iban=bank.iban,
@@ -79,7 +80,7 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to access this resource")
 
-    banks = db.query(bank_models.BankModels).filter_by(organisation_id=organization_id)
+    banks = db.query(bank_models.BankModels).filter_by(organisation_id=organization_id).filter_by(is_deleted=False)
     banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
     return paginate(banks_list)
 
@@ -135,8 +136,16 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
     bank_account.swift_code = bank.swift_code
     bank_account.bank_address = bank.bank_address
     bank_account.account_type = bank.account_type
+    bank_account.is_preferred = bank.is_preferred
     bank_account.aba_routing_number = bank.aba_routing_number
     bank_account.iban = bank.iban
+
+    if bank.is_preferred:
+        current_preferred_bank = db.query(bank_models.BankModels).filter_by(is_preferred=True).first()
+        if current_preferred_bank is not None:
+            current_preferred_bank.is_preferred = False
+            db.commit()
+            db.refresh(current_preferred_bank)
 
     return await bank_models.update_bank(addBank=bank_account, db=db)
 
@@ -163,8 +172,9 @@ async def delete_bank(bank_id: str,
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to carry out this operation")
-    db.delete(bank)
+    bank.is_deleted = True
     db.commit()
+    db.refresh(bank)
     return JSONResponse({"detail": "bank details successfully deleted"},
                         status_code=status.HTTP_200_OK)
 
