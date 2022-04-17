@@ -1,7 +1,9 @@
 import datetime as date
-from typing import Optional
-import pydantic
 from enum import Enum
+from typing import Optional
+
+import pydantic
+
 
 class Countries(str, Enum):
     """Provides choices for supported countries.
@@ -19,22 +21,25 @@ class Countries(str, Enum):
 class BankBase(pydantic.BaseModel):
     account_number: int
     bank_name: str
-    account_name: str = None
-    bank_type: str =None
+    recipient_name: str = None
+    account_type: str = None
+
 
 class AddBank(BankBase):
-    organisation_id:str = None
-    address: str = None
-    swift_code: str = None
-    sort_code: str= None
-    country: Countries  
-    aba_routing_number: str=None
-    iban: str =None
-    date_created : date.datetime
+    organisation_id: str
+    bank_address: str
+    swift_code: Optional[str]
+    sort_code: Optional[str]
+    country: str
+    aba_routing_number: Optional[str]
+    iban: Optional[str]
+    is_preferred: bool = False
+    date_created: Optional[date.datetime]
 
-    
+
 class BankResponse(AddBank):
     id: str
     creator_id: str
+
     class Config:
         orm_mode = True
