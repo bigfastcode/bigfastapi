@@ -28,10 +28,10 @@ COUNTRIES_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 @app.get("/countries", response_model=Country, status_code=200)
 def get_countries():
-    """intro-This endpoint returns a list of all countries in the world and their respective states. To get this data you need to make a get request to the /countries endpoint.
+    """intro-->This endpoint returns a list of all countries in the world and their respective states. To get this data you need to make a get request to the /countries endpoint.
 
-    returnDesc-On sucessful request, it returns
-        returnBody- "an array country objects".
+    returnDesc-->On sucessful request, it returns
+        returnBody--> "an array country objects".
     """
     with open(COUNTRIES_DATA_PATH + "/countries.json") as file:
         countries = json.load(file)
@@ -44,13 +44,13 @@ def get_countries():
 
 @app.get("/countries/{country_code}/states", response_model=State, status_code=200)
 def get_country_states(country_code: str):
-    """intro-This endpoint returns a list of all states in a queried country. To get this data you need to make a get request to the /countries/{country_code}/states endpoint.
+    """intro-->This endpoint returns a list of all states in a queried country. To get this data you need to make a get request to the /countries/{country_code}/states endpoint.
     
-    paramDesc-On get request, the url takes a query parameter "country_code":
-        param-country_code: This is the country code of the country of interest
+    paramDesc-->On get request, the url takes a query parameter "country_code":
+        param-->country_code: This is the country code of the country of interest
 
-    returnDesc-On sucessful request, it returns
-        returnBody- "an array of states".
+    returnDesc-->On sucessful request, it returns
+        returnBody--> "an array of states".
     """
     with open(COUNTRIES_DATA_PATH + "/countries.json") as file:
         countries = json.load(file)
@@ -73,13 +73,13 @@ def get_country_states(country_code: str):
 
 @app.get("/countries/codes", response_model=Country, status_code=200)
 def get_countries_dial_codes(country_code: str = None):
-    """intro-This endpoint returns a list of all countries and thier respective codes including dial codes and sample phone formats. To use this endpoint, you need to make a get request to the /countries/codes enpoint
+    """intro-->This endpoint returns a list of all countries and thier respective codes including dial codes and sample phone formats. To use this endpoint, you need to make a get request to the /countries/codes enpoint
     
-    paramDesc-To query for a particular country, you need to make a get request to /countries/codes endpoint and make query using the format /countries/codes?country_code={country_code}
-        param-country_code: This is the country code of the country of interest
+    paramDesc-->To query for a particular country, you need to make a get request to /countries/codes endpoint and make query using the format /countries/codes?country_code={country_code}
+        param-->country_code: This is the country code of the country of interest
     
-    returnDesc-On sucessful request, it returns
-        returnBody- an array of countries and their codes.
+    returnDesc-->On sucessful request, it returns
+        returnBody--> an array of countries and their codes.
     """
     with open(COUNTRIES_DATA_PATH + "/countries.json") as file:
         countries = json.load(file)

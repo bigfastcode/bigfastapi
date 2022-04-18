@@ -15,13 +15,13 @@ app = APIRouter(tags=["Notification"])
 @app.get("/notification/{notification_id}", response_model=schema.Notification)
 def get_a_notification(notification_id: str, db: orm.Session = Depends(get_db)):
 
-    """intro-This endpoint allows you to details of a particular notification. You need to make a get request to the /notification/{notification_id} 
+    """intro-->This endpoint allows you to details of a particular notification. You need to make a get request to the /notification/{notification_id} 
 
-    paramDesc- On get request the url takes a query parameter "notification_id"
-        param-notification_id: This is the unique identifier of the notification
+    paramDesc--> On get request the url takes a query parameter "notification_id"
+        param-->notification_id: This is the unique identifier of the notification
 
-    returnDesc-On sucessful request, it returns
-        returnBody- details of the notification.
+    returnDesc-->On sucessful request, it returns
+        returnBody--> details of the notification.
     """
 
     return model.notification_selector(id=notification_id, db=db)
@@ -29,11 +29,11 @@ def get_a_notification(notification_id: str, db: orm.Session = Depends(get_db)):
 @app.get("/notifications", response_model=List[schema.Notification])
 def get_all_notifications(db: orm.Session = Depends(get_db)):  
 
-    """intro-This endpoint allows you to retrieve all notifications from the database. To retrieve you need to make a get request to the /notifications endpoint
+    """intro-->This endpoint allows you to retrieve all notifications from the database. To retrieve you need to make a get request to the /notifications endpoint
 
 
-    returnDesc-On sucessful request, it returns
-        returnBody- an array of notifications.
+    returnDesc-->On sucessful request, it returns
+        returnBody--> an array of notifications.
     """
 
     notifications = db.query(model.Notification).all()
@@ -42,15 +42,15 @@ def get_all_notifications(db: orm.Session = Depends(get_db)):
 @app.post("/notification", response_model=schema.Notification)
 def create_notification(notification: schema.NotificationCreate, user: user_schema.User = Depends(is_authenticated),db: orm.Session = Depends(get_db)):
 
-    """intro-This endpoint allows you to create a new notification. To create, you need to make a post request to the /notification endpoint with a required body of request as specified below
+    """intro-->This endpoint allows you to create a new notification. To create, you need to make a post request to the /notification endpoint with a required body of request as specified below
 
-        reqBody-content: This is the content of the notification
-        reqBody-recipient: This the receiver of the notification
-        reqBody-reference: This is a unique identifier of the notification
-        reqBody-creator: This is the creator of the notification
+        reqBody-->content: This is the content of the notification
+        reqBody-->recipient: This the receiver of the notification
+        reqBody-->reference: This is a unique identifier of the notification
+        reqBody-->creator: This is the creator of the notification
 
-    returnDesc-On sucessful request, it returns
-        returnBody- the details of the newly created notification.
+    returnDesc-->On sucessful request, it returns
+        returnBody--> the details of the newly created notification.
     """
 
     if notification.creator == "":
@@ -68,13 +68,13 @@ def create_notification(notification: schema.NotificationCreate, user: user_sche
 @app.put("/notification/{notification_id}/read", response_model=schema.Notification)
 def mark_notification_read(notification_id: str,db: orm.Session = Depends(get_db)):  
 
-    """intro-This endpoint allows you mark a queried notifications as read. To use, you need to make a put request to the /notification/{notification_id}/read enpoint. 
+    """intro-->This endpoint allows you mark a queried notifications as read. To use, you need to make a put request to the /notification/{notification_id}/read enpoint. 
 
-    paramDesc- On put request the url takes a query parameter "notification_id" 
-        param-notification_id: This is the unique identifier of the notification
+    paramDesc--> On put request the url takes a query parameter "notification_id" 
+        param-->notification_id: This is the unique identifier of the notification
 
-    returnDesc-On sucessful request, it returns
-        returnBody- details of the updated notification.
+    returnDesc-->On sucessful request, it returns
+        returnBody--> details of the updated notification.
     """
 
     notification = model.notification_selector(id=notification_id, db=db)
@@ -93,10 +93,10 @@ def mark_notification_read(notification_id: str,db: orm.Session = Depends(get_db
 @app.put("/notifications/read", response_model=List[schema.Notification])
 def mark_notifications_read(db: orm.Session = Depends(get_db)):
 
-    """intro-This endpoint allows you mark all notifications as read. To use, you need to make a put request to the /notification/read enpoint. 
+    """intro-->This endpoint allows you mark all notifications as read. To use, you need to make a put request to the /notification/read enpoint. 
 
-    returnDesc-On sucessful request it returns 
-        returnBody- an array of the notifications.
+    returnDesc-->On sucessful request it returns 
+        returnBody--> an array of the notifications.
     """
 
     notifications = db.query(model.Notification).all()
@@ -115,16 +115,16 @@ def mark_notifications_read(db: orm.Session = Depends(get_db)):
 @app.put("/notifications/{notification_id}", response_model=schema.Notification)
 def update_notification(notification_id: str, notification: schema.NotificationUpdate, db: orm.Session = Depends(get_db)):
     
-    """intro-This endpoint allows you to update a particular notification. You need to make a put request to the /notification/{notification_id} endpoint.
+    """intro-->This endpoint allows you to update a particular notification. You need to make a put request to the /notification/{notification_id} endpoint.
 
-    paramDesc- -On put request the url takes a query parameter "notification_id" 
-        param-notification_id: This is the unique identifier of the notification
-        reqBody-content: This is the content of the notification
-        reqBody-recipient: This the receiver of the notification
-        reqBody-reference: This is a unique identifier of the notification
+    paramDesc-->On put request the url takes a query parameter "notification_id" 
+        param-->notification_id: This is the unique identifier of the notification
+        reqBody-->content: This is the content of the notification
+        reqBody-->recipient: This the receiver of the notification
+        reqBody-->reference: This is a unique identifier of the notification
 
-    returnDesc-On sucessful request, it returns message,
-        returnBody- "success".
+    returnDesc-->On sucessful request, it returns message,
+        returnBody--> "success".
     """
     notification_from_db = model.notification_selector(id=notification_id, db=db)
 
@@ -146,13 +146,13 @@ def update_notification(notification_id: str, notification: schema.NotificationU
 
 @app.delete("/notification/{notification_id}")
 def delete_notification(notification_id: str,db: orm.Session = Depends(get_db)):
-    """intro-This endpoint allows you to delete a particular notification from the database. You need to make a delete request to the /notification/{notification_id} endpoint.
+    """intro-->This endpoint allows you to delete a particular notification from the database. You need to make a delete request to the /notification/{notification_id} endpoint.
 
-    paramDesc-On delete request the url takes a query parameter "notification_id" 
-        param-notification_id: This is the unique identifier of the notification
+    paramDesc-->On delete request the url takes a query parameter "notification_id" 
+        param-->notification_id: This is the unique identifier of the notification
 
-    returnDesc-On sucessful request, it returns message,
-        returnBody- "success".
+    returnDesc-->On sucessful request, it returns message,
+        returnBody--> "success".
     """
 
     notification = model.notification_selector(id=notification_id, db=db)
