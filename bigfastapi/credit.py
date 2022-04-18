@@ -17,6 +17,7 @@ from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, wallet_models, \
     wallet_transaction_models, credit_wallet_history_models, store_user_model
+from .models.organisation_models import is_organization_member
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
 from .schemas.wallet_schemas import PaymentProvider
@@ -377,7 +378,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
     )
 
     if organization is None:
-        is_store_member = await _is_store_member(user_id=user.id, organization_id=organization_id, db=db)
+        is_store_member = await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
         if is_store_member:
             organization = (
                 db.query(organisation_models.Organization)
@@ -388,15 +389,6 @@ async def _get_organization(organization_id: str, db: _orm.Session,
             raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not exist")
 
     return organization
-
-
-async def _is_store_member(user_id: str, organization_id: str, db: _orm.Session):
-    store_user = db.query(store_user_model.StoreUser).filter_by(store_id=organization_id).filter_by(
-        user_id=user_id).first()
-    if store_user is None:
-        return False
-    return True
-
 
 async def _get_credit_wallet_conversion(currency: str, db: _orm.Session):
     conversion = (
