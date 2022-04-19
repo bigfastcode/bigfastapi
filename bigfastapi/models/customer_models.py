@@ -1,7 +1,5 @@
-from email.policy import default
-from enum import unique
-from sqlalchemy.types import String, DateTime, Text, Integer, JSON, Boolean
-from sqlalchemy import ForeignKey, text, desc, asc
+from sqlalchemy.types import String, DateTime, Integer, Boolean
+from sqlalchemy import ForeignKey, desc
 from sqlalchemy.sql import func
 from bigfastapi.db.database import Base
 from uuid import uuid4
@@ -14,6 +12,7 @@ from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
 from typing import List
 from operator import and_, or_
+from random import randrange
 
 
 class Customer(Base):
@@ -25,7 +24,7 @@ class Customer(Base):
     email = Column(String(255), index=True,  default="")
     first_name = Column(String(255), default="", index=True)
     last_name = Column(String(255), default="", index=True)
-    unique_id = Column(String(255), index=True)
+    unique_id = Column(String(255), nullable=False, index=True)
     phone_number = Column(String(255), index=True, default="")
     business_name = Column(String(255), index=True,  default="")
     location = Column(String(255), index=True,  default="")
@@ -47,8 +46,7 @@ class Customer(Base):
 class OtherInformation(Base):
     __tablename__ = "extra_customer_info"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    customer_id = Column(String(255))
-    # , ForeignKey("customer.customer_id"))
+    customer_id = Column(String(255), index=True, nullable=False)
     key = Column(String(255), index=True, default="")
     value = Column(String(255), index=True, default="")
 
@@ -59,21 +57,20 @@ async def fetch_customers(
     organization_id: str,
     offset: int, size: int = 50,
     db: Session = Depends(get_db)
-):
+    ):
     customers = db.query(Customer).filter(
         Customer.organization_id == organization_id).filter(
         Customer.is_deleted == False).order_by(
         Customer.date_created.desc()
         ).offset(offset=offset).limit(limit=size).all()
-    customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    return customer_list
+    return list(map(customer_schemas.Customer.from_orm, customers))
 
 async def search_customers(
     organization_id:str,
     search_value: str,
     offset: int, size:int=50,
     db:Session = Depends(get_db)
-):  
+    ):  
     search_text = f"%{search_value}%"
     customers_by_name = db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
@@ -100,7 +97,7 @@ async def sort_customers(
     offset: int, size:int=50,
     sort_dir: str = "asc",
     db:Session = Depends(get_db)
-):  
+    ):  
     if sort_dir == "desc":
         customers = db.query(Customer).filter(
             Customer.organization_id == organization_id).filter(
@@ -113,8 +110,8 @@ async def sort_customers(
             Customer.is_deleted == False).order_by(
             getattr(Customer, sort_key, "first_name")
             ).offset(offset=offset).limit(limit=size).all()
-    customer_list = list(map(customer_schemas.Customer.from_orm, customers))
-    return customer_list
+
+    return list(map(customer_schemas.Customer.from_orm, customers))
 
 async def add_customer(
     customer: customer_schemas.CustomerBase,
@@ -211,7 +208,12 @@ async def put_customer(
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
-async def get_customer_by_id(customer_id: str, organization_id: str, db: Session):
+async def get_customer_by_id(customer_id: str, db: Session):
     customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id and Customer.organization_id == organization_id).first()
-    return customer
+        Customer.customer_id == customer_id).first()
+    return customer_schemas.Customer.from_orm(customer)
+
+async def get_other_customer_info(customer_id:str, db:Session):
+    other_info = db.query(OtherInformation).filter(
+        OtherInformation.customer_id == customer_id)
+    return list(map( customer_schemas.OtherInfo.from_orm, other_info))
