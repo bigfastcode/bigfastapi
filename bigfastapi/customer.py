@@ -212,8 +212,8 @@ async def get_customers(
         if not organization:
             return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         if search_value:
-            customers = await customer_models.search_customers(organization_id=organization_id, search_value=search_value,
-                offset=offset, size=page_size, db=db)
+            customers, total_items = await customer_models.search_customers(organization_id=organization_id, 
+                search_value=search_value, offset=offset, size=page_size, db=db)
         elif sorting_key:
             customers = await customer_models.sort_customers(organization_id=organization_id, sort_key=sorting_key, 
                 offset=offset, size=page_size, sort_dir=sort_dir, db=db)
@@ -264,7 +264,10 @@ async def get_customer(
         return {"message": "successfully fetched details", 
             "customer": customer_schemas.Customer.from_orm(customer)}
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
+        if type(ex) == HTTPException:
+            raise ex
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 
@@ -274,7 +277,7 @@ async def get_customer(
          )
 async def update_customer(
     background_tasks: BackgroundTasks,
-    customer: customer_schemas.CustomerUpdate,
+    customer: customer_schemas.CustomerBase,
     customer_id: str, 
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
@@ -334,7 +337,10 @@ async def update_customer(
 
         return {"message": "Customer updated succesfully", "customer": updated_customer}
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
+        if type(ex) == HTTPException:
+            raise ex
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.delete('/customers/{customer_id}',
@@ -371,7 +377,10 @@ async def soft_delete_customer(
         return JSONResponse({"message": "Customer deleted succesfully"},
                             status_code=status.HTTP_200_OK)
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
+        if type(ex) == HTTPException:
+            raise ex
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.delete('/customers/organization/{organization_id}',
@@ -414,8 +423,35 @@ async def soft_delete_all_customers(
         return JSONResponse({"message": "Customers deleted succesfully"},
                             status_code=status.HTTP_200_OK)
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
+        if type(ex) == HTTPException:
+            raise ex
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
+
+@app.patch('/customers/inactive',
+    response_model=customer_schemas.CustomerResponse,
+    status_code=status.HTTP_200_OK
+    )
+async def delete_customers_without_debts(
+    list_customer_id: List[str],
+    db: Session = Depends(get_db),
+    # user: users_schemas.User = Depends(is_authenticated)
+    ):
+    try:
+        for customer_id in list_customer_id:
+            customer = db.query(Customer).filter(
+                Customer.customer_id == customer_id).first()
+            customer.is_inactive = True
+            db.commit()
+            db.refresh(customer)
+        return JSONResponse({"message": f"{len(list_customer_id)} Customers deactivated"},
+                            status_code=status.HTTP_200_OK)
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 #=================================Customer Services==============================#

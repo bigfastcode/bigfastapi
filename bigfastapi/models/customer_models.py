@@ -12,7 +12,6 @@ from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
 from typing import List
 from operator import and_, or_
-from random import randrange
 
 
 class Customer(Base):
@@ -41,6 +40,8 @@ class Customer(Base):
     date_created = Column(DateTime, server_default=func.now())
     last_updated = Column(DateTime, nullable=False,
                           server_default=func.now(), onupdate=func.now())
+    is_inactive = Column(Boolean, index=True, default=False)
+    default_currency = Column(String(255), index=True)
 
 
 class OtherInformation(Base):
@@ -65,6 +66,7 @@ async def fetch_customers(
         ).offset(offset=offset).limit(limit=size).all()
     return list(map(customer_schemas.Customer.from_orm, customers))
 
+
 async def search_customers(
     organization_id:str,
     search_value: str,
@@ -72,24 +74,39 @@ async def search_customers(
     db:Session = Depends(get_db)
     ):  
     search_text = f"%{search_value}%"
+    no_of_search_results1 =db.query(Customer).filter(and_(
+        Customer.organization_id == organization_id,
+        Customer.is_deleted == False)).filter(or_(
+        Customer.first_name.like(search_text),
+        Customer.last_name.like(search_text))).count()
+    no_of_search_results2 = db.query(Customer).filter(and_(
+        Customer.organization_id == organization_id,
+        Customer.is_deleted == False)).filter(or_(
+        Customer.unique_id.like(search_value),
+        Customer.customer_id.like(search_value))).count()
+    total_items = no_of_search_results1 +  no_of_search_results2
+
     customers_by_name = db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
         Customer.is_deleted == False)).filter(or_(
         Customer.first_name.like(search_text),
         Customer.last_name.like(search_text))).order_by(
-        Customer.date_created.desc()
-        ).offset(offset=offset).limit(limit=size).all()
+        Customer.date_created.desc()).offset(
+        offset=offset).limit(limit=size).all()
     map_names = list(map(customer_schemas.Customer.from_orm, customers_by_name))
+
     customers_by_id =db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
         Customer.is_deleted == False)).filter(or_(
         Customer.unique_id.like(search_value),
         Customer.customer_id.like(search_value))).order_by(
-        Customer.date_created.desc()
-        ).offset(offset=offset).limit(limit=size).all()
+        Customer.date_created.desc()).offset(
+        offset=offset).limit(limit=size).all()
     map_ids = list(map(customer_schemas.Customer.from_orm, customers_by_id))
+
     customer_list = [*map_names, *map_ids]
-    return customer_list
+    return (customer_list, total_items)
+
 
 async def sort_customers(
     organization_id:str,
@@ -112,6 +129,7 @@ async def sort_customers(
             ).offset(offset=offset).limit(limit=size).all()
 
     return list(map(customer_schemas.Customer.from_orm, customers))
+
 
 async def add_customer(
     customer: customer_schemas.CustomerBase,
@@ -137,8 +155,9 @@ async def add_customer(
         city=customer.city,
         region=customer.region,
         country_code=customer.country_code,
-        date_created=datetime.now(),
-        last_updated=datetime.now()
+        date_created=customer.date_created,
+        is_deleted = customer.is_deleted,
+        last_updated=customer.last_updated
     )
     db.add(customer_instance)
     db.commit()
@@ -163,12 +182,11 @@ async def add_other_info(
         db.commit()
         db.refresh(other_info_instance)
         res_obj.append(other_info_instance)
-
     return list(map(customer_schemas.OtherInfo.from_orm, res_obj))
 
 
 async def put_customer(
-    customer: customer_schemas.CustomerUpdate,
+    customer: customer_schemas.CustomerBase,
     customer_instance,
     db: Session = Depends(get_db)
 ):
@@ -213,7 +231,23 @@ async def get_customer_by_id(customer_id: str, db: Session):
         Customer.customer_id == customer_id).first()
     return customer_schemas.Customer.from_orm(customer)
 
+
 async def get_other_customer_info(customer_id:str, db:Session):
     other_info = db.query(OtherInformation).filter(
-        OtherInformation.customer_id == customer_id)
+        OtherInformation.customer_id == customer_id).all()
     return list(map( customer_schemas.OtherInfo.from_orm, other_info))
+
+
+async def get_inactive_customers(organization_id:str, db:Session, offset:int, size:int):
+    total_items = db.query(Customer).filter(
+        Customer.organization_id==organization_id).filter(
+        Customer.is_deleted == False).filter(
+        Customer.is_inactive==True).count()
+
+    customers= db.query(Customer).filter(
+        Customer.organization_id==organization_id).filter(
+        Customer.is_deleted == False).filter(
+        Customer.is_inactive==True).order_by(
+        Customer.last_updated.desc()).offset(
+            offset=offset).limit(limit=size).all()
+    return (list(map(customer_schemas.Customer.from_orm, customers)), total_items)
