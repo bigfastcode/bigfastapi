@@ -61,8 +61,9 @@ async def fetch_customers(
     ):
     customers = db.query(Customer).filter(
         Customer.organization_id == organization_id).filter(
-        Customer.is_deleted == False).order_by(
-        Customer.date_created.desc()
+        Customer.is_deleted == False).filter(or_(
+        Customer.is_inactive == False, Customer.is_inactive == None
+        )).order_by(Customer.date_created.desc()
         ).offset(offset=offset).limit(limit=size).all()
     return list(map(customer_schemas.Customer.from_orm, customers))
 
@@ -77,19 +78,23 @@ async def search_customers(
     no_of_search_results1 =db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
         Customer.is_deleted == False)).filter(or_(
-        Customer.first_name.like(search_text),
+        Customer.is_inactive == False, Customer.is_inactive == None
+        )).filter(or_(Customer.first_name.like(search_text),
         Customer.last_name.like(search_text))).count()
+
     no_of_search_results2 = db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
         Customer.is_deleted == False)).filter(or_(
-        Customer.unique_id.like(search_value),
+        Customer.is_inactive == False, Customer.is_inactive == None
+        )).filter(or_(Customer.unique_id.like(search_value),
         Customer.customer_id.like(search_value))).count()
     total_items = no_of_search_results1 +  no_of_search_results2
 
     customers_by_name = db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
         Customer.is_deleted == False)).filter(or_(
-        Customer.first_name.like(search_text),
+        Customer.is_inactive == False, Customer.is_inactive == None
+        )).filter(or_(Customer.first_name.like(search_text),
         Customer.last_name.like(search_text))).order_by(
         Customer.date_created.desc()).offset(
         offset=offset).limit(limit=size).all()
@@ -98,7 +103,8 @@ async def search_customers(
     customers_by_id =db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
         Customer.is_deleted == False)).filter(or_(
-        Customer.unique_id.like(search_value),
+        Customer.is_inactive == False, Customer.is_inactive == None
+        )).filter(or_(Customer.unique_id.like(search_value),
         Customer.customer_id.like(search_value))).order_by(
         Customer.date_created.desc()).offset(
         offset=offset).limit(limit=size).all()
@@ -118,13 +124,15 @@ async def sort_customers(
     if sort_dir == "desc":
         customers = db.query(Customer).filter(
             Customer.organization_id == organization_id).filter(
-            Customer.is_deleted == False).order_by(
+            Customer.is_deleted == False).filter(
+            Customer.is_inactive == False).order_by(
             desc(getattr(Customer, sort_key, "first_name"))
             ).offset(offset=offset).limit(limit=size).all()
     else:
         customers = db.query(Customer).filter(
             Customer.organization_id == organization_id).filter(
-            Customer.is_deleted == False).order_by(
+            Customer.is_deleted == False).filter(
+            Customer.is_inactive != True).order_by(
             getattr(Customer, sort_key, "first_name")
             ).offset(offset=offset).limit(limit=size).all()
 

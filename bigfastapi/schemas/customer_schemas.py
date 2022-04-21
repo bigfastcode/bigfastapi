@@ -29,8 +29,8 @@ class CustomerBase(BaseModel):
     region: Optional[str]
     country_code: Optional[str]
     other_info: List[OtherInfo] = []
-    is_deleted: bool = False
-    is_inactive: bool = False
+    is_deleted: Optional[bool]  = False
+    is_inactive: Optional[bool] = False
     date_created: datetime = datetime.now()
     last_updated: Optional[datetime] = datetime.now()
 

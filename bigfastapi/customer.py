@@ -204,7 +204,8 @@ async def get_customers(
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
         offset = await paginator.off_set(page=page_number, size=page_size)
-        total_items = await paginator.total_row_count(model=Customer, organization_id=organization_id, db=db)
+        total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
+        Customer.is_deleted == False).filter(Customer.is_inactive != True).count()
         pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_items, endpoint="/customers")
 
         organization = db.query(Organization).filter(
@@ -429,14 +430,14 @@ async def soft_delete_all_customers(
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
-@app.patch('/customers/inactive',
+@app.put('/customers/inactive/selected',
     response_model=customer_schemas.CustomerResponse,
     status_code=status.HTTP_200_OK
     )
-async def delete_customers_without_debts(
-    list_customer_id: List[str],
+async def make_customers_inactive(
+    list_customer_id: List[str], 
     db: Session = Depends(get_db),
-    # user: users_schemas.User = Depends(is_authenticated)
+    user: users_schemas.User = Depends(is_authenticated)
     ):
     try:
         for customer_id in list_customer_id:
