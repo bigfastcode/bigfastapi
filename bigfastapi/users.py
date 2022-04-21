@@ -1,6 +1,7 @@
 from operator import inv
 from re import L
 from typing import Optional
+import uuid
 from bigfastapi.schemas import store_user_schemas
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
@@ -131,6 +132,7 @@ def accept_invite(
 
     # create store user
     store_user = store_user_model.StoreUser(
+        id=uuid4().hex,
         store_id=payload.organization_id,
         user_id=payload.user_id,
         role_id=invite.role_id
