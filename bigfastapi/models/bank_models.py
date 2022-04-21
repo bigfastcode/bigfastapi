@@ -19,7 +19,7 @@ class BankModels(Base):
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organisation_id = Column(String(255), ForeignKey("businesses.id"))
     creator_id = Column(String(255))
-    account_number = Column(Integer, unique=True, index=True)
+    account_number = Column(Integer, index=True)
     bank_name = Column(String(255))
     recipient_name = Column(String(255), index=True, default=None)
     recipient_address = Column(String(255), index=True, default=None)
