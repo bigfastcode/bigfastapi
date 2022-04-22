@@ -334,8 +334,11 @@ async def update_customer(
                                             customer_instance=customer_instance, db=db)
         
         if customer.other_info:
-            background_tasks.add_task(customer_models.add_other_info, customer.other_info, customer_id, db)
-
+            update_other_info = await customer_models.add_other_info(customer.other_info, customer_id, db)
+            
+        other_info = await customer_models.get_other_customer_info(customer_id=customer_id, db=db)
+        setattr(updated_customer, 'other_info', other_info)
+        print(updated_customer)
         return {"message": "Customer updated succesfully", "customer": updated_customer}
     except Exception as ex:
         if type(ex) == HTTPException:

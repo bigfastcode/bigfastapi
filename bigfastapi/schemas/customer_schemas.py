@@ -1,8 +1,6 @@
 from datetime import datetime
-from enum import unique
 from typing import Optional, List
 from pydantic import BaseModel, root_validator
-from random import randrange
 from fastapi import HTTPException, status
         
 class OtherInfo(BaseModel):
@@ -33,6 +31,7 @@ class CustomerBase(BaseModel):
     is_inactive: Optional[bool] = False
     date_created: datetime = datetime.now()
     last_updated: Optional[datetime] = datetime.now()
+    default_currency: Optional[str]
 
     class Config:
         orm_mode = True
