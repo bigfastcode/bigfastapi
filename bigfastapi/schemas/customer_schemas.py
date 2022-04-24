@@ -1,8 +1,6 @@
 from datetime import datetime
-from enum import unique
 from typing import Optional, List
 from pydantic import BaseModel, root_validator
-from random import randrange
 from fastapi import HTTPException, status
         
 class OtherInfo(BaseModel):
@@ -29,7 +27,11 @@ class CustomerBase(BaseModel):
     region: Optional[str]
     country_code: Optional[str]
     other_info: List[OtherInfo] = []
-    is_deleted: bool = False
+    is_deleted: Optional[bool]  = False
+    is_inactive: Optional[bool] = False
+    date_created: datetime = datetime.now()
+    last_updated: Optional[datetime] = datetime.now()
+    default_currency: Optional[str]
 
     class Config:
         orm_mode = True
@@ -59,40 +61,8 @@ class CustomerBase(BaseModel):
 
 class Customer(CustomerBase):
     customer_id: str
-    date_created: datetime
-    last_updated: datetime
-
-class CustomerUpdate(BaseModel):
-    unique_id: Optional[str] 
-    first_name: Optional[str] 
-    last_name: Optional[str] 
-    email: Optional[str]
-    phone_number: Optional[str] 
-    organization_id: Optional[str]
-    business_name: Optional[str]
-    location: Optional[str]
-    gender: Optional[str]
-    age: Optional[int] 
-    postal_code: Optional[str] 
-    language: Optional[str]
-    country: Optional[str]
-    city: Optional[str]
-    region: Optional[str]
-    country_code: Optional[str]
-    other_info: List[OtherInfo]
-
-    @root_validator(pre=True)
-    @classmethod
-    def validate_phone_number(cls, values):
-        """Validate the presence of a country code when a phone number is provided"""
-        code, phone = values.get('country_code'), values.get('phone_number')
-        if phone is not None and code is None:
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, 
-                detail={"invalid request":'Every phone number requires a country code', 
-                    "message":"Please provide a valid country code"})
-        return values
-    
-
+ 
+ 
 class CustomerResponse(BaseModel):
     message: Optional[str]
     customer: Optional[Customer]
