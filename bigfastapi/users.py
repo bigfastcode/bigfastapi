@@ -157,6 +157,7 @@ async def invite_user(
     payload: _invite_schemas.UserInvite,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
+    user: str = fastapi.Depends(is_authenticated),
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """
@@ -177,12 +178,7 @@ async def invite_user(
         )
 
     # make sure you can't send invite to yourself
-    invite_ctrl = (
-        db.query(user_models.User)
-        .filter(user_models.User.email == payload.user_email)
-        .first()
-    )
-    if invite_ctrl is None:
+    if (user.email != payload.user_email):
         # check if user_email already exists
         existing_invite = (
             db.query(store_invite_model.StoreInvite)
@@ -231,23 +227,26 @@ async def get_single_invite(
                 store_invite_model.StoreInvite.is_deleted == False,
                 store_invite_model.StoreInvite.is_revoked == False
             )).first()
-    existing_user = db.query(user_models.User).filter(
-        user_models.User.email == existing_invite.user_email).first()
+    if (existing_invite):
+        existing_user = db.query(user_models.User).filter(
+            user_models.User.email == existing_invite.user_email).first()
 
-    store = db.query(organisation_models.Organization).filter(
-        organisation_models.Organization.id == existing_invite.store_id).first()
+        store = db.query(organisation_models.Organization).filter(
+            organisation_models.Organization.id == existing_invite.store_id).first()
 
-    # existing_invite.__setattr__('store', store)
-    setattr(existing_invite, 'store', store)
-    if(existing_user is not None):
-        existing_user = 'exists'
-    if not existing_invite:
-        return JSONResponse({
-            "message": "Invite not found! Try again or ask the inviter to invite you again."
-        }, status_code=404)
+        # existing_invite.__setattr__('store', store)
+        setattr(existing_invite, 'store', store)
+        if(existing_user is not None):
+            existing_user = 'exists'
+        if not existing_invite:
+            return JSONResponse({
+                "message": "Invite not found! Try again or ask the inviter to invite you again."
+            }, status_code=404)
 
-    return {"invite": existing_invite, "user": existing_user}
-
+        return {"invite": existing_invite, "user": existing_user}
+    return JSONResponse({
+                "message": "Invalid invite code"
+            }, status_code=400)
 
 @app.put("/users/invite/{invite_code}/decline")
 def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
