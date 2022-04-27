@@ -5,7 +5,8 @@ from uuid import uuid4
 import fastapi as _fastapi
 import sqlalchemy.orm as _orm
 from decouple import config
-from fastapi import APIRouter
+
+from fastapi import APIRouter, Depends, BackgroundTasks, FastAPI
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
@@ -18,7 +19,7 @@ from .auth_api import is_authenticated
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
-from .models import store_user_model, user_models, store_invite_model, role_models
+from .models import store_user_model, user_models, store_invite_model, role_models, schedule_models
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
@@ -30,6 +31,7 @@ app = APIRouter(tags=["Organization"])
 @app.post("/organizations")
 def create_organization(
         organization: _schemas.OrganizationCreate,
+        background_tasks: BackgroundTasks,
         user: str = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
@@ -46,6 +48,17 @@ def create_organization(
 
     runWalletCreation(created_org, db)
 
+    background_tasks.add_task(defaults_for_org, organization, created_org, db)
+
+    newOrId = created_org.id
+    newOrg = created_org
+    newMenList = assocMenu["menu_list"]
+    newMenu = assocMenu
+
+    return {"data": {"business": newOrg, "menu": newMenu}}
+
+
+async def defaults_for_org(organization, created_org, db: _orm.Session):
     defaultTemplates = [
         {
             "escalation_level": 1,
@@ -87,6 +100,19 @@ def create_organization(
         },
     ]
 
+    defaultSchedules = [
+        {
+            "no_of_days": 2,
+            "repeat_every": 'DAY',
+            "start_reminder": 'Before_Due_Date',
+        },
+        {
+            "no_of_days": 5,
+            "repeat_every": 'WEEK',
+            "start_reminder": 'After_Due_Date',
+        },
+    ]
+
     if organization.add_template == True:
         try:
 
@@ -107,6 +133,23 @@ def create_organization(
             print("ail To Create Templates")
 
         try:
+            for schedule in defaultSchedules:
+                schedule_obj = schedule_models.Schedule(
+                    id=uuid4().hex, organization_id=created_org.id,
+                    start_reminder=schedule["start_reminder"],
+                    repeat_every=schedule["repeat_every"],
+                    no_of_days=schedule["no_of_days"],
+                    is_deleted=False,
+                )
+
+                db.add(schedule_obj)
+                db.commit()
+                db.refresh(schedule_obj)
+
+        except:
+            print("didn't work")
+
+        try:
 
             autoreminder_obj = organisation_models.DefaultAutoReminder(
                 id=uuid4().hex, organization_id=created_org.id, days_before_debt=3,
@@ -118,13 +161,6 @@ def create_organization(
 
         except:
             print('could not create auto reminder default')
-
-    newOrId = created_org.id
-    newOrg = created_org
-    newMenList = assocMenu["menu_list"]
-    newMenu = assocMenu
-
-    return {"data": {"business": newOrg, "menu": newMenu}}
 
 
 # @app.post("/st-paul")
