@@ -1,0 +1,22 @@
+name: Bigfastapi QA
+
+on:
+  push:
+    branches: [ qa ]
+ 
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deployment
+        run: |
+          cd /var/www/cpme_v2/prerelease/bigfastapi
+          source env/bin/activate
+          bash deploy.sh > deploy.log
+          cat deploy.log
