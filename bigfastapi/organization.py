@@ -163,42 +163,44 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
             print('could not create auto reminder default')
 
 
-@app.post("/st-paul")
-def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
-    orgs = db.query(_models.Organization).filter(
-        _models.Organization.is_deleted == False).all()
+# @app.post("/st-paul")
+# def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
+#     orgs = db.query(_models.Organization).filter(
+#         _models.Organization.is_deleted == False).all()
 
-    print(len(orgs))
+#     print(len(orgs))
 
-    for org in orgs:
+#     for org in orgs:
+#         dt_org = db.query(schedule_models.Schedule).filter(
+#             schedule_models.Schedule.organization_id == org.id).all()
 
-        # if len(dt_org) == 0:
+#         if len(dt_org) == 0:
 
-        defaultSchedules = [
-            {
-                "no_of_days": 2,
-                "repeat_every": 'DAY',
-                "start_reminder": 'Before Due Date',
-            },
-            {
-                "no_of_days": 5,
-                "repeat_every": 'WEEK',
-                "start_reminder": 'After Due Date',
-            },
-        ]
+#             defaultSchedules = [
+#                 {
+#                     "no_of_days": 2,
+#                     "repeat_every": 'DAY',
+#                     "start_reminder": 'Before Due Date',
+#                 },
+#                 {
+#                     "no_of_days": 5,
+#                     "repeat_every": 'WEEK',
+#                     "start_reminder": 'After Due Date',
+#                 },
+#             ]
 
-        for schedule in defaultSchedules:
-            schedule_obj = schedule_models.Schedule(
-                id=uuid4().hex, organization_id=org.id,
-                start_reminder=schedule["start_reminder"],
-                repeat_every=schedule["repeat_every"],
-                no_of_days=schedule["no_of_days"],
-                is_deleted=False,
-            )
+#             for schedule in defaultSchedules:
+#                 schedule_obj = schedule_models.Schedule(
+#                     id=uuid4().hex, organization_id=org.id,
+#                     start_reminder=schedule["start_reminder"],
+#                     repeat_every=schedule["repeat_every"],
+#                     no_of_days=schedule["no_of_days"],
+#                     is_deleted=False,
+#                 )
 
-            db.add(schedule_obj)
-            db.commit()
-            db.refresh(schedule_obj)
+#                 db.add(schedule_obj)
+#                 db.commit()
+#                 db.refresh(schedule_obj)
 
 
 @app.get("/organizations")
