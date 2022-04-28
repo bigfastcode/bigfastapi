@@ -12,7 +12,7 @@ from .schemas import pdf_schema
 from .schemas import file_schemas
 from bigfastapi import pdfs
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 import random
 from fastapi.encoders import jsonable_encoder
@@ -48,12 +48,13 @@ def send_receipt(payload: receipt_schemas.atrributes, background_tasks: Backgrou
         
         receipt = Receipt(
             id=uuid4().hex, 
-            sender_email=payload.sender, 
+            sender_email=payload.sender_email, 
             recipient=payload.recipient[0],
             subject=payload.subject,
             message=payload.message,
             organization_id=payload.organization_id
             )
+
         file = convert_to_pdf(pdf_schema.Format(**schema), db=db)
 
         receipt.file_id = file.id
