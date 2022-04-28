@@ -5,7 +5,8 @@ from uuid import uuid4
 import fastapi as _fastapi
 import sqlalchemy.orm as _orm
 from decouple import config
-from fastapi import APIRouter
+
+from fastapi import APIRouter, Depends, BackgroundTasks, FastAPI
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
@@ -18,7 +19,7 @@ from .auth_api import is_authenticated
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
-from .models import store_user_model, user_models, store_invite_model, role_models
+from .models import store_user_model, user_models, store_invite_model, role_models, schedule_models
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
@@ -30,6 +31,7 @@ app = APIRouter(tags=["Organization"])
 @app.post("/organizations")
 def create_organization(
         organization: _schemas.OrganizationCreate,
+        background_tasks: BackgroundTasks,
         user: str = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
@@ -46,6 +48,17 @@ def create_organization(
 
     runWalletCreation(created_org, db)
 
+    background_tasks.add_task(defaults_for_org, organization, created_org, db)
+
+    newOrId = created_org.id
+    newOrg = created_org
+    newMenList = assocMenu["menu_list"]
+    newMenu = assocMenu
+
+    return {"data": {"business": newOrg, "menu": newMenu}}
+
+
+async def defaults_for_org(organization, created_org, db: _orm.Session):
     defaultTemplates = [
         {
             "escalation_level": 1,
@@ -87,6 +100,19 @@ def create_organization(
         },
     ]
 
+    defaultSchedules = [
+        {
+            "no_of_days": 2,
+            "repeat_every": 'DAY',
+            "start_reminder": 'Before Due Date',
+        },
+        {
+            "no_of_days": 5,
+            "repeat_every": 'WEEK',
+            "start_reminder": 'After Due Date',
+        },
+    ]
+
     if organization.add_template == True:
         try:
 
@@ -107,6 +133,23 @@ def create_organization(
             print("ail To Create Templates")
 
         try:
+            for schedule in defaultSchedules:
+                schedule_obj = schedule_models.Schedule(
+                    id=uuid4().hex, organization_id=created_org.id,
+                    start_reminder=schedule["start_reminder"],
+                    repeat_every=schedule["repeat_every"],
+                    no_of_days=schedule["no_of_days"],
+                    is_deleted=False,
+                )
+
+                db.add(schedule_obj)
+                db.commit()
+                db.refresh(schedule_obj)
+
+        except:
+            print("didn't work")
+
+        try:
 
             autoreminder_obj = organisation_models.DefaultAutoReminder(
                 id=uuid4().hex, organization_id=created_org.id, days_before_debt=3,
@@ -119,87 +162,45 @@ def create_organization(
         except:
             print('could not create auto reminder default')
 
-    newOrId = created_org.id
-    newOrg = created_org
-    newMenList = assocMenu["menu_list"]
-    newMenu = assocMenu
-
-    return {"data": {"business": newOrg, "menu": newMenu}}
-
 
 # @app.post("/st-paul")
 # def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
 #     orgs = db.query(_models.Organization).filter(
 #         _models.Organization.is_deleted == False).all()
 
-#     print(orgs)
+#     print(len(orgs))
 
 #     for org in orgs:
-#         dt_org = db.query(_models.DefaultTemplates).filter(
-#             _models.DefaultTemplates.organization_id == org.id).all()
+#         dt_org = db.query(schedule_models.Schedule).filter(
+#             schedule_models.Schedule.organization_id == org.id).all()
 
 #         if len(dt_org) == 0:
 
-#             defaultTemplates = [
+#             defaultSchedules = [
 #                 {
-#                     "escalation_level": 1,
-#                     "email_message":
-#                         'Trust this meets you well This is to remind you that your payment for $debt is due. Please take a moment to make the payment by clicking here - $paymentlink. If you have any questions dont hesitate to reply to this email.',
-#                     "subject": 'Reminder: Your Debt Is Due',
-#                     "sms_message":
-#                         'a kind reminder that your debt of $amount is due. Please click the this link to pay the balance owed - ',
+#                     "no_of_days": 2,
+#                     "repeat_every": 'DAY',
+#                     "start_reminder": 'Before Due Date',
 #                 },
 #                 {
-
-#                     "escalation_level": 2,
-#                     "email_message":
-#                         'Trust this meets you well Your debt with us is overdue and you have limited time to clear it. Please click here to pay - $paymentLink or request for payment options.',
-#                     "subject": 'Important',
-#                     "sms_message":
-#                         'your debt of $amount is overdue. To clear it, click this link to pay - '
-#                 },
-#                 {
-
-#                     "escalation_level": 3,
-
-#                     "email_message":
-#                         'We are yet to receive your overdue payment for $debt. This is becoming really problematic for us and a late payment fee will be applied. Please settle your outstanding balance immediately to avoid this. Click here to pay - $paymentLink',
-#                     "subject":
-#                         'Payment Reminder: Pay Debt Today to Avoid Late Payment Chargest',
-#                     "sms_message":
-#                         'your long overdue debt of $amount has not been paid, please make payment to avoid charges. Pay here - ',
-#                 },
-#                 {
-
-#                     "escalation_level": 4,
-#                     "subject": 'Alert',
-#                     "email_message":
-#                         'This is a reminder that your debt is now overdue by weeks since the due date and a late payment fee now applies. Please arrange your payment today.',
-#                     "sms_message":
-#                         ' your debt of $amount has not been paid despite previous reminders and a late payment fee now applies. Hurry and pay now - ',
-
+#                     "no_of_days": 5,
+#                     "repeat_every": 'WEEK',
+#                     "start_reminder": 'After Due Date',
 #                 },
 #             ]
 
-#             for temp in defaultTemplates:
-#                 template_obj = _models.DefaultTemplates(
-#                     id=uuid4(
-#                     ).hex, organization_id=org.id, subject=temp["subject"],
-#                     escalation_level=temp["escalation_level"], email_message=temp["email_message"],
-#                     sms_message=temp["sms_message"],
-#                     is_deleted=False, template_type="BOTH"
+#             for schedule in defaultSchedules:
+#                 schedule_obj = schedule_models.Schedule(
+#                     id=uuid4().hex, organization_id=org.id,
+#                     start_reminder=schedule["start_reminder"],
+#                     repeat_every=schedule["repeat_every"],
+#                     no_of_days=schedule["no_of_days"],
+#                     is_deleted=False,
 #                 )
 
-#                 db.add(template_obj)
+#                 db.add(schedule_obj)
 #                 db.commit()
-#                 db.refresh(template_obj)
-
-
-# @app.delete("/st")
-# def delete_un(db: _orm.Session = _fastapi.Depends(get_db)):
-#     db.query(organisation_models.DefaultTemplates).filter(
-#         organisation_models.DefaultTemplates.organization_id == "IRZyXi2KRYDI").delete()
-#     db.commit()
+#                 db.refresh(schedule_obj)
 
 
 @app.get("/organizations")
