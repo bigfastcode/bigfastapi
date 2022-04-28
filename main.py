@@ -40,6 +40,7 @@ from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
+from bigfastapi.failed_imports import app as failedimports
 
 # Create the application
 tags_metadata = [
@@ -113,6 +114,7 @@ app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
+app.include_router(failedimports)
 
 
 @app.get("/", tags=["Home"])
