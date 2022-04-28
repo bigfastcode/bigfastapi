@@ -36,33 +36,37 @@ def send_receipt(payload: receipt_schemas.atrributes, background_tasks: Backgrou
         An endpoint to send receipts. 
         Note: The message field in the payload should be HTML formatted.
     """
-    pdf_name = (payload.subject)+str(uuid4().hex)+".pdf"
-    
+    try: 
 
-    schema = {
-            "htmlString": payload.message,
-            "pdfName": pdf_name
-    }
-    
-    receipt = Receipt(
-        id=uuid4().hex, 
-        sender_email=payload.sender, 
-        recipient=payload.recipient[0],
-        subject=payload.subject,
-        message=payload.message,
-        organization_id=payload.organization_id
-        )
-    file = convert_to_pdf(pdf_schema.Format(**schema), db=db)
+        pdf_name = (payload.subject)+str(uuid4().hex)+".pdf"
+        
 
-    receipt.file_id = file.id
-    db.add(receipt)
-    db.commit()
-    db.refresh(receipt)
-    
-    send_receipt_email(payload, background_tasks=background_tasks, template="email/mail_receipt.html", db=db, file="./filestorage/pdfs/"+pdf_name)
+        schema = {
+                "htmlString": payload.message,
+                "pdfName": pdf_name
+        }
+        
+        receipt = Receipt(
+            id=uuid4().hex, 
+            sender_email=payload.sender, 
+            recipient=payload.recipient[0],
+            subject=payload.subject,
+            message=payload.message,
+            organization_id=payload.organization_id
+            )
+        file = convert_to_pdf(pdf_schema.Format(**schema), db=db)
 
-    return JSONResponse({"message" : "receipt sent"}, status_code=status.HTTP_201_CREATED)
+        receipt.file_id = file.id
+        db.add(receipt)
+        db.commit()
+        db.refresh(receipt)
+        
+        send_receipt_email(payload, background_tasks=background_tasks, template="email/mail_receipt.html", db=db, file="./filestorage/pdfs/"+pdf_name)
 
+        return JSONResponse({"message" : "receipt sent"}, status_code=status.HTTP_201_CREATED)
+
+    except Exception as ex:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 @app.get("/receipts", status_code=200)
 async def fetch_receipts(
