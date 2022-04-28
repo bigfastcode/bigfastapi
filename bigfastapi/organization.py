@@ -104,12 +104,12 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
         {
             "no_of_days": 2,
             "repeat_every": 'DAY',
-            "start_reminder": 'Before_Due_Date',
+            "start_reminder": 'Before Due Date',
         },
         {
             "no_of_days": 5,
             "repeat_every": 'WEEK',
-            "start_reminder": 'After_Due_Date',
+            "start_reminder": 'After Due Date',
         },
     ]
 
@@ -163,79 +163,44 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
             print('could not create auto reminder default')
 
 
-# @app.post("/st-paul")
-# def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
-#     orgs = db.query(_models.Organization).filter(
-#         _models.Organization.is_deleted == False).all()
+@app.post("/st-paul")
+def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
+    orgs = db.query(_models.Organization).filter(
+        _models.Organization.is_deleted == False).all()
 
-#     print(orgs)
+    print(len(orgs))
 
-#     for org in orgs:
-#         dt_org = db.query(_models.DefaultTemplates).filter(
-#             _models.DefaultTemplates.organization_id == org.id).all()
+    for org in orgs:
+        dt_org = db.query(schedule_models.Schedule).filter(
+            schedule_models.Schedule.organization_id == org.id).all()
 
-#         if len(dt_org) == 0:
+        if len(dt_org) == 0:
 
-#             defaultTemplates = [
-#                 {
-#                     "escalation_level": 1,
-#                     "email_message":
-#                         'Trust this meets you well This is to remind you that your payment for $debt is due. Please take a moment to make the payment by clicking here - $paymentlink. If you have any questions dont hesitate to reply to this email.',
-#                     "subject": 'Reminder: Your Debt Is Due',
-#                     "sms_message":
-#                         'a kind reminder that your debt of $amount is due. Please click the this link to pay the balance owed - ',
-#                 },
-#                 {
+            defaultSchedules = [
+                {
+                    "no_of_days": 2,
+                    "repeat_every": 'DAY',
+                    "start_reminder": 'Before Due Date',
+                },
+                {
+                    "no_of_days": 5,
+                    "repeat_every": 'WEEK',
+                    "start_reminder": 'After Due Date',
+                },
+            ]
 
-#                     "escalation_level": 2,
-#                     "email_message":
-#                         'Trust this meets you well Your debt with us is overdue and you have limited time to clear it. Please click here to pay - $paymentLink or request for payment options.',
-#                     "subject": 'Important',
-#                     "sms_message":
-#                         'your debt of $amount is overdue. To clear it, click this link to pay - '
-#                 },
-#                 {
+            for schedule in defaultSchedules:
+                schedule_obj = schedule_models.Schedule(
+                    id=uuid4().hex, organization_id=org.id,
+                    start_reminder=schedule["start_reminder"],
+                    repeat_every=schedule["repeat_every"],
+                    no_of_days=schedule["no_of_days"],
+                    is_deleted=False,
+                )
 
-#                     "escalation_level": 3,
-
-#                     "email_message":
-#                         'We are yet to receive your overdue payment for $debt. This is becoming really problematic for us and a late payment fee will be applied. Please settle your outstanding balance immediately to avoid this. Click here to pay - $paymentLink',
-#                     "subject":
-#                         'Payment Reminder: Pay Debt Today to Avoid Late Payment Chargest',
-#                     "sms_message":
-#                         'your long overdue debt of $amount has not been paid, please make payment to avoid charges. Pay here - ',
-#                 },
-#                 {
-
-#                     "escalation_level": 4,
-#                     "subject": 'Alert',
-#                     "email_message":
-#                         'This is a reminder that your debt is now overdue by weeks since the due date and a late payment fee now applies. Please arrange your payment today.',
-#                     "sms_message":
-#                         ' your debt of $amount has not been paid despite previous reminders and a late payment fee now applies. Hurry and pay now - ',
-
-#                 },
-#             ]
-
-#             for temp in defaultTemplates:
-#                 template_obj = _models.DefaultTemplates(
-#                     id=uuid4(
-#                     ).hex, organization_id=org.id, subject=temp["subject"],
-#                     escalation_level=temp["escalation_level"], email_message=temp["email_message"],
-#                     sms_message=temp["sms_message"],
-#                     is_deleted=False, template_type="BOTH"
-#                 )
-
-#                 db.add(template_obj)
-#                 db.commit()
-#                 db.refresh(template_obj)
-
-
-# @app.delete("/st")
-# def delete_un(db: _orm.Session = _fastapi.Depends(get_db)):
-#     db.query(organisation_models.DefaultTemplates).filter(
-#         organisation_models.DefaultTemplates.organization_id == "IRZyXi2KRYDI").delete()
-#     db.commit()
+                db.add(schedule_obj)
+                db.commit()
+                db.refresh(schedule_obj)
 
 
 @app.get("/organizations")
