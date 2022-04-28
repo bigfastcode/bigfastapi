@@ -15,5 +15,6 @@ class Schedule(database.Base):
     # when can you start reminding a customer of a debt before due date
     start_reminder = Column(String(255), index=True)
     no_of_days = Column(Integer, index=True)
+    repeat_every = Column(String(225), index=True)
     is_deleted = Column(Boolean, default=False)
     date_created = Column(DateTime, default=dt.datetime.utcnow)
