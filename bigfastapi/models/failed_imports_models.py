@@ -21,7 +21,7 @@ import bigfastapi.db.database as _database
 import enum
 
 class FailedImports(_database.Base):
-    __tablename__ = "failed_imports"
+    __tablename__ = "failed_import"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     model = Column(String(255))
     error = Column(String(255))
