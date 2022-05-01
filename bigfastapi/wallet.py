@@ -23,6 +23,15 @@ app = APIRouter(tags=["Wallet"])
 async def create_wallet(body: schema.WalletCreate,
                         user: users_schemas.User = fastapi.Depends(is_authenticated),
                         db: _orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint allows you to create a wallet. To use this endpoint you need to make a post request to the /wallets endpoint with s specified body of request
+            
+            reqBody-->organization_id: This is the user's current organization
+            reqBody-->currency_code: This is the short code of the currency the wallet will accept
+            reqBody-->user_id: This is the unique id of the user the wallet will be created for 
+            
+    returnDesc--> On sucessful request, it returns
+        returnBody--> details of the newly created wallet
+    """
     currency_code = body.currency_code.upper()
     wallet = db.query(model.Wallet).filter_by(organization_id=body.organization_id).filter_by(
         currency_code=currency_code).first()
@@ -47,8 +56,18 @@ async def get_organization_wallets(
         organization_id: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
-):
-    """Get all the wallets of an organization"""
+):  
+    """intro-->This endpoint allows you to retrieve all the wallets in an organization. To use this endpoint you need to make a get request to the /wallets/{organization_id} endpoint
+            
+            paramDesc-->On get request, the request url takes the  parameter organization id and two(2) optional query parameters 
+                param-->organization_id: This is unique id of the organization of interest
+                param-->page: This is the page of interest, this is 1 by default
+                param-->size: This is the size per page, this is 10 by default
+
+            
+    returnDesc--> On sucessful request, it returns a
+        returnBody--> list of queried wallets
+    """
     return await _get_organization_wallets(organization_id=organization_id, user=user, db=db)
 
 
@@ -59,7 +78,16 @@ async def get_organization_wallet(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
-    """Gets the wallet of an organization"""
+    """intro-->This endpoint allows you to retrieve the wallet of an organization. To use this endpoint you need to make a get request to the /wallets/{organization_id}/{currency} endpoint
+            
+            paramDesc-->On get request, the request url takes two(2) parameters, organization id and currency
+                param-->organization_id: This is unique id of the organization of interest
+                param-->currency: This is the currency you want to retrieve the organization's wallet in
+
+            
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the queried organization's wallet
+    """
     return await _get_organization_wallet(organization_id=organization_id, currency=currency, user=user, db=db)
 
 
@@ -70,7 +98,17 @@ async def get_wallet_transactions(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
-    """Get wallet transactions"""
+    """intro-->This endpoint allows you to retrieve an organization's wallet transactions. To use this endpoint you need to make a get request to the /wallets/{organization_id}/{currency}/transactions endpoint
+            
+            paramDesc-->On get request, the request url takes two(2) parameters, organization id and currency and two(2) optional query parameters
+                param-->organization_id: This is unique id of the organization of interest
+                param-->currency: This is the currency you want to retrieve the organization's wallet in
+                param-->page: This is the page of interest, this is 1 by default
+                param-->size: This is the size per page, this is 10 by default
+            
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> wallet transactions details of the queried organization
+    """
     wallet = await _get_organization_wallet(organization_id=organization_id, currency=currency, user=user, db=db)
     return await _get_wallet_transactions(wallet_id=wallet.id, db=db)
 
