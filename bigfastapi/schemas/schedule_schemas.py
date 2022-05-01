@@ -20,6 +20,12 @@ class ReminderAfterDueDate(str, Enum):
     MONTHLY = "MONTHLY"
 
 
+class RepeatEvery(str, Enum):
+    day = "DAY"
+    week = "WEEK"
+    month = "MONTH"
+
+
 class NumberOfRemindersBeforeDueDate(int, Enum):
     one = 1
     two = 2
@@ -35,6 +41,7 @@ class CreateReminderSchedule(BaseModel):
     organization_id: str
     start_reminder: StartReminder
     no_of_days: int
+    repeat_every: RepeatEvery
 
     class Config:
         orm_mode = True
@@ -43,6 +50,7 @@ class CreateReminderSchedule(BaseModel):
 class UpdateSchedule(BaseModel):
     start_reminder: Optional[StartReminder]
     no_of_days: Optional[int]
+    repeat_every: Optional[RepeatEvery]
 
     class Config:
         orm_mode = True

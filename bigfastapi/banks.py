@@ -66,6 +66,8 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
                                      bank_name=bank.bank_name,
                                      recipient_name=bank.recipient_name,
                                      country=bank.country,
+                                     currency=bank.currency,
+                                     frequency=bank.frequency,
                                      sort_code=bank.sort_code,
                                      swift_code=bank.swift_code,
                                      bank_address=bank.bank_address,
@@ -190,6 +192,8 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
     bank_account.swift_code = bank.swift_code
     bank_account.bank_address = bank.bank_address
     bank_account.account_type = bank.account_type
+    bank_account.currency = bank.currency
+    bank_account.frequency = bank.frequency
     bank_account.is_preferred = bank.is_preferred
     bank_account.aba_routing_number = bank.aba_routing_number
     bank_account.iban = bank.iban
