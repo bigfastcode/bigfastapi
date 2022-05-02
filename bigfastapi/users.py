@@ -30,6 +30,11 @@ app = APIRouter(tags=["User"])
 
 @app.get("/users/me", response_model=_schemas.User)
 async def get_user(user: _schemas.User = fastapi.Depends(is_authenticated)):
+    """intro-->This endpoint allows you to retrieve details about the currently logged in user, to use this endpoint you need to make a get request to the  /users/me endpoint 
+
+    returnDesc-->On sucessful request, it returns
+        returnBody--> details of the currently logged in user
+    """
     return user
 
 
@@ -38,7 +43,12 @@ async def update_user(
     user_update: _schemas.UserUpdate,
     user: _schemas.User = fastapi.Depends(is_authenticated),
     db: orm.Session = fastapi.Depends(get_db),
-):
+):  
+    """intro-->This endpoint allows you to update details about the currently logged in user, to use this endpoint you need to make a put request to the  /users/me endpoint with a specified body of request
+
+    returnDesc-->On sucessful request, it returns the
+        returnBody--> updated details of the currently logged in user
+    """
     return await user_update(user_update, user, db)
 
 

@@ -217,8 +217,8 @@ async def delete_bank(bank_id: str,
     paramDesc-->On delete request, the request url takes the  parameter bank_id  
         param-->bank_id: This is the bank id of the bank detail
         
-    returnDesc--> On sucessful request, it returns 
-        returnBody--> the deleted bank detail
+    returnDesc--> On sucessful request, it returns the 
+        returnBody-->  deleted bank detail
 
     Args:
         bank_id: a unique identifier of the bank object.
@@ -251,8 +251,8 @@ async def get_country_schema(country: str):
     paramDesc-->On get request, the request url takes the query parameter country 
         param-->country: This is the country of interest
         
-    returnDesc--> On sucessful request, it returns 
-        returnBody--> \the valid schema for queried country
+    returnDesc--> On sucessful request, it returns the 
+        returnBody--> valid schema for queried country
 
     Args:
         country: Country whose schema structure is to be fetched.
@@ -272,8 +272,8 @@ async def validate_bank_details(country: str):
     paramDesc-->On get request, the request url takes the query parameter country 
         param-->country: This is the country of interest
         
-    returnDesc--> On sucessful request, it returns 
-        returnBody--> the details needed to add bank details based on country provided
+    returnDesc--> On sucessful request, it returns the
+        returnBody-->  details needed to add bank details based on country provided
 
     Args:
         country: Country whose schema structure is to be fetched.
