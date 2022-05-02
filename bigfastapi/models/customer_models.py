@@ -173,24 +173,49 @@ async def add_customer(
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
+async def bulk_add_customers(customers, organization_id: str, db:Session = Depends(get_db)):
+    objects = [Customer(id=uuid4().hex,
+        customer_id=generate_short_id(size=12),
+        first_name=customer.first_name,
+        last_name=customer.last_name,
+        unique_id=customer.unique_id,
+        organization_id=organization_id,
+        email=customer.email,
+        phone_number=customer.phone_number,
+        location=customer.location,
+        business_name=customer.business_name,
+        gender=customer.gender,
+        age=customer.age,
+        postal_code=customer.postal_code,
+        language=customer.language,
+        country=customer.country,
+        city=customer.city,
+        region=customer.region,
+        country_code=customer.country_code,
+        date_created=customer.date_created,
+        is_deleted = customer.is_deleted,
+        last_updated=customer.last_updated) for customer in customers]
+    db.add_all(objects)
+    db.commit()
+    db.refresh(objects)
+    return(objects)
+
+
 async def add_other_info(
     list_other_info: List[customer_schemas.OtherInfo],
     customer_id: str,
     db: Session = Depends(get_db)
-):
-    res_obj = []
-    for other_info in list_other_info:
-        other_info_instance = OtherInformation(
-            id=uuid4().hex,
-            customer_id=customer_id,
-            key=other_info.key,
-            value=other_info.value
-        )
-        db.add(other_info_instance)
-        db.commit()
-        db.refresh(other_info_instance)
-        res_obj.append(other_info_instance)
-    return list(map(customer_schemas.OtherInfo.from_orm, res_obj))
+    ):
+    other_info_instance = [OtherInformation(
+        id=uuid4().hex,
+        customer_id=customer_id,
+        key=other_info.key,
+        value=other_info.value
+    ) for other_info in list_other_info]
+    db.add_all(other_info_instance)
+    db.commit()
+    db.refresh(other_info_instance)
+    return list(map(customer_schemas.OtherInfo.from_orm, other_info_instance))
 
 
 async def put_customer(
