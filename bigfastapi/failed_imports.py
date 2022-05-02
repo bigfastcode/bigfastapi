@@ -19,7 +19,7 @@ app = APIRouter(tags=["failed_imports"],)
 
 
 @app.get("/failedimports")
-async def create_bulk_customer(
+async def failedImports(
     organization_id: str,
     db: Session = Depends(get_db),
     #user: users_schemas.User = Depends(is_authenticated)
