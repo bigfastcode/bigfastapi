@@ -14,7 +14,7 @@ class Product(database.Base):
     description = Column(Text, index=True, nullable=True)
     price = Column(Float, index=True, nullable=False)
     discount = Column(Float, nullable=True)
-    business_id = Column(String(255), ForeignKey("businesses.id"))
+    business_id = Column(String(255), ForeignKey("businesses.id", ondelete="CASCADE"))
     images = Column(Text, nullable=True)
     created_by = Column(String(255), ForeignKey("users.id"))
     created = Column(DateTime, default=datetime.datetime.utcnow)

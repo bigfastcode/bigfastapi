@@ -11,12 +11,13 @@ class ProductBase(BaseModel):
     name: str
     description: str
     price: float
-    image: str
+    images: str
 
 class Product(ProductBase):
     id: str
     discount: str
     created: dt.datetime
+    business_id: str
 
     class Config:
         orm_mode = True
@@ -31,9 +32,8 @@ class ProductUpdate(ProductBase):
     pass
 
 
-class ShowProduct(ProductBase):
+class ShowProduct(Product):
     created_by: str
-    discount: float
 
     class Config:
         orm_mode = True

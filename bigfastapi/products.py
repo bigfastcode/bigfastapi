@@ -61,16 +61,6 @@ def create_product(product: schema.ProductCreate,
                    db: orm.Session = fastapi.Depends(get_db)):
     
     """
-
-    Algorithm
-    - Get details from user as POST request
-    - Check if product exists in database
-    - check if user is allowed to add products to that business
-    - if checks pass, add product to database
-    - add record of price in the price_history table
-
-
-    
     Intro - This endpoint allows you to create a create a new product item.
     It takes in about four parameters. To create a product, you 
     need to make a post request to the /product endpoint
@@ -85,19 +75,15 @@ def create_product(product: schema.ProductCreate,
     """
     
     # check if product exists in database
-    # db_product = model.get_product_by_id(id=product.title, db=db)
-    # if db_product:
-    #     raise fastapi.HTTPException(status_code=400, detail="Blog title already exists")
 
     #check if user is allowed to create a product in the business
-    # user_status = db.query(org_model.Organization).filter(org_model.Organization.creator == user.id).first()
-    # if not user_status:
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
-    #                         detail="You are not allowed to create a product for this business")
+    if org_model.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a product for this business")
     
 
     #Add product to database
-    product = model.Product(id=uuid4().hex, created_by=user.id, **product)
+    product = model.Product(id=uuid4().hex, created_by=user.id, business_id=product.business_id, name=product.name, description=product.description,
+                            price=product.price, discount=product.discount, images=product.images)
     db.add(product)
     db.commit()
     db.refresh(product)
@@ -109,47 +95,7 @@ def create_product(product: schema.ProductCreate,
     db.commit()
     db.refresh(price_record)
 
-    return schema.Product.from_orm(product)
-
-
-
-@app.delete("/product/{business_id}/{product_id}")
-def delete_product(business_id: str, product_id: str, 
-                    user: user_schema.User = fastapi.Depends(is_authenticated), 
-                    db: orm.Session = fastapi.Depends(get_db)):
-    
-    """
-    Algorithm
-    - check if user is allowed to delete product
-    - check if product exists in database
-
-    intro-This endpoint allows you to delete a particular product post. To delete a product, 
-    you need to make a delete request to the /product/{business_id}/{product_id} endpoint.
-
-    paramDesc-On delete request the url takes a query parameter business_id and product_id
-    param-business_id: This is the unique id of the business
-    param-product_id: This is the unique id of the product item
-
-    returnDesc-On sucessful request, it returns an Object with message
-       returnBody- "successfully deleted"
-    """
-    
-    #check if user is in business and can delete product
-    # user_status = db.query(org_model.Organization).filter(org_model.Organization.creator == user.id).first()
-    # if not user_status:
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
-    #                         detail="You are not allowed to create a product for this business")
-
-    #check if product exists in db
-    product = model.select_product(product_id=product_id, business_id=business_id, db=db)
-    if product is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
-        
-    product.is_deleted = True
-    db.commit()
-
-    return {"message":"successfully deleted"}
-
+    return product
 
 
 @app.put('/{business_id}/{product_id}')
@@ -179,12 +125,48 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
     
     product.name = product_update.name
     product.description = product_update.description
-    product.image = product_update.image
+    product.images = product_update.images
     product.discount = product_update.discount
     product.price = product_update.price
     product.updated_at = datetime.datetime.utcnow()
 
+    db.commit()
+
     return {'message':'Product updated successfully'}
+
+
+@app.delete("/{business_id}/{product_id}")
+def delete_product(business_id: str, product_id: str, 
+                    user: user_schema.User = fastapi.Depends(is_authenticated), 
+                    db: orm.Session = fastapi.Depends(get_db)):
+    
+    """
+    intro-This endpoint allows you to delete a particular product post. To delete a product, 
+    you need to make a delete request to the /product/{business_id}/{product_id} endpoint.
+
+    paramDesc-On delete request the url takes a query parameter business_id and product_id
+    param-business_id: This is the unique id of the business
+    param-product_id: This is the unique id of the product item
+
+    returnDesc-On sucessful request, it returns an Object with message
+       returnBody- "successfully deleted"
+    """
+    
+    #check if user is in business and can delete product
+    if org_model.is_organization_member(user_id=user.id, organization_id=business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
+
+
+    #check if product exists in db
+    product = model.select_product(product_id=product_id, business_id=business_id, db=db)
+    if product is None:
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
+        
+    product.is_deleted = True
+    db.commit()
+
+    return {"message":"successfully deleted"}
+
 
 
 
