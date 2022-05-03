@@ -15,11 +15,10 @@ from .models import organisation_models as org_model
 from bigfastapi.db.database import get_db
 
 app = APIRouter(
-    prefix='/product',
     tags=["Product"]
     )
 
-@app.get("/{business_id}", response_model=List[schema.ShowProduct])
+@app.get("/product/{business_id}", response_model=List[schema.ShowProduct])
 def get_products(business_id: str, db: orm.Session = fastapi.Depends(get_db)):
 
     """
@@ -36,7 +35,7 @@ def get_products(business_id: str, db: orm.Session = fastapi.Depends(get_db)):
 
     return products
 
-@app.get('/{business_id}/{product_id}', response_model=schema.ShowProduct)
+@app.get('/product/{business_id}/{product_id}', response_model=schema.ShowProduct)
 def get_product(business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
     """
     Intro-This endpoint allows you to retreive details of a product in the database belonging to a business. 
@@ -55,10 +54,11 @@ def get_product(business_id: str, product_id: str, db: orm.Session = fastapi.Dep
 
 
 
-@app.post("/", response_model=schema.Product)
+@app.post("/product", response_model=schema.Product, status_code=status.HTTP_201_CREATED)
 def create_product(product: schema.ProductCreate, 
                    user: user_schema.User = fastapi.Depends(is_authenticated), 
                    db: orm.Session = fastapi.Depends(get_db)):
+                   
     
     """
     Intro - This endpoint allows you to create a create a new product item.
@@ -77,7 +77,7 @@ def create_product(product: schema.ProductCreate,
     # check if product exists in database
 
     #check if user is allowed to create a product in the business
-    if org_model.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
+    if  org_model.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a product for this business")
     
 
@@ -98,7 +98,7 @@ def create_product(product: schema.ProductCreate,
     return product
 
 
-@app.put('/{business_id}/{product_id}')
+@app.put('/product/{business_id}/{product_id}')
 def update_product(product_update: schema.ProductUpdate,business_id: str, 
                     product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
@@ -135,7 +135,7 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
     return {'message':'Product updated successfully'}
 
 
-@app.delete("/{business_id}/{product_id}")
+@app.delete("/product/{business_id}/{product_id}")
 def delete_product(business_id: str, product_id: str, 
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
