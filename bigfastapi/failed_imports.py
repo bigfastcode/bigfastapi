@@ -17,28 +17,11 @@ import sqlalchemy.orm as orm
 
 app = APIRouter(tags=["failed_imports"],)
 
-
-@app.get("/failedimports")
-async def failedImports(
-    organization_id: str,
-    db: Session = Depends(get_db),
-    #user: users_schemas.User = Depends(is_authenticated)
-):
-    failedImports = db.query(FailedImports).\
-        filter(FailedImports.organization_id == organization_id).\
-        filter(FailedImports.is_deleted == False).all()
-    
-    if isEmpty(failedImports):
-        return list(map(failed_imports_schemas.FailedImportOutput.from_orm, failedImports))
-
-    return []  
-
-
-async def logImportError(line, error, organization_id: str, 
+async def logImportError(line, error, organization_id: str, model: str, 
     db: orm.Session = Depends(get_db)):
     failedImport = FailedImports(
         id=uuid4().hex, line=line,
-        model='debts', error=error, organization_id=organization_id, 
+        model=model, error=error, organization_id=organization_id, 
         is_deleted=False, created_at= datetime.now(), 
         updated_at= datetime.now()
     )
@@ -47,6 +30,14 @@ async def logImportError(line, error, organization_id: str,
     db.refresh(failedImport)
 
     return failedImport
+
+async def deleteImportError(organization_id: str, model: str, 
+    db: orm.Session = Depends(get_db)):
+
+    db.query(FailedImports).filter(FailedImports.organization_id == organization_id).\
+        filter(FailedImports.model == model).update({'is_deleted': True})
+    db.commit()
+    return
 
 def isEmpty(imports):
     if len(imports) != 0:

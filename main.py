@@ -41,6 +41,7 @@ from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
 from bigfastapi.failed_imports import app as failedimports
+from bigfastapi.import_progress import app as importprogress
 
 # Create the application
 tags_metadata = [
@@ -115,6 +116,7 @@ app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
 app.include_router(failedimports)
+app.include_router(importprogress)
 
 
 @app.get("/", tags=["Home"])
