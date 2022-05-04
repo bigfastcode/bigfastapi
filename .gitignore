@@ -158,3 +158,5 @@ data/27019
 # editor
 .idea/
 identifier.sqlite
+
+Pipfile
