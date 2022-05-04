@@ -12,12 +12,15 @@ class ProductBase(BaseModel):
     description: str
     price: float
     images: str
+    unique_id: str
+    quantity: int
 
 class Product(ProductBase):
     id: str
     discount: str
     created: dt.datetime
     business_id: str
+    status: bool
 
     class Config:
         orm_mode = True

@@ -1,8 +1,8 @@
 import datetime as datetime
 import sqlalchemy.orm as orm
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, DateTime, Text, Float, BOOLEAN
-from sqlalchemy import ForeignKey
+from sqlalchemy.types import String, DateTime, Text, Float, BOOLEAN, Integer
+from sqlalchemy import ForeignKey, Integer
 from uuid import uuid4
 import bigfastapi.db.database as database
 import bigfastapi.schemas.users_schemas as schema
@@ -17,6 +17,9 @@ class Product(database.Base):
     business_id = Column(String(255), ForeignKey("businesses.id", ondelete="CASCADE"))
     images = Column(Text, nullable=True)
     created_by = Column(String(255), ForeignKey("users.id"))
+    unique_id = Column(String(255), index=True, nullable=False)
+    quantity =  Column(Integer, index=True, nullable=False)
+    status = Column(BOOLEAN, default=False)
     created = Column(DateTime, default=datetime.datetime.utcnow)
     updated = Column(DateTime, default=datetime.datetime.utcnow)
     is_deleted = Column(BOOLEAN, default=False)

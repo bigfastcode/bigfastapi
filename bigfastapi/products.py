@@ -73,17 +73,26 @@ def create_product(product: schema.ProductCreate,
     returnDesc-On sucessful request, it returns
         returnBody- the blog object.
     """
-    
-    # check if product exists in database
+    #check if unique id is unique in the business
+    id_status = db.query(model.Product).filter(model.Product.unique_id == product.unique_id, model.Product.business_id==product.business_id).first()
+    if id_status:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Unique ID already exists')
 
     #check if user is allowed to create a product in the business
     if  org_model.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a product for this business")
     
+    #set status
+    if product.quantity > 0:
+        product_status = True
+    else:
+        product_status = False
 
     #Add product to database
     product = model.Product(id=uuid4().hex, created_by=user.id, business_id=product.business_id, name=product.name, description=product.description,
-                            price=product.price, discount=product.discount, images=product.images)
+                            price=product.price, discount=product.discount, images=product.images, unique_id=product.unique_id, quantity=product.quantity
+                            ,status = product_status)
+    
     db.add(product)
     db.commit()
     db.refresh(product)
