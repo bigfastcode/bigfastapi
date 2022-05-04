@@ -1,3 +1,4 @@
+from enum import unique
 from sqlalchemy.types import String, DateTime, Integer, Boolean
 from sqlalchemy import ForeignKey, desc
 from sqlalchemy.sql import func
@@ -7,6 +8,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from datetime import datetime
+from bigfastapi.models.organisation_models import Organization
 from bigfastapi.schemas import customer_schemas
 from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
@@ -23,7 +25,7 @@ class Customer(Base):
     email = Column(String(255), index=True,  default="")
     first_name = Column(String(255), default="", index=True)
     last_name = Column(String(255), default="", index=True)
-    unique_id = Column(String(255), nullable=False, index=True)
+    unique_id = Column(String(255), nullable=False, unique=True, index=True)
     phone_number = Column(String(255), index=True, default="")
     business_name = Column(String(255), index=True,  default="")
     location = Column(String(255), index=True,  default="")
@@ -173,6 +175,34 @@ async def add_customer(
     return customer_schemas.Customer.from_orm(customer_instance)
 
 
+async def bulk_add_customers(customers, organization_id: str, db:Session = Depends(get_db)):
+    objects = [Customer(id=uuid4().hex,
+        customer_id=generate_short_id(size=12),
+        first_name=customer.first_name,
+        last_name=customer.last_name,
+        unique_id=customer.unique_id,
+        organization_id=organization_id,
+        email=customer.email,
+        phone_number=customer.phone_number,
+        location=customer.location,
+        business_name=customer.business_name,
+        gender=customer.gender,
+        age=customer.age,
+        postal_code=customer.postal_code,
+        language=customer.language,
+        country=customer.country,
+        city=customer.city,
+        region=customer.region,
+        country_code=customer.country_code,
+        date_created=customer.date_created,
+        is_deleted = customer.is_deleted,
+        last_updated=customer.last_updated) for customer in customers]
+    db.add_all(objects)
+    db.commit()
+    # db.refresh()
+    return(objects)
+
+
 async def add_other_info(
     list_other_info: List[customer_schemas.OtherInfo],
     customer_id: str,
@@ -259,3 +289,8 @@ async def get_inactive_customers(organization_id:str, db:Session, offset:int, si
         Customer.last_updated.desc()).offset(
             offset=offset).limit(limit=size).all()
     return (list(map(customer_schemas.Customer.from_orm, customers)), total_items)
+
+async def get_customer_by_unique_id(db:Session, unique_id, org_id):
+    customers = db.query(Customer).filter(Customer.organization_id==org_id).filter(
+        Customer.unique_id==unique_id).all()
+    return list(map(customer_schemas.Customer.from_orm, customers))

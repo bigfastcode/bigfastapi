@@ -300,7 +300,7 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     db.add(obj)
     db.commit()
     db.refresh(obj)
-    print(obj)
+    
     return comments_schemas.Comment.from_orm(obj)
 
 def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_type:str):
