@@ -5,7 +5,8 @@ from uuid import uuid4
 import fastapi as _fastapi
 import sqlalchemy.orm as _orm
 from decouple import config
-from fastapi import APIRouter
+
+from fastapi import APIRouter, Depends, BackgroundTasks, FastAPI
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
@@ -18,7 +19,7 @@ from .auth_api import is_authenticated
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models
 from .models import organisation_models as _models
-from .models import store_user_model, user_models, store_invite_model, role_models
+from .models import store_user_model, user_models, store_invite_model, role_models, schedule_models
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
@@ -30,9 +31,33 @@ app = APIRouter(tags=["Organization"])
 @app.post("/organizations")
 def create_organization(
         organization: _schemas.OrganizationCreate,
+        background_tasks: BackgroundTasks,
         user: str = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
+    """intro-->This endpoint allows you to create a new organization. To use this endpoint you need to make a post request to the /organization endpoint with a specified body of request
+
+            reqBody-->mission: This is the mission f the organization
+            reqBody-->vision: This is the vision of the organization
+            reqBody-->name: This is the name of the organization
+            reqBody-->country: This is the organization's country of operation
+            reqBody-->state: This is the organization's state of operation
+            reqBody-->address: This is a descriptive address of where the organization is located
+            reqBody-->currency_preference: This is the currency of preference of the organization
+            reqBody-->phone_number: This is the phone contact detail of the organization
+            reqBody-->email This is the email contact address of the organization
+            reqBody-->current_subscription: This is the current subscription plan of the organization
+            reqBody-->tagline: This is a tagline to identify the organization with
+            reqBody-->image: This is a link to cover image for the organization
+            reqBody-->values: This describes the values of the organization
+            reqBody-->business_type: This is the type of business the organization runs
+            reqBody-->credit_balance: This is a value representing the organization's credit balance
+            reqBody-->image_full_path: This is full url path to the company's cover image
+            reqBody-->add_template: This is a boolean value that determines wether to add already available templates for the organization.
+        
+    returnDesc--> On sucessful request, it returns
+        returnBody--> details of the newly created organization
+    """
     db_org = get_orgnanization_by_name(name=organization.name, db=db)
 
     if db_org:
@@ -46,6 +71,17 @@ def create_organization(
 
     runWalletCreation(created_org, db)
 
+    background_tasks.add_task(defaults_for_org, organization, created_org, db)
+
+    newOrId = created_org.id
+    newOrg = created_org
+    newMenList = assocMenu["menu_list"]
+    newMenu = assocMenu
+
+    return {"data": {"business": newOrg, "menu": newMenu}}
+
+
+async def defaults_for_org(organization, created_org, db: _orm.Session):
     defaultTemplates = [
         {
             "escalation_level": 1,
@@ -87,6 +123,19 @@ def create_organization(
         },
     ]
 
+    defaultSchedules = [
+        {
+            "no_of_days": 2,
+            "repeat_every": 'DAY',
+            "start_reminder": 'Before Due Date',
+        },
+        {
+            "no_of_days": 5,
+            "repeat_every": 'WEEK',
+            "start_reminder": 'After Due Date',
+        },
+    ]
+
     if organization.add_template == True:
         try:
 
@@ -107,6 +156,23 @@ def create_organization(
             print("ail To Create Templates")
 
         try:
+            for schedule in defaultSchedules:
+                schedule_obj = schedule_models.Schedule(
+                    id=uuid4().hex, organization_id=created_org.id,
+                    start_reminder=schedule["start_reminder"],
+                    repeat_every=schedule["repeat_every"],
+                    no_of_days=schedule["no_of_days"],
+                    is_deleted=False,
+                )
+
+                db.add(schedule_obj)
+                db.commit()
+                db.refresh(schedule_obj)
+
+        except:
+            print("didn't work")
+
+        try:
 
             autoreminder_obj = organisation_models.DefaultAutoReminder(
                 id=uuid4().hex, organization_id=created_org.id, days_before_debt=3,
@@ -119,87 +185,45 @@ def create_organization(
         except:
             print('could not create auto reminder default')
 
-    newOrId = created_org.id
-    newOrg = created_org
-    newMenList = assocMenu["menu_list"]
-    newMenu = assocMenu
-
-    return {"data": {"business": newOrg, "menu": newMenu}}
-
 
 # @app.post("/st-paul")
 # def st_paul(db: _orm.Session = _fastapi.Depends(get_db)):
 #     orgs = db.query(_models.Organization).filter(
 #         _models.Organization.is_deleted == False).all()
 
-#     print(orgs)
+#     print(len(orgs))
 
 #     for org in orgs:
-#         dt_org = db.query(_models.DefaultTemplates).filter(
-#             _models.DefaultTemplates.organization_id == org.id).all()
+#         dt_org = db.query(schedule_models.Schedule).filter(
+#             schedule_models.Schedule.organization_id == org.id).all()
 
 #         if len(dt_org) == 0:
 
-#             defaultTemplates = [
+#             defaultSchedules = [
 #                 {
-#                     "escalation_level": 1,
-#                     "email_message":
-#                         'Trust this meets you well This is to remind you that your payment for $debt is due. Please take a moment to make the payment by clicking here - $paymentlink. If you have any questions dont hesitate to reply to this email.',
-#                     "subject": 'Reminder: Your Debt Is Due',
-#                     "sms_message":
-#                         'a kind reminder that your debt of $amount is due. Please click the this link to pay the balance owed - ',
+#                     "no_of_days": 2,
+#                     "repeat_every": 'DAY',
+#                     "start_reminder": 'Before Due Date',
 #                 },
 #                 {
-
-#                     "escalation_level": 2,
-#                     "email_message":
-#                         'Trust this meets you well Your debt with us is overdue and you have limited time to clear it. Please click here to pay - $paymentLink or request for payment options.',
-#                     "subject": 'Important',
-#                     "sms_message":
-#                         'your debt of $amount is overdue. To clear it, click this link to pay - '
-#                 },
-#                 {
-
-#                     "escalation_level": 3,
-
-#                     "email_message":
-#                         'We are yet to receive your overdue payment for $debt. This is becoming really problematic for us and a late payment fee will be applied. Please settle your outstanding balance immediately to avoid this. Click here to pay - $paymentLink',
-#                     "subject":
-#                         'Payment Reminder: Pay Debt Today to Avoid Late Payment Chargest',
-#                     "sms_message":
-#                         'your long overdue debt of $amount has not been paid, please make payment to avoid charges. Pay here - ',
-#                 },
-#                 {
-
-#                     "escalation_level": 4,
-#                     "subject": 'Alert',
-#                     "email_message":
-#                         'This is a reminder that your debt is now overdue by weeks since the due date and a late payment fee now applies. Please arrange your payment today.',
-#                     "sms_message":
-#                         ' your debt of $amount has not been paid despite previous reminders and a late payment fee now applies. Hurry and pay now - ',
-
+#                     "no_of_days": 5,
+#                     "repeat_every": 'WEEK',
+#                     "start_reminder": 'After Due Date',
 #                 },
 #             ]
 
-#             for temp in defaultTemplates:
-#                 template_obj = _models.DefaultTemplates(
-#                     id=uuid4(
-#                     ).hex, organization_id=org.id, subject=temp["subject"],
-#                     escalation_level=temp["escalation_level"], email_message=temp["email_message"],
-#                     sms_message=temp["sms_message"],
-#                     is_deleted=False, template_type="BOTH"
+#             for schedule in defaultSchedules:
+#                 schedule_obj = schedule_models.Schedule(
+#                     id=uuid4().hex, organization_id=org.id,
+#                     start_reminder=schedule["start_reminder"],
+#                     repeat_every=schedule["repeat_every"],
+#                     no_of_days=schedule["no_of_days"],
+#                     is_deleted=False,
 #                 )
 
-#                 db.add(template_obj)
+#                 db.add(schedule_obj)
 #                 db.commit()
-#                 db.refresh(template_obj)
-
-
-# @app.delete("/st")
-# def delete_un(db: _orm.Session = _fastapi.Depends(get_db)):
-#     db.query(organisation_models.DefaultTemplates).filter(
-#         organisation_models.DefaultTemplates.organization_id == "IRZyXi2KRYDI").delete()
-#     db.commit()
+#                 db.refresh(schedule_obj)
 
 
 @app.get("/organizations")
@@ -208,7 +232,16 @@ def get_organizations(
         db: _orm.Session = _fastapi.Depends(get_db),
         page_size: int = 15,
         page_number: int = 1,
-):
+):  
+    """intro-->This endpoint allows you to retrieve all organizations. To use this endpoint you need to make a get request to the /organizations endpoint 
+
+            paramDesc-->On get request, the request url takes two(2) optional query parameters
+                param-->page_size: This is the size per page, this is 10 by default
+                param-->page_number: This is the page of interest, this is 1 by default
+        
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> a list of organizations
+    """ 
     all_orgs = get_organizations(user, db)
 
     return paginate_data(all_orgs, page_size, page_number)
@@ -219,7 +252,15 @@ async def get_organization(
         organization_id: str,
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
-):
+):  
+    """intro-->This endpoint allows you to retrieve details of a particular organizations. To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
+
+            paramDesc-->On get request, the request url takes the parameter, organization id
+                param-->organization_id: This is unique Id of the organization of interest
+        
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the queried organization
+    """ 
     organization = await get_organization(organization_id, user, db)
     menu = getOrgMenu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
@@ -230,8 +271,13 @@ async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
 ):
-    """
-        An endpoint that returns the users in an organization.
+    """intro-->This endpoint allows you to get all users in an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/users endpoint 
+
+        paramDesc-->On get request, the request url takes the parameter, organization id
+            param-->organization_id: This is unique Id of the organization of interest
+        
+    returnDesc--> On sucessful request, it returns the 
+        returnBody--> details of all users in the queried organization
     """
     # query the store_users table with the organization_id
     invited_list = db.query(store_user_model.StoreUser).filter(
@@ -286,7 +332,16 @@ def delete_organization_user(
         organization_id: str,
         user_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
-):
+):  
+    """intro-->This endpoint allows you to delete a particular user from an organization. To use this endpoint you need to make a delete request to the /organizations/{organization_id}/users/{user_id} endpoint 
+
+        paramDesc-->On delete request, the request url takes two(2) parameters, organization id and user id
+            param-->organization_id: This is unique Id of the organization of interest
+            param-->user_id: This is the unique id of the user to be removed from the organization
+        
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> User with email {email} successfully removed from the store
+    """
     # fetch the organization user from the user table
     user = db.query(user_models.User).filter(
         user_models.User.id == user_id).first()
@@ -318,6 +373,14 @@ def delete_organization_user(
 
 @app.get("/organizations/{organization_id}/roles")
 def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro-->This endpoint allows you to retrieve all available roles in an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/roles endpoint 
+
+        paramDesc-->On get request, the request url takes the parameter, organization id 
+            param-->organization_id: This is the unique Id of the organization of interest
+        
+    returnDesc--> On sucessful request, it returns,
+        returnBody--> all available roles in the queried organization
+    """
     roles = db.query(role_models.Role).filter(
         role_models.Role.organization_id == organization_id)
     roles = list(map(roles_schemas.Role.from_orm, roles))
@@ -330,6 +393,17 @@ def add_role(payload: roles_schemas.AddRole,
              organization_id: str,
              db: _orm.Session = _fastapi.Depends(get_db)
              ):
+    """intro-->This endpoint allows you to create roles in an organization. To use this endpoint you need to make a post request to the /organizations/{organization_id}/roles endpoint with a specified body of request
+
+        paramDesc-->On get request, the request url takes the parameter, organization id 
+            param-->organization_id: This is the unique Id of the organization of interest
+
+            reqBody-->organization_id: This is a unique Id of the organization of interest
+            reqBody-->role_name: This is the name of the new role to be created in the organization
+        
+    returnDesc--> On sucessful request, it returns,
+        returnBody--> details of the newly created organization role
+    """
     roles = db.query(role_models.Role).filter(
         role_models.Role.organization_id == organization_id
     ).all()
@@ -360,7 +434,16 @@ def add_role(payload: roles_schemas.AddRole,
 def get_pending_invites(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
-):
+):  
+    """intro-->This endpoint allows you to retrieve all pending invites to an organization. To use this endpoint you need to make a get request to the /organizations/invites/{organization_id} endpoint
+
+        paramDesc-->On get request, the request url takes the parameter, organization id 
+            param-->organization_id: This is the unique Id of the organization of interest
+
+        
+    returnDesc--> On sucessful request, it returns,
+        returnBody--> all pending invites in the queried organization
+    """
     pending_invites = (
         db.query(store_invite_model.StoreInvite)
         .filter(
@@ -380,6 +463,32 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
                               user: users_schemas.User = _fastapi.Depends(
                                   is_authenticated),
                               db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro-->This endpoint allows you to update the details of a particular organization organization. To use this endpoint you need to make a put request to the /organizations/{organization_id} endpoint with a specified body of request
+
+        paramDesc-->On put request, the request url takes the parameter, organization id 
+            param-->organization_id: This is the unique Id of the organization of interest
+
+            reqBody-->mission: This is the mission f the organization
+            reqBody-->vision: This is the vision of the organization
+            reqBody-->name: This is the name of the organization
+            reqBody-->country: This is the organization's country of operation
+            reqBody-->state: This is the organization's state of operation
+            reqBody-->address: This is a descriptive address of where the organization is located
+            reqBody-->currency_preference: This is the currency of preference of the organization
+            reqBody-->phone_number: This is the phone contact detail of the organization
+            reqBody-->email This is the email contact address of the organization
+            reqBody-->current_subscription: This is the current subscription plan of the organization
+            reqBody-->tagline: This is a tagline to identify the organization with
+            reqBody-->image: This is a link to cover image for the organization
+            reqBody-->values: This describes the values of the organization
+            reqBody-->business_type: This is the type of business the organization runs
+            reqBody-->credit_balance: This is a value representing the organization's credit balance
+            reqBody-->image_full_path: This is full url path to the company's cover image
+            reqBody-->add_template: This is a boolean value that determines wether to add already available templates for the organization.
+        
+    returnDesc--> On sucessful request, it returns,
+        returnBody--> details of the updated organization
+    """
     return await update_organization(organization_id, organization, user, db)
 
 
@@ -390,6 +499,14 @@ async def organization_image_upload(organization_id: str, file: UploadFile = Fil
                                     user: users_schemas.User = _fastapi.Depends(
                                         is_authenticated)
                                     ):
+    """intro-->This endpoint allows you to update the cover image of an organization. To use this endpoint you need to make a put request to the /organizations/{organization_id}/update-image endpoint with a specified body of request
+
+        paramDesc-->On put request, the request url takes the parameter, organization id 
+            param-->organization_id: This is the unique Id of the organization of interest
+        
+    returnDesc--> On sucessful request, it returns,
+        returnBody--> details of the updated organization
+    """
     org = db.query(_models.Organization).filter(
         _models.Organization.id == organization_id).first()
     # delete existing image
@@ -415,6 +532,14 @@ async def organization_image_upload(organization_id: str, file: UploadFile = Fil
 
 @app.get("/organizations/{organization_id}/image")
 async def get_organization_image_upload(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro-->This endpoint allows you to retrieve the cover image of an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/image endpoint
+
+        paramDesc-->On get request, the request url takes the parameter, organization id 
+            param-->organization_id: This is the unique Id of the organization of interest
+        
+    returnDesc--> On sucessful request, it returns the
+        returnBody--> full_image_path property of the organization
+    """
     org = db.query(_models.Organization).filter(
         _models.Organization.id == organization_id).first()
 
@@ -430,6 +555,14 @@ async def get_organization_image_upload(organization_id: str, db: _orm.Session =
 @app.delete("/organizations/{organization_id}", status_code=204)
 async def delete_organization(organization_id: str, user: users_schemas.User = _fastapi.Depends(is_authenticated),
                               db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro-->This endpoint allows you to delete an organization. To use this endpoint you need to make a delete request to the /organizations/{organization_id} endpoint
+
+        paramDesc-->On delete request, the request url takes the parameter, organization id 
+            param-->organization_id: This is the unique Id of the organization of interest
+        
+    returnDesc--> On sucessful request, it returns
+        returnBody--> "success"
+    """
     return await delete_organization(organization_id, user, db)
 
 

@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from bigfastapi.models import blog_models
 from bigfastapi.schemas import blog_schemas, users_schemas
 from bigfastapi.db import database
-from bigfastapi.auth import is_authenticated
+from bigfastapi.auth_api import is_authenticated
 from main import app
 
 
