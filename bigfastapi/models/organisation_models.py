@@ -85,7 +85,6 @@ async def is_organization_member(user_id: str, organization_id: str, db: _orm.Se
 
     store_user = db.query(store_user_model.StoreUser).filter_by(store_id=organization_id).filter_by(
         user_id=user_id).first()
-    if store_user is None and organization is None:
-        print("nof found")
+    if not store_user or not organization:
         return False
     return True

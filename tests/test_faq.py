@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bigfastapi.db.database import Base, get_db
-from bigfastapi.auth import is_authenticated
+from bigfastapi.auth_api import is_authenticated
 from uuid import uuid4
 from bigfastapi.schemas.users_schemas import User
 
