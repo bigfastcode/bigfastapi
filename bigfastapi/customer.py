@@ -43,7 +43,10 @@ async def create_customer(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
-    """Creates a new customer object.
+    """intro-->This endpoint allows you to create a new customer. To use this endpoint you need to make a post request to the /customers endpoint with a specified body of request
+
+    returnDesc--> On sucessful request, it returns a 
+        returnBody--> 
     Args:
         customer: A pydantic schema that defines the customer request parameters. e.g
                         { "first_name" (required): "string", 
@@ -116,7 +119,14 @@ async def create_bulk_customer(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
-    """Creates a multiple customer objects from a valid csv file.
+
+    """intro-->This endpoint creates customer objects from a valid csv file. To use this endpoint you need to make a post request to the /customers/import/{organization_id} endpoint
+
+    
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the newly created customers
+
+    Creates a multiple customer objects from a valid csv file.
     Args:
         organization_id: A unique identifier of an organisation
         background_tasks: A parameter that allows tasks to be performed at the background
@@ -194,14 +204,18 @@ async def get_customers(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
-    """fetches all customers registered in an organisation sorted by most recently added.
-    Args:
-        organization_id: A unique identifier of an organisation
-        search_value (optional): A search string for filtering customers to be fetched
-        sorting_key (optional): A string by which to sort the list of customers
-             (most be a field in the customer object). defaults to "date_created" 
-        reverse_sort (optional): A boolean to determine if objects 
-            should be sorted in ascending or descending order. defaults to True (ascending order)
+    """intro-->This endpoint allows you to fetch all customers registered in an organisation sorted by most recently added. To use this endpoint you need to make a get request to the /customers endpoint
+
+        paramDesc-->On get request, the request url takes in the query parameter organization_id and a number of other optional query parameters
+            param-->organization_id: This is the unique id of the organization of interest
+            param-->search_value: A search string for filtering customers to be fetch
+            param-->sorting_key: A string by which to sort the list of customers
+            param-->reverse_sort: A boolean to determine if objects should be sorted in ascending or descending order. defaults to True (ascending order)
+            param-->size: This is the size per page, this is 10 by default
+            param-->page: This is the page of interest, this is 1 by default
+        returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the customers
+
         db (Session): Session database connection for storing the customer object.
         user: user authentication validator
         
@@ -263,8 +277,15 @@ async def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-):
-    """Fetches a single customer object from the database using a unique customer id.
+):  
+    """intro-->This endpoint allows you to fetch a single customer object from the database using a unique customer id. To use this endpoint you need to make a get request to the /customers endpoint
+
+        paramDesc-->On get request, the request url takes in the query parameter customer_id
+            param-->customer_id: This is a unique identifier of the customer of interest
+            
+        returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the customer
+
     Args:
         customer_id: A unique identifier of a customer
         db (Session): Session database connection for storing the customer object.
@@ -311,7 +332,14 @@ async def update_customer(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
 ):
-    """Updates a customer's detail.
+    """intro-->This endpoint allows you to update a customer's details. To use this endpoint you need to make a put request to the /customers/{customer_id} endpoint
+
+        paramDesc-->On get request, the request url takes the parameter, customer_id
+            param-->customer_id: This is a unique identifier of the customer of interest
+            
+        returnDesc--> On sucessful request, it returns 
+        returnBody--> updated details of the customer
+
     Args:
         customer_id: A unique identifier of a customer
         background_tasks: A parameter that allows tasks to be performed at the background
@@ -387,8 +415,15 @@ async def soft_delete_customer(
     customer_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-):
-    """Deletes a single customer object from the database using a unique customer id.
+):  
+    """intro-->This endpoint allows you to delete a particular customer from the database. To use this endpoint you need to make a delete request to the /customers/{customer_id} endpoint
+
+        paramDesc-->On delete request, the request url takes the parameter, customer_id
+            param-->customer_id: This is a unique identifier of the customer of interest
+            
+        returnDesc--> On sucessful request, it returns message,
+        returnBody-->  Customer deleted succesfully
+
     Args:
         customer_id: A unique identifier of a customer
         db (Session): Session database connection for storing the customer object.
@@ -434,7 +469,14 @@ async def soft_delete_all_customers(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
 ):  
-    """Deletes all customers in an organization.
+    """intro-->This endpoint allows you to delete all customers in a particular organization. To use this endpoint you need to make a delete request to the /customers/organization/{organization_id} endpoint
+
+        paramDesc-->On delete request, the request url takes the parameter, customer_id
+            param-->customer_id: This is a unique identifier of the customer of interest
+            
+        returnDesc--> On sucessful request, it returns message,
+        returnBody-->  Customers deleted succesfully
+
     Args:
         organization_id: A unique identifier of an organisation
         db (Session): Session database connection for storing the customer object.
@@ -483,6 +525,11 @@ async def make_customers_inactive(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
+    """intro-->This endpoint allows you to render customers inactive. To use this endpoint you need to make a put request to the /customers/inactive/selected endpoint
+
+    returnDesc--> On sucessful request, it returns a 
+        returnBody--> list of the customers rendered inactive
+    """
     try:
         
         is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)

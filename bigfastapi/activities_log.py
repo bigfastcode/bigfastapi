@@ -17,6 +17,7 @@ from bigfastapi.models.organisation_models import Organization
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import requests
+from starlette.background import BackgroundTask
 
 
 
@@ -27,10 +28,23 @@ def addActivitiesLog(
     model_name: str,
     object_id: str,
     log: ActivitiesLogBase,
-    background_tasks: BackgroundTasks = BackgroundTasks(), 
     db: Session = Depends(get_db),
     user: str = _fastapi.Depends(is_authenticated),
 ):
+
+    """intro-->This endpoint allows you record an activity log. To use this endpoint you need to make a post request to the /logs/{model_name}/{object_id} endpoint
+
+        paramDesc-->On get request, the url takes two parameters
+            param-->model_name: This is the model name
+            param-->object_id: This is the object id
+
+            reqBody-->action: This is the activity description
+            reqBody-->object_url: This is the url link to the log
+            reqBody-->organization_id: This is the user's current organization
+        
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> log successfully recorded
+    """
 
     organization = (db.query(Organization)
         .filter(Organization.id == log.organization_id)
@@ -41,7 +55,7 @@ def addActivitiesLog(
             status_code=status.HTTP_400_BAD_REQUEST)
     
     #send log to background task
-    background_tasks.add_task(createActivityLog, model_name, object_id, user, log,  db)
+    BackgroundTask(createActivityLog, model_name, object_id, user, log,  db)
 
     return JSONResponse({"message": "log successfully recorded"},
             status_code=status.HTTP_200_OK)
@@ -54,6 +68,14 @@ def getActivitiesLog(
     user: str = _fastapi.Depends(is_authenticated),
 
 ):
+    """intro-->This endpoint allows you retrieve details of all logs. To use this endpoint you need to make a get request to the /logs/details endpoint
+
+        paramDesc-->On get request, the url takes the parameter, organization_id
+            param-->organization_id: This is the user's current organization
+        
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the organization's activity logs
+    """
     organization = db.query(Organization).filter(
         Organization.id == organization_id).first()
     if not organization:
@@ -66,6 +88,16 @@ def getActivitiesLog(
 
 @app.delete("/logs/{id}")
 def deleteActivitiesLog(id: str, body: DeleteActivitiesLogBase, db: Session = Depends(get_db)):
+    """intro-->This endpoint allows you delete a particular log. To use this endpoint you need to make a delete request to the /logs/{id} endpoint
+
+        paramDesc-->On delete request, the url takes the parameter, id
+            param-->id: This is the the unique id of the log
+
+            reqBody-->organization_id: This is the user's current organization
+        
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the deleted log
+    """
     log = (db.query(ActivitiesModel).filter(ActivitiesModel.id == id)
         .filter(ActivitiesModel.organization_id == body.organization_id)
         .first())
@@ -77,6 +109,13 @@ def deleteActivitiesLog(id: str, body: DeleteActivitiesLogBase, db: Session = De
 
 @app.delete("/logs")
 def deleteAllActivitiesLog(body: DeleteActivitiesLogBase, db: Session = Depends(get_db)):
+    """intro-->This endpoint allows you delete all logs in an organization. To use this endpoint you need to make a delete request to the /logs endpoint with a specified body of request
+
+            reqBody-->organization_id: This is the user's current organization
+        
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "deleted successfully"
+    """
     logs = (db.query(ActivitiesModel)
             .filter(ActivitiesModel.is_deleted == False)
             .filter(ActivitiesModel.organization_id == body.organization_id))

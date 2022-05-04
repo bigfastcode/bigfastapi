@@ -1,4 +1,3 @@
-
 import datetime as _dt
 from operator import index
 from sqlite3 import Timestamp
