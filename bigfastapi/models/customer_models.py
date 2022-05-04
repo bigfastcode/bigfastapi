@@ -1,3 +1,4 @@
+from enum import unique
 from sqlalchemy.types import String, DateTime, Integer, Boolean
 from sqlalchemy import ForeignKey, desc
 from sqlalchemy.sql import func
@@ -7,6 +8,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from datetime import datetime
+from bigfastapi.models.organisation_models import Organization
 from bigfastapi.schemas import customer_schemas
 from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
@@ -23,7 +25,7 @@ class Customer(Base):
     email = Column(String(255), index=True,  default="")
     first_name = Column(String(255), default="", index=True)
     last_name = Column(String(255), default="", index=True)
-    unique_id = Column(String(255), nullable=False, index=True)
+    unique_id = Column(String(255), nullable=False, unique=True, index=True)
     phone_number = Column(String(255), index=True, default="")
     business_name = Column(String(255), index=True,  default="")
     location = Column(String(255), index=True,  default="")
@@ -197,7 +199,7 @@ async def bulk_add_customers(customers, organization_id: str, db:Session = Depen
         last_updated=customer.last_updated) for customer in customers]
     db.add_all(objects)
     db.commit()
-    db.refresh(objects)
+    # db.refresh()
     return(objects)
 
 
@@ -205,17 +207,20 @@ async def add_other_info(
     list_other_info: List[customer_schemas.OtherInfo],
     customer_id: str,
     db: Session = Depends(get_db)
-    ):
-    other_info_instance = [OtherInformation(
-        id=uuid4().hex,
-        customer_id=customer_id,
-        key=other_info.key,
-        value=other_info.value
-    ) for other_info in list_other_info]
-    db.add_all(other_info_instance)
-    db.commit()
-    db.refresh(other_info_instance)
-    return list(map(customer_schemas.OtherInfo.from_orm, other_info_instance))
+):
+    res_obj = []
+    for other_info in list_other_info:
+        other_info_instance = OtherInformation(
+            id=uuid4().hex,
+            customer_id=customer_id,
+            key=other_info.key,
+            value=other_info.value
+        )
+        db.add(other_info_instance)
+        db.commit()
+        db.refresh(other_info_instance)
+        res_obj.append(other_info_instance)
+    return list(map(customer_schemas.OtherInfo.from_orm, res_obj))
 
 
 async def put_customer(
@@ -284,3 +289,8 @@ async def get_inactive_customers(organization_id:str, db:Session, offset:int, si
         Customer.last_updated.desc()).offset(
             offset=offset).limit(limit=size).all()
     return (list(map(customer_schemas.Customer.from_orm, customers)), total_items)
+
+async def get_customer_by_unique_id(db:Session, unique_id, org_id):
+    customers = db.query(Customer).filter(Customer.organization_id==org_id).filter(
+        Customer.unique_id==unique_id).all()
+    return list(map(customer_schemas.Customer.from_orm, customers))

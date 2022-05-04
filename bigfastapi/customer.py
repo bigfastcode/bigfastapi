@@ -17,8 +17,7 @@ After that, the following endpoints will become available:
 from random import randrange
 from typing import List
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
-from bigfastapi.models.organisation_models import Organization
-from bigfastapi.models.organisation_models import is_organization_member
+from bigfastapi.models.organisation_models import Organization, is_organization_member, fetchOrganization
 from bigfastapi.models.customer_models import Customer
 from bigfastapi.schemas import customer_schemas, users_schemas
 from bigfastapi.models import customer_models
@@ -79,15 +78,21 @@ async def create_customer(
         HTTP_403_FORBIDDEN: User is not a member of organization
         HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
     """
-    organization = db.query(Organization).filter(
-        Organization.id == customer.organization_id).first()
-    if not organization:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-            detail=INVALID_ORGANIZATION)
-    is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
-    if is_valid_member == False:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
     try:
+        organization = await fetchOrganization(orgId=customer.organization_id, db=db)
+        if not organization:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                detail=INVALID_ORGANIZATION)
+
+        is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        if is_valid_member == False:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
+        
+        existing_customers = await customer_models.get_customer_by_unique_id(db=db, 
+            org_id=organization.id, unique_id=customer.unique_id)
+        if existing_customers:
+            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=NON_UNIQUE_ID)
+
         customer_instance = await customer_models.add_customer(customer=customer,
             organization_id=customer.organization_id, db=db)
         if customer.other_info:
@@ -152,21 +157,20 @@ async def create_bulk_customer(
     try:
         if file.content_type != "text/csv":
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, 
-                detail={"message": "file must be a valid csv file type"})
+                detail= "file must be a valid csv file type")
         
-        organization = db.query(Organization).filter(
-            Organization.id == organization_id).first()
+        organization = await fetchOrganization(orgId=organization_id, db=db)
         if not organization:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                detail=INVALID_ORGANIZATION)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=INVALID_ORGANIZATION)
 
         is_valid_member = await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
 
-        list_customers = await file_to_list_converter(file)
-        add_customers = await customer_models.bulk_add_customers(list_customers, organization_id, db)
-        return JSONResponse({"message": f"{len(add_customers)} Customers Created Successfully"},
+        list_customers = await file_to_schema_converter(file=file, organization_id=organization_id, db=db)
+        db.add_all(list_customers)
+        db.commit()
+        return JSONResponse({"message": f"{len(list_customers)} Customers Created Successfully"},
                             status_code=status.HTTP_200_OK)
     except Exception as ex:
         print(ex)
@@ -210,11 +214,9 @@ async def get_customers(
         HTTP_422_UNPROCESSABLE_ENTITY: request Validation error
     """ 
     try:
-        organization = db.query(Organization).filter(
-            Organization.id == organization_id).first()
+        organization = await fetchOrganization(orgId=organization_id, db=db)
         if not organization:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                detail=INVALID_ORGANIZATION)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=INVALID_ORGANIZATION)
 
         is_valid_member = await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
@@ -351,10 +353,9 @@ async def update_customer(
                                 detail={"message": "Customer does not exist"})
 
         if customer.organization_id:
-            organization = db.query(Organization).filter(
-                Organization.id == customer.organization_id).first()
+            organization = await fetchOrganization(orgId=customer.organization_id, db=db)
             if not organization:
-                return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
+                return JSONResponse({"message": INVALID_ORGANIZATION}, status_code=status.HTTP_404_NOT_FOUND)
             customer_instance.organization_id = organization.id
 
         is_valid_member = await is_organization_member(user_id=user.id, organization_id=customer_instance.organization_id, db=db)
@@ -447,10 +448,9 @@ async def soft_delete_all_customers(
         HTTP_401_FORBIDDEN: Not Authenticated
     """    
     try:
-        organization = db.query(Organization).filter(
-            Organization.id == organization_id).first()
+        organization = await fetchOrganization(orgId=organization_id, db=db)
         if not organization:
-            return JSONResponse({"message": "Organization does not exist"},
+            return JSONResponse({"message": INVALID_ORGANIZATION},
                                 status_code=status.HTTP_404_NOT_FOUND)
         is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
@@ -484,6 +484,7 @@ async def make_customers_inactive(
     user: users_schemas.User = Depends(is_authenticated)
     ):
     try:
+        
         is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
@@ -505,14 +506,48 @@ async def make_customers_inactive(
 
 #=================================Customer Services==============================#
 
-async def file_to_list_converter(file: UploadFile = File(...)):
+async def file_to_schema_converter(organization_id, db, file: UploadFile = File(...), ):
     file_bytes = await file.read()
     customer_str = file_bytes.decode()
     reader = csv.DictReader(io.StringIO(customer_str))
-    list_customers: List(customer_schemas.CustomerBase) = [
-            customer_schemas.CustomerBase(**items) for items in reader]
+    list_customers = []
+    provided_ids = []
+    for item in reader:
+        customer = customer_schemas.CustomerBase(**item)
+        existing_customers = await customer_models.get_customer_by_unique_id(
+            db=db, org_id=organization_id, unique_id=customer.unique_id)
+        if existing_customers or customer.unique_id in provided_ids:
+            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, 
+                detail=NON_UNIQUE_ID)
+        provided_ids.append(customer.unique_id)
+        model_customer= await schema_mapper(customer=customer, organization_id=organization_id)
+        list_customers.append(model_customer)
     return list_customers
 
+async def schema_mapper(customer:customer_schemas.CustomerBase, organization_id: str):
+    mapped_object = customer_models.Customer(id=uuid4().hex,
+        customer_id=generate_short_id(size=12),
+        first_name=customer.first_name,
+        last_name=customer.last_name,
+        unique_id=customer.unique_id,
+        organization_id=organization_id,
+        email=customer.email,
+        phone_number=customer.phone_number,
+        location=customer.location,
+        business_name=customer.business_name,
+        gender=customer.gender,
+        age=customer.age,
+        postal_code=customer.postal_code,
+        language=customer.language,
+        country=customer.country,
+        city=customer.city,
+        region=customer.region,
+        country_code=customer.country_code,
+        date_created=customer.date_created,
+        is_deleted = customer.is_deleted,
+        last_updated=customer.last_updated) 
+    return mapped_object
 
 NOT_ORGANIZATION_MEMBER = "User not authorized to carry out this action"
 INVALID_ORGANIZATION = "Organization does not exist"
+NON_UNIQUE_ID = "unique_id must be unique for all customers in this organization"
