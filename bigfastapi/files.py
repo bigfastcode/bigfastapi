@@ -31,8 +31,8 @@ def get_all_files(db: orm.Session = fastapi.Depends(get_db)):
     return list(map(schema.File.from_orm, files))
 
 
-@app.get("/files/{bucket_name}/{file_name}", response_class=FileResponse)
-def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends(get_db)):
+@app.get("/files/{bucket_name}/{file_id}", response_class=FileResponse)
+def get_file(bucket_name: str, file_id: str, db: orm.Session = fastapi.Depends(get_db)):
 
     """Download a single file from the storage
 
@@ -44,9 +44,8 @@ def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends
         A stream of the file
     """
 
-    existing_file = model.find_file(bucket_name, file_name, db)
+    existing_file = model.find_file(bucket_name, file_id, db)
     if existing_file:
-
         local_file_path = os.path.join(os.path.realpath(settings.FILES_BASE_FOLDER), existing_file.bucketname, existing_file.filename)
 
         common_path = os.path.commonpath((os.path.realpath(settings.FILES_BASE_FOLDER), local_file_path))
