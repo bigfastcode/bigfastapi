@@ -24,6 +24,8 @@ class BankModels(Base):
     recipient_name = Column(String(255), index=True, default=None)
     recipient_address = Column(String(255), index=True, default=None)
     country = Column(String(255), index=True)
+    currency = Column(String(255))
+    frequency = Column(String(255), default=None)
     sort_code = Column(String(255), index=True, default=None)
     swift_code = Column(String(255), index=True, default=None)
     bank_address = Column(String(255), index=True, default=None)
