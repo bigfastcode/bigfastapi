@@ -1,4 +1,3 @@
-from enum import unique
 from sqlalchemy.types import String, DateTime, Integer, Boolean
 from sqlalchemy import ForeignKey, desc
 from sqlalchemy.sql import func
@@ -8,7 +7,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from datetime import datetime
-from bigfastapi.models.organisation_models import Organization
+# from bigfastapi.models.organisation_models import Organization
 from bigfastapi.schemas import customer_schemas
 from bigfastapi.db.database import get_db
 from bigfastapi.utils.utils import generate_short_id
@@ -25,7 +24,8 @@ class Customer(Base):
     email = Column(String(255), index=True,  default="")
     first_name = Column(String(255), default="", index=True)
     last_name = Column(String(255), default="", index=True)
-    unique_id = Column(String(255), nullable=False, unique=True, index=True)
+    unique_id = Column(String(255), nullable=False, index=True,
+                    default=generate_short_id(size=12))
     phone_number = Column(String(255), index=True, default="")
     business_name = Column(String(255), index=True,  default="")
     location = Column(String(255), index=True,  default="")
@@ -44,14 +44,25 @@ class Customer(Base):
                           server_default=func.now(), onupdate=func.now())
     is_inactive = Column(Boolean, index=True, default=False)
     default_currency = Column(String(255), index=True)
+    # group_id = Column(String(255), ForeignKey("customer_group.group_id"))
 
 
 class OtherInformation(Base):
     __tablename__ = "extra_customer_info"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    customer_id = Column(String(255), index=True, nullable=False)
+    customer_id = Column(String(255), ForeignKey("businesses.id"))
     key = Column(String(255), index=True, default="")
     value = Column(String(255), index=True, default="")
+
+
+# class CustomerGroup(Base):
+#     __tablename__ = "customer_group"
+#     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+#     group_id = Column(String(255), index=True, default=generate_short_id(size=12))
+#     group_name = Column(String(255), index=True, default="")
+#     group_description =Column(String(255), index=True, default="")
+#     date_created = Column(DateTime, server_default=func.now())
+#     last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
 
 #==============================Database Services=============================#
