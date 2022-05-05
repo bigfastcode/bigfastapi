@@ -17,6 +17,13 @@ app = APIRouter(tags=["Subscription"])
 
 @app.get("/subscriptions/{org_Id}", response_model=subscription_schema.ResponseList)
 async def indexSubPerOrg(org_Id: str,  db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro-->This endpoint is used to retrieve a users subscription details to an organization. To use this endpoint you need to make a get request to the /subscriptions/{org_Id} endpoint 
+            paramDesc-->On get request the url takes in the parameter, org_id
+                param-->org_id: This is the organization Id of the organization subscribed to
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the subscription
+    """
     subs = await getSubs(org_Id, db)
     return buildSuccessRess(list(map(subscription_schema.SubcriptionBase.from_orm, subs)),
                             'subscription list', True)
@@ -27,6 +34,11 @@ async def subscribe(
         subscription: subscription_schema._SubBAse,
         db: _orm.Session = _fastapi.Depends(get_db)
 ):
+    """intro-->This endpoint is used to process subscription to an organization. To use this endpoint you need to make a post request to the /subscriptions endpoint with a specified body of request 
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the subscription
+    """
     createdSubscrcription = await createSub(subscription, db)
     return buildSuccessRess(createdSubscrcription, 'subscription', False)
 

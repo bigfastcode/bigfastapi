@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{h.landingPage_name}}</title>
+    <link rel="stylesheet" href="{{h.css_file}}">
+  </head>
+  <body>
+    <header>
+      <!-- logo -->
+      <div><img src="{{h.company_logo}}" alt="" class="logo" /></div>
+      <nav>
+        <!-- navigation likns -->
+        <ul class="navigation-links">
+          <li class="nav-link"><a href="{{h.Home_link}}">Home</a></li>
+          <li class="nav-link"><a href="{{h.About_link}}">About</a></li>
+          <li class="nav-link"><a href="{{h.faq_link}}">FAQ</a></li>
+          <li class="nav-link"><a href="{{h.contact_us_link}}">Contact</a></li>
+        </ul>
+        <!-- sign in and sign up links -->
+        <div class="sign-in-up">
+          <ul>
+            <li class="sign-in"><a href="{{h.login_link}}">Log in</a></li>
+            <li class="sign-up"><a href="{{h.signup_link}}">Sign up</a></li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <section class="hero-container">
+        <div class="hero-wrap">
+          <!-- left side of the hero -->
+          <div class="hero-left">
+            <h1>{{h.Body_H1}}</h1>
+            <p>
+              {{h.Body_paragraph}}
+            </p>
+            <!-- sign up form on the hero -->
+            <form action={{h.signup_link}}>
+              <div class="container-grid">
+                <input type="text" name="full-name" id="full-name" />
+                <input type="email" name="email" id="email" />
+                <input type="tel" name="phone-number" id="phone-number" />
+                <input type="submit" value="Sign up" />
+              </div>
+            </form>
+          </div>
+          <!-- right side of the hero -->
+          <div class="hero-right">
+            <img src="{{h.section_One_image_link}}" alt="" class="hero-image" />
+          </div>
+        </div>
+      </section>
+      <!-- second section -->
+      <section class="container">
+        <div class="wrap">
+          <div>
+            <h3>
+              {{h.Body_H3}}
+            </h3>
+          </div>
+          <div>
+            <div>
+              <img src={{h.Body_H3_logo_One}} alt="" />
+              <h3>{{h.Body_H3_logo_One_name}}</h3>
+              <p>
+                {{h.Body_H3_logo_One_paragraph}}
+              </p>
+            </div>
+            <div>
+              <img src={{h.Body_H3_logo_Two}} alt="" />
+              <h3>{{h.Body_H3_logo_Two_name}}</h3>
+              <p>{{h.Body_H3_logo_Two_paragraph}}</p>
+            </div>
+            <div>
+              <img src="{{h.Body_H3_logo_Three}}" alt="#" />
+              <h3>{{h.Body_H3_logo_Three_name}}</h3>
+              <p>{{h.Body_H3_logo_Three_paragraph}}</p>
+            </div>
+            <div>
+              <img src={{h.Body_H3_logo_Four}} alt="#" />
+              <h3>{{h.Body_H3_logo_Four_name}}</h3>
+              <p>
+                {{h.Body_H3_logo_Four_paragraph}}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- third section -->
+      <section class="container">
+        <div class="wrap"> 
+          <div class="section-left">
+            <h3>
+              {{h.section_Three_paragraph}}
+            </h3>
+            <p>
+              {{h.section_Three_sub_paragraph}}
+            </p>
+            <button>Get started</button>
+          </div>
+          <div class="section-right"><img src={{h.section_Three_image}} alt="" /></div>
+        </div>
+      </section>
+      <!-- fourth section -->
+      <section class="container">
+        <div class="wrap">
+          <div class="section-left">
+            <h3>{{h.Footer_H3}}</h3>
+            <p>
+              {{h.Footer_H3_paragraph}}
+            </p>
+            <p>{{h.Footer_name_employee}}</p>
+            <p>{{h.Name_job_description}}</p>
+          </div>
+          <div class="section-right"><img src={{h.section_Four_image}} alt="#" /></div>
+        </div>
+      </section>
+      <!-- fifth section -->
+      <section class="container">
+        <div class="wrap">
+          <h2>
+            {{h.Footer_H2_text}}
+          </h2>
+          <!-- sign up form -->
+          <form action="">
+            <div class="container-grid">
+              <input type="text" name="full-name" id="full-name" />
+              <input type="email" name="email" id="email" />
+              <input type="tel" name="phone-number" id="phone-number" />
+              <input type="submit" value="Sign up" />
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="container">
+        <div class="wrap">
+          <div>
+            <h3>{{h.company_Name}}</h3>
+            <p><a href={{h.Home_link}}>{{h.Home_link}}</a></p>
+          </div>
+          <div>
+            <p>MENU LINKS</p>
+            <ul>
+              <li><a href={{h.Home_link}}>Home</a></li>
+              <li><a href={{h.About_link}}>About</a></li>
+              <li><a href="{{h.faq_link}}">FAQ</a></li>
+              <li><a href="{{h.contact_us_link}}">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <p>CONTACT</p>
+            <p>
+              {{h.Footer_contact_address}}
+            </p>
+            <p>
+              <a href={{h.customer_care_email}}>{{h.customer_care_email}}</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
