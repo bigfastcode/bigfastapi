@@ -21,8 +21,12 @@ app = APIRouter(tags=["Landing Page"])
 templates = Jinja2Templates(directory=TEMPLATE_FOLDER+"/landingpage")
 
 
+# Endpoint to open index.html
+@app.get("/landingpage")
+async def landing_page_index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-#  endpoint to get landing page images
+# Endpoint to get landing page images
 @app.get("/landingpage/{filetype}/{folder}/{imageName}", status_code=200)
 def path(filetype: str, imageName:str, folder:str, request: Request):
     fullpath = imageFullpath(folder + "/" +imageName)
@@ -30,7 +34,7 @@ def path(filetype: str, imageName:str, folder:str, request: Request):
 
 
 
-# endpoint to create landing page
+# Endpoint to create landing page
 @app.post("/landingpage/create", status_code=201, response_model=Landing_page_schemas.landingPageResponse)
 async def createlandingpage(request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db),current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), section_Three_image: UploadFile = File(...), Section_Four_image: UploadFile = File(...), section_One_image_link: UploadFile = File(...), Body_H3_logo_One: UploadFile = File(...), Body_H3_logo_Two: UploadFile = File(...),
@@ -162,8 +166,8 @@ async def createlandingpage(request: Landing_page_schemas.landingPageCreate = De
 
 
 
-# get all landing pages and use the fetch_all_landing_pages function to get the data
-@app.get("/landingpage", status_code=status.HTTP_200_OK, response_model=List[Landing_page_schemas.landingPageResponse])
+# Endpoint to get all landing pages and use the fetch_all_landing_pages function to get the data
+@app.get("/landingpage/all", status_code=status.HTTP_200_OK, response_model=List[Landing_page_schemas.landingPageResponse])
 async def get_all_landing_pages(db: Session = Depends(get_db), current_user = Depends(is_authenticated)):
 
     # check if user is a superuser
@@ -172,6 +176,7 @@ async def get_all_landing_pages(db: Session = Depends(get_db), current_user = De
         # attempt to get all landing pages from the database
         try:
             landingPages = db.query(Landing_Page_models.LPage).all()
+
             return  landingPages
         
         # return error if landing pages cannot be fetched
@@ -180,7 +185,7 @@ async def get_all_landing_pages(db: Session = Depends(get_db), current_user = De
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error fetching data")
 
 
-# get a single landing page and use the fetch_landing_page function to get the data
+# Endpoint to get a single landing page and use the fetch_landing_page function to get the data
 @app.get("/landingpage/{landingPage_name}", status_code=status.HTTP_200_OK, response_class=HTMLResponse)
 async def get_landing_page(request:Request,landingPage_name: str, db: Session = Depends(get_db)):
 
@@ -241,7 +246,7 @@ async def get_landing_page(request:Request,landingPage_name: str, db: Session = 
 
 
 
-# update a single landing page and use the update_landing_page function to update the data
+# Endpoint to update a single landing page and use the update_landing_page function to update the data
 @app.put("/landingpage/{landingPage_Name}", status_code=status.HTTP_200_OK, response_model=Landing_page_schemas.landingPageResponse)
 async def update_landing_page(landingPage_Name: str,request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), section_Three_image: UploadFile = File(...), Section_Four_image: UploadFile = File(...), section_One_image_link: UploadFile = File(...), Body_H3_logo_One: UploadFile = File(...), Body_H3_logo_Two: UploadFile = File(...),
@@ -446,7 +451,7 @@ async def update_landing_page(landingPage_Name: str,request: Landing_page_schema
 
 
 
-# delete landing page data
+# Endpoint to delete landing page data
 @app.delete("/landingpage/{landingPage_name}",status_code=200, tags=["landingPage"])
 async def delete_landingPage(landingPage_name: str, current_user = Depends(is_authenticated), db: Session = Depends(get_db)):
    
@@ -482,14 +487,14 @@ async def delete_landingPage(landingPage_name: str, current_user = Depends(is_au
 
 
 
-# Retrieve landing page images
+# Function to retrieve landing page images
 def imageFullpath(imagepath):
     root_location = os.path.abspath("filestorage")
     image_location = os.path.join(root_location, imagepath)
     return FileResponse(image_location)
 
 
-# get host part
+# Function to get host path to landing page images
 def getUrlFullPath(request: Request, filetype: str):
     hostname = request.headers.get('host')
     image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
