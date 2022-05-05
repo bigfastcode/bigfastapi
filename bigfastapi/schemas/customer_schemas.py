@@ -57,6 +57,7 @@ class CustomerBase(BaseModel):
                 detail={"invalid request":'the unique id cannot be null, none or an empty string', 
                     "message":"invalid unique id value"})
         return values
+    
 
 
 class Customer(CustomerBase):

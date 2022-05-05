@@ -26,12 +26,21 @@ def send_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "base_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
-):
-    """An endpoint used to send an email
+    db: orm.Session = fastapi.Depends(get_db)):
 
-    Returns:
-        object (dict): a message
+    """intro-->This endpoint is used to send an email. To use this endpoint you need to make a post request to the /email/send endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Email will be sent in the background" 
     """
 
     send_email(email_details=email_details,
@@ -47,10 +56,19 @@ def send_notification_email(
     template: Optional[str] = "notification_email.html",
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """An endpoint for sending a notification email
+    """intro-->This endpoint is used to send a notification email. To use this endpoint you need to make a post request to the /email/send/notification endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
 
-    Returns:
-        object (dict): a message
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Notification Email will be sent in the background" 
     """
 
     send_email(email_details=email_details,
@@ -66,10 +84,20 @@ def send_invoice_email(
     db: orm.Session = fastapi.Depends(get_db)
 
 ):
-    """An endpoint for sending an invoice email
 
-    Returns:
-        object (dict): a message
+    """intro-->This endpoint is used to send an invoice email. To use this endpoint you need to make a post request to the /email/send/invoice endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Invoice Email will be sent in the background" 
     """
     send_email(email_details=email_details,
                background_tasks=background_tasks, template=template, db=db)
@@ -83,10 +111,19 @@ def send_receipt_email(
     template: Optional[str] = "receipt_email.html",
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """An endpoint for sending a receipt email
+    """intro-->This endpoint is used to send a receipt email. To use this endpoint you need to make a post request to the /email/send/receipt endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
 
-    Returns:
-        object (dict): a message
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Receipt Email will be sent in the background" 
     """
     send_email(email_details=email_details,
                background_tasks=background_tasks, template=template, db=db)
@@ -100,10 +137,19 @@ def send_welcome_email(
     template: Optional[str] = "welcome.html",
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """An endpoint for sending a welcome email
+    """intro-->This endpoint is used to send a welcome email. To use this endpoint you need to make a post request to the /email/send/welcome endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
 
-    Returns:
-        object (dict): a message
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Welcome Email will be sent in the background" 
     """
     send_email(email_details=email_details,
                background_tasks=background_tasks, template=template, db=db)
@@ -117,10 +163,19 @@ def send_verification_email(
     template: Optional[str] = "verification_email.html",
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """An endpoint for sending verification email
+    """intro-->This endpoint is used to send a Verification email. To use this endpoint you need to make a post request to the /email/send/verification endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
 
-    Returns:
-        object (dict): a message
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Verification Email will be sent in the background" 
     """
 
     send_email(email_details=email_details,
@@ -135,10 +190,19 @@ def send_reset_password_email(
     template: Optional[str] = "reset_password_email.html",
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """An endpoint for sending a reset password email
+    """intro-->This endpoint is used to send a reset password email. To use this endpoint you need to make a post request to the /email/send/reset-password endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
 
-    Returns:
-        object (dict): a message
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Reset Password Email will be sent in the background" 
     """
 
     send_email(email_details=email_details,
@@ -153,10 +217,19 @@ def send_marketing_email(
     template: Optional[str] = "marketing_email.html",
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """An endpoint for sending a marketing email to a customer or a list of customers
+    """intro-->This endpoint is used to send a marketing email. To use this endpoint you need to make a post request to the /email/send/marketing-email endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
 
-    Returns:
-        object (dict): a message
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Marketing Email will be sent in the background" 
     """
 
     send_email(email_details=email_details,
@@ -172,10 +245,19 @@ def schedule_marketing_email(
     template: Optional[str] = "marketing_email.html",
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """An endpoint for scheduling a marketing email to be sent at a particular time
+    """intro-->This endpoint is used for scheduling a marketing email to be sent at a particular time. To use this endpoint you need to make a post request to the /email/send/marketing-email/schedule endpoint with a specified body of request
+    
+        reqBody-->subject: This is the subject of the email
+        reqBody-->recipient: This is an array of emails you want to send the email to
+        reqBody-->title: This is the title of the email
+        reqBody-->first_name: This is the first name of the user
+        reqBody-->sender_address: This is the address of the user
+        reqBody-->sender_city: This is the city of the user
+        reqBody-->sender_state: This is the state of the user
+        reqBody-->body: This is the body of the email
 
-    Returns:
-        object (dict): a message
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "Scheduled Marketing Email will be sent in the background" 
     """
 
     if schedule_at <= datetime.now():
@@ -188,7 +270,7 @@ def schedule_marketing_email(
     send_email(email_details=email_details,
                background_tasks=background_tasks, template=template, db=db)
     return {"message": "Scheduled Marketing Email will be sent in the background"}
-
+    
 
 #=================================== EMAIL SERVICES =================================#
 conf = ConnectionConfig(
