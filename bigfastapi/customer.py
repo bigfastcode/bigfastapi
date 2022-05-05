@@ -28,6 +28,7 @@ from .auth_api import is_authenticated
 from bigfastapi.utils.utils import generate_short_id
 from uuid import uuid4
 import csv
+from datetime import datetime
 import io
 from bigfastapi.utils import paginator
 
@@ -198,6 +199,7 @@ async def get_customers(
     organization_id: str,
     search_value: str = None,
     sorting_key: str = None,
+    datetime_constraint: datetime =None,
     page: int = 1,
     size: int = 50,
     reverse_sort: bool = True,
@@ -240,10 +242,6 @@ async def get_customers(
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
         offset = await paginator.off_set(page=page_number, size=page_size)
-        total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
-        Customer.is_deleted == False).filter(Customer.is_inactive != True).count()
-        pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_items, endpoint="/customers")
-
         organization = db.query(Organization).filter(
             Organization.id == organization_id).first()
         if not organization:
@@ -252,13 +250,14 @@ async def get_customers(
             customers, total_items = await customer_models.search_customers(organization_id=organization_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
         elif sorting_key:
-            customers = await customer_models.sort_customers(organization_id=organization_id, sort_key=sorting_key, 
+            customers, total_items = await customer_models.sort_customers(organization_id=organization_id, sort_key=sorting_key, 
                 offset=offset, size=page_size, sort_dir=sort_dir, db=db)
         else:
-            customers = await customer_models.fetch_customers(organization_id=organization_id, offset=offset, 
-                    size=page_size, db=db)
-        response = {"page": page_number, "size": page_size, "total": total_items,
-            "previous_page":pointers['previous'], "next_page": pointers["next"], "items": customers}
+            customers, total_items = await customer_models.fetch_customers(organization_id=organization_id,
+                offset=offset, size=page_size, timestamp=datetime_constraint, db=db)
+        pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_items, endpoint="/customers")
+        response = {"previous_page":pointers['previous'], "next_page": pointers["next"],
+            "page": page_number, "size": page_size, "total": total_items, "items": customers}
         return response
     except Exception as ex:
         print(ex)

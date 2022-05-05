@@ -69,16 +69,33 @@ class OtherInformation(Base):
 
 async def fetch_customers(
     organization_id: str,
-    offset: int, size: int = 50,
+    offset: int,
+    timestamp: datetime = None,
+    size: int = 50,
     db: Session = Depends(get_db)
     ):
-    customers = db.query(Customer).filter(
-        Customer.organization_id == organization_id).filter(
-        Customer.is_deleted == False).filter(or_(
-        Customer.is_inactive == False, Customer.is_inactive == None
-        )).order_by(Customer.date_created.desc()
-        ).offset(offset=offset).limit(limit=size).all()
-    return list(map(customer_schemas.Customer.from_orm, customers))
+    if timestamp:
+        customers = db.query(Customer).filter(
+            Customer.organization_id == organization_id).filter(
+            Customer.is_deleted == False).filter(or_(
+            Customer.is_inactive == False, Customer.is_inactive == None
+            )).filter(Customer.last_updated > timestamp).order_by(Customer.date_created.desc()
+            ).offset(offset=offset).limit(limit=size).all()
+        total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
+            Customer.is_deleted == False).filter(or_(
+            Customer.is_inactive == False, Customer.is_inactive == None)).filter(
+            Customer.last_updated > timestamp).count()
+    else:
+        customers = db.query(Customer).filter(
+            Customer.organization_id == organization_id).filter(
+            Customer.is_deleted == False).filter(or_(
+            Customer.is_inactive == False, Customer.is_inactive == None
+            )).order_by(Customer.date_created.desc()
+            ).offset(offset=offset).limit(limit=size).all()
+        total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
+            Customer.is_deleted == False).filter(or_(
+            Customer.is_inactive == False, Customer.is_inactive == None)).count()  
+    return (list(map(customer_schemas.Customer.from_orm, customers)), total_items) 
 
 
 async def search_customers(
@@ -137,19 +154,21 @@ async def sort_customers(
     if sort_dir == "desc":
         customers = db.query(Customer).filter(
             Customer.organization_id == organization_id).filter(
-            Customer.is_deleted == False).filter(
-            Customer.is_inactive == False).order_by(
-            desc(getattr(Customer, sort_key, "first_name"))
+            Customer.is_deleted == False).filter(or_(
+            Customer.is_inactive == False, Customer.is_inactive == None
+            )).order_by(desc(getattr(Customer, sort_key, "first_name"))
             ).offset(offset=offset).limit(limit=size).all()
     else:
         customers = db.query(Customer).filter(
             Customer.organization_id == organization_id).filter(
-            Customer.is_deleted == False).filter(
-            Customer.is_inactive != True).order_by(
-            getattr(Customer, sort_key, "first_name")
+            Customer.is_deleted == False).filter(or_(
+            Customer.is_inactive == False, Customer.is_inactive == None
+            )).order_by(getattr(Customer, sort_key, "first_name")
             ).offset(offset=offset).limit(limit=size).all()
-
-    return list(map(customer_schemas.Customer.from_orm, customers))
+    total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
+        Customer.is_deleted == False).filter(or_(
+        Customer.is_inactive == False, Customer.is_inactive == None)).count()  
+    return (list(map(customer_schemas.Customer.from_orm, customers)), total_items)
 
 
 async def add_customer(
@@ -269,7 +288,7 @@ async def put_customer(
         customer_instance.region = customer.region
     if customer.country_code:
         customer_instance.region = customer.country_code
-    customer_instance.last_updated = datetime.now()
+    customer_instance.last_updated = customer.last_updated
     db.commit()
     db.refresh(customer_instance)
     return customer_schemas.Customer.from_orm(customer_instance)
