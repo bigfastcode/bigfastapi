@@ -1,3 +1,8 @@
+"""
+    The @as_form_schema decorator is used to convert a class into a a form schema.
+    To use it you need to import it from bigfastapi.utils.schema_form
+"""
+
 from pydantic import BaseModel
 from typing import Optional
 import datetime as _dt
