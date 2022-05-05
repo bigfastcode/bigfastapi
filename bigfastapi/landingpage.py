@@ -24,11 +24,17 @@ templates = Jinja2Templates(directory=TEMPLATE_FOLDER+"/landingpage")
 # Endpoint to open index.html
 @app.get("/landingpage")
 async def landing_page_index(request: Request):
+    """
+    This endpont will return landing page index.html
+    """
     return templates.TemplateResponse("index.html", {"request": request})
 
 # Endpoint to get landing page images
 @app.get("/landingpage/{filetype}/{folder}/{imageName}", status_code=200)
 def path(filetype: str, imageName:str, folder:str, request: Request):
+    """
+    This endpoint is used in the landing page html to fetch images 
+    """
     fullpath = imageFullpath(folder + "/" +imageName)
     return fullpath
 
@@ -39,6 +45,46 @@ def path(filetype: str, imageName:str, folder:str, request: Request):
 async def createlandingpage(request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db),current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), section_Three_image: UploadFile = File(...), Section_Four_image: UploadFile = File(...), section_One_image_link: UploadFile = File(...), Body_H3_logo_One: UploadFile = File(...), Body_H3_logo_Two: UploadFile = File(...),
     Body_H3_logo_Three: UploadFile = File(...), Body_H3_logo_Four: UploadFile = File(...),):
+    """
+    This endpoint is used to create a landing page
+    It takes in the following parameters:
+        landingPage_name: This is the name of the landing page and will be used to view the landing page html
+        company_Name: This is the name of the company
+        Home_link: This is the link to the home page. This will be used to view the landing page html
+        About_link: This is the link to the about page. This will be used to view the about page html
+        Contact_link: This is the link to the contact page. This will be used to view the contact page html
+        company_logo: This is the logo of the company. This will be used to to place  the company logo in the landing page html
+        section_Three_image: This is the image of the section three. This will be used to to place  the section three image in the landing page html
+        Section_Four_image: This is the image of the section four. This will be used to to place  the section four image in the landing page html
+        section_One_image_link: This is the link to the section one image. This will be used to to place  the section one image in the landing page html
+        Body_H3_logo_One: This is the image of the body h3 logo one. This will be used to to place  the body h3 logo one in the landing page html
+        Body_H3_logo_Two: This is the image of the body h3 logo two. This will be used to to place  the body h3 logo two in the landing page html
+        Body_H3_logo_Three: This is the image of the body h3 logo three. This will be used to to place  the body h3 logo three in the landing page html
+        Body_H3_logo_Four: This is the image of the body h3 logo four. This will be used to to place  the body h3 logo four in the landing page html
+        Body_H1: This is the body h1 text. This will be used to to place  the body h1 text in the landing page html
+        Body_paragraph: This is the body paragraph text. This will be used to to place  the body paragraph text in the landing page html
+        Body_H3: This is the body h3 text. This will be used to to place  the body h3 text in the landing page html
+        Body_H3_logo_One_name: This is the name of the body h3 logo one. This will be used to to place  the body h3 logo one name in the landing page html
+        Body_H3_logo_One_paragraph: This is the body h3 logo one paragraph text. This will be used to to place  the body h3 logo one paragraph text in the landing page html
+        Body_H3_logo_Two_name: This is the name of the body h3 logo two. This will be used to to place  the body h3 logo two name in the landing page html
+        Body_H3_logo_Two_paragraph: This is the body h3 logo two paragraph text. This will be used to to place  the body h3 logo two paragraph text in the landing page html
+        Body_H3_logo_Three_name: This is the name of the body h3 logo three. This will be used to to place  the body h3 logo three name in the landing page html
+        Body_H3_logo_Three_paragraph: This is the body h3 logo three paragraph text. This will be used to to place  the body h3 logo three paragraph text in the landing page html
+        Body_H3_logo_Four_name: This is the name of the body h3 logo four. This will be used to to place  the body h3 logo four name in the landing page html
+        Body_H3_logo_Four_paragraph: This is the body h3 logo four paragraph text. This will be used to to place  the body h3 logo four paragraph text in the landing page html
+        section_Three_paragraph: This is the section three paragraph text. This will be used to to place  the section three paragraph text in the landing page html
+        section_Three_sub_paragraph: This is the section three sub paragraph text. This will be used to to place  the section three sub paragraph text in the landing page html
+        Footer_H3: This is the footer h3 text. This will be used to to place  the footer h3 text in the landing page html
+        Footer_H3_paragraph: This is the footer h3 paragraph text. This will be used to to place  the footer h3 paragraph text in the landing page html
+        Footer_name_employee: This is the footer name employee text. This will be used to to place  the footer name employee text in the landing page html
+        Name_job_description: This is the name job description text. This will be used to to place  the name job description text in the landing page html
+        Footer_H2_text: This is the footer h2 text. This will be used to to place  the footer h2 text in the landing page html
+        Footer_contact_address: This is the footer contact address text. This will be used to to place  the footer contact address text in the landing page html
+        customer_care_email: This is the customer care email text. This will be used to to place  the customer care email text in the landing page html
+        faq_link: This is the faq link text. This will be used to to place  the faq link text in the landing page html
+        login_link: This is the login link text. This will be used to to place  the login link text in the landing page html
+        signup_link: This is the signup link text. This will be used to to place  the signup link text in the landing page html
+    """
 
     # checks if user is a superuser 
     if current_user.is_superuser:
@@ -169,7 +215,9 @@ async def createlandingpage(request: Landing_page_schemas.landingPageCreate = De
 # Endpoint to get all landing pages and use the fetch_all_landing_pages function to get the data
 @app.get("/landingpage/all", status_code=status.HTTP_200_OK, response_model=List[Landing_page_schemas.landingPageResponse])
 async def get_all_landing_pages(db: Session = Depends(get_db), current_user = Depends(is_authenticated)):
-
+    """
+    This endpoint will return all landing pages
+    """
     # check if user is a superuser
     if current_user.is_superuser:
 
@@ -188,7 +236,9 @@ async def get_all_landing_pages(db: Session = Depends(get_db), current_user = De
 # Endpoint to get a single landing page and use the fetch_landing_page function to get the data
 @app.get("/landingpage/{landingPage_name}", status_code=status.HTTP_200_OK, response_class=HTMLResponse)
 async def get_landing_page(request:Request,landingPage_name: str, db: Session = Depends(get_db)):
-
+    """
+    This endpoint will return a single landing page in html
+    """
     # query the database using the landing page name
     landingPage_data = db.query(Landing_Page_models.LPage).filter(Landing_Page_models.LPage.landingPage_name ==landingPage_name).first()
 
@@ -251,7 +301,9 @@ async def get_landing_page(request:Request,landingPage_name: str, db: Session = 
 async def update_landing_page(landingPage_Name: str,request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), section_Three_image: UploadFile = File(...), Section_Four_image: UploadFile = File(...), section_One_image_link: UploadFile = File(...), Body_H3_logo_One: UploadFile = File(...), Body_H3_logo_Two: UploadFile = File(...),
     Body_H3_logo_Three: UploadFile = File(...), Body_H3_logo_Four: UploadFile = File(...),):
-
+    """
+    This endpoint will update a single landing page in the database with data from the request
+    """
     # check if the user is superuser
     if current_user.is_superuser:
 
@@ -454,7 +506,9 @@ async def update_landing_page(landingPage_Name: str,request: Landing_page_schema
 # Endpoint to delete landing page data
 @app.delete("/landingpage/{landingPage_name}",status_code=200, tags=["landingPage"])
 async def delete_landingPage(landingPage_name: str, current_user = Depends(is_authenticated), db: Session = Depends(get_db)):
-   
+    """
+    This endpoint is used to delete landing page data from the database and all images associated with the landing page data
+    """
     # check if user is a super user
     if current_user.is_superuser:
          # query for the landing page data
