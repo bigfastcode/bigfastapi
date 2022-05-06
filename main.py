@@ -41,6 +41,7 @@ from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
+from bigfastapi.failed_imports import app as failedimports
 
 # Create the application
 tags_metadata = [
@@ -50,7 +51,7 @@ tags_metadata = [
     },
      {
         "name": "auth",
-        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specific parameters",
+        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specified parameters",
     },
     {
         "name": "countries",
@@ -58,11 +59,79 @@ tags_metadata = [
     },
     {
         "name": "pages",
-        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion on pages seamlessly. You can create pages with a specified title and content body",
+        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion of pages seamlessly. You can create pages with a specified title and content body",
     },
     {
         "name": "notification",
         "description": "BigFast's notifications api  allows you to create notifications and manage the notification flow in your application. You can easily make queries like marking a specific notification as read, marking all notifications as read e.t.c.",
+    },
+    {
+        "name": "activitieslog",
+        "description": "BigFast's activity log api allows you to record and manage activity logs for an organization. You can log/record acitvies in an organization and easily retireve them later on."
+    },
+    {
+        "name": "banks",
+        "description": "BigFast's bank api allows you to add and manage bank details for an organization. You can also perform operations like validating a bank detail and retrieving a valid bank detail schema for a country of interest"
+    },
+    {
+        "name": "comments",
+        "description": "BigFast's comments api allows you easily build a comments architecture for your application. With bigfast's comment api you can manage creation of a comment thread, creation of a comment, replies, updating a comment and deletion of a comment. The comments api also enables upvoting and downvoting a comment"
+    },
+    {
+        "name": "contactsandcontactus",
+        "description": "BigFast's contact api allows you to create and manage contact directories while the contact us api allows you to build out a contact us architecture. With the contact us endpoints you can implement sending of a contact us message, retrieval of contact us message and carry out other more specific actions."
+    },
+    {
+        "name": "countries",
+        "description": "BigFast's countries api exposes a lot of useful functionalities. You can call and get all countries in the world and their respective states. You can also retreive more specific data using the provided."
+    },
+    {
+        "name": "creditwallet",
+        "description": "BigFast's credit api allows you to create and retrieve custom credit rates, you can also add and retrieve credit deails for an organization. It also exposes endpoints you can use to verify payments with payment providers."
+    },
+    {
+        "name": "customers",
+        "description": "BigFast's customers api exposes a a group of API routes related to customers. You can seamlessly create, retrieve, update and delete customer details."
+    },
+    {
+        "name": "transactionalemails",
+        "description": "BigFast's Transactional Emails api allows you to send emails. We have also made more specific email templates available."
+    },
+    {
+        "name": "file",
+        "description": "BigFast's file api allows you upload/store files in our database. When uploading a file, it is stored in a collection which you specify, we call this collection a bucket"
+    },
+    {
+        "name": "organization",
+        "description": "BigFast's organization api is very robust, and exposes many essential endpoints you can use to run an organization. You can create and manage an organization, create roles in an organization and mange invites to an organization."
+    },
+    {
+        "name": "plan",
+        "description": "BigFast's plan api allows you to create a service plan and retrieve when needed. This is useful for organizations with various service plans for customers"
+    },
+    {
+        "name": "qrcode",
+        "description": "BigFast's qr code api provides a unique qr code"
+    },
+    {
+        "name": "settings",
+        "description": "BigFast's settings api provides a schema you can use to setup/bootstrap an organization. You can add an organization settings and recall/reference it wherever. This api also allows you you to create custom settings for your application, basically your setting will have a name and a value which can then be retrieved when needed"
+    },
+    {
+        "name": "subscription",
+        "description": "BigFast's subscription api allows you create subscription packeges for an organization, which can then be subscribed to by a user"
+    },
+    {
+        "name": "tutorials",
+        "description": "BigFast's tutorial is another great api. This api allows you to create and mange tutorials for your application you can specify a category on creation and retrieve later on, based on the category. You can also retrieve a tutorial based on a specified keyword."
+    },
+    {
+        "name": "wallet",
+        "description": "BigFast's wallet is another great api. This api allows you to create a wallet for a user in an organization. You can retrieve user wallets based on the organization, the wallet currency e.t.c."
+    },
+    {
+        "name": "user",
+        "description": "BigFast's users api allows you and mange user's and user processes in your application."
     },
 
 ]
@@ -115,6 +184,7 @@ app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
+app.include_router(failedimports)
 
 
 @app.get("/", tags=["Home"])

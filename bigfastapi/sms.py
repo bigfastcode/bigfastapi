@@ -30,12 +30,19 @@ class SendSMS():
         db: orm.Session = fastapi.Depends(get_db)
     ):
 
-        """
-            An endpoint used to send an sms
+        """intro-->This endpoint allows you to send an sms. To use this endpoint you need to make a post request to the /sms/send endpoint
 
-            Returns:
-                object (dict): status code, message
-        """
+            reqBody-->sender: This is the name of the sender
+            reqBody-->recipient: This is the recipient of the sms
+            reqBody-->body: This is the content of the sms
+            reqBody-->provider: This is the network provider
+            reqBody-->user: This the current user 
+            reqBody-->passkey: This is unique passkey
+        
+        returnDesc--> On sucessful request, it returns message,
+            returnBody--> "success"
+        """ 
+        
         print(sms_details)
         if (sms_details.provider == "nuobject"):
             req = requests.put(

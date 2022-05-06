@@ -15,7 +15,7 @@ class Product(database.Base):
     price = Column(Float, index=True, nullable=False)
     discount = Column(Float, nullable=True)
     business_id = Column(String(255), ForeignKey("businesses.id", ondelete="CASCADE"))
-    images = Column(Text, nullable=True)
+    #images = Column(Text, nullable=True)
     created_by = Column(String(255), ForeignKey("users.id"))
     unique_id = Column(String(255), index=True, nullable=False)
     quantity =  Column(Integer, index=True, nullable=False)

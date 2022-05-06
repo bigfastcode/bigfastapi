@@ -1,8 +1,8 @@
 
 import datetime as datetime
 from uuid import uuid4
-from fastapi import APIRouter
-from typing import List
+from fastapi import APIRouter, UploadFile, File
+from typing import List, Optional
 import fastapi as fastapi
 from fastapi import HTTPException, status
 import sqlalchemy.orm as orm
@@ -11,6 +11,9 @@ from .schemas import users_schemas as user_schema
 from .schemas import product_schemas as schema
 from .models import product_models as model
 from .models import organisation_models as org_model
+from .files import upload_image
+import os
+import shutil
 
 from bigfastapi.db.database import get_db
 
@@ -55,7 +58,7 @@ def get_product(business_id: str, product_id: str, db: orm.Session = fastapi.Dep
 
 
 @app.post("/product", response_model=schema.Product, status_code=status.HTTP_201_CREATED)
-def create_product(product: schema.ProductCreate, 
+async def create_product(product: schema.ProductCreate, 
                    user: user_schema.User = fastapi.Depends(is_authenticated), 
                    db: orm.Session = fastapi.Depends(get_db)):
                    
@@ -88,9 +91,16 @@ def create_product(product: schema.ProductCreate,
     else:
         product_status = False
 
+    
+    #read and upload images
+    if product.files != None:
+        for file in product.files:
+            image = await upload_image(file, db, bucket_name=product.unique_id)
+
+
     #Add product to database
     product = model.Product(id=uuid4().hex, created_by=user.id, business_id=product.business_id, name=product.name, description=product.description,
-                            price=product.price, discount=product.discount, images=product.images, unique_id=product.unique_id, quantity=product.quantity
+                            price=product.price, discount=product.discount, unique_id=product.unique_id, quantity=product.quantity
                             ,status = product_status)
     
     db.add(product)

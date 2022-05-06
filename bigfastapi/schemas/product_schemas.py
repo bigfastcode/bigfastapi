@@ -1,6 +1,7 @@
 
 import datetime as dt
 from pydoc import describe
+from fastapi import File, UploadFile
 
 from pydantic import BaseModel 
 from pydantic import Field
@@ -11,7 +12,7 @@ class ProductBase(BaseModel):
     name: str
     description: str
     price: float
-    images: str
+    # images: str
     unique_id: str
     quantity: int
 
@@ -28,11 +29,11 @@ class Product(ProductBase):
 class ProductCreate(ProductBase):
     discount: float
     business_id: str
-    pass
+    files: Optional [List[UploadFile]] = None
+
 
 class ProductUpdate(ProductBase):
     discount: str
-    pass
 
 
 class ShowProduct(Product):
