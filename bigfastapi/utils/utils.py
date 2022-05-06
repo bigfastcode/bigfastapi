@@ -13,6 +13,7 @@ from stripe.error import InvalidRequestError
 
 from bigfastapi.schemas import users_schemas
 from bigfastapi.schemas.wallet_schemas import PaymentProvider
+from random import randrange
 
 DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
@@ -20,6 +21,8 @@ DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 def generate_short_id(size=9, chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(chars) for _ in range(size))
 
+def generate_random_int(begin=0, end=1000):
+    return randrange(begin, end)
 
 def validate_email(email):
     regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
