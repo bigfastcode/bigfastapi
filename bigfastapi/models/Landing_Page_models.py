@@ -21,7 +21,7 @@ class LPage(db.Base):
   faq_link = Column(String(255)) # faq link
   contact_us_link = Column(String(255)) # contact us link
   Body_H1 = Column(String(255)) # body title
-  Body_paragraph = Column(String) # body content text
+  Body_paragraph = Column(String(255)) # body content text
   section_One_image_link = Column(String(255)) # body content logo one
   Body_H3 = Column(String(255)) # body title subtext
   Body_H3_logo_One = Column(String(255)) # body title image
@@ -43,7 +43,7 @@ class LPage(db.Base):
   Footer_H3_paragraph= Column(String(255))
   Footer_name_employee= Column(String(255))
   Name_job_description= Column(String(255))
-  section_Four_image = Column(String)
+  section_Four_image = Column(String(255))
   Footer_H2_text = Column(String(255))
   Footer_contact_address = Column(String(255))
   customer_care_email = Column(String(255))

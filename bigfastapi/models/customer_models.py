@@ -44,7 +44,7 @@ class Customer(Base):
                           server_default=func.now(), onupdate=func.now())
     is_inactive = Column(Boolean, index=True, default=False)
     default_currency = Column(String(255), index=True)
-    customer_group_id = Column(String(255), ForeignKey("customer_group.group_id"))
+    # customer_group_id = Column(String(255), ForeignKey("customer_group.group_id"))
 
 
 class OtherInformation(Base):
@@ -296,7 +296,9 @@ async def put_customer(
 async def get_customer_by_id(customer_id: str, db: Session):
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
-    return customer_schemas.Customer.from_orm(customer)
+    if customer:
+        return customer_schemas.Customer.from_orm(customer)
+    return {}
 
 
 async def get_other_customer_info(customer_id:str, db:Session):

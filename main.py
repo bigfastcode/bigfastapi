@@ -44,6 +44,7 @@ from bigfastapi.activities_log import app as activitieslog
 from bigfastapi.landingpage import app as landingpage
 from bigfastapi.failed_imports import app as failedimports
 from bigfastapi.import_progress import app as importprogress
+from bigfastapi.sales import app as sales
 
 # Create the application
 tags_metadata = [
@@ -135,6 +136,10 @@ tags_metadata = [
         "name": "user",
         "description": "BigFast's users api allows you and mange user's and user processes in your application."
     },
+    {
+        "name": "sales",
+        "description": "BigFast's sales api exposes a a group of API routes related to sales. You can seamlessly create, retrieve, update and delete sale details."
+    },
 
 ]
 
@@ -189,6 +194,7 @@ app.include_router(activitieslog)
 app.include_router(landingpage)
 app.include_router(failedimports)
 app.include_router(importprogress)
+app.include_router(sales)
 
 
 @app.get("/", tags=["Home"])

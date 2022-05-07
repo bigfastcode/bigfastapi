@@ -1,14 +1,17 @@
 from datetime import datetime
-from typing import Optional, List, bool
+from enum import unique
+from typing import Optional, List
 from pydantic import BaseModel, root_validator
 from fastapi import HTTPException, status
+from bigfastapi.utils import utils
 
 class SaleBase(BaseModel):
-    sale_id :str
+    sale_id :str = utils.generate_short_id(size=12)
+    unique_id: str = utils.generate_random_int()
     product_id :str
     customer_id :str
-    organization_id : Optional[str]
-    amount :str
+    organization_id : str
+    amount :int
     sale_currency :str
     mode_of_payment : str
     payment_status:Optional[str]

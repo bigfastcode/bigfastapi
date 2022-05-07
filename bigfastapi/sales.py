@@ -22,7 +22,7 @@ app = APIRouter(tags=["Sales"],)
     response_model=sale_schemas.SaleResponse,
     status_code=status.HTTP_201_CREATED
     )
-async def create_customer(
+async def create_sale(
     sale: sale_schemas.SaleBase,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
@@ -33,10 +33,10 @@ async def create_customer(
 
 
 @app.get("/sales",
-    response_model=customer_schemas.PaginatedCustomerResponse,
+    # response_model=customer_schemas.PaginatedCustomerResponse,
     status_code=status.HTTP_200_OK
     )
-async def create_customer(
+async def get_all_sale(
     organization_id:str,
     page: int = 1,
     size: int = 50,
@@ -51,22 +51,25 @@ async def create_customer(
     page_size = 50 if size < 1 or size > 100 else size
     page_number = 1 if page <= 0 else page
     offset = await paginator.off_set(page=page_number, size=page_size)
-    sales = await sale_models.fetch_sales(organization_id=organization_id, offset=offset, size=page_size, 
+    sales, total_items = await sale_models.fetch_sales(organization_id=organization_id, offset=offset, size=page_size, 
             sort_dir=sort_dir, sorting_key=sorting_key, db=db)
-    return sales
+    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_items, endpoint="/customers")
+    response = {"previous_page":pointers['previous'], "next_page": pointers["next"],
+            "page": page_number, "size": page_size, "total": total_items, "items": sales}
+    return response
 
 
 @app.get("/sales/{sale_id}",
-    response_model=sale_schemas.SaleResponse,
+    # response_model=sale_schemas.SaleResponse,
     status_code=status.HTTP_200_OK
     )
-async def create_customer(
+async def get_single_sale(
     organization_id:str,
     sale_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
-    sale =  sale_models.fetch_sale_by_id(sale_id=sale_id, db=db)
+    sale =  await sale_models.fetch_sale_by_id(sale_id=sale_id, db=db)
     return sale
 
 #-------Upcoming endpoints ----#
