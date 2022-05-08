@@ -8,13 +8,15 @@ from .schemas import auth_schemas, users_schemas
 from passlib.context import CryptContext
 from bigfastapi.utils import settings
 from bigfastapi.db import database as _database
-from fastapi.security import OAuth2PasswordBearer
+# from fastapi.security import OAuth2PasswordBearer
+from bigfastapi.custom_oauth import OAuth2PasswordBearer
 from uuid import uuid4
 import random
 from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .email import send_email_user
+from bigfastapi.api_key import check_api_key
 # from .users import get_user
 
 app = APIRouter()
@@ -65,10 +67,22 @@ def verify_access_token(token: str, credentials_exception, db: orm.Session):
 def is_authenticated(token: str = fastapi.Depends(oauth2_scheme), db: orm.Session = fastapi.Depends(get_db)):
     credentials_exception = fastapi.HTTPException(status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
                                                   detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
-    token = verify_access_token(token, credentials_exception, db)
-    user = db.query(user_models.User).filter(
-        user_models.User.id == token.id).first()
-    return user
+
+    print(token)
+    if type(token) == str:
+        print('here?>>>>')
+        token = verify_access_token(token, credentials_exception, db)
+        user = db.query(user_models.User).filter(
+            user_models.User.id == token.id).first()
+        return user
+
+    if type(token) == dict:
+        print('api keys....')
+        app_id = token["APP_ID"]
+        api_key = token["API_KEY"]
+        user = check_api_key(app_id, api_key, db)
+        print(user)
+        return user
 
 
 def generate_code(new_length: int = None):
