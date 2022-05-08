@@ -13,40 +13,40 @@ class LPage(db.Base):
   landingPage_name = Column(String, index=True, unique=True)
   Bucket_name = Column(String, index=True, unique=True)
   company_Name = Column(String, nullable=False) # company_Name 
-  login_link = Column(String(255))
-  signup_link = Column(String(255))
-  company_logo = Column(String(255)) # image url
-  Home_link = Column(String(255)) # home link
-  About_link = Column(String(255)) # about link
-  faq_link = Column(String(255)) # faq link
-  contact_us_link = Column(String(255)) # contact us link
-  Body_H1 = Column(String(255)) # body title
+  login_link = Column(String(500))
+  signup_link = Column(String(500))
+  company_logo = Column(String(500)) # image url
+  Home_link = Column(String(500)) # home link
+  About_link = Column(String(500)) # about link
+  faq_link = Column(String(500)) # faq link
+  contact_us_link = Column(String(500)) # contact us link
+  Body_H1 = Column(String(500)) # body title
   Body_paragraph = Column(String) # body content text
-  section_One_image_link = Column(String(255)) # body content logo one
+  section_One_image_link = Column(String(500)) # body content logo one
   Body_H3 = Column(String) # body title subtext
-  Body_H3_logo_One = Column(String(255)) # body title image
-  Body_H3_logo_One_name = Column(String(255))
-  Body_H3_logo_One_paragraph = Column(String(255))
-  Body_H3_logo_Two = Column(String(255))
-  Body_H3_logo_Two_name = Column(String(255))
-  Body_H3_logo_Two_paragraph = Column(String(255))
-  Body_H3_logo_Three = Column(String(255))
-  Body_H3_logo_Three_name = Column(String(255))
-  Body_H3_logo_Three_paragraph = Column(String(255))
-  Body_H3_logo_Four = Column(String(255))
-  Body_H3_logo_Four_name = Column(String(255))
-  Body_H3_logo_Four_paragraph = Column(String(255))
+  Body_H3_logo_One = Column(String(500)) # body title image
+  Body_H3_logo_One_name = Column(String(500))
+  Body_H3_logo_One_paragraph = Column(String(500))
+  Body_H3_logo_Two = Column(String(500))
+  Body_H3_logo_Two_name = Column(String(500))
+  Body_H3_logo_Two_paragraph = Column(String(500))
+  Body_H3_logo_Three = Column(String(500))
+  Body_H3_logo_Three_name = Column(String(500))
+  Body_H3_logo_Three_paragraph = Column(String(500))
+  Body_H3_logo_Four = Column(String(500))
+  Body_H3_logo_Four_name = Column(String(500))
+  Body_H3_logo_Four_paragraph = Column(String(500))
   section_Three_paragraph = Column(String)
-  section_Three_sub_paragraph = Column(String(255))
-  section_Three_image= Column(String(255))
-  Footer_H3 = Column(String)
-  Footer_H3_paragraph= Column(String(255))
-  Footer_name_employee= Column(String(255))
-  Name_job_description= Column(String(255))
+  section_Three_sub_paragraph = Column(String(500))
+  section_Three_image= Column(String(500))
+  Footer_H3 = Column(String(500))
+  Footer_H3_paragraph= Column(String(500))
+  Footer_name_employee= Column(String(500))
+  Name_job_description= Column(String(500))
   section_Four_image = Column(String)
-  Footer_H2_text = Column(String(255))
-  Footer_contact_address = Column(String(255))
-  customer_care_email = Column(String(255))
+  Footer_H2_text = Column(String(500))
+  Footer_contact_address = Column(String(500))
+  customer_care_email = Column(String(500))
 
 
 # find landing page by landing page name
