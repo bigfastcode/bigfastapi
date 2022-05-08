@@ -177,6 +177,7 @@ async def add_customer(
     db: Session = Depends(get_db)
 ):
     customer_instance = Customer(
+        id = uuid4().hex,
         customer_id=customer.customer_id,
         first_name=customer.first_name,
         last_name=customer.last_name,

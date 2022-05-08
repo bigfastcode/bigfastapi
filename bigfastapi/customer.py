@@ -559,7 +559,7 @@ async def file_to_schema_converter(organization_id, db, file: UploadFile = File(
     list_customers = []
     provided_ids = []
     for item in reader:
-        customer = customer_schemas.Customer(**item)
+        customer = customer_schemas.CustomerBase(**item)
         existing_customers = await customer_models.get_customer_by_unique_id(
             db=db, org_id=organization_id, unique_id=customer.unique_id)
         if existing_customers or customer.unique_id in provided_ids:
@@ -572,6 +572,7 @@ async def file_to_schema_converter(organization_id, db, file: UploadFile = File(
 
 async def schema_mapper(customer:customer_schemas.CustomerBase, organization_id: str):
     mapped_object = customer_models.Customer(
+        id = uuid4().hex,
         customer_id=customer.customer_id,
         first_name=customer.first_name,
         last_name=customer.last_name,
