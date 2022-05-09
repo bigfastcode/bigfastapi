@@ -18,7 +18,7 @@ import random
 from fastapi.encoders import jsonable_encoder
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
-from .models.receipt_models import Receipt
+from .models.receipt_models import Receipt, search_receipts
 from uuid import uuid4
 from fastapi import BackgroundTasks
 from bigfastapi.utils import paginator, settings
@@ -82,7 +82,6 @@ async def fetch_receipts(
         An endpoint to fetch all receipts. 
         Note: The message field in the payload should be HTML formatted.
     """
-    # FETCH RECEIPT FROM DB.
     try:
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
@@ -163,48 +162,3 @@ def send_receipt_email(
 def convert_to_pdf(pdfSchema, db: orm.Session = Depends(get_db)):
     return pdfs.convert_to_pdf(pdfSchema, db=db) 
 
-async def search_receipts(
-    organization_id:str,
-    search_value: str,
-    offset: int, size:int=50,
-    db: orm.Session = Depends(get_db)
-    ):  
-    search_text = f"%{search_value}%"
-    search_result_count =db.query(Receipt).filter(and_(
-        Receipt.organization_id == organization_id,
-        Receipt.recipient.like(search_text))).count()
-
-    receipts_by_recipient = db.query(Receipt).filter(and_(
-        Receipt.organization_id == organization_id,
-        Receipt.recipient.like(search_text))
-        ).offset(
-        offset=offset).limit(limit=size).all()
-
-
-    recipient_list = [*receipts_by_recipient]
-    return (recipient_list, search_result_count)
-
-
-# async def sort_receipts(
-#     organization_id:str,
-#     sort_key: str,
-#     offset: int, size:int=50,
-#     sort_dir: str = "asc",
-#     db:Session = Depends(get_db)
-#     ):  
-#     if sort_dir == "desc":
-#         customers = db.query(Customer).filter(
-#             Customer.organization_id == organization_id).filter(
-#             Customer.is_deleted == False).filter(
-#             Customer.is_inactive == False).order_by(
-#             desc(getattr(Customer, sort_key, "first_name"))
-#             ).offset(offset=offset).limit(limit=size).all()
-#     else:
-#         customers = db.query(Customer).filter(
-#             Customer.organization_id == organization_id).filter(
-#             Customer.is_deleted == False).filter(
-#             Customer.is_inactive != True).order_by(
-#             getattr(Customer, sort_key, "first_name")
-#             ).offset(offset=offset).limit(limit=size).all()
-
-#     return list(map(customer_schemas.Customer.from_orm, customers))
