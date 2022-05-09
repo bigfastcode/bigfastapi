@@ -1,6 +1,7 @@
 from operator import inv
 from re import L
 from typing import Optional
+import uuid
 from bigfastapi.schemas import store_user_schemas
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
@@ -29,6 +30,11 @@ app = APIRouter(tags=["User"])
 
 @app.get("/users/me", response_model=_schemas.User)
 async def get_user(user: _schemas.User = fastapi.Depends(is_authenticated)):
+    """intro-->This endpoint allows you to retrieve details about the currently logged in user, to use this endpoint you need to make a get request to the  /users/me endpoint 
+
+    returnDesc-->On sucessful request, it returns
+        returnBody--> details of the currently logged in user
+    """
     return user
 
 
@@ -37,14 +43,29 @@ async def update_user(
     user_update: _schemas.UserUpdate,
     user: _schemas.User = fastapi.Depends(is_authenticated),
     db: orm.Session = fastapi.Depends(get_db),
-):
+):  
+    """intro-->This endpoint allows you to update details about the currently logged in user, to use this endpoint you need to make a put request to the  /users/me endpoint with a specified body of request
+
+    returnDesc-->On sucessful request, it returns the
+        returnBody--> updated details of the currently logged in user
+    """
     return await user_update(user_update, user, db)
 
 
 # user must be a super user to perform this
 @app.put("/users/{user_id}/activate")
 async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user: _schemas.User = fastapi.Depends(is_authenticated),
-                        db: orm.Session = fastapi.Depends(get_db)):
+    db: orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint allows a super user to activate a user, to use this endpoint user must be a super user. You need to make a put request to the  /users/{user_id}/activate endpoint with a specified body of request to activate a user 
+
+    paramDesc--> On put request the url takes a query parameter "user_id" 
+        param-->notification_id: This is the unique identifier of the user
+        reqBody-->email: This is the email address of the user
+        reqBody-->is_active: This is the current state of user, this is set to true when the user is active and false otherwise.
+
+    returnDesc-->On sucessful request, it returns message,
+        returnBody--> "success".
+    """
     if user.is_superuser == False:
         raise fastapi.HTTPException(
             status_code=403, detail="only super admins can perform this operation")
@@ -57,6 +78,13 @@ async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user
 
 @app.post("/users/recover-password")
 async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint allows for password recovery, to use this endpoint you need to make a post request to the /users/recover-password endpoint
+
+        reqBody-->email: This is the email address of the user
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "success".
+    """
     user = await get_user(db=db, email=email.email)
     await delete_password_reset_code(db, user.id)
     await send_code_password_reset_email(email.email, db)
@@ -65,6 +93,15 @@ async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session 
 
 @app.post("/users/reset-password")
 async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint allows a user to reset their password after recieving a given code on password recovery, to use this endpoint you need to make a post request to the /users/reset-password endpoint
+
+        reqBody-->email: This is the email address of the user
+        reqBody-->code: This is a unique code sent to the user on password recovery
+        reqBody-->password: This is the registered password of the user
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "success".
+    """
     code_exist = await get_password_reset_code_sent_to_email(user.code, db)
     if code_exist is None:
         raise fastapi.HTTPException(status_code=403, detail="invalid code")
@@ -76,9 +113,23 @@ async def updateUserProfile(
         payload: _schemas.UpdateUserReq,
         db: orm.Session = fastapi.Depends(get_db),
         user: str = fastapi.Depends(is_authenticated)):
+        """intro-->This endpoint allows for users to update their profile details. To use this endpoint you need to make a put request to the /users/profile/update enpoint with a specified body of request with details to be updated
 
-    updatedUser = await updateUserDetails(db, user.id, payload)
-    return {"data": updatedUser}
+            reqBody-->email: This is the email address of the user
+            reqBody-->first_name: This is a unique code sent to the user on password recovery
+            reqBody-->last_name: This is the registered password of the user   
+            reqBody-->country_code: This is the registered password of the user   
+            reqBody-->phone_number: This is the registered password of the user   
+            reqBody-->country: This is the registered password of the user   
+            reqBody-->state: This is the registered password of the user   
+
+        
+        returnDesc--> On sucessful request, it returns message,
+            returnBody--> "success".
+        """
+
+        updatedUser = await updateUserDetails(db, user.id, payload)
+        return {"data": updatedUser}
 
 
 @app.patch('/users/password/update')
@@ -86,16 +137,45 @@ async def updatePassword(
         payload: _schemas.updatePasswordRequest,
         db: orm.Session = fastapi.Depends(get_db),
         user: str = fastapi.Depends(is_authenticated)):
+        """intro-->This endpoint allows for users to update their password. To use this endpoint you need to make a patch request to the /users/password/update endpoint with a body of request with details of the new password.
 
-    dbResponse = await updateUserPassword(db, user.id, payload)
-    return {"data":  dbResponse}
+            reqBody-->email: This is the email address of the user
+            reqBody-->first_name: This is a unique code sent to the user on password recovery
+            reqBody-->last_name: This is the registered password of the user   
+            reqBody-->country_code: This is the registered password of the user   
+            reqBody-->phone_number: This is the registered password of the user   
+            reqBody-->country: This is the registered password of the user   
+            reqBody-->state: This is the registered password of the user   
+
+        
+        returnDesc--> On sucessful request, it returns message,
+            returnBody--> "success".
+        """
+
+        dbResponse = await updateUserPassword(db, user.id, payload)
+        return {"data":  dbResponse}
 
 
 @app.put('/users/accept-invite/{token}')
 def accept_invite(
-        payload: _invite_schemas.StoreUser,
-        token: str,
-        db: orm.Session = fastapi.Depends(get_db)):
+    payload: _invite_schemas.StoreUser,
+    token: str, 
+    db: orm.Session = fastapi.Depends(get_db)): 
+    """intro-->This endpoint allows for a user to accept an invite. To use this endpoint you need to make a put request to the /users/accept-invite/{token} where token is a unique value recieved by the user on invite. It also takes a specified body of request
+    
+    paramDesc-->On put request this enpoint takes the query parameter "token" 
+        param-->token: This is a unique token recieved by the user on invite
+        reqBody-->user_email: This is the email address of the user 
+        reqBody-->user_id: This is the unique user id
+        reqBody-->user_role: This specifies the role of the user in the organization  
+        reqBody-->is_accepted: This is the the acceptance state of the invite  
+        reqBody-->is_revoked: This is the revoke state of the user  
+        reqBody-->is_deleted: This specifies if the invite is deleted/expired  
+        reqBody-->organization_id: This is a unique id of the registered organization
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "success".
+    """
 
     existing_invite = db.query(
         store_invite_model.StoreInvite).filter(
@@ -131,6 +211,7 @@ def accept_invite(
 
     # create store user
     store_user = store_user_model.StoreUser(
+        id=uuid4().hex,
         store_id=payload.organization_id,
         user_id=payload.user_id,
         role_id=invite.role_id
@@ -155,12 +236,24 @@ async def invite_user(
     payload: _invite_schemas.UserInvite,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
+    user: str = fastapi.Depends(is_authenticated),
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """
-        An endpoint to invite users to a store.
+    """intro-->This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with a specified body of request 
+    
+        reqBody-->user_email: This is the email address of the user 
+        reqBody-->user_id: This is the unique user id
+        reqBody-->user_role: This specifies the role of the user in the organization  
+        reqBody-->is_accepted: This is the the acceptance state of the invite  
+        reqBody-->is_revoked: This is the revoke state of the user  
+        reqBody-->is_deleted: This specifies if the invite is deleted/expired  
+        reqBody-->organization_id: This is a unique id of the registered organization
+        reqBody-->store: This is a collection of users in the a store
+        reqBody-->app_url: This is the url to be navigated to on invite accept
+        reqBody-->email_details: This is the email of the user to be invited
 
-        Returns dict: message 
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "success".
     """
 
     invite_token = uuid4().hex
@@ -175,12 +268,7 @@ async def invite_user(
         )
 
     # make sure you can't send invite to yourself
-    invite_ctrl = (
-        db.query(user_models.User)
-        .filter(user_models.User.email == payload.user_email)
-        .first()
-    )
-    if invite_ctrl is None:
+    if (user.email != payload.user_email):
         # check if user_email already exists
         existing_invite = (
             db.query(store_invite_model.StoreInvite)
@@ -216,11 +304,15 @@ async def get_single_invite(
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db),
 ):
+    """intro-->This endpoint is used to get an invite link for a single user. To use this endpoint you need to make a get request to the /users/invite/{invite_code} endpoint
+    
+    paramDesc-->On get request, the url takes an invite code
+        param-->invite_code: This is a unique code needed to get an invite link
+        
 
+    returnDesc--> On sucessful request, it returns
+        returnBody--> "invite link".
     """
-        Get single invite by invite code.
-    """
-
     # user invite code to query the invite table
     existing_invite = db.query(
         store_invite_model.StoreInvite).filter(
@@ -229,28 +321,37 @@ async def get_single_invite(
                 store_invite_model.StoreInvite.is_deleted == False,
                 store_invite_model.StoreInvite.is_revoked == False
             )).first()
-    existing_user = db.query(user_models.User).filter(
-        user_models.User.email == existing_invite.user_email).first()
+    if (existing_invite):
+        existing_user = db.query(user_models.User).filter(
+            user_models.User.email == existing_invite.user_email).first()
 
-    store = db.query(organisation_models.Organization).filter(
-        organisation_models.Organization.id == existing_invite.store_id).first()
+        store = db.query(organisation_models.Organization).filter(
+            organisation_models.Organization.id == existing_invite.store_id).first()
 
-    # existing_invite.__setattr__('store', store)
-    setattr(existing_invite, 'store', store)
-    if(existing_user is not None):
-        existing_user = 'exists'
-    if not existing_invite:
-        return JSONResponse({
-            "message": "Invite not found! Try again or ask the inviter to invite you again."
-        }, status_code=404)
+        # existing_invite.__setattr__('store', store)
+        setattr(existing_invite, 'store', store)
+        if(existing_user is not None):
+            existing_user = 'exists'
+        if not existing_invite:
+            return JSONResponse({
+                "message": "Invite not found! Try again or ask the inviter to invite you again."
+            }, status_code=404)
 
-    return {"invite": existing_invite, "user": existing_user}
-
+        return {"invite": existing_invite, "user": existing_user}
+    return JSONResponse({
+                "message": "Invalid invite code"
+            }, status_code=400)
 
 @app.put("/users/invite/{invite_code}/decline")
 def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
-    """
-        Decline store invite
+    """intro-->This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
+    
+    paramDesc-->On put request, the url takes an invite code
+        param-->invite_code: This is a unique code linked to invite
+        
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "success".
     """
 
     declined_invite = (
@@ -272,8 +373,14 @@ def revoke_invite(
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """
-        Revokes the invitation of a previously invited user.
+    """intro-->This endpoint is used to revoke the invitation of a previously invited user. To use this endpoint you need to make a delete request to the /users/revoke-invite/{invite_code} endpoint
+    
+    paramDesc-->On delete request, the url takes an invite code
+        param-->invite_code: This is a unique code linked to invite
+        
+
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "success".
     """
     revoked_invite = (
         db.query(store_invite_model.StoreInvite)
@@ -294,6 +401,15 @@ def update_user_role(
     payload: store_user_schemas.UserUpdate,
     db: orm.Session = fastapi.Depends(get_db)
 ):
+    """intro-->This endpoint is used to update a user's role. To use this endpoint you need to make a patch request to the /users/{user_id}/change endpoint
+    
+    paramDesc-->On patch request, the url takes a user's id
+        param-->user_id: This is the user id of the user
+        
+
+    returnDesc--> On sucessful request, it returns message
+        returnBody--> "User role successfully updated"
+    """
     
     existing_user = (
         db.query(user_models.User)
@@ -347,6 +463,16 @@ async def resend_token_verification(
     email: _schemas.UserTokenVerification,
     db: orm.Session = fastapi.Depends(get_db),
 ):
+    """intro-->This endpoint is used to trigger a resend of a user's verification token. To use this endpoint you need to make a post request to the /users/resend-verification/token endpoint
+    
+    paramDesc-->On post request, the url takes a user's id
+        param-->user_id: This is the user id of the user
+        reqBody-->email: This is the user email where the verification token will be sent to
+        reqBody-->redirect_url: This is the url the user will be redirected to after verification
+
+    returnDesc--> On sucessful request, it returns message
+        returnBody--> "success"
+    """
     return await resend_token_verification_mail(email.email, email.redirect_url, db)
 
 
@@ -355,6 +481,14 @@ async def verify_user_with_token(
     token: str,
     db: orm.Session = fastapi.Depends(get_db),
 ):
+    """intro-->This endpoint is used verify a user on api request. To use this endpoint you need to make a post request to the /users/verify/token/{token} endpoint
+    
+    paramDesc-->On post request, the url takes the verification token
+        param-->token: This is the token sent to the user's email
+
+    returnDesc--> On sucessful request, it returns message
+        returnBody--> "success"
+    """
     return await verify_user_token(token)
 
 
@@ -364,6 +498,16 @@ async def password_change_with_token(
     token: str,
     db: orm.Session = fastapi.Depends(get_db),
 ):
+    """intro-->This endpoint is used to change a user's password. To use this endpoint you need to make a put request to the /users/password-change/token/{token} endpoint with a specified body of request
+    
+    paramDesc-->On post request, the url takes the verification token
+        param-->token: This is the token sent to the user's email
+        reqBody-->code: This code sent to the user's email
+        reqBody-->password: This is the new user of the password
+
+    returnDesc--> On sucessful request, it returns message
+        returnBody--> "success" 
+    """
     return await password_change_token(password, token, db)
 
 
@@ -372,6 +516,13 @@ async def updatePassword(
         file: UploadFile = File(...),
         db: orm.Session = fastapi.Depends(get_db),
         user: str = fastapi.Depends(is_authenticated)):
+
+    """intro-->This endpoint is used to update a user's image. To use this endpoint you need to make a patch request to the /users/image/upload endpoint
+
+
+    returnDesc--> On sucessful request, it returns message
+        returnBody--> "success"
+    """
 
     bucketName = 'profileImages'
     checkAndDeleteRes = await deleteIfFileExistPrior(user)

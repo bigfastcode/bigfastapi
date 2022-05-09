@@ -39,6 +39,14 @@ app = APIRouter(tags=["Comments"])
 def get_all_comments_related_to_model(
     model_type: str, db_Session: _orm.Session = Depends(get_db)
 ):
+
+    """intro-->This endpoint allows you to retrieve all comments of the same model type. To use this endpoint you need to make a get request to the /comments/{model_type} endpoint 
+            paramDesc-->On get request the url takes the parameter, model_type
+                param-->model_type: This is the model type of the comment
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> an array of comments
+    """
     qs = db_retrieve_all_model_comments(
         model_type=model_type, db=db_Session
     )
@@ -49,6 +57,14 @@ def get_all_comments_related_to_model(
 def get_all_comments_for_object(
     model_type: str, object_id: str, db_Session=Depends(get_db)
 ):
+    """intro-->This endpoint allows you to retrieve all comments related to a specific object. To use this endpoint you need to make a get request to the /comments/{model_type}/{object_id} endpoint 
+            paramDesc-->On get request the url takes two parameters, model_type & object_id
+                param-->model_type: This is the model type of the comment
+                param-->object_id: This is the id of the object that contains the comment
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> an array of comments and their threads for a specified object
+    """
     qs = db_retrieve_all_comments_for_object(
         object_id=object_id, model_type=model_type, db=db_Session
     )
@@ -62,6 +78,14 @@ def reply_to_comment(
     comment: comments_schemas.CommentCreate,
     db_Session=Depends(get_db),
 ):
+    """intro-->This endpoint is used to add a reply to a comment. To use this endpoint you need to make a post request to the /comments/{model_type}/{comment_id}/reply endpoint 
+            paramDesc-->On post request the url takes two parameters, model_type & object_id
+                param-->model_type: This is the model type of the comment
+                param-->comment_id: This is the unique id of the comment
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> The newly created comment
+    """
     obj = db_reply_to_comment(
         comment_id=comment_id, comment=comment, model_type=model_type, db=db_Session
     )
@@ -74,7 +98,15 @@ def create_new_comment_for_object(
     object_id: str,
     comment: comments_schemas.CommentBase,
     db_Session=Depends(get_db),
-):
+):  
+    """intro-->This endpoint is used to create a top level comment for an object. To use this endpoint you need to make a post request to the /comments/{model_type}/{object_id} endpoint 
+            paramDesc-->On post request the url takes two parameters, model_type & object_id
+                param-->model_type: This is the model type of the comment
+                param-->object_id: This is the id of the comment to edit
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the refreshed comment
+    """
     obj = db_create_comment_for_object(
         object_id=object_id, comment=comment, model_type=model_type, db=db_Session
     )
@@ -88,6 +120,14 @@ def update_comment_by_id(
     comment: comments_schemas.CommentUpdate,
     db_Session=Depends(get_db),
 ):
+    """intro-->This endpoint is used to edit a comment object. To use this endpoint you need to make a put request to the /comments/{model_type}/{comment_id}/update endpoint 
+            paramDesc-->On put request the url takes two parameters, model_type & comment_id
+                param-->model_type: This is the model type of the comment
+                param-->comment_id: This is the unique id of the comment
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the updated comment
+    """
     obj = db_update_comment(
         object_id=comment_id, model_type=model_type, comment=comment, db=db_Session
     )
@@ -98,6 +138,14 @@ def update_comment_by_id(
 def delete_comment_by_id(
     model_type: str, comment_id:int, db_Session=Depends(get_db)
 ):
+    """intro-->This endpoint is used to delete a comment. To use this endpoint you need to make a delete request to the /comments/{model_type}/{comment_id}/delete endpoint 
+            paramDesc-->On delete request the url takes two parameters, model_type & comment_id
+                param-->model_type: This is the model type of the comment
+                param-->comment_id: This is the id of the comment to edit
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the deleted comment
+    """
     obj = db_delete_comment(
         object_id=comment_id, model_type=model_type, db=db_Session
     )
@@ -107,7 +155,19 @@ def delete_comment_by_id(
 @app.post("/comments/{model_type}/{comment_id}/vote")
 def vote_on_comment(
     model_type: str, comment_id:int, action: str, db_Session=Depends(get_db)
-):
+):  
+    """intro-->This endpoint allows you to downvote or upvote a comment. To use this endpoint you need to make a post request to the /comments/{model_type}/{comment_id}/vote endpoint 
+            paramDesc-->On post request the url takes in three parameters 
+                param-->model_type: This is the model type of the comment
+                param-->comment_id: This is the comment id of the comment to vote for
+                param-->action: This is a query parameter, this determines the voting action you want to perform. Must be either "upvote" | "downvote"
+
+                db (_orm.Session): DB Session to commit to. Automatically determined by FastAPI
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> a refreshed Comment object reflecting the changed votes
+    """
+   
     if action not in ["upvote", "downvote"]:
         return {
             "status": False,
@@ -128,23 +188,13 @@ def vote_on_comment(
 #=================================== COMMENT SERVICES =================================#
 
 def db_vote_for_comments(comment_id: int, model_type:str, action: str, db: _orm.Session):
-    """Perform an upvote or downvote on a comment
-
-    Args:
-        comment_id (int): ID of the comment to vote for
-        model_type (str): Model Type of the comment
-        action (str): "upvote" | "downvote"
-        db (_orm.Session): DB Session to commit to. Automatically determined by FastAPI
     
-    Returns:
-        schema.Comment : A refreshed Comment object reflecting the changed votes
-    """ 
     comment_obj = db_retrieve_comment_by_id(comment_id, model_type, db=db)
     if action == "upvote": comment_obj.upvote(),
     elif action == "downvote": comment_obj.downvote()
     db.commit()
     db.refresh(comment_obj)
-    return comment_obj
+    return comment_m,obj
 
 def db_retrieve_comment_by_id(object_id: int, model_type:str, db: _orm.Session):
     """Retrieves a Comment by ID
@@ -250,7 +300,7 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     db.add(obj)
     db.commit()
     db.refresh(obj)
-    print(obj)
+    
     return comments_schemas.Comment.from_orm(obj)
 
 def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_type:str):

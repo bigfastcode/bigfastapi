@@ -18,21 +18,18 @@ app = fastapi.APIRouter()
 
 @app.get("/files/{bucket_name}/", response_model=List[schema.File])
 def get_all_files(db: orm.Session = fastapi.Depends(get_db)):
-
-    """List all files that are in a single bucket
-
-    Args:
-        bucket_name (str): the bucket to list all the files.
-    Returns:
-        List of schema.File: A list of all files in there
+    """intro-->This endpoint returns all files that are in a single bucket. To use this endpoint you need to make a get request to the /files/{bucket_name}/ endpoint 
+            paramDesc-->On get request the url takes a query parameter bucket_name
+                param-->bucket_name: This is the name of the bucket containing files of interest
+    returnDesc--> On successful request, it returns 
+        returnBody--> a list of all files in the bucket
     """
-
     files = db.query(model.File).all()
     return list(map(schema.File.from_orm, files))
 
 
-@app.get("/files/{bucket_name}/{file_name}", response_class=FileResponse)
-def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends(get_db)):
+@app.get("/files/{bucket_name}/{file_id}", response_class=FileResponse)
+def get_file(bucket_name: str, file_id: str, db: orm.Session = fastapi.Depends(get_db)):
 
     """Download a single file from the storage
 
@@ -44,9 +41,8 @@ def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends
         A stream of the file
     """
 
-    existing_file = model.find_file(bucket_name, file_name, db)
+    existing_file = model.find_file(bucket_name, file_id, db)
     if existing_file:
-
         local_file_path = os.path.join(os.path.realpath(settings.FILES_BASE_FOLDER), existing_file.bucketname, existing_file.filename)
 
         common_path = os.path.commonpath((os.path.realpath(settings.FILES_BASE_FOLDER), local_file_path))
@@ -61,17 +57,12 @@ def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends
 
 @app.post("/upload-file/{bucket_name}/", response_model=schema.File)
 async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(...), db: orm.Session = fastapi.Depends(get_db)):
-
-    """Upload a single file and save it in the 'bucket' folder with file_name
-
-    Args:
-        bucket_name (str): the folder in which this file should be saved. You can
-                         request a list of files in a single folder if you need
-                         to iterate.
-        file_name (str): the name of the file. Must be unique or the file with that
-                         name will be overwritten.
-    Returns:
-        schema.File: A structure representing the file just saved
+    """intro-->This endpoint allows you to upload a file to a bucket/storage. To use this endpoint you need to make a post request to the /upload-file/{bucket_name}/ endpoint 
+            paramDesc-->On post request the url takes the query parameter bucket_name
+                param-->bucket_name: This is the name of the bucket you want to save the file to, You can request a list of files in a single folder if you nee to iterate.
+                reqBody-->file_name: This is the name of the file to be uploaded
+    returnDesc--> On successful request, it returns 
+        returnBody--> details of the file just created
     """
     
     # Make sure the base folder exists

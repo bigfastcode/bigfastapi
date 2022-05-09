@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('businesses', sa.Column('business_type', sa.String()))
+    # op.add_column('businesses', sa.Column('business_type', sa.String(255)))
     pass
 
 

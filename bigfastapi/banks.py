@@ -24,7 +24,25 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
                           user: users_schemas.User = Depends(is_authenticated),
                           db: orm.Session = Depends(get_db)
                           ):
-    """Creates a new bank object.
+    """intro-->This endpoint allows you to bank detail object. To use this endpoint you need to make a post request to the /banks endpoint
+
+    reqBody-->account_number: This is the user's bank account number
+    reqBody-->bank_name: This is the user's bank name
+    reqBody-->recipient_name: This is the name of the account owner
+    reqBody-->account_type: This is the type of bank account
+    reqBody-->organisation_id: This is the organization Id of the organization requiring the bank detail
+    reqBody-->bank_addres: This is the branch address of the user's account creation 
+    reqBody-->swift_code: This is the bank's swift code
+    reqBody-->sort_code: This is the bank's sort code
+    reqBody-->country: This is the country where the bank exists
+    reqBody-->aba_routing_number: This is the accounts's routing number
+    reqBody-->iban: This is account's international bank account number
+    reqBody-->is_preferred: This is a boolean account preference value
+    reqBody-->date_created: This is the date of creation of the bank account
+    
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> the newly created bank details
+
     Args:
         request: A pydantic schema that defines the room request parameters
         db (Session): The database for storing the article object
@@ -48,6 +66,8 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
                                      bank_name=bank.bank_name,
                                      recipient_name=bank.recipient_name,
                                      country=bank.country,
+                                     currency=bank.currency,
+                                     frequency=bank.frequency,
                                      sort_code=bank.sort_code,
                                      swift_code=bank.swift_code,
                                      bank_address=bank.bank_address,
@@ -65,7 +85,14 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
 async def get_organization_bank_accounts(organization_id: str, user: users_schemas.User = Depends(is_authenticated),
                                          db: orm.Session = Depends(get_db), page_size: int = 15,
                                          page_number: int = 1, ):
-    """Fetches all available bank details in the database.
+    """intro-->This endpoint allows you retrieve all available bank details in the database. To use this endpoint you need to make a get request to the /banks/organizations/{organization_id} endpoint
+
+    paramDesc-->On get request, the request url takes the query parameter organization id and four(4) other optional query parameters
+        param-->org_id: This is the organization Id of the user's current organization
+        
+    returnDesc--> On sucessful request, it returns a 
+        returnBody--> details of queried bank accounts
+    
     Args:
         user: authenticates that the user is a logged in user
         db (Session): The database for storing the article object
@@ -90,7 +117,15 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
 async def get_single_bank(org_id: str, bank_id: str,
                           user: users_schemas.User = Depends(is_authenticated),
                           db: orm.Session = Depends(get_db)):
-    """Fetches single bank detail given bank_id.
+    """intro-->This endpoint allows you retrieve a particular bank account. To use this endpoint you need to make a get request to the /banks/{bank_id} endpoint
+
+    paramDesc-->On get request, the request url takes the  parameters bank_id and a query parameter organization id 
+        param-->bank_id: This is the bank id of the bank detail
+        param-->organization_id: This is the organization Id of the user's current organization
+        
+    returnDesc--> On sucessful request, it returns a 
+        returnBody--> details of queried bank account
+
     Args:
         bank_id: a unique identifier of the bank object.
         user: authenticates that the user is a logged in user.
@@ -110,7 +145,28 @@ async def get_single_bank(org_id: str, bank_id: str,
 async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
                               user: users_schemas.User = Depends(is_authenticated),
                               db: orm.Session = Depends(get_db)):
-    """Fetches single bank detail given bank_id.
+    """intro-->This endpoint allows you update a bank detail. To use this endpoint you need to make a put request to the /banks/{bank_id} endpoint
+
+    paramDesc-->On put request, the request url takes the parameter bank_id 
+        param-->bank_id: This is the bank id of the bank detail
+
+        reqBody-->account_number: This is the user's bank account number
+        reqBody-->bank_name: This is the user's bank name
+        reqBody-->recipient_name: This is the name of the account owner
+        reqBody-->account_type: This is the type of bank account
+        reqBody-->organisation_id: This is the organization Id of the organization requiring the bank detail
+        reqBody-->bank_addres: This is the branch address of the user's account creation 
+        reqBody-->swift_code: This is the bank's swift code
+        reqBody-->sort_code: This is the bank's sort code
+        reqBody-->country: This is the country where the bank exists
+        reqBody-->aba_routing_number: This is the accounts's routing number
+        reqBody-->iban: This is account's international bank account number
+        reqBody-->is_preferred: This is a boolean account preference value
+        reqBody-->date_created: This is the date of creation of the bank account
+        
+    returnDesc--> On sucessful request, it returns the
+        returnBody--> updated bank details
+
     Args:
         bank_id: a unique identifier of the bank object.
         user: authenticates that the user is a logged in user.
@@ -136,6 +192,8 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
     bank_account.swift_code = bank.swift_code
     bank_account.bank_address = bank.bank_address
     bank_account.account_type = bank.account_type
+    bank_account.currency = bank.currency
+    bank_account.frequency = bank.frequency
     bank_account.is_preferred = bank.is_preferred
     bank_account.aba_routing_number = bank.aba_routing_number
     bank_account.iban = bank.iban
@@ -154,7 +212,14 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
 async def delete_bank(bank_id: str,
                       user: users_schemas.User = Depends(is_authenticated),
                       db: orm.Session = Depends(get_db)):
-    """delete a given bank of id bank_id.
+    """intro-->This endpoint allows you delete a particular bank detail. To use this endpoint you need to make a delete request to the /banks/{bank_id} endpoint
+
+    paramDesc-->On delete request, the request url takes the  parameter bank_id  
+        param-->bank_id: This is the bank id of the bank detail
+        
+    returnDesc--> On sucessful request, it returns the 
+        returnBody-->  deleted bank detail
+
     Args:
         bank_id: a unique identifier of the bank object.
         user: authenticates that the user is a logged in user.
@@ -181,7 +246,14 @@ async def delete_bank(bank_id: str,
 
 @router.get("/banks/schema", status_code=status.HTTP_200_OK)
 async def get_country_schema(country: str):
-    """Fetches the schema valid for each country    .
+    """intro-->This endpoint allows you get the valid schema for every country. To use this endpoint you need to make a get request to the /banks/schema endpoint
+
+    paramDesc-->On get request, the request url takes the query parameter country 
+        param-->country: This is the country of interest
+        
+    returnDesc--> On sucessful request, it returns the 
+        returnBody--> valid schema for queried country
+
     Args:
         country: Country whose schema structure is to be fetched.
     Returns:
@@ -195,7 +267,14 @@ async def get_country_schema(country: str):
 
 @router.get("/banks/validator", status_code=status.HTTP_200_OK)
 async def validate_bank_details(country: str):
-    """Fetches details needed to add bank details based on country provided.
+    """intro-->This endpoint allows you to fetch details needed to add bank details based on country provided. To use this endpoint you need to make a get request to the /banks/validator endpoint
+
+    paramDesc-->On get request, the request url takes the query parameter country 
+        param-->country: This is the country of interest
+        
+    returnDesc--> On sucessful request, it returns the
+        returnBody-->  details needed to add bank details based on country provided
+
     Args:
         country: Country whose schema structure is to be fetched.
     Returns:

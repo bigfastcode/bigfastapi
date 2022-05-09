@@ -21,7 +21,12 @@ fm = FastMail(conf)
 
 @app.post("/contact")
 def create_contact(contact: contact_schemas.ContactBase, db: orm.Session = fastapi.Depends(get_db),
-                   user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    """intro-->This endpoint is used get all contacts. To use this endpoint you need to make a get request to the /contact endpoint 
+
+    returnDesc--> On sucessful request, it returns
+        returnBody--> an array of all contact's details
+    """
     if user.is_superuser is True:
         cont = contact_model.Contact(id=uuid4().hex,
                                      phone=contact.phone,
@@ -53,12 +58,22 @@ def update_contact(contact: contact_schemas.ContactBase, contact_id: str, db: or
 
 @app.get("/contact", response_model=List[contact_schemas.Contact])
 def get_all_contacts(db: orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint is used get all contacts. To use this endpoint you need to make a get request to the /contact endpoint 
+
+    returnDesc--> On sucessful request, it returns
+        returnBody--> an array of all contact's details
+    """
     contacts = db.query(contact_model.Contact).all()
     return list(map(contact_schemas.Contact.from_orm, contacts))
 
 
 @app.get("/contact/{contact_id}", response_model=contact_schemas.Contact)
 def get_contact_by_id(contact_id: str, db: orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint is used get a particular contact. To use this endpoint you need to make a get request to the /contact/{contact_id} endpoint 
+    
+    returnDesc--> On successful request, it returns
+        returnBody--> details of queried contact
+    """
     contact = db.query(contact_model.Contact).filter(contact_model.Contact.id == contact_id).first()
     if contact:
         return contact_schemas.Contact.from_orm(contact)
@@ -69,6 +84,12 @@ def get_contact_by_id(contact_id: str, db: orm.Session = fastapi.Depends(get_db)
 @app.delete("/contact/{contact_id}")
 def delete_contact(contact_id: str, db: orm.Session = fastapi.Depends(get_db),
                    user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    """intro-->This endpoint allows you to delete a contact. To use this endpoint you need to make a delete request to the /contact/{contact_id} endpoint 
+            paramDesc-->On get request the url takes a query parameter contact_id
+                param-->contact_id: This the unique identifier of the contact
+    returnDesc--> On successful request, it returns message
+        returnBody--> "success"
+    """
     if user.is_superuser is True:
         Dc = db.query(contact_model.Contact).filter(contact_model.Contact.id == contact_id).first()
         if Dc:
@@ -85,6 +106,15 @@ def delete_contact(contact_id: str, db: orm.Session = fastapi.Depends(get_db),
 @app.post("/contactus")
 def create_contactUS(contact: contact_schemas.ContactUSB, background_tasks: BackgroundTasks,
                      db: orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint is used to send a contact-us message. To use this endpoint you need to make a post request to the /contactus endpoint with a specified body of request
+        reqBody-->name: This requires the name of the person the message
+        reqBody-->email: This requires the email of the person sending the message
+        reqBody-->subject: This is the subject of the message
+        reqBody-->message: This is the body of the contact-us message
+        
+    returnDesc--> On successful request, it returns message
+        returnBody--> "message sent successfully"
+    """
     cont = contact_model.ContactUS(id=uuid4().hex,
                                    name=contact.name,
                                    email=contact.email,
@@ -115,6 +145,10 @@ def create_contactUS(contact: contact_schemas.ContactUSB, background_tasks: Back
 @app.get("/contactus", response_model=List[contact_schemas.ContactUS])
 def get_all_contactUS(db: orm.Session = fastapi.Depends(get_db),
                       user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    """intro-->This endpoint allows you to retrieve all contact-us message. To use this endpoint you need to make a get request to the /contactus
+    returnDesc--> On successful request, it returns message
+        returnBody--> "success"
+    """
     if user.is_superuser is True:
         contacts = db.query(contact_model.ContactUS).all()
         return list(map(contact_schemas.ContactUS.from_orm, contacts))
@@ -124,6 +158,12 @@ def get_all_contactUS(db: orm.Session = fastapi.Depends(get_db),
 @app.get("/contactus/{contactus_id}", response_model=contact_schemas.ContactUS)
 def get_contactUS_by_id(contactus_id: str, db: orm.Session = fastapi.Depends(get_db),
                         user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    """intro-->This endpoint allows you to retrieve a particular contact-us message. To use this endpoint you need to make a get request to the /contactus/{contactus_id}
+        paramDesc-->On get request the url takes a query parameter contactus_id
+            param-->contactus_id: This the unique identifier of the contact-us message
+    returnDesc--> On successful request, it returns 
+        returnBody--> details of the contact us
+    """
     if user.is_superuser is True:
         contact = db.query(contact_model.ContactUS).filter(contact_model.ContactUS.id == contactus_id).first()
         if contact:
@@ -136,6 +176,12 @@ def get_contactUS_by_id(contactus_id: str, db: orm.Session = fastapi.Depends(get
 @app.delete("/contactus/{contactus_id}")
 def delete_contactUS(contactus_id: str, db: orm.Session = fastapi.Depends(get_db),
                      user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    """intro-->This endpoint allows you to delete a contact-us message. To use this endpoint you need to make a delete request to the /contactus/{contactus_id}
+        paramDesc-->On get request the url takes a query parameter contactus_id
+            param-->contactus_id: This the unique identifier of the contact-us message
+    returnDesc--> On successful request, it returns message
+        returnBody--> "success"
+    """
     if user.is_superuser is True:
         Dc = db.query(contact_model.ContactUS).filter(contact_model.ContactUS.id == contactus_id).first()
         if Dc:

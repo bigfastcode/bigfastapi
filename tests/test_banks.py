@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bigfastapi.models import bank_models
 from bigfastapi.schemas import bank_schemas, users_schemas
-from bigfastapi.auth import is_authenticated
+from bigfastapi.auth_api import is_authenticated
 from main import app
 from bigfastapi.db.database import Base, get_db
 from uuid import uuid4

@@ -16,7 +16,11 @@ def create_plan(
         plan: plan_schemas.PlanDTO,
         db: orm.Session = Depends(get_db),
         user: users_schemas.User = Depends(is_authenticated)):
-    """Creates a new plan
+    """intro-->This endpoint is used to create a new plan. To use this endpoint you need to make a post request to the /plans endpoint
+
+
+    returnDesc--> On sucessful request, it returns message
+        returnBody--> "success"
 
     Args:
         plan (plan_schemas.PlanDTO): body of the request
@@ -51,7 +55,19 @@ def update_plan(
         plan_id: str,
         db: orm.Session = Depends(get_db),
         user: users_schemas.User = Depends(is_authenticated)):
-    """Updates a plan
+    """intro-->This endpoint is used to update a particular plan. To use this endpoint you need to make a put request to the /plans/{plan_id} endpoint
+
+       paramDesc-->On put request, the url takes the plan id
+            param-->plan_id: This is the unique id of the plan
+
+            reqBody-->title: This is the title of the plan
+            reqBody-->description: This is the description of the plan
+            reqBody-->price_offers: This is an array of price offers
+            reqBody-->available_geographies: This is an array of available geographies
+            reqBody-->features: This is an array of the plan's features
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the deleted plan
 
     Args:
         plan (plan_schemas.PlanDTO): body of the request
@@ -100,7 +116,13 @@ def get_all_plans(db: orm.Session = Depends(get_db)):
 
 @app.get("/plans/{plan_id}", response_model=plan_schemas.Plan)
 def get_plan_by_id(plan_id: str, db: orm.Session = Depends(get_db)):
-    """Retrieves a plan by id
+    """intro-->This endpoint is used to retrieve a particular plan. To use this endpoint you need to make a get request to the /plans/{plan_id} endpoint
+
+       paramDesc-->On get request, the url takes the plan id
+            param-->plan_id: This is the unique id of the plan
+
+    returnDesc--> On sucessful request, it returns message
+        returnBody--> "success"
 
     Args:
         plan_id (str): id of the plan
@@ -121,7 +143,13 @@ def get_plan_by_id(plan_id: str, db: orm.Session = Depends(get_db)):
 
 @app.get("/plans/geography/{geography_id}", response_model=List[plan_schemas.Plan])
 def get_plan_by_geography(geography_id: str, db: orm.Session = Depends(get_db)):
-    """Retrieves a plan by geography id
+    """intro-->This endpoint is used to retrieve a plans by their geography id. To use this endpoint you need to make a get request to the /plans/geography/{geography_id} endpoint
+
+        paramDesc-->On get request, the url takes the geography id
+            param-->geography_id: This is the geography id of the plans
+
+    returnDesc--> On sucessful request, array of plans with the same geography id
+        returnBody--> "success"
 
     Args:
         geography_id (str): id of the geography
@@ -145,7 +173,13 @@ def delete_plan(
         plan_id: str,
         db: orm.Session = Depends(get_db),
         user: users_schemas.User = Depends(is_authenticated)):
-    """Deletes a plan by id
+    """intro-->This endpoint is used to delete a particular plan. To use this endpoint you need to make a delete request to the /plans/{plan_id} endpoint
+
+       paramDesc-->On delete request, the url takes the plan id
+            param-->plan_id: This is the unique id of the plan
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the deleted plan
 
     Args:
         plan_id (str): id of the plan

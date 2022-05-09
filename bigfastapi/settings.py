@@ -25,7 +25,25 @@ async def add_organization_settings(
         db: orm.Session = Depends(get_db),
         user: users_schemas.User = Depends(is_authenticated),
         organization: _models.Organization = Depends(is_authenticated)
-):
+):  
+    """intro-->This endpoint allows you to add new organization settings. To use this endpoint you need to make a post request to the /organization/{org_id}/settings endpoint with a specified body of request
+
+        paramDesc-->On post request, the request url takes the parameter, org id 
+            param-->org_id: This is the unique Id of the organization of interest
+
+            reqBody-->email: This is the email address of the organization
+            reqBody-->location: This is the location address of the organization
+            reqBody-->phone_number: This is the phone number of the organization
+            reqBody-->organization_size: This is the size of the organization
+            reqBody-->organization_type: This is the type of the organization
+            reqBody-->country: This is the country of operation of the organization
+            reqBody-->state: This is the state of operation if the organization
+            reqBody-->city: This is the city of operation of the organization
+            reqBody-->zip_code: This is the unique zip code of the organization's location
+        
+    returnDesc--> On sucessful request, it returns
+        returnBody--> details of the newly created organization settings
+    """
     try:
         settings = models.Settings(
             id=uuid4().hex,
@@ -57,6 +75,15 @@ async def get_organization_settings(
         db: orm.Session = Depends(get_db),
         user: users_schemas.User = Depends(is_authenticated),
         organization: _models.Organization = Depends(is_authenticated)):
+    """intro-->This endpoint allows you to retrieve an organization's setting. To use this endpoint you need to make a get request to the /organization/{org_id}/settings endpoint
+
+        paramDesc-->On get request, the request url takes the parameter, org id 
+            param-->org_id: This is unique Id of the organization of interest
+
+        
+    returnDesc--> On sucessful request, it returns
+        returnBody--> details of the queried organization's settings
+    """
     settings = await fetch_settings(id=org_id, db=db)
     return schemas.Settings.from_orm(settings)
 
@@ -69,6 +96,24 @@ async def update_organization_settings(
         db: orm.Session = Depends(get_db),
         user: users_schemas.User = Depends(is_authenticated),
         organization: _models.Organization = Depends(is_authenticated)):
+    """intro-->This endpoint allows you to update an organization's setting. To use this endpoint you need to make a put request to the /organization/{org_id}/settings endpoint
+
+        paramDesc-->On get request, the request url takes the parameter, org id 
+            param-->org_id: This is unique Id of the organization of interest
+        
+            reqBody-->email: This is the email address of the organization
+            reqBody-->location: This is the location address of the organization
+            reqBody-->phone_number: This is the phone number of the organization
+            reqBody-->organization_size: This is the size of the organization
+            reqBody-->organization_type: This is the type of the organization
+            reqBody-->country: This is the country of operation of the organization
+            reqBody-->state: This is the state of operation if the organization
+            reqBody-->city: This is the city of operation of the organization
+            reqBody-->zip_code: This is the unique zip code of the organization's location
+        
+    returnDesc--> On sucessful request, it returns
+        returnBody--> details of the updated organization settings
+    """
     return await update_settings(org_id=org_id, settings=settings, db=db)
 
 
@@ -79,6 +124,12 @@ async def get_app_settings(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: orm.Session = fastapi.Depends(get_db)
 ):
+    """intro-->This endpoint allows you to retrieve all settings in the application . To use this endpoint you need to make a get request to the /settings endpoint
+
+        
+    returnDesc--> On sucessful request, it returns
+        returnBody--> a list of all settings in the application
+    """
     if user.is_superuser:
         results = db.query(models.AppSetting).all()
 
@@ -93,7 +144,14 @@ async def get_app_setting(
         name: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: orm.Session = fastapi.Depends(get_db)
-):
+):  
+    """intro-->This endpoint allows you to retrieve a particular setting based on it's name. To use this endpoint you need to make a get request to the /settings/{name} endpoint
+            paramDesc-->On get request, the request url takes the parameter name
+                param-->name: This is the name of the app setting of interest
+
+    returnDesc--> On sucessful request, it returns the
+        returnBody--> details of the queried setting
+    """
     if user.is_superuser:
         results = db.query(models.AppSetting).filter_by(name=name).first()
         if results is None:
@@ -111,7 +169,14 @@ async def update_app_setting(
         id: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: orm.Session = fastapi.Depends(get_db)
-):
+):  
+    """intro-->This endpoint allows you to update a particular application setting. To use this endpoint you need to make a put request to the /settings/{id} endpoint
+            paramDesc-->On get request, the request url takes the parameter id
+                param-->id: This is the unique id of the app setting of interest
+        
+    returnDesc--> On sucessful request, it returns the
+        returnBody--> details of the queried setting
+    """
     if user.is_superuser:
         app_setting = db.query(models.AppSetting).filter_by(id=id).first()
         if app_setting is None:
@@ -134,6 +199,13 @@ async def delete_app_settings(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: orm.Session = fastapi.Depends(get_db)
 ):
+    """intro-->This endpoint allows you to delete a particular setting. To use this endpoint you need to make a delete request to the /settings/{id} endpoint
+            paramDesc-->On get request, the request url takes the parameter name
+                param-->id: This is the unique id of the app setting of interest
+            
+    returnDesc--> On sucessful request, it returns message,
+        returnBody--> "deleted"
+    """
     if user.is_superuser:
         # db.query(models.AppSetting).delete()
         # app_settings = []
@@ -160,7 +232,15 @@ async def add_app_settings(
         body: schemas.CreateAppSetting,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: orm.Session = fastapi.Depends(get_db)
-):
+):  
+    """intro-->This endpoint allows you to create an app setting. To use this endpoint you need to make a post request to the /settings endpoint
+            
+            reqBody-->value: This is the value/description of the setting
+            reqBody-->name: This is the name of the new app setting
+            
+    returnDesc--> On sucessful request, it returns
+        returnBody--> details of the newly created setting
+    """
     if user.is_superuser:
         # db.query(models.AppSetting).delete()
         # app_settings = []

@@ -18,11 +18,19 @@ class Countries(str, Enum):
         return self.value
 
 
+class Frequencies(str, Enum):
+    Yearly = "Yearly"
+    Monthly = "Monthly"
+    Daily = "Daily"
+
+
 class BankBase(pydantic.BaseModel):
     account_number: int
     bank_name: str
     recipient_name: str = None
     account_type: str = None
+    currency: Optional[str]  # currency is supposed to be require. Optional for the sake of old data
+    frequency: Frequencies = None
 
 
 class AddBank(BankBase):
