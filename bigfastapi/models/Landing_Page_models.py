@@ -8,6 +8,7 @@ from sqlalchemy.types import String
 
 class LPage(db.Base):
   __tablename__ = 'Landing_page'
+
   id = Column(String(500), primary_key=True, index=True)
   user_id = Column(String(500), ForeignKey('users.id'), nullable=False)
   landingPage_name = Column(String(500), index=True, unique=True)
@@ -47,6 +48,7 @@ class LPage(db.Base):
   Footer_H2_text = Column(String(500))
   Footer_contact_address = Column(String(500))
   customer_care_email = Column(String(500))
+
 
 
 # find landing page by landing page name

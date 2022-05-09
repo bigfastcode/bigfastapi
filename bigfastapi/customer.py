@@ -326,7 +326,7 @@ async def get_customer(
          )
 async def update_customer(
     background_tasks: BackgroundTasks,
-    customer: customer_schemas.CustomerBase,
+    customer: customer_schemas.CustomerUpdate,
     customer_id: str, 
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
@@ -571,8 +571,9 @@ async def file_to_schema_converter(organization_id, db, file: UploadFile = File(
     return list_customers
 
 async def schema_mapper(customer:customer_schemas.CustomerBase, organization_id: str):
-    mapped_object = customer_models.Customer(id=uuid4().hex,
-        customer_id=generate_short_id(size=12),
+    mapped_object = customer_models.Customer(
+        id = uuid4().hex,
+        customer_id=customer.customer_id,
         first_name=customer.first_name,
         last_name=customer.last_name,
         unique_id=customer.unique_id,
@@ -597,3 +598,4 @@ async def schema_mapper(customer:customer_schemas.CustomerBase, organization_id:
 NOT_ORGANIZATION_MEMBER = "User not authorized to carry out this action"
 INVALID_ORGANIZATION = "Organization does not exist"
 NON_UNIQUE_ID = "unique_id must be unique for all customers in this organization"
+

@@ -1,3 +1,4 @@
+from random import randrange
 from sqlalchemy.types import String, DateTime, Integer, Boolean
 from sqlalchemy import ForeignKey, desc
 from sqlalchemy.sql import func
@@ -17,17 +18,16 @@ from operator import and_, or_
 
 class Customer(Base):
     __tablename__ = "customer"
-    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    customer_id = Column(String(255), index=True,
+    # id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    customer_id = Column(String(255), index=True, primary_key=True, 
                          default=generate_short_id(size=12))
     organization_id = Column(String(255), ForeignKey("businesses.id"))
     email = Column(String(255), index=True,  default="")
     first_name = Column(String(255), default="", index=True)
     last_name = Column(String(255), default="", index=True)
-    unique_id = Column(String(255), nullable=False, index=True,
-                    default=generate_short_id(size=12))
+    unique_id = Column(String(255), nullable=False, index=True)
     phone_number = Column(String(255), index=True, default="")
-    business_name = Column(String(255), index=True,  default="")
+    # business_name = Column(String(255), index=True,  default="")
     location = Column(String(255), index=True,  default="")
     gender = Column(String(255), index=True, default="")
     age = Column(Integer, index=True, default=0)
@@ -44,7 +44,7 @@ class Customer(Base):
                           server_default=func.now(), onupdate=func.now())
     is_inactive = Column(Boolean, index=True, default=False)
     default_currency = Column(String(255), index=True)
-    # group_id = Column(String(255), ForeignKey("customer_group.group_id"))
+    # customer_group_id = Column(String(255), ForeignKey("customer_group.group_id"))
 
 
 class OtherInformation(Base):
@@ -55,14 +55,14 @@ class OtherInformation(Base):
     value = Column(String(255), index=True, default="")
 
 
-# class CustomerGroup(Base):
-#     __tablename__ = "customer_group"
-#     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-#     group_id = Column(String(255), index=True, default=generate_short_id(size=12))
-#     group_name = Column(String(255), index=True, default="")
-#     group_description =Column(String(255), index=True, default="")
-#     date_created = Column(DateTime, server_default=func.now())
-#     last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+class CustomerGroup(Base):
+    __tablename__ = "customer_group"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    group_id = Column(String(255), index=True, default=generate_short_id(size=12))
+    group_name = Column(String(255), index=True, default="")
+    group_description =Column(String(255), index=True, default="")
+    date_created = Column(DateTime, server_default=func.now())
+    last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
 
 #==============================Database Services=============================#
@@ -177,8 +177,8 @@ async def add_customer(
     db: Session = Depends(get_db)
 ):
     customer_instance = Customer(
-        id=uuid4().hex,
-        customer_id=generate_short_id(size=12),
+        id = uuid4().hex,
+        customer_id=customer.customer_id,
         first_name=customer.first_name,
         last_name=customer.last_name,
         unique_id=customer.unique_id,
@@ -297,7 +297,9 @@ async def put_customer(
 async def get_customer_by_id(customer_id: str, db: Session):
     customer = db.query(Customer).filter(
         Customer.customer_id == customer_id).first()
-    return customer_schemas.Customer.from_orm(customer)
+    if customer:
+        return customer_schemas.Customer.from_orm(customer)
+    return {}
 
 
 async def get_other_customer_info(customer_id:str, db:Session):
