@@ -7,7 +7,7 @@ from sqlalchemy.types import String
 
 
 class LPage(db.Base):
-  __tablename__ = 'Landing_page'
+  __tablename__ = 'landing_page'
 
   id = Column(String(255), primary_key=True, index=True)
   user_id = Column(String(255), ForeignKey('users.id'), nullable=False)
