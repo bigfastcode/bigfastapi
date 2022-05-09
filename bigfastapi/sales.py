@@ -14,6 +14,7 @@ import csv
 from datetime import datetime
 import io
 from bigfastapi.utils import paginator
+from bigfastapi.core import messages
 
 app = APIRouter(tags=["Sales"],)
 
@@ -27,9 +28,32 @@ async def create_sale(
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
+    try:
+        organization = await organisation_models.fetchOrganization(orgId=sale.organization_id, db=db)
+        if not organization:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                detail=messages.INVALID_ORGANIZATION)
 
-    created_sale = await sale_models.create_sale(sale=sale, db=db, user_id=user.id)
-    return created_sale
+        is_valid_member =await organisation_models.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        if is_valid_member == False:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
+        
+        if not sale.unique_id:
+            sale.unique_id = await sale_models.generate_unique_id(db=db, 
+                org_id=organization.id)
+
+        existing_customers = await sale_models.is_customer_valid(db=db, unique_id=sale.unique_id, 
+            org_id=organization.id, customer_id=sale.customer_id)
+        if existing_customers == True:
+            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=messages.NON_UNIQUE_ID)
+
+        created_sale = await sale_models.create_sale(sale=sale, db=db, user_id=user.id)
+        return created_sale
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        else:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.get("/sales",

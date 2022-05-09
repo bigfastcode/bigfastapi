@@ -18,8 +18,8 @@ from operator import and_, or_
 
 class Customer(Base):
     __tablename__ = "customer"
-    # id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    customer_id = Column(String(255), index=True, primary_key=True, 
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    customer_id = Column(String(255), index=True, unique=True, nullable=False,
                          default=generate_short_id(size=12))
     organization_id = Column(String(255), ForeignKey("businesses.id"))
     email = Column(String(255), index=True,  default="")
@@ -186,7 +186,6 @@ async def add_customer(
         email=customer.email,
         phone_number=customer.phone_number,
         location=customer.location,
-        business_name=customer.business_name,
         gender=customer.gender,
         age=customer.age,
         postal_code=customer.postal_code,
@@ -324,5 +323,17 @@ async def get_inactive_customers(organization_id:str, db:Session, offset:int, si
 
 async def get_customer_by_unique_id(db:Session, unique_id, org_id):
     customers = db.query(Customer).filter(Customer.organization_id==org_id).filter(
-        Customer.unique_id==unique_id).all()
+        Customer.unique_id==unique_id).first()
     return list(map(customer_schemas.Customer.from_orm, customers))
+
+async def generate_unique_id(db:Session, org_id):
+    customers = db.query(Customer).filter(Customer.organization_id==org_id).count()
+    return customers+1
+
+async def is_customer_valid(db:Session, unique_id:str, customer_id:str, org_id):
+    by_unique_id = db.query(Customer).filter(Customer.organization_id==org_id).filter(
+        Customer.unique_id==unique_id).all()
+    by_customer_id = db.query(Customer).filter(Customer.customer_id==customer_id).all()
+    if by_unique_id or by_customer_id:
+        return True
+    return False
