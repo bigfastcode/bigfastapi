@@ -3,22 +3,20 @@ import fastapi, os
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi import APIRouter
 from fastapi import UploadFile, File
-from sqlalchemy import and_, null
-
-from bigfastapi.models import file_models
+from bigfastapi.models.receipt_models import Receipt, search_receipts, fetch_receipt_by_id
 from bigfastapi.models.organisation_models import Organization
+from bigfastapi.schemas import users_schemas
 from .schemas import receipt_schemas
 from .schemas import pdf_schema
-from .schemas import file_schemas
 from bigfastapi import pdfs
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 import random
 from fastapi.encoders import jsonable_encoder
 from bigfastapi.db.database import get_db
+from .auth_api import is_authenticated
 import sqlalchemy.orm as orm
-from .models.receipt_models import Receipt
+from sqlalchemy import and_
 from uuid import uuid4
 from fastapi import BackgroundTasks
 from bigfastapi.utils import paginator, settings
@@ -30,7 +28,12 @@ app = APIRouter()
 
 #send receipt endpoint
 @app.post("/receipts", status_code=201, response_model=receipt_schemas.ResponseModel)
-def send_receipt(payload: receipt_schemas.atrributes, background_tasks: BackgroundTasks, db: orm.Session = Depends(get_db)):
+def send_receipt(
+    payload: receipt_schemas.atrributes, 
+    background_tasks: BackgroundTasks, 
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
+    ):
 
     """
         An endpoint to send receipts. 
@@ -76,13 +79,13 @@ async def fetch_receipts(
     sorting_key: str = None,
     page: int = 1, 
     size: int = 50, 
-    db: orm.Session = Depends(get_db)):
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
+    ):
 
     """
         An endpoint to fetch all receipts. 
-        Note: The message field in the payload should be HTML formatted.
     """
-    # FETCH RECEIPT FROM DB.
     try:
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
@@ -117,6 +120,18 @@ async def fetch_receipts(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             , detail=str(ex))
 
+@app.get('/receipts/{receipt_id}', status_code=200)
+async def get_receipt(
+    organization_id:str,
+    receipt_id: str,
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
+):
+    """
+        An endpoint to fetch a single receipt. 
+    """
+    receipt =  await fetch_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
+    return receipt
 
 
 
@@ -163,48 +178,3 @@ def send_receipt_email(
 def convert_to_pdf(pdfSchema, db: orm.Session = Depends(get_db)):
     return pdfs.convert_to_pdf(pdfSchema, db=db) 
 
-async def search_receipts(
-    organization_id:str,
-    search_value: str,
-    offset: int, size:int=50,
-    db: orm.Session = Depends(get_db)
-    ):  
-    search_text = f"%{search_value}%"
-    search_result_count =db.query(Receipt).filter(and_(
-        Receipt.organization_id == organization_id,
-        Receipt.recipient.like(search_text))).count()
-
-    receipts_by_recipient = db.query(Receipt).filter(and_(
-        Receipt.organization_id == organization_id,
-        Receipt.recipient.like(search_text))
-        ).offset(
-        offset=offset).limit(limit=size).all()
-
-
-    recipient_list = [*receipts_by_recipient]
-    return (recipient_list, search_result_count)
-
-
-# async def sort_receipts(
-#     organization_id:str,
-#     sort_key: str,
-#     offset: int, size:int=50,
-#     sort_dir: str = "asc",
-#     db:Session = Depends(get_db)
-#     ):  
-#     if sort_dir == "desc":
-#         customers = db.query(Customer).filter(
-#             Customer.organization_id == organization_id).filter(
-#             Customer.is_deleted == False).filter(
-#             Customer.is_inactive == False).order_by(
-#             desc(getattr(Customer, sort_key, "first_name"))
-#             ).offset(offset=offset).limit(limit=size).all()
-#     else:
-#         customers = db.query(Customer).filter(
-#             Customer.organization_id == organization_id).filter(
-#             Customer.is_deleted == False).filter(
-#             Customer.is_inactive != True).order_by(
-#             getattr(Customer, sort_key, "first_name")
-#             ).offset(offset=offset).limit(limit=size).all()
-
-#     return list(map(customer_schemas.Customer.from_orm, customers))

@@ -1,4 +1,4 @@
-from ipaddress import ip_address
+from getmac import get_mac_address as gma
 import fastapi
 from fastapi import Request, APIRouter, BackgroundTasks
 import jwt as _jwt
@@ -126,9 +126,9 @@ async def create_user(user: auth_schemas.APIKey, db: orm.Session):
 
 
 def get_IP():
-    hostname = socket.gethostname()
-    IPAddr = socket.gethostbyname(hostname)
-    return IPAddr
+    mac_address = gma()
+    print(mac_address)
+    return mac_address
 
 
 def generate_api_key():
