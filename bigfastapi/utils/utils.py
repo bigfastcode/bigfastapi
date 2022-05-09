@@ -5,11 +5,11 @@ import re
 import fastapi
 import pkg_resources
 import requests
-# import stripe
+import stripe
 import validators
 from decouple import config
 from starlette import status
-# from stripe.error import InvalidRequestError
+from stripe.error import InvalidRequestError
 
 from bigfastapi.schemas import users_schemas
 from bigfastapi.schemas.wallet_schemas import PaymentProvider
@@ -21,8 +21,10 @@ DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 def generate_short_id(size=9, chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(chars) for _ in range(size))
 
+
 def generate_random_int(begin=0, end=1000):
     return randrange(begin, end)
+
 
 def validate_email(email):
     regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
@@ -87,69 +89,69 @@ def generate_code(new_length: int = None):
     return code
 
 
-# async def generate_payment_link(api_redirect_url: str,
-    #                             user: users_schemas.User,
-    #                             currency: str,
-    #                             tx_ref: str,
-    #                             amount: float,
-    #                             provider: PaymentProvider,
-    #                             front_end_redirect_url='',
-    #                             ):
-    # if provider == PaymentProvider.STRIPE:
-    #     stripe.api_key = config('STRIPE_SEC_KEY')
-    #     try:
-    #         session = stripe.checkout.Session.create(
-    #             line_items=[{
-    #                 'price_data': {
-    #                     'currency': currency,
-    #                     'product_data': {
-    #                         'name': 'Stripe Payment',
-    #                     },
-    #                     'unit_amount': int(amount)
-    #                 },
-    #                 'quantity': 1,
-    #             }],
-    #             client_reference_id=tx_ref,
-    #             metadata={'redirect_url': front_end_redirect_url},
-    #             mode='payment',
-    #             success_url=api_redirect_url + "?status=successful&tx_ref=" +
-    #             tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
-    #             cancel_url=api_redirect_url + "?status=cancelled&tx_ref=" +
-    #             tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
-    #         )
-    #         return session.url
-    #     except InvalidRequestError as e:
-    #         raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-    #                                     detail=str(e))
-    # else:
-    #     flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
-    #     headers = {'Content-Type': 'application/json',
-    #                'Authorization': 'Bearer ' + flutterwaveKey}
-    #     url = 'https://api.flutterwave.com/v3/payments/'
-    #     username = user.email if user.first_name is None else user.first_name
-    #     username += '' if user.last_name is None else ' ' + user.last_name
-    #     data = {
-    #         "tx_ref": tx_ref,
-    #         "amount": amount,
-    #         "currency": currency,
-    #         "redirect_url": api_redirect_url,
-    #         "customer": {
-    #             "email": user.email,
-    #             "phonenumber": user.phone_number,
-    #             "name": username
-    #         },
-    #         "meta": {
-    #             "redirect_url": front_end_redirect_url
-    #         }
-    #     }
-    #     response = requests.post(url, headers=headers, json=data)
-    #     if response.status_code == 200:
-    #         jsonResponse = response.json()
-    #         link = (jsonResponse.get('data'))['link']
-    #         return link
-    #     else:
-    #         raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-    #                                     detail="An error occurred. Please try again later")
+async def generate_payment_link(api_redirect_url: str,
+                                user: users_schemas.User,
+                                currency: str,
+                                tx_ref: str,
+                                amount: float,
+                                provider: PaymentProvider,
+                                front_end_redirect_url='',
+                                ):
+    if provider == PaymentProvider.STRIPE:
+        stripe.api_key = config('STRIPE_SEC_KEY')
+        try:
+            session = stripe.checkout.Session.create(
+                line_items=[{
+                    'price_data': {
+                        'currency': currency,
+                        'product_data': {
+                            'name': 'Stripe Payment',
+                        },
+                        'unit_amount': int(amount)
+                    },
+                    'quantity': 1,
+                }],
+                client_reference_id=tx_ref,
+                metadata={'redirect_url': front_end_redirect_url},
+                mode='payment',
+                success_url=api_redirect_url + "?status=successful&tx_ref=" +
+                tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
+                cancel_url=api_redirect_url + "?status=cancelled&tx_ref=" +
+                tx_ref + "&transaction_id={CHECKOUT_SESSION_ID}",
+            )
+            return session.url
+        except InvalidRequestError as e:
+            raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                        detail=str(e))
+    else:
+        flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
+        headers = {'Content-Type': 'application/json',
+                   'Authorization': 'Bearer ' + flutterwaveKey}
+        url = 'https://api.flutterwave.com/v3/payments/'
+        username = user.email if user.first_name is None else user.first_name
+        username += '' if user.last_name is None else ' ' + user.last_name
+        data = {
+            "tx_ref": tx_ref,
+            "amount": amount,
+            "currency": currency,
+            "redirect_url": api_redirect_url,
+            "customer": {
+                "email": user.email,
+                "phonenumber": user.phone_number,
+                "name": username
+            },
+            "meta": {
+                "redirect_url": front_end_redirect_url
+            }
+        }
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            jsonResponse = response.json()
+            link = (jsonResponse.get('data'))['link']
+            return link
+        else:
+            raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                        detail="An error occurred. Please try again later")
 
 
 def row_to_dict(row):
