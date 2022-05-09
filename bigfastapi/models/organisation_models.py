@@ -87,4 +87,4 @@ async def is_organization_member(user_id: str, organization_id: str, db: _orm.Se
         user_id=user_id).first()
     if store_user != None and organization != None:
         return False
-    return True
+    return False
