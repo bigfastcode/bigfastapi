@@ -41,3 +41,14 @@ class ShowProduct(Product):
 
     class Config:
         orm_mode = True
+
+class ProductOut(BaseModel):
+    page: int
+    size: int
+    total: int
+    previous_page: Optional[str]
+    next_page: Optional[str]
+    items: List[ShowProduct]
+
+    class Config:
+        orm_mode = True

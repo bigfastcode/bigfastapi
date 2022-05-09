@@ -12,8 +12,7 @@ from .schemas import product_schemas as schema
 from .models import product_models as model
 from .models import organisation_models as org_model
 from .files import upload_image
-import os
-import shutil
+from .utils import paginator
 
 from bigfastapi.db.database import get_db
 
@@ -21,8 +20,15 @@ app = APIRouter(
     tags=["Product"]
     )
 
-@app.get("/product/{business_id}", response_model=List[schema.ShowProduct])
-def get_products(business_id: str, db: orm.Session = fastapi.Depends(get_db)):
+@app.get("/product/{business_id}", response_model=schema.ProductOut)
+async def get_products(business_id: str, 
+                search_value: str = None,
+                sorting_key: str = None,
+                datetime_constraint: datetime.datetime = None,
+                page: int = 1,
+                size: int = 50,
+                reverse_sort: bool = True,
+                db: orm.Session = fastapi.Depends(get_db)):
 
     """
     Intro-This endpoint allows you to retreive all non-deleted products in the database for a particular business. 
@@ -31,12 +37,34 @@ def get_products(business_id: str, db: orm.Session = fastapi.Depends(get_db)):
     returnDesc-On sucessful request, it returns:
     returnBody- a list of an array of product objects.
     """
-    products = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.is_deleted==False).all()
 
-    if not products:
+    sort_dir = "desc" if reverse_sort == True else "asc"
+    page_size = 50 if size < 1 or size > 100 else size
+    page_number = 1 if page <= 0 else page
+    offset = await paginator.off_set(page=page_number, size=page_size)
+
+    if search_value:
+        product_list, num_results = await model.search_products(business_id=business_id, 
+                search_value=search_value, offset=offset, size=page_size, db=db)
+    elif sorting_key:
+        product_list = await model.sort_products(business_id=business_id, 
+                sort_key=sorting_key, offset=offset, size=page_size, sort_dir=sort_dir, db=db)
+    else:
+        product_list = await model.fetch_products(business_id=business_id,
+                offset=offset, size=page_size, timestamp=datetime_constraint, db=db)
+    
+    total_number = len(product_list)
+
+    # products = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.is_deleted==False).all()
+
+    if not product_list:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products present")
 
-    return products
+    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_number, endpoint=f"/product/{business_id}")
+    response = {"page": page_number, "size": page_size, "total": total_number,"previous_page":pointers['previous'], "next_page": pointers["next"], 
+                "items": product_list}
+    
+    return response
 
 @app.get('/product/{business_id}/{product_id}', response_model=schema.ShowProduct)
 def get_product(business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
@@ -144,7 +172,6 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
     
     product.name = product_update.name
     product.description = product_update.description
-    product.images = product_update.images
     product.discount = product_update.discount
     product.price = product_update.price
     product.updated_at = datetime.datetime.utcnow()

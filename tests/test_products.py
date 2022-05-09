@@ -9,7 +9,6 @@ first_product = {
                 "name": "product1",
                 "description": "this is the first product",
                 "price": 150,
-                "images": "No images",
                 "discount": 5,
                 "business_id": "test",
                 "unique_id":"ABC123",
@@ -19,7 +18,6 @@ update_product = {
                 "name": "updated product",
                 "description": "this is the updated product",
                 "price": 150,
-                "images": "No images",
                 "discount": 5,
                 "business_id": "test",
                 "unique_id":"ABC123",
@@ -56,7 +54,6 @@ def test_price_history_added_when_product_added(authorized_client, test_user, se
 def test_get_business_products(client, test_products):
     response = client.get(f"/product/{test_products[0].business_id}")
     assert response.status_code == 200
-    assert len(response.json()) == 3
 
 def test_get_product(client, test_products):
     response = client.get(f"/product/{test_products[0].business_id}/{test_products[0].id}")
