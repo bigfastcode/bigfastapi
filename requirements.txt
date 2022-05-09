@@ -64,3 +64,4 @@ mysqlclient
 forex-python
 gunicorn
 celery
+getmac
