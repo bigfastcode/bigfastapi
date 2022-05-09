@@ -241,19 +241,16 @@ async def invite_user(
 ):
     """intro-->This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with a specified body of request 
     
-        reqBody-->user_email: This is the email address of the user 
-        reqBody-->user_id: This is the unique user id
-        reqBody-->user_role: This specifies the role of the user in the organization  
-        reqBody-->is_accepted: This is the the acceptance state of the invite  
-        reqBody-->is_revoked: This is the revoke state of the user  
-        reqBody-->is_deleted: This specifies if the invite is deleted/expired  
+        reqBody-->user_email: This is the email address of the user to be invited.
+        reqBody-->user_id: This is the unique user id of the logged in user
+        reqBody-->user_role: This specifies the role of the user to be invited in the organization   
         reqBody-->organization_id: This is a unique id of the registered organization
-        reqBody-->store: This is a collection of users in the a store
-        reqBody-->app_url: This is the url to be navigated to on invite accept
-        reqBody-->email_details: This is the email of the user to be invited
+        reqBody-->store_id: This specifies the id of the registered organization
+        reqBody-->app_url: This is the url to be navigated to on invite accept, usually the url of the application.
+        reqBody-->email_details: This is the key content of the invite email to be sent.
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "success".
+        returnBody--> "Store invite email will be sent in the background."
     """
 
     invite_token = uuid4().hex
