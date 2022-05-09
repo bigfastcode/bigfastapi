@@ -8,11 +8,11 @@ from sqlalchemy.types import String
 
 class LPage(db.Base):
   __tablename__ = 'Landing_page'
-  id = Column(String, primary_key=True, index=True)
-  user_id = Column(String, ForeignKey('users.id'), nullable=False)
-  landingPage_name = Column(String, index=True, unique=True)
-  Bucket_name = Column(String, index=True, unique=True)
-  company_Name = Column(String, nullable=False) # company_Name 
+  id = Column(String(500), primary_key=True, index=True)
+  user_id = Column(String(500), ForeignKey('users.id'), nullable=False)
+  landingPage_name = Column(String(500), index=True, unique=True)
+  Bucket_name = Column(String(500), index=True, unique=True)
+  company_Name = Column(String(500), nullable=False) # company_Name 
   login_link = Column(String(500))
   signup_link = Column(String(500))
   company_logo = Column(String(500)) # image url
