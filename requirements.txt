@@ -63,4 +63,4 @@ mysqlclient
 
 forex-python
 gunicorn
-# celery
+celery
