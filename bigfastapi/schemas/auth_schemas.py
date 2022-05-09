@@ -5,10 +5,9 @@ from uuid import UUID
 from typing import List, Optional
 
 
-
 class _UserBase(_pydantic.BaseModel):
     email: Optional[str]
-  
+
 
 class UserUpdate(_UserBase):
     first_name: str
@@ -18,10 +17,11 @@ class UserUpdate(_UserBase):
 class UserPasswordUpdate(_pydantic.BaseModel):
     password: str
 
+
 class TestIn(_UserBase):
     username: str
     password: str
-    full_name: str 
+    full_name: str
 
 
 class TestOut(_UserBase):
@@ -34,16 +34,17 @@ class UserCreate(_UserBase):
     first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[str]
-    country_code: Optional[str] 
-    image: Optional[str] 
-    device_id: Optional[str] 
+    country_code: Optional[str]
+    image: Optional[str]
+    device_id: Optional[str]
     country: Optional[str]
     state: Optional[str]
     google_id: Optional[str]
-    google_image: Optional[str] 
+    google_image: Optional[str]
 
     class Config:
         orm_mode = True
+
 
 class UserCreateOut(_UserBase):
     id: Optional[str]
@@ -54,22 +55,22 @@ class UserCreateOut(_UserBase):
     is_superuser: Optional[bool]
     is_verified: Optional[bool]
     phone_number: Optional[str]
-    country_code: Optional[str] 
-    image: Optional[str] 
-    device_id: Optional[str] 
+    country_code: Optional[str]
+    image: Optional[str]
+    device_id: Optional[str]
     country: Optional[str]
     state: Optional[str]
     google_id: Optional[str]
-    google_image: Optional[str] 
+    google_image: Optional[str]
 
     class Config:
         orm_mode = True
+
 
 class UserLogin(_UserBase):
     phone_number: Optional[str]
     country_code: Optional[str]
     password: str
-
 
 
 class Token(_UserBase):
@@ -90,16 +91,30 @@ class User(_UserBase):
     is_verified: bool
     is_superuser: bool
     country_code: Optional[str]
-    image: Optional[str] 
+    image: Optional[str]
     is_deleted: bool
-    device_id: Optional[str] 
+    device_id: Optional[str]
     country: Optional[str]
     state: Optional[str]
     google_id: Optional[str]
-    google_image: Optional[str] 
+    google_image: Optional[str]
     date_created: dt.datetime
-    last_updated: dt.datetime 
+    last_updated: dt.datetime
 
     class Config:
         orm_mode = True
 
+
+class APIKey(_UserBase):
+    app_name: str
+    email: Optional[str]
+    phone_number: Optional[str]
+    country_code: Optional[str]
+    user_id: Optional[str]
+    first_name: Optional[str]
+    last_name: Optional[str]
+
+
+class APIKEYCheck(_pydantic.BaseModel):
+    app_id: str
+    api_key: str
