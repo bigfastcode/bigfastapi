@@ -45,9 +45,25 @@ class VerificationToken(database.Base):
     token = Column(String(255), index=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
 
+
 class PasswordResetToken(database.Base):
     __tablename__ = "password_reset_tokens"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     user_id = Column(String(255), ForeignKey("users.id"))
     token = Column(String(255), index=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
+
+
+class APIKeys(database.Base):
+    __tablename__ = "api_keys"
+    id = Column(String(225), primary_key=True, index=True, default=uuid4().hex)
+    user_id = Column(String(255), ForeignKey("users.id"))
+    app_id = Column(String(225), index=True)
+    ipAddr = Column(String(225), index=True)
+    app_name = Column(String(225), index=True)
+    key = Column(String(225), index=True)
+    is_enabled = Column(Boolean, default=True)
+    date_created = Column(DateTime, default=_dt.datetime.utcnow)
+
+    def verify_apikey(self, key: str):
+        return _hash.sha256_crypt.verify(key, self.key)

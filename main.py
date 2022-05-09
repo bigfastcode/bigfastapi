@@ -41,6 +41,7 @@ from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
+from bigfastapi.api_key import app as api_key
 #from bigfastapi.landingpage import app as landingpage
 from bigfastapi.failed_imports import app as failedimports
 from bigfastapi.import_progress import app as importprogress
@@ -52,7 +53,7 @@ tags_metadata = [
         "name": "blog",
         "description": " BigFast's blog api includes various standard blog api patterns from blog creation to various api querying operations. With this group you can easily get your blog client up and running in no time 📝",
     },
-     {
+    {
         "name": "auth",
         "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specified parameters",
     },
@@ -191,7 +192,8 @@ app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
-#app.include_router(landingpage)
+app.include_router(api_key)
+# app.include_router(landingpage)
 app.include_router(failedimports)
 app.include_router(importprogress)
 app.include_router(sales)
