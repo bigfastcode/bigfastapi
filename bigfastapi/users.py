@@ -245,7 +245,7 @@ async def invite_user(
         reqBody-->user_id: This is the unique user id of the logged in user
         reqBody-->user_role: This specifies the role of the user to be invited in the organization   
         reqBody-->organization_id: This is a unique id of the registered organization
-        reqBody-->store_id: This specifies the id of the registered organization
+        reqBody-->store: This specifies the information of the registered organization
         reqBody-->app_url: This is the url to be navigated to on invite accept, usually the url of the application.
         reqBody-->email_details: This is the key content of the invite email to be sent.
 
