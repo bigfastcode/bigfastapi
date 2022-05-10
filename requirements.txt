@@ -59,3 +59,9 @@ Pillow
 stripe
 pandas
 mysqlclient
+
+
+forex-python
+gunicorn
+celery
+getmac

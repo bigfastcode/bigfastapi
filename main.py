@@ -12,6 +12,7 @@ from bigfastapi.auth import app as authentication
 from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.banks import router as banks
 from bigfastapi.blog import app as blog
+from bigfastapi.products import app as products
 from bigfastapi.comments import app as comments
 from bigfastapi.contact import app as contact
 from bigfastapi.countries import app as countries
@@ -40,7 +41,11 @@ from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
+from bigfastapi.api_key import app as api_key
+#from bigfastapi.landingpage import app as landingpage
 from bigfastapi.failed_imports import app as failedimports
+from bigfastapi.import_progress import app as importprogress
+from bigfastapi.sales import app as sales
 
 # Create the application
 tags_metadata = [
@@ -48,7 +53,7 @@ tags_metadata = [
         "name": "blog",
         "description": " BigFast's blog api includes various standard blog api patterns from blog creation to various api querying operations. With this group you can easily get your blog client up and running in no time 📝",
     },
-     {
+    {
         "name": "auth",
         "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specified parameters",
     },
@@ -133,6 +138,7 @@ tags_metadata = [
         "description": "BigFast's users api allows you and mange user's and user processes in your application."
     },
     {
+<<<<<<< HEAD
         "name": "faqandsupport",
         "description": "BigFast's Faq and Support api allows you to and set up a faq section in your application. This api alows creation and retireval of faqs. We also offer a support ticket workflow, you can incorporate the creation, replying and closing of support tickets in your application."
     },  
@@ -140,6 +146,12 @@ tags_metadata = [
         "name": "sendsms",
         "description": "BigFast's Send Sms api allows you to send an sms with a body of request containing details of the sms action."
     },      
+=======
+        "name": "sales",
+        "description": "BigFast's sales api exposes a a group of API routes related to sales. You can seamlessly create, retrieve, update and delete sale details."
+    },
+
+>>>>>>> 5aa54a96e447d6e07b76482989b2f7fa09e0e8ea
 ]
 
 app = FastAPI(openapi_tags=tags_metadata)
@@ -166,6 +178,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
+app.include_router(products, tags=["Products"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(plans, tags=['Plans'])
 app.include_router(email)
@@ -189,7 +202,11 @@ app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
+app.include_router(api_key)
+# app.include_router(landingpage)
 app.include_router(failedimports)
+app.include_router(importprogress)
+app.include_router(sales)
 
 
 @app.get("/", tags=["Home"])

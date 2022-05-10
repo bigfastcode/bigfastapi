@@ -17,6 +17,7 @@ from bigfastapi.models.organisation_models import Organization
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import requests
+from starlette.background import BackgroundTask
 
 
 
@@ -27,7 +28,6 @@ def addActivitiesLog(
     model_name: str,
     object_id: str,
     log: ActivitiesLogBase,
-    background_tasks: BackgroundTasks = BackgroundTasks(), 
     db: Session = Depends(get_db),
     user: str = _fastapi.Depends(is_authenticated),
 ):
@@ -55,7 +55,7 @@ def addActivitiesLog(
             status_code=status.HTTP_400_BAD_REQUEST)
     
     #send log to background task
-    background_tasks.add_task(createActivityLog, model_name, object_id, user, log,  db)
+    BackgroundTask(createActivityLog, model_name, object_id, user, log,  db)
 
     return JSONResponse({"message": "log successfully recorded"},
             status_code=status.HTTP_200_OK)
