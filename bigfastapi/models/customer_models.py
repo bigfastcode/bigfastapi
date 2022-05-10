@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from bigfastapi.db.database import Base
 from uuid import uuid4
 from sqlalchemy.schema import Column
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from fastapi import Depends
 from datetime import datetime
 # from bigfastapi.models.organisation_models import Organization
@@ -44,15 +44,18 @@ class Customer(Base):
                           server_default=func.now(), onupdate=func.now())
     is_inactive = Column(Boolean, index=True, default=False)
     default_currency = Column(String(255), index=True)
+    # OtherInfo = relationship("OtherInformation", back_populates="customer_id")
     # customer_group_id = Column(String(255), ForeignKey("customer_group.group_id"))
+    # customer_group = relationship("CustomerGroup", back_populates="customer_group")
 
 
 class OtherInformation(Base):
     __tablename__ = "extra_customer_info"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    customer_id = Column(String(255), ForeignKey("businesses.id"))
+    customer_id = Column(String(255), ForeignKey("customer.customer_id"))
     key = Column(String(255), index=True, default="")
     value = Column(String(255), index=True, default="")
+    # customer = relationship("Cutomer", back_populates="customer")
 
 
 class CustomerGroup(Base):
@@ -63,6 +66,7 @@ class CustomerGroup(Base):
     group_description =Column(String(255), index=True, default="")
     date_created = Column(DateTime, server_default=func.now())
     last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    # customers = relationship("Cutomer", back_populates="customer_group_id")
 
 
 #==============================Database Services=============================#
@@ -326,14 +330,17 @@ async def get_inactive_customers(organization_id:str, db:Session, offset:int, si
             offset=offset).limit(limit=size).all()
     return (list(map(customer_schemas.Customer.from_orm, customers)), total_items)
 
+
 async def get_customer_by_unique_id(db:Session, unique_id, org_id):
     customers = db.query(Customer).filter(Customer.organization_id==org_id).filter(
         Customer.unique_id==unique_id).first()
     return list(map(customer_schemas.Customer.from_orm, customers))
 
+
 async def generate_unique_id(db:Session, org_id):
     customers = db.query(Customer).filter(Customer.organization_id==org_id).count()
     return customers+1
+
 
 async def is_customer_valid(db:Session, unique_id:str, customer_id:str, org_id):
     by_ids = db.query(Customer).filter(Customer.organization_id==org_id).filter(or_(
