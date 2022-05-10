@@ -132,7 +132,14 @@ tags_metadata = [
         "name": "user",
         "description": "BigFast's users api allows you and mange user's and user processes in your application."
     },
-
+    {
+        "name": "faqandsupport",
+        "description": "BigFast's Faq and Support api allows you to and set up a faq section in your application. This api alows creation and retireval of faqs. We also offer a support ticket workflow, you can incorporate the creation, replying and closing of support tickets in your application."
+    },  
+    {
+        "name": "sendsms",
+        "description": "BigFast's Send Sms api allows you to send an sms with a body of request containing details of the sms action."
+    },      
 ]
 
 app = FastAPI(openapi_tags=tags_metadata)
