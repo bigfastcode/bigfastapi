@@ -7,7 +7,7 @@ from bigfastapi.utils import utils
 
 class SaleBase(BaseModel):
     sale_id :str = utils.generate_short_id(size=12)
-    unique_id: str = utils.generate_random_int()
+    unique_id: Optional[str]
     product_id :str
     customer_id :str
     organization_id : str

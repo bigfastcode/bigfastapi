@@ -2,7 +2,7 @@ from .auth_api import is_authenticated
 from random import randrange
 from typing import List
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
-from bigfastapi.models import organisation_models, customer_models, sale_models
+from bigfastapi.models import customer_models, sale_models, organisation_models, product_models
 from bigfastapi.schemas import sale_schemas, users_schemas, customer_schemas
 from sqlalchemy.orm import Session
 from bigfastapi.db.database import get_db
@@ -42,7 +42,7 @@ async def create_sale(
             sale.unique_id = await sale_models.generate_unique_id(db=db, 
                 org_id=organization.id)
 
-        existing_customers = await sale_models.is_customer_valid(db=db, unique_id=sale.unique_id, 
+        existing_customers = await sale_models.is_sale_valid(db=db, unique_id=sale.unique_id, 
             org_id=organization.id, customer_id=sale.customer_id)
         if existing_customers == True:
             raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=messages.NON_UNIQUE_ID)
@@ -64,12 +64,22 @@ async def get_all_sale(
     organization_id:str,
     page: int = 1,
     size: int = 50,
+    datetime_constraint:datetime = None,
     sorting_key: str = "date_created",
     search_value:str = None,
     reverse_sort: bool = True,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
+
+    organization = await organisation_models.fetchOrganization(orgId=organization_id, db=db)
+    if not organization:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+            detail=messages.INVALID_ORGANIZATION)
+
+    is_valid_member =await organisation_models.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
+    if is_valid_member == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
     sort_dir = "asc" if reverse_sort == True else "desc"
     page_size = 50 if size < 1 or size > 100 else size
@@ -92,7 +102,16 @@ async def get_single_sale(
     sale_id: str,
     db: Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
-    ):
+):
+    organization = await organisation_models.fetchOrganization(orgId=organization_id, db=db)
+    if not organization:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+            detail=messages.INVALID_ORGANIZATION)
+
+    is_valid_member =await organisation_models.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
+    if is_valid_member == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
+
     sale =  await sale_models.fetch_sale_by_id(sale_id=sale_id, db=db)
     return sale
 

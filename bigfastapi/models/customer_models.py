@@ -105,43 +105,48 @@ async def search_customers(
     db:Session = Depends(get_db)
     ):  
     search_text = f"%{search_value}%"
-    no_of_search_results1 =db.query(Customer).filter(and_(
+    total_items =db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
-        Customer.is_deleted == False)).filter(or_(
-        Customer.is_inactive == False, Customer.is_inactive == None
-        )).filter(or_(Customer.first_name.like(search_text),
-        Customer.last_name.like(search_text))).count()
+        Customer.is_deleted == False)).filter(
+        Customer.is_inactive == False| 
+        Customer.is_inactive == None).filter(
+        Customer.first_name.like(search_text)|
+        Customer.last_name.like(search_text)|
+        Customer.unique_id.like(search_value)|
+        Customer.customer_id.like(search_value)).count()
 
-    no_of_search_results2 = db.query(Customer).filter(and_(
+    customers =db.query(Customer).filter(and_(
         Customer.organization_id == organization_id,
-        Customer.is_deleted == False)).filter(or_(
-        Customer.is_inactive == False, Customer.is_inactive == None
-        )).filter(or_(Customer.unique_id.like(search_value),
-        Customer.customer_id.like(search_value))).count()
-    total_items = no_of_search_results1 +  no_of_search_results2
-
-    customers_by_name = db.query(Customer).filter(and_(
-        Customer.organization_id == organization_id,
-        Customer.is_deleted == False)).filter(or_(
-        Customer.is_inactive == False, Customer.is_inactive == None
-        )).filter(or_(Customer.first_name.like(search_text),
-        Customer.last_name.like(search_text))).order_by(
+        Customer.is_deleted == False)).filter(
+        Customer.is_inactive == False| 
+        Customer.is_inactive == None).filter(
+        Customer.first_name.like(search_text)|
+        Customer.last_name.like(search_text)|
+        Customer.unique_id.like(search_value)|
+        Customer.customer_id.like(search_value)).order_by(
         Customer.date_created.desc()).offset(
         offset=offset).limit(limit=size).all()
-    map_names = list(map(customer_schemas.Customer.from_orm, customers_by_name))
+    map_names = list(map(customer_schemas.Customer.from_orm, customers))
+    return (map_names, total_items)
 
-    customers_by_id =db.query(Customer).filter(and_(
-        Customer.organization_id == organization_id,
-        Customer.is_deleted == False)).filter(or_(
-        Customer.is_inactive == False, Customer.is_inactive == None
-        )).filter(or_(Customer.unique_id.like(search_value),
-        Customer.customer_id.like(search_value))).order_by(
-        Customer.date_created.desc()).offset(
-        offset=offset).limit(limit=size).all()
-    map_ids = list(map(customer_schemas.Customer.from_orm, customers_by_id))
+    # no_of_search_results2 = db.query(Customer).filter(and_(
+    #     Customer.organization_id == organization_id,
+    #     Customer.is_deleted == False)).filter(or_(
+    #     Customer.is_inactive == False, Customer.is_inactive == None
+    #     )).filter(or_(,
+    # total_items = no_of_search_results
+    # customers_by_id =db.query(Customer).filter(and_(
+    #     Customer.organization_id == organization_id,
+    #     Customer.is_deleted == False)).filter(or_(
+    #     Customer.is_inactive == False, Customer.is_inactive == None
+    #     )).filter(or_(Customer.unique_id.like(search_value),
+    #     Customer.customer_id.like(search_value))).order_by(
+    #     Customer.date_created.desc()).offset(
+    #     offset=offset).limit(limit=size).all()
+    # map_ids = list(map(customer_schemas.Customer.from_orm, customers_by_id))
 
-    customer_list = [*map_names, *map_ids]
-    return (customer_list, total_items)
+    # customer_list = [*map_names, *map_ids]
+    
 
 
 async def sort_customers(
@@ -331,9 +336,8 @@ async def generate_unique_id(db:Session, org_id):
     return customers+1
 
 async def is_customer_valid(db:Session, unique_id:str, customer_id:str, org_id):
-    by_unique_id = db.query(Customer).filter(Customer.organization_id==org_id).filter(
-        Customer.unique_id==unique_id).all()
-    by_customer_id = db.query(Customer).filter(Customer.customer_id==customer_id).all()
-    if by_unique_id or by_customer_id:
+    by_ids = db.query(Customer).filter(Customer.organization_id==org_id).filter(or_(
+        Customer.unique_id==unique_id, Customer.customer_id==customer_id)).all()
+    if by_ids:
         return True
     return False

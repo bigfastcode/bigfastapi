@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 from bigfastapi.schemas import sale_schemas
 from bigfastapi.utils.utils import generate_short_id
 from bigfastapi.db import database
-from bigfastapi.models import product_models, Sale_models, receipt_models
+from bigfastapi.models import product_models, receipt_models
 
 class Sale(database.Base):
     __tablename__ = "sales"
@@ -19,7 +19,7 @@ class Sale(database.Base):
     creator_id = Column(String(255), ForeignKey("users.id"))
     product_id = Column(String(255), ForeignKey("products.id"))
     receipt_id = Column(String(255), ForeignKey("newreceipts.id"))
-    Sale_id = Column(String(255), ForeignKey("Sale.Sale_id"))
+    customer_id = Column(String(255), ForeignKey("Sale.Sale_id"))
     organization_id = Column(String(255), ForeignKey("businesses.id"))
     amount = Column(Integer, nullable=False, index=True)
     sale_currency = Column(String(255), nullable=False, index=True)
@@ -69,7 +69,7 @@ async def create_sale(
         sale_id= sale.sale_id,
         product_id =sale.product_id,
         unique_id = sale.unique_id,
-        Sale_id= sale.Sale_id,
+        customer_id= sale.customer_id,
         organization_id = sale.organization_id,
         creator_id = user_id,
         amount = sale.amount,
@@ -100,10 +100,10 @@ async def generate_unique_id(db:Session, org_id):
     Sales = db.query(Sale).filter(Sale.organization_id==org_id).count()
     return Sales+1
 
-async def is_Sale_valid(db:Session, unique_id:str, Sale_id:str, org_id):
+async def is_sale_valid(db:Session, unique_id:str, sale_id:str, org_id):
     by_unique_id = db.query(Sale).filter(Sale.organization_id==org_id).filter(
         Sale.unique_id==unique_id).all()
-    by_Sale_id = db.query(Sale).filter(Sale.Sale_id==Sale_id).all()
-    if by_unique_id or by_Sale_id:
+    by_sale_id = db.query(Sale).filter(Sale.Sale_id==sale_id).all()
+    if by_unique_id or by_sale_id:
         return True
     return False
