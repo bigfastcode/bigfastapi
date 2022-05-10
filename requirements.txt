@@ -58,5 +58,10 @@ aiofiles
 Pillow
 stripe
 pandas
-celery
+mysqlclient
 
+
+forex-python
+gunicorn
+celery
+getmac

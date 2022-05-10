@@ -20,7 +20,7 @@ app = APIRouter(
     tags=["Product"]
     )
 
-@app.get("/product/{business_id}", response_model=schema.ProductOut)
+@app.get("/product", response_model=schema.ProductOut)
 async def get_products(business_id: str, 
                 search_value: str = None,
                 sorting_key: str = None,
@@ -60,13 +60,13 @@ async def get_products(business_id: str,
     if not product_list:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products present")
 
-    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_number, endpoint=f"/product/{business_id}")
+    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_number, endpoint=f"/product")
     response = {"page": page_number, "size": page_size, "total": total_number,"previous_page":pointers['previous'], "next_page": pointers["next"], 
                 "items": product_list}
     
     return response
 
-@app.get('/product/{business_id}/{product_id}', response_model=schema.ShowProduct)
+@app.get('/product/{product_id}', response_model=schema.ShowProduct)
 def get_product(business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
     """
     Intro-This endpoint allows you to retreive details of a product in the database belonging to a business. 
@@ -145,7 +145,7 @@ async def create_product(product: schema.ProductCreate,
     return product
 
 
-@app.put('/product/{business_id}/{product_id}')
+@app.put('/product/{product_id}')
 def update_product(product_update: schema.ProductUpdate,business_id: str, 
                     product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
@@ -181,7 +181,7 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
     return {'message':'Product updated successfully'}
 
 
-@app.delete("/product/{business_id}/{product_id}")
+@app.delete("/product/{product_id}")
 def delete_product(business_id: str, product_id: str, 
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
