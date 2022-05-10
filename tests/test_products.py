@@ -52,36 +52,36 @@ def test_price_history_added_when_product_added(authorized_client, test_user, se
     assert record
 
 def test_get_business_products(client, test_products):
-    response = client.get(f"/product/{test_products[0].business_id}")
+    response = client.get(f"/product?business_id={test_products[0].business_id}")
     assert response.status_code == 200
 
 def test_get_product(client, test_products):
-    response = client.get(f"/product/{test_products[0].business_id}/{test_products[0].id}")
+    response = client.get(f"/product/{test_products[0].id}?business_id={test_products[0].business_id}")
     assert response.status_code == 200
     assert response.json().get('id') == test_products[0].id
 
 def test_update_product(authorized_client, test_products):
     business_id = test_products[0].business_id
     product_id = test_products[0].id
-    response = authorized_client.put(f'/product/{business_id}/{product_id}', json=update_product)
+    response = authorized_client.put(f'/product/{product_id}?business_id={business_id}', json=update_product)
     assert response.status_code == 200
 
 def test_unauthorized_client_cannot_update_product(client, test_products):
     business_id = test_products[0].business_id
     product_id = test_products[0].id
-    response = client.put(f'/product/{business_id}/{product_id}', json=update_product)
+    response = client.put(f'/product/{product_id}', json=update_product)
     assert response.status_code == 401
 
 def test_delete_product(authorized_client, test_products):
     business_id = test_products[0].business_id
     product_id = test_products[0].id
-    response = authorized_client.delete(f'/product/{business_id}/{product_id}')
+    response = authorized_client.delete(f'/product/{product_id}?business_id={business_id}')
     assert response.status_code == 200
 
 def test_unauthorized_client_cannot_delete_product(client, test_products):
     business_id = test_products[0].business_id
     product_id = test_products[0].id
-    response = client.delete(f'/product/{business_id}/{product_id}')
+    response = client.delete(f'/product/{product_id}')
     assert response.status_code == 401
 
 

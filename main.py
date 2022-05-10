@@ -41,8 +41,9 @@ from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
+from bigfastapi.landingpage import app as landingpage
+
 from bigfastapi.api_key import app as api_key
-#from bigfastapi.landingpage import app as landingpage
 from bigfastapi.failed_imports import app as failedimports
 from bigfastapi.import_progress import app as importprogress
 from bigfastapi.sales import app as sales
@@ -192,8 +193,9 @@ app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
+app.include_router(landingpage)
+
 app.include_router(api_key)
-# app.include_router(landingpage)
 app.include_router(failedimports)
 app.include_router(importprogress)
 app.include_router(sales)
