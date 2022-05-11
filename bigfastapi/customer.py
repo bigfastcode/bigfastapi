@@ -17,7 +17,7 @@ After that, the following endpoints will become available:
 from random import randrange
 from typing import List
 from fastapi import APIRouter, Depends, status, HTTPException, File, UploadFile, BackgroundTasks
-from bigfastapi.models.organisation_models import Organization, is_organization_member, fetchOrganization
+from bigfastapi.models.organisation_models import Organization, fetchOrganization
 from bigfastapi.models.customer_models import Customer
 from bigfastapi.schemas import customer_schemas, users_schemas
 from bigfastapi.models import customer_models
@@ -31,6 +31,7 @@ import csv
 from datetime import datetime
 import io
 from bigfastapi.utils import paginator
+from .core.helpers import Helpers
 
 app = APIRouter(tags=["Customers 💁"],)
 
@@ -88,7 +89,7 @@ async def create_customer(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                 detail=INVALID_ORGANIZATION)
 
-        is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        is_valid_member =await Helpers.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
         
@@ -178,7 +179,7 @@ async def create_bulk_customer(
         if not organization:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=INVALID_ORGANIZATION)
 
-        is_valid_member = await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
 
@@ -238,7 +239,7 @@ async def get_customers(
         if not organization:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=INVALID_ORGANIZATION)
 
-        is_valid_member = await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
 
@@ -306,7 +307,7 @@ async def get_customer(
         if not customer:
             return JSONResponse({"message": "Customer does not exist"},
                 status_code=status.HTTP_404_NOT_FOUND)
-        is_valid_member = await is_organization_member(user_id=user.id, organization_id=customer.organization.id, db=db)
+        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=customer.organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
             
@@ -389,7 +390,7 @@ async def update_customer(
                 return JSONResponse({"message": INVALID_ORGANIZATION}, status_code=status.HTTP_404_NOT_FOUND)
             customer_instance.organization_id = organization.id
 
-        is_valid_member = await is_organization_member(user_id=user.id, organization_id=customer_instance.organization_id, db=db)
+        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=customer_instance.organization_id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
 
@@ -446,7 +447,7 @@ async def soft_delete_customer(
             return JSONResponse({"message": "Customer does not exist"},
                                 status_code=status.HTTP_404_NOT_FOUND)
 
-        is_valid_member =await is_organization_member(user_id=user.id, organization_id=customer.organization_id,db=db)
+        is_valid_member =await Helpers.is_organization_member(user_id=user.id, organization_id=customer.organization_id,db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
 
@@ -497,7 +498,7 @@ async def soft_delete_all_customers(
         if not organization:
             return JSONResponse({"message": INVALID_ORGANIZATION},
                                 status_code=status.HTTP_404_NOT_FOUND)
-        is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        is_valid_member =await Helpers.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
         customers = db.query(Customer).filter_by(
@@ -535,7 +536,7 @@ async def make_customers_inactive(
     """
     try:
         
-        is_valid_member =await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
+        is_valid_member =await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
         for customer_id in list_customer_id:
