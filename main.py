@@ -7,6 +7,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 from starlette.middleware.sessions import SessionMiddleware
+from celery import Celery
+from decouple import config
 
 from bigfastapi.auth import app as authentication
 from bigfastapi.auth_api import app as jwt_services
@@ -44,7 +46,7 @@ from bigfastapi.activities_log import app as activitieslog
 from bigfastapi.landingpage import app as landingpage
 
 from bigfastapi.api_key import app as api_key
-from bigfastapi.failed_imports import app as failedimports
+from bigfastapi.landingpage import app as landingpage
 from bigfastapi.import_progress import app as importprogress
 from bigfastapi.sales import app as sales
 
@@ -147,9 +149,19 @@ tags_metadata = [
 
 app = FastAPI(openapi_tags=tags_metadata)
 app.add_middleware(SessionMiddleware, secret_key=env_var.JWT_SECRET)
+RABBITMQ_USERNAME = config('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD =config('RABBITMQ_PASSWORD')
+RABBITMQ_HOST_PORT =config('RABBITMQ_HOST_PORT')
+
+celery = Celery('tasks', broker=f'amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST_PORT}')
+
+celery.conf.imports = [
+    ''
+]
 
 client = TestClient(app)
 create_database()
+
 
 origins = ["*"]
 app.add_middleware(
@@ -196,7 +208,7 @@ app.include_router(activitieslog)
 app.include_router(landingpage)
 
 app.include_router(api_key)
-app.include_router(failedimports)
+app.include_router(landingpage)
 app.include_router(importprogress)
 app.include_router(sales)
 
