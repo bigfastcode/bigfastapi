@@ -205,7 +205,6 @@ app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
-app.include_router(landingpage)
 
 app.include_router(api_key)
 app.include_router(landingpage)
