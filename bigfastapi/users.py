@@ -2,7 +2,7 @@ from operator import inv
 from re import L
 from typing import Optional
 import uuid
-from bigfastapi.schemas import store_user_schemas
+from bigfastapi.schemas import store_invite_schemas, store_user_schemas
 from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
@@ -156,7 +156,7 @@ async def updatePassword(
         return {"data":  dbResponse}
 
 
-@app.put('/users/accept-invite/{token}')
+@app.put('/users/accept-invite/{token}', response_model=store_invite_schemas.AcceptInviteResponse)
 def accept_invite(
     payload: _invite_schemas.StoreUser,
     token: str, 
@@ -174,7 +174,7 @@ def accept_invite(
         reqBody-->organization_id: This is a unique id of the registered organization
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "success".
+        returnBody--> An object with a key `invite` containing the invite data from the database.
     """
 
     existing_invite = db.query(
@@ -226,12 +226,10 @@ def accept_invite(
     db.commit()
     db.refresh(invite)
 
-    return JSONResponse({
-        "id": invite.store_id
-    }, status_code=status.HTTP_200_OK)
+    return { "invite": store_invite_schemas._InviteBase.from_orm(invite) }
 
 
-@app.post("/users/invite/", status_code=201)
+@app.post("/users/invite/", status_code=201, response_model=store_invite_schemas.InviteResponse)
 async def invite_user(
     payload: _invite_schemas.UserInvite,
     background_tasks: BackgroundTasks,
@@ -239,7 +237,7 @@ async def invite_user(
     user: str = fastapi.Depends(is_authenticated),
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    """intro-->This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with a specified body of request 
+    """intro-->This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with the specified body of request 
     
         reqBody-->user_email: This is the email address of the user to be invited.
         reqBody-->user_id: This is the unique user id of the logged in user
@@ -249,7 +247,7 @@ async def invite_user(
         reqBody-->email_details: This is the key content of the invite email to be sent.
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Store invite email will be sent in the background."
+        returnBody-->  An object with a key `message`.
     """
 
     invite_token = uuid4().hex
@@ -295,7 +293,7 @@ async def invite_user(
     return {"message": "Enter an email you're not logged in with."}
 
 
-@app.get('/users/invite/{invite_code}')
+@app.get('/users/invite/{invite_code}', response_model=store_invite_schemas.SingleInviteResponse)
 async def get_single_invite(
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db),
@@ -307,7 +305,7 @@ async def get_single_invite(
         
 
     returnDesc--> On sucessful request, it returns
-        returnBody--> "invite link".
+        returnBody--> An object with a key `invite` containing the invite data and a key `user` containing a string `exists` that the invited user is a member of another organisation in the application.
     """
     # user invite code to query the invite table
     existing_invite = db.query(
@@ -338,7 +336,7 @@ async def get_single_invite(
                 "message": "Invalid invite code"
             }, status_code=400)
 
-@app.put("/users/invite/{invite_code}/decline")
+@app.put("/users/invite/{invite_code}/decline", response_model=store_invite_schemas._InviteBase)
 def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
     """intro-->This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
     
@@ -347,7 +345,7 @@ def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
         
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "success".
+        returnBody--> an object contain the invite data with the `is_deleted` field set to True
     """
 
     declined_invite = (
@@ -364,7 +362,7 @@ def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
     return declined_invite
 
 
-@app.delete("/users/revoke-invite/{invite_code}")
+@app.delete("/users/revoke-invite/{invite_code}", response_model=store_invite_schemas.RevokedInviteResponse)
 def revoke_invite(
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db)
@@ -376,7 +374,7 @@ def revoke_invite(
         
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "success".
+        returnBody--> an object contain the invite data with the `is_deleted` and `is_revoked` field set to True
     """
     revoked_invite = (
         db.query(store_invite_model.StoreInvite)
@@ -392,7 +390,7 @@ def revoke_invite(
 
     return revoked_invite
 
-@app.patch("/users/{user_id}/change")
+@app.patch("/users/{user_id}/change", response_model=store_user_schemas.UpdateRoleResponse)
 def update_user_role(
     payload: store_user_schemas.UserUpdate,
     db: orm.Session = fastapi.Depends(get_db)
@@ -403,8 +401,9 @@ def update_user_role(
         param-->user_id: This is the user id of the user
         
 
-    returnDesc--> On sucessful request, it returns message
-        returnBody--> "User role successfully updated"
+    returnDesc--> On sucessful request, it returns an object
+        returnBody--> An object with a key `message` with the value - "User role successfully updated", 
+            and `data` containing the updated store user data.
     """
     
     existing_user = (
