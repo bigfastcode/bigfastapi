@@ -1,3 +1,4 @@
+from pydoc import Helper
 from .auth_api import is_authenticated
 from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.models import sale_models, organisation_models
@@ -8,6 +9,7 @@ from .auth_api import is_authenticated
 from datetime import datetime
 from bigfastapi.utils import paginator
 from bigfastapi.core import messages
+from bigfastapi.core.helpers import Helpers
 
 app = APIRouter(tags=["Sales"],)
 
@@ -27,7 +29,7 @@ async def create_sale(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                 detail=messages.INVALID_ORGANIZATION)
 
-        is_valid_member =await organisation_models.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        is_valid_member =await Helpers.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
         
