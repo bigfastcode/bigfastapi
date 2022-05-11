@@ -15,9 +15,9 @@ from starlette.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
+from .core.helpers import Helpers
 from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, wallet_models, \
     wallet_transaction_models, credit_wallet_history_models, store_user_model
-from .models.organisation_models import is_organization_member
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
 from .schemas.wallet_schemas import PaymentProvider
@@ -462,7 +462,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
     )
 
     if organization is None:
-        is_store_member = await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
+        is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
         if is_store_member:
             organization = (
                 db.query(organisation_models.Organization)

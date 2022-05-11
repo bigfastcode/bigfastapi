@@ -48,7 +48,7 @@ async def generate(body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(
         user_id = user
         resp = await save_apikey_to_db(key, app_id, user_id, ip, body, db)
 
-        return {"message": "success", "API_KEY": key, "APP_ID": resp.app_id}
+        return {"message": "success", "API_KEY": key, "APP_ID": resp.app_id, "Mac_Address": ip}
 
 
 @app.post("/get-apikey")
