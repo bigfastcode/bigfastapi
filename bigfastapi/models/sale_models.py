@@ -22,7 +22,7 @@ class Sale(database.Base):
     receipt_id = Column(String(255), ForeignKey("newreceipts.id"))
     customer_id = Column(String(255), ForeignKey("customer.customer_id"))
     organization_id = Column(String(255), ForeignKey("businesses.id"))
-    customer = relationship("Customer", backref=("customers"))
+    customer = relationship("Customer", backref=("sale_customer"))
     product = relationship("Product", backref=("products"))
     receipt = relationship("Receipt", backref=("receipt"))
     amount = Column(Integer, nullable=False, index=True)
