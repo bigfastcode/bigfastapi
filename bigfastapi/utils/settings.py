@@ -20,6 +20,7 @@ BASE_URL = config("BASE_URL")
 # EMAIL_VERIFICATION_TEMPLATE = config('EMAIL_VERIFICATION_TEMPLATE')
 # PASSWORD_RESET_TEMPLATE = config('PASSWORD_RESET_TEMPLATE')
 FILES_BASE_FOLDER = config('FILES_BASE_FOLDER')
+LANDING_PAGE_FOLDER = pkg_resources.resource_filename("bigfastapi","/templates/email/")
 
 # EMAIL_VERIFICATION_TEMPLATE="email/welcome_email.html"
 # PASSWORD_RESET_TEMPLATE="email/password_reset.html"
