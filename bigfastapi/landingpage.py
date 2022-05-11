@@ -1,3 +1,4 @@
+from re import template
 from uuid import uuid4
 from typing import List
 from sqlalchemy.orm import Session
@@ -12,13 +13,14 @@ from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File,
 from bigfastapi.utils.schema_form import as_form
 import os
 from fastapi.responses import FileResponse
-from bigfastapi.utils.settings import TEMPLATE_FOLDER
+from bigfastapi.utils.settings import LANDING_PAGE_FOLDER
 from starlette.requests import Request
 
 app = APIRouter(tags=["Landing Page"])
 
 
-templates = Jinja2Templates(directory=TEMPLATE_FOLDER+"/landingpage")
+templates = Jinja2Templates(directory=LANDING_PAGE_FOLDER)
+print(LANDING_PAGE_FOLDER)
 
 
 # Endpoint to open index.html
@@ -294,6 +296,8 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
             # "css_file": css_path + "/css/landingpage.css",
             "signup_link":landingpage_data.signup_link,
         }
+        # print html directory3
+        print(LANDING_PAGE_FOLDER+"landingpage.html")
         return templates.TemplateResponse("landingpage.html", {"request": request, "h": h})
     
     # if no data is returned, throw an error
