@@ -138,7 +138,7 @@ tags_metadata = [
     },
     {
         "name": "user",
-        "description": "BigFast's users api allows you and mange user's and user processes in your application."
+        "description": "BigFast's users api allows you and manage users and user related processes in your application."
     },
     {
         "name": "sales",
