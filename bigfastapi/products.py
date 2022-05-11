@@ -13,6 +13,7 @@ from .models import product_models as model
 from .models import organisation_models as org_model
 from .files import upload_image
 from .utils import paginator
+from .core import helpers
 
 from bigfastapi.db.database import get_db
 
@@ -110,7 +111,7 @@ async def create_product(product: schema.ProductCreate,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Unique ID already exists')
 
     #check if user is allowed to create a product in the business
-    if  org_model.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
+    if  helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a product for this business")
     
     #set status

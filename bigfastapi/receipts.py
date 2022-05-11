@@ -23,7 +23,7 @@ from bigfastapi.utils import paginator, settings
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from typing import Optional
 
-app = APIRouter()
+app = APIRouter(tags=["Receipts"])
 
 
 #send receipt endpoint
@@ -120,7 +120,7 @@ async def fetch_receipts(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             , detail=str(ex))
 
-@app.get('/receipts/{receipt_id}', status_code=200)
+@app.get('/receipts/{receipt_id}', status_code=200, response_model=receipt_schemas.Receipt)
 async def get_receipt(
     organization_id:str,
     receipt_id: str,

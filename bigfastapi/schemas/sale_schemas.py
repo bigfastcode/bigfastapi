@@ -6,16 +6,16 @@ from fastapi import HTTPException, status
 from bigfastapi.utils import utils
 from bigfastapi.schemas import customer_schemas, product_schemas, receipt_schemas
 class SaleBase(BaseModel):
-    sale_id :str = utils.generate_short_id(size=12)
+    sale_id: str = utils.generate_short_id(size=12)
     unique_id: Optional[str]
-    product_id :str
-    customer_id :str
-    organization_id : str
-    amount :int
-    sale_currency :str
-    mode_of_payment : str
-    payment_status:Optional[str]
-    sales_status:Optional[str]
+    product_id: str
+    customer_id: str
+    organization_id: str
+    amount: int
+    sale_currency: str
+    mode_of_payment: str
+    payment_status: Optional[str]
+    sales_status: Optional[str]
     description: Optional[str]
     is_deleted: bool = False
     date_created:  datetime = datetime.utcnow()
