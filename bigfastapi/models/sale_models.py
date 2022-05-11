@@ -86,6 +86,7 @@ async def search_sales(db:Session, organization_id: str,
     search_text = f"%{search_value}%"
     sales = db.query(Sale).join(customer_models.Customer).join(product_models.Product).filter(
         Sale.organization_id ==organization_id).filter(
+        Sale.is_deleted == False).filter(
         customer_models.Customer.first_name.like(search_text)|
         customer_models.Customer.last_name.like(search_text)|
         product_models.Product.name.like(search_text)|
@@ -98,6 +99,7 @@ async def search_sales(db:Session, organization_id: str,
     total_items = db.query(Sale).join(customer_models.Customer
         ).join(product_models.Product).filter(
         Sale.organization_id ==organization_id).filter(
+        Sale.is_deleted == False).filter(
         customer_models.Customer.first_name.like(search_text)|
         customer_models.Customer.last_name.like(search_text)|
         Sale.sale_id.like(search_value)|
@@ -143,13 +145,13 @@ async def update_sale(sale_id:str, sale:sale_schemas.SaleUpdate, db:Session):
         sale_instance.customer_id= sale.customer_id
     if sale.amount:
         sale_instance.amount = sale.amount
-    if sale.currency:
+    if sale.sale_currency:
         sale_instance.sale_currency = sale.sale_currency
     if sale.mode_of_payment:
         sale_instance.mode_of_payment = sale.mode_of_payment
     if sale.payment_status:
         sale_instance.payment_status = sale.payment_status
-    if sale.sale_status:
+    if sale.sales_status:
         sale_instance.sales_status= sale.sales_status
     if sale.description:
         sale_instance.description= sale.description
@@ -162,7 +164,7 @@ async def update_sale(sale_id:str, sale:sale_schemas.SaleUpdate, db:Session):
 
 async def fetch_sale_by_id(sale_id:str, db:Session):
     sale = db.query(Sale).filter(Sale.sale_id == sale_id
-            ).options(selectinload(Sale.customer) 
+            ).filter(Sale.is_deleted==False).options(selectinload(Sale.customer) 
             ).options(selectinload(Sale.product)).first()
     return sale
 

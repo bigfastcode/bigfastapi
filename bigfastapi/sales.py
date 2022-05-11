@@ -118,6 +118,9 @@ async def get_single_sale(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
         sale =  await sale_models.fetch_sale_by_id(sale_id=sale_id, db=db)
+        if not sale:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                detail="sale object does not exist")
         return sale
     except Exception as ex:
         if type(ex) == HTTPException:
