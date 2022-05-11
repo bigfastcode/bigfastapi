@@ -4,10 +4,10 @@ from typing import Optional, List
 from pydantic import BaseModel, root_validator
 from fastapi import HTTPException, status
 from bigfastapi.utils import utils
-
+from bigfastapi.schemas import customer_schemas, product_schemas, receipt_schemas
 class SaleBase(BaseModel):
     sale_id :str = utils.generate_short_id(size=12)
-    unique_id: str = utils.generate_random_int()
+    unique_id: Optional[str]
     product_id :str
     customer_id :str
     organization_id : str
@@ -25,6 +25,7 @@ class SaleBase(BaseModel):
         orm_mode = True
 
 class SaleUpdate(BaseModel):
+    unique_id: Optional[str]
     product_id :Optional[str]
     customer_id :Optional[str]
     amount :Optional[str]
@@ -40,6 +41,11 @@ class SaleUpdate(BaseModel):
         orm_mode = True
 
 
-class SaleResponse(BaseModel):
-    message: Optional[str]
-    sale: Optional[SaleBase]
+class SaleResponse(SaleBase):
+    customer: customer_schemas.CustomerBase
+    product: product_schemas.ProductBase
+    receipt :receipt_schemas.Receipt
+    class Config:
+        orm_mode = True
+    # message: Optional[str]
+    # sale: Optional[SaleBase]
