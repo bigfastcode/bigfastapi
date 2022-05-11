@@ -13,7 +13,7 @@ class OtherInfo(BaseModel):
 
 class CustomerBase(BaseModel):
     customer_id: str = generate_short_id(size=12)
-    unique_id: str = generate_random_int()
+    unique_id: Optional[str]
     first_name: Optional[str] = " "
     last_name: Optional[str] = " "
     organization_id: Optional[str]
@@ -55,9 +55,9 @@ class CustomerBase(BaseModel):
     def validate_unique_id(cls, values):
         """ validates that unique id is not an empty string or a null value"""
         unique_id = values.get('unique_id')
-        if not unique_id:
+        if unique_id == "" or unique_id == " ":
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, 
-                detail={"invalid request":'the unique id cannot be null, none or an empty string', 
+                detail={"invalid request":'the unique id cannot be an empty string', 
                     "message":"invalid unique id value"})
         return values
     

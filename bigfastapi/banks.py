@@ -12,7 +12,7 @@ from bigfastapi.db.database import get_db
 from bigfastapi.models import bank_models
 from bigfastapi.schemas import bank_schemas, users_schemas
 from .auth_api import is_authenticated
-from .models.organisation_models import is_organization_member
+from .core.helpers import Helpers
 
 router = APIRouter()
 
@@ -53,7 +53,7 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
         HTTP_403_FORBIDDEN: incomplete details
     """
 
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -101,8 +101,7 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
     Raises
         HTTP_424_FAILED_DEPENDENCY: failed to fetch banks
     """
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
-
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to access this resource")
@@ -177,7 +176,7 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
         HTTP_4O4_NOT_FOUND: Bank does not exist.
     """
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -232,7 +231,7 @@ async def delete_bank(bank_id: str,
     """
 
     bank = await bank_models.fetch_bank(user=user, id=bank_id, db=db)
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
