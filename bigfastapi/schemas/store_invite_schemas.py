@@ -1,15 +1,19 @@
-import datetime as dt
-from typing import Optional
-from .email_schema import Email
-import pydantic as _pydantic
+from typing import Any, Optional
 
-class _InviteBase(_pydantic.BaseModel):
+from ..schemas.organisation_schemas import _OrganizationBase
+from ..schemas.store_user_schemas import _StoreUserBase
+
+from .email_schema import Email
+from pydantic import BaseModel
+
+class _InviteBase(BaseModel):
+    id: Optional[str]
     user_email: Optional[str]
     user_id: Optional[str]
     user_role: Optional[str]
-    is_accepted: Optional[bool]
-    is_revoked: Optional[bool]
-    is_deleted: Optional[bool]
+    is_accepted: Optional[bool] = False
+    is_revoked: Optional[bool] = False
+    is_deleted: Optional[bool] = False
 
     class Config:
         orm_mode = True
@@ -30,3 +34,39 @@ class Invite(_InviteBase):
 class StoreUser(_InviteBase):
     organization_id: str
     user_id: str
+
+class InviteResponse(BaseModel):
+    message: str
+
+org: dict = dict(
+    id="string",
+    mission="string",
+    vision="string",
+    name="string",
+    country="string",
+    state="string",
+    address="string",
+    currency_preference="string",
+    phone_number="string",
+    email="string",
+    current_subscription="string",
+    tagline="string",
+    image="string",
+    values="string",
+    business_type="retail",
+    image_full_path="string",
+)
+class SingleInviteResponse(BaseModel):
+    invite: Any = dict(id="string", user_email="string", user_id="string", user_role="string", store=org)
+    user: str
+
+class AcceptInviteResponse(BaseModel):
+    invited: _StoreUserBase
+    store: _OrganizationBase
+
+class RevokedInviteResponse(_InviteBase):
+    is_revoked: bool = True
+    is_deleted: bool = True
+
+class DeclinedInviteResponse(_InviteBase):
+    is_deleted: bool = True

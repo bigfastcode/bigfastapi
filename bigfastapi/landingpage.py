@@ -1,3 +1,4 @@
+from re import template
 from uuid import uuid4
 from typing import List
 from sqlalchemy.orm import Session
@@ -12,26 +13,31 @@ from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File,
 from bigfastapi.utils.schema_form import as_form
 import os
 from fastapi.responses import FileResponse
-from bigfastapi.utils.settings import TEMPLATE_FOLDER
+from bigfastapi.utils.settings import LANDING_PAGE_FOLDER
 from starlette.requests import Request
 
 app = APIRouter(tags=["Landing Page"])
 
 
-templates = Jinja2Templates(directory=TEMPLATE_FOLDER+"/landingpage")
+templates = Jinja2Templates(directory=LANDING_PAGE_FOLDER)
+print(LANDING_PAGE_FOLDER)
 
 
 # Endpoint to open index.html
-@app.get("/landingpage")
-async def landing_page_index(request: Request):
+@app.get("/index.html")
+async def landing_page_index(request: Request, current_user: str = Depends(is_authenticated), session: Session = Depends(get_db)):
     """
     This endpont will return landing page index.html
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    if current_user.is_superuser:
+
+        return templates.TemplateResponse("index.html", {"request": request})
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Page not found")
 
 # Endpoint to get landing page images
 @app.get("/landingpage/{filetype}/{folder}/{image_name}", status_code=200)
-def path(filetype: str, image_name:str, folder:str, request: Request):
+def path(filetype: str, image_name:str, folder:str, request: Request, ):
     """
     This endpoint is used in the landing page html to fetch images 
     """
@@ -294,6 +300,8 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
             # "css_file": css_path + "/css/landingpage.css",
             "signup_link":landingpage_data.signup_link,
         }
+        # print html directory3
+        print(LANDING_PAGE_FOLDER+"landingpage.html")
         return templates.TemplateResponse("landingpage.html", {"request": request, "h": h})
     
     # if no data is returned, throw an error
