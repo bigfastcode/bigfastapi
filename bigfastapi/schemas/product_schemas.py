@@ -13,7 +13,7 @@ class ProductBase(BaseModel):
     description: str
     price: float
     # images: str
-    unique_id: str
+    unique_id: Optional[str] = None
     quantity: int
 
 class Product(ProductBase):

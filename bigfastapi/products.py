@@ -120,6 +120,11 @@ async def create_product(product: schema.ProductCreate,
     else:
         product_status = False
 
+
+    #check and generate unique ID
+    if product.unique_id is None:
+        product.unique_id = uuid4().hex
+
     
     #read and upload images
     if product.files != None:
