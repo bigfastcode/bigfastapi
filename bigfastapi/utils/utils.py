@@ -55,10 +55,10 @@ def paginate_data(data, page_size: int, page_number: int):
 
 def find_country(ctry):
     with open(DATA_PATH + "/countries.json") as file:
-        cap_country = ctry.capitalize()
+        cap_country = ctry.upper()
         countries = json.load(file)
         found_country = next(
-            (country for country in countries if country['name'] == cap_country), None)
+            (country for country in countries if country['iso2'] == cap_country), None)
         if found_country is None:
             raise fastapi.HTTPException(
                 status_code=403, detail="This country doesn't exist")

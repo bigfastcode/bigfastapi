@@ -10,6 +10,7 @@ from typing import List, Optional
 
 
 class _OrganizationBase(_pydantic.BaseModel):
+    id: Optional[str]
     mission: Optional[str]
     vision: Optional[str]
     name: str
