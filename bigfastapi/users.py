@@ -174,7 +174,7 @@ def accept_invite(
         reqBody-->organization_id: This is a unique id of the registered organization
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> An object with a key `invite` containing the invite data from the database.
+        returnBody--> An object with a key `invited` containing the new store user data.
     """
 
     existing_invite = db.query(
@@ -226,7 +226,7 @@ def accept_invite(
     db.commit()
     db.refresh(invite)
 
-    return { "invite": store_invite_schemas._InviteBase.from_orm(invite) }
+    return { "invited": store_user_schemas._StoreUserBase.from_orm(store_user) }
 
 
 @app.post("/users/invite/", status_code=201, response_model=store_invite_schemas.InviteResponse)
@@ -305,7 +305,8 @@ async def get_single_invite(
         
 
     returnDesc--> On sucessful request, it returns
-        returnBody--> An object with a key `invite` containing the invite data and a key `user` containing a string `exists` that the invited user is a member of another organisation in the application.
+        returnBody--> An object with a key `invite` containing the invite data and a key `user` containing an empty string `''`
+        indicating the user is not a member of another organisation in the application or `exists` indicating that the invited user is a member of another organisation in the application.
     """
     # user invite code to query the invite table
     existing_invite = db.query(
@@ -324,14 +325,15 @@ async def get_single_invite(
 
         # existing_invite.__setattr__('store', store)
         setattr(existing_invite, 'store', store)
+        user_exists = ''
         if(existing_user is not None):
-            existing_user = 'exists'
+            user_exists = 'exists'        
         if not existing_invite:
             return JSONResponse({
                 "message": "Invite not found! Try again or ask the inviter to invite you again."
             }, status_code=404)
 
-        return {"invite": existing_invite, "user": existing_user}
+        return {"invite": existing_invite, "user": user_exists}
     return JSONResponse({
                 "message": "Invalid invite code"
             }, status_code=400)
