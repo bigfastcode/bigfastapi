@@ -7,6 +7,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 from starlette.middleware.sessions import SessionMiddleware
+from celery import Celery
+from decouple import config
 
 from bigfastapi.auth import app as authentication
 from bigfastapi.auth_api import app as jwt_services
@@ -42,8 +44,11 @@ from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
 from bigfastapi.landingpage import app as landingpage
-from bigfastapi.failed_imports import app as failedimports
+
+from bigfastapi.api_key import app as api_key
+from bigfastapi.landingpage import app as landingpage
 from bigfastapi.import_progress import app as importprogress
+from bigfastapi.sales import app as sales
 
 # Create the application
 tags_metadata = [
@@ -51,7 +56,7 @@ tags_metadata = [
         "name": "blog",
         "description": " BigFast's blog api includes various standard blog api patterns from blog creation to various api querying operations. With this group you can easily get your blog client up and running in no time 📝",
     },
-     {
+    {
         "name": "auth",
         "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specified parameters",
     },
@@ -133,16 +138,37 @@ tags_metadata = [
     },
     {
         "name": "user",
-        "description": "BigFast's users api allows you and mange user's and user processes in your application."
+        "description": "BigFast's users api allows you and manage users and user related processes in your application."
+    },
+    {
+        "name": "faqandsupport",
+        "description": "BigFast's Faq and Support api allows you to and set up a faq section in your application. This api alows creation and retireval of faqs. We also offer a support ticket workflow, you can incorporate the creation, replying and closing of support tickets in your application."
+    },  
+    {
+        "name": "sendsms",
+        "description": "BigFast's Send Sms api allows you to send an sms with a body of request containing details of the sms action."
+    },      
+        "name": "sales",
+        "description": "BigFast's sales api exposes a a group of API routes related to sales. You can seamlessly create, retrieve, update and delete sale details."
     },
 
 ]
 
 app = FastAPI(openapi_tags=tags_metadata)
 app.add_middleware(SessionMiddleware, secret_key=env_var.JWT_SECRET)
+RABBITMQ_USERNAME = config('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD =config('RABBITMQ_PASSWORD')
+RABBITMQ_HOST_PORT =config('RABBITMQ_HOST_PORT')
+
+celery = Celery('tasks', broker=f'amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST_PORT}')
+
+celery.conf.imports = [
+    ''
+]
 
 client = TestClient(app)
 create_database()
+
 
 origins = ["*"]
 app.add_middleware(
@@ -186,9 +212,11 @@ app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
+
+app.include_router(api_key)
 app.include_router(landingpage)
-app.include_router(failedimports)
 app.include_router(importprogress)
+app.include_router(sales)
 
 
 @app.get("/", tags=["Home"])

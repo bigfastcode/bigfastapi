@@ -79,30 +79,33 @@ def authorized_client(client, token):
     return client
 
 
-
 @pytest.fixture
 def test_products(test_user, session):
     products_data = [{
                 "name": "product1",
                 "description": "this is the first product",
                 "price": 150,
-                "images": "No images",
                 "discount": 5,
-                "business_id": "test"}, 
+                "business_id": "test",
+                "unique_id":"ABC123",
+                "quantity":10,
+                }, 
           {
                 "name": "product2",
                 "description": "this is the second product",
                 "price": 200,
-                "images": "images",
                 "discount": 10,
-                "business_id": "test"},
+                "business_id": "test",
+                "unique_id":"ABC124",
+                "quantity":11},
      {
                 "name": "product3",
                 "description": "this is the third product",
                 "price": 150,
-                "images": "No images",
                 "discount": 5,
-                "business_id": "test"}]
+                "business_id": "test",
+                "unique_id":"ABC125",
+                "quantity":20}]
 
     user_data = test_user['data']
 

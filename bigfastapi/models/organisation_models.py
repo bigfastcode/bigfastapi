@@ -73,18 +73,3 @@ def getActiveMenu(businessType):
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
     return db.query(Organization).filter(Organization.id == orgId).first()
-
-
-async def is_organization_member(user_id: str, organization_id: str, db: _orm.Session):
-    organization = (
-        db.query(Organization)
-            .filter_by(creator=user_id)
-            .filter(Organization.id == organization_id)
-            .first()
-    )
-
-    store_user = db.query(store_user_model.StoreUser).filter_by(store_id=organization_id).filter_by(
-        user_id=user_id).first()
-    if not store_user and not organization:
-        return False
-    return True

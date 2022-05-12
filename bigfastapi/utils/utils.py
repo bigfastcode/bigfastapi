@@ -13,12 +13,17 @@ from stripe.error import InvalidRequestError
 
 from bigfastapi.schemas import users_schemas
 from bigfastapi.schemas.wallet_schemas import PaymentProvider
+from random import randrange
 
 DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
 def generate_short_id(size=9, chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(chars) for _ in range(size))
+
+
+def generate_random_int(begin=0, end=1000):
+    return randrange(begin, end)
 
 
 def validate_email(email):
@@ -50,10 +55,10 @@ def paginate_data(data, page_size: int, page_number: int):
 
 def find_country(ctry):
     with open(DATA_PATH + "/countries.json") as file:
-        cap_country = ctry.capitalize()
+        cap_country = ctry.upper()
         countries = json.load(file)
         found_country = next(
-            (country for country in countries if country['name'] == cap_country), None)
+            (country for country in countries if country['iso2'] == cap_country), None)
         if found_country is None:
             raise fastapi.HTTPException(
                 status_code=403, detail="This country doesn't exist")

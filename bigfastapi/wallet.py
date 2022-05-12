@@ -9,10 +9,10 @@ from sqlalchemy import desc
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
+from .core.helpers import Helpers
 from .models import organisation_models as organisation_models, user_models, store_user_model
 from .models import wallet_models as model
 from .models import wallet_transaction_models as wallet_transaction_models
-from .models.organisation_models import is_organization_member
 from .schemas import users_schemas
 from .schemas import wallet_schemas as schema
 
@@ -126,7 +126,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
             .first()
     )
 
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if is_store_member:
         organization = (
             db.query(organisation_models.Organization)
