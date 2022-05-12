@@ -24,16 +24,20 @@ print(LANDING_PAGE_FOLDER)
 
 
 # Endpoint to open index.html
-@app.get("/landingpage")
-async def landing_page_index(request: Request):
+@app.get("/index.html")
+async def landing_page_index(request: Request, current_user: str = Depends(is_authenticated), session: Session = Depends(get_db)):
     """
     This endpont will return landing page index.html
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    if current_user.is_superuser:
+
+        return templates.TemplateResponse("index.html", {"request": request})
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Page not found")
 
 # Endpoint to get landing page images
 @app.get("/landingpage/{filetype}/{folder}/{image_name}", status_code=200)
-def path(filetype: str, image_name:str, folder:str, request: Request):
+def path(filetype: str, image_name:str, folder:str, request: Request, ):
     """
     This endpoint is used in the landing page html to fetch images 
     """
