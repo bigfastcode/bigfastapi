@@ -158,6 +158,8 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
                     db: orm.Session = fastapi.Depends(get_db)):
     
     #check if user is allowed to update products
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update a product for this business")
 
     #check if business exists
 
@@ -170,16 +172,22 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
 
     
     #check for change in price and update price history table
-    if product.price != product_update.price:
-        priceUpdate = model.PriceHistory(id=uuid4().hex, price=product_update.price, created_by=user.id, product_id=product.id)
-        db.add(priceUpdate)
-        db.commit()
-        db.refresh(priceUpdate)
+    if product_update.price != None:
+        if product.price != product_update.price:
+            priceUpdate = model.PriceHistory(id=uuid4().hex, price=product_update.price, created_by=user.id, product_id=product.id)
+            db.add(priceUpdate)
+            db.commit()
+            db.refresh(priceUpdate)
     
-    product.name = product_update.name
-    product.description = product_update.description
-    product.discount = product_update.discount
-    product.price = product_update.price
+    if product_update.name != None:
+        product.name = product_update.name
+    if product_update.description != None:
+        product.description = product_update.description
+    if product_update.discount != None:
+        product.discount = product_update.discount
+    if product_update.price != None:
+        product.price = product_update.price
+
     product.updated_at = datetime.datetime.utcnow()
 
     db.commit()
@@ -205,7 +213,7 @@ def delete_product(business_id: str, product_id: str,
     """
     
     #check if user is in business and can delete product
-    if org_model.is_organization_member(user_id=user.id, organization_id=business_id, db=db) == False:
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
 

@@ -33,7 +33,13 @@ class ProductCreate(ProductBase):
 
 
 class ProductUpdate(ProductBase):
-    discount: str
+    name: Optional[str] = None
+    description: Optional[str]= None
+    price: Optional[float] = None
+    # images: str
+    unique_id: Optional[str] = None
+    quantity: Optional[int] = None
+    discount: Optional[str] = None
 
 
 class ShowProduct(Product):
