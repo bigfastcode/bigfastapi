@@ -147,7 +147,8 @@ tags_metadata = [
     {
         "name": "sendsms",
         "description": "BigFast's Send Sms api allows you to send an sms with a body of request containing details of the sms action."
-    },      
+    },
+    {      
         "name": "sales",
         "description": "BigFast's sales api exposes a a group of API routes related to sales. You can seamlessly create, retrieve, update and delete sale details."
     },
