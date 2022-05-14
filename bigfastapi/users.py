@@ -2,8 +2,6 @@ from operator import inv
 from re import L
 from typing import Optional
 import uuid
-from bigfastapi.schemas import store_invite_schemas, store_user_schemas
-from fastapi.staticfiles import StaticFiles
 from uuid import uuid4
 import fastapi as fastapi
 from fastapi.responses import JSONResponse
@@ -17,6 +15,8 @@ import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
 from .schemas import store_invite_schemas as _invite_schemas
+from .schemas.store_user_schemas import RoleUpdate, UpdateRoleResponse, _StoreUserBase
+from .schemas.organisation_schemas import _OrganizationBase
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import deleteFile, isFileExist, upload_image
 from .email import send_email
@@ -156,7 +156,7 @@ async def updatePassword(
         return {"data":  dbResponse}
 
 
-@app.put('/users/accept-invite/{token}', response_model=store_invite_schemas.AcceptInviteResponse)
+@app.put('/users/accept-invite/{token}', response_model=_invite_schemas.AcceptInviteResponse)
 def accept_invite(
     payload: _invite_schemas.StoreUser,
     token: str, 
@@ -174,7 +174,8 @@ def accept_invite(
         reqBody-->organization_id: This is a unique id of the registered organization
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> An object with a key `invite` containing the invite data from the database.
+        returnBody--> An object with a key `invited` containing the new store user data, and `store` containing information about the store
+         the user is invited to.
     """
 
     existing_invite = db.query(
@@ -205,11 +206,13 @@ def accept_invite(
         return JSONResponse({
             "message": "Invite not found!"
         }, status_code=status.HTTP_404_NOT_FOUND)
+    
+    store = db.query(organisation_models.Organization).filter(
+            organisation_models.Organization.id == invite.store_id).first()
 
     # TO-DO
     # check if the store user exist and update before creating store user
 
-    # create store user
     store_user = store_user_model.StoreUser(
         id=uuid4().hex,
         store_id=payload.organization_id,
@@ -226,10 +229,10 @@ def accept_invite(
     db.commit()
     db.refresh(invite)
 
-    return { "invite": store_invite_schemas._InviteBase.from_orm(invite) }
+    return { "invited": _StoreUserBase.from_orm(store_user), "store": _OrganizationBase.from_orm(store) }
 
 
-@app.post("/users/invite/", status_code=201, response_model=store_invite_schemas.InviteResponse)
+@app.post("/users/invite/", status_code=201, response_model=_invite_schemas.InviteResponse)
 async def invite_user(
     payload: _invite_schemas.UserInvite,
     background_tasks: BackgroundTasks,
@@ -293,7 +296,7 @@ async def invite_user(
     return {"message": "Enter an email you're not logged in with."}
 
 
-@app.get('/users/invite/{invite_code}', response_model=store_invite_schemas.SingleInviteResponse)
+@app.get('/users/invite/{invite_code}', response_model=_invite_schemas.SingleInviteResponse)
 async def get_single_invite(
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db),
@@ -305,7 +308,8 @@ async def get_single_invite(
         
 
     returnDesc--> On sucessful request, it returns
-        returnBody--> An object with a key `invite` containing the invite data and a key `user` containing a string `exists` that the invited user is a member of another organisation in the application.
+        returnBody--> An object with a key `invite` containing the invite data and a key `user` containing an empty string `''`
+        indicating the user is not a member of another organisation in the application or `exists` indicating that the invited user is a member of another organisation in the application.
     """
     # user invite code to query the invite table
     existing_invite = db.query(
@@ -324,19 +328,20 @@ async def get_single_invite(
 
         # existing_invite.__setattr__('store', store)
         setattr(existing_invite, 'store', store)
+        user_exists = ''
         if(existing_user is not None):
-            existing_user = 'exists'
+            user_exists = 'exists'
         if not existing_invite:
             return JSONResponse({
                 "message": "Invite not found! Try again or ask the inviter to invite you again."
             }, status_code=404)
 
-        return {"invite": existing_invite, "user": existing_user}
+        return {"invite": existing_invite, "user": user_exists}
     return JSONResponse({
                 "message": "Invalid invite code"
             }, status_code=400)
 
-@app.put("/users/invite/{invite_code}/decline", response_model=store_invite_schemas._InviteBase)
+@app.put("/users/invite/{invite_code}/decline", response_model=_invite_schemas.DeclinedInviteResponse)
 def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
     """intro-->This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
     
@@ -362,7 +367,7 @@ def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
     return declined_invite
 
 
-@app.delete("/users/revoke-invite/{invite_code}", response_model=store_invite_schemas.RevokedInviteResponse)
+@app.delete("/users/revoke-invite/{invite_code}", response_model=_invite_schemas.RevokedInviteResponse)
 def revoke_invite(
     invite_code: str,
     db: orm.Session = fastapi.Depends(get_db)
@@ -390,9 +395,9 @@ def revoke_invite(
 
     return revoked_invite
 
-@app.patch("/users/{user_id}/change", response_model=store_user_schemas.UpdateRoleResponse)
+@app.patch("/users/{user_id}/change", response_model=UpdateRoleResponse)
 def update_user_role(
-    payload: store_user_schemas.UserUpdate,
+    payload: RoleUpdate,
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used to update a user's role. To use this endpoint you need to make a patch request to the /users/{user_id}/change endpoint
