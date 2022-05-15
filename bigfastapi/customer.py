@@ -197,7 +197,7 @@ async def create_bulk_customer(
 
 
 @app.get('/customers',
-    response_model=customer_schemas.PaginatedCustomerResponse,
+    # response_model=customer_schemas.PaginatedCustomerResponse,
     status_code=status.HTTP_200_OK
     )
 async def get_customers(
@@ -307,12 +307,9 @@ async def get_customer(
         if not customer:
             return JSONResponse({"message": "Customer does not exist"},
                 status_code=status.HTTP_404_NOT_FOUND)
-        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=customer.organization.id, db=db)
+        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=customer.organization_id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ORGANIZATION_MEMBER)
-            
-        other_info = await customer_models.get_other_customer_info(customer_id=customer_id, db=db)
-        setattr(customer, 'other_info', other_info)
 
         return {"message": "successfully fetched details", 
             "customer": customer_schemas.Customer.from_orm(customer)}
