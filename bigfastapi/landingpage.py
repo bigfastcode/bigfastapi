@@ -15,6 +15,7 @@ import os
 from fastapi.responses import FileResponse
 from bigfastapi.utils.settings import LANDING_PAGE_FOLDER
 from starlette.requests import Request
+import pkg_resources
 
 app = APIRouter(tags=["Landing Page"])
 
@@ -41,10 +42,10 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
     This endpoint is used in the landing page html to fetch images 
     """
     if filetype == "css":
-        fullpath = image_fullpath(folder + "/" +image_name)
+        fullpath = image_fullpath(folder + "/" +"styles.css")
         print("endpoint",fullpath)
     elif filetype == "js":
-        fullpath = image_fullpath(folder + "/" +image_name)
+        fullpath = image_fullpath(folder + "/" +"script.js")
     else:
         fullpath = image_fullpath(folder + "/" +image_name)
     return fullpath
@@ -563,9 +564,8 @@ async def delete_landingPage(landingpage_name: str, current_user = Depends(is_au
 
 # Function to retrieve landing page images
 def image_fullpath(imagepath):
-
     root_location = os.path.abspath("filestorage")
-    root_location1 = os.path.abspath("bigfastapi/templates")
+    root_location1 = pkg_resources.resource_filename("bigfastapi","/templates/")
     if root_location != RuntimeError:
         image_location = os.path.join(root_location, imagepath)
     if root_location1 != RuntimeError:
