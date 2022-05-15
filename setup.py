@@ -91,6 +91,7 @@ setuptools.setup(
     package_data={
         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landingpage/*.*'],
+        
         # 'bigfastapi': ['data/*.*'],
         # 'bigfastapi': ['templates/email/*.html'],   
     },
