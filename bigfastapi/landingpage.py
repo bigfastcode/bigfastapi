@@ -42,10 +42,9 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
     This endpoint is used in the landing page html to fetch images 
     """
     if filetype == "css":
-        fullpath = image_fullpath(folder + "/" +"styles.css")
-        print("endpoint",fullpath)
+        fullpath = image_fullpath(folder + "/" +image_name)
     elif filetype == "js":
-        fullpath = image_fullpath(folder + "/" +"script.js")
+        fullpath = image_fullpath(folder + "/" +image_name)
     else:
         fullpath = image_fullpath(folder + "/" +image_name)
     return fullpath
@@ -265,8 +264,7 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
     image_path = getUrlFullPath(request, "image")
     css_path = getUrlFullPath(request, "css") + "/landingpage/styles.css"
     js_path = getUrlFullPath(request, "js") + "/landingpage/script.js"
-    print("path css",css_path)
-    print("path_js",js_path)
+
     # check if landing page data is returned and extract the data
     if landingpage_data:
         h = {
