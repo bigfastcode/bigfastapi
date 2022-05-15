@@ -568,7 +568,7 @@ def image_fullpath(imagepath):
     root_location1 = os.path.abspath("bigfastapi/templates")
     if root_location != RuntimeError:
         image_location = os.path.join(root_location, imagepath)
-    elif root_location1 != RuntimeError:
+    if root_location1 != RuntimeError:
         image_location = os.path.join(root_location1, imagepath)
     return FileResponse(image_location)
 
