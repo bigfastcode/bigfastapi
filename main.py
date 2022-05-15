@@ -48,7 +48,6 @@ from bigfastapi.landingpage import app as landingpage
 from bigfastapi.api_key import app as api_key
 from bigfastapi.landingpage import app as landingpage
 from bigfastapi.import_progress import app as importprogress
-from bigfastapi.sales import app as sales
 
 # Create the application
 tags_metadata = [
@@ -217,7 +216,6 @@ app.include_router(activitieslog)
 app.include_router(api_key)
 app.include_router(landingpage)
 app.include_router(importprogress)
-app.include_router(sales)
 
 
 @app.get("/", tags=["Home"])
