@@ -21,13 +21,13 @@ from uuid import uuid4
 from fastapi import BackgroundTasks
 from bigfastapi.utils import paginator, settings
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from typing import Optional
+from typing import List, Optional
 
 app = APIRouter(tags=["Receipts"])
 
 
 #send receipt endpoint
-@app.post("/receipts", status_code=201, response_model=receipt_schemas.ResponseModel)
+@app.post("/receipts", status_code=201, response_model=receipt_schemas.SendReceiptResponse)
 def send_receipt(
     payload: receipt_schemas.atrributes, 
     background_tasks: BackgroundTasks, 
@@ -37,7 +37,25 @@ def send_receipt(
 
     """
         An endpoint to send receipts. 
+
         Note: The message field in the payload should be HTML formatted.
+
+        Intro - 
+
+            This endpoint allows you to create an send a new receipt.
+
+            reqBody-organization_id: This is the id of the organization sending the receipt.
+            reqBody-sender_email: This is the email of the sender, usually a store user.
+            reqBody-message: This is the message to be sent to the receipt recipient.
+            reqBody-subject: This is the subject of the mail to be sent to the recipient
+            reqBody-recipient: This is the list of emails to be the recipient of the receipt.
+
+        returnDesc-
+
+            On sucessful request, it returns
+
+            returnBody- 
+                an object with a key `message` with a string value - `receipt sent` .
     """
     try: 
 
@@ -70,9 +88,11 @@ def send_receipt(
         return JSONResponse({"message" : "receipt sent"}, status_code=status.HTTP_201_CREATED)
 
     except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
-@app.get("/receipts", status_code=200)
+@app.get("/receipts", status_code=200, response_model=receipt_schemas.FetchReceiptsResponse)
 async def fetch_receipts(
     organization_id:str,
     search_value: str = None,
@@ -85,6 +105,23 @@ async def fetch_receipts(
 
     """
         An endpoint to fetch all receipts. 
+
+        Intro - 
+
+            This endpoint retrieves all the receipts in an organization.
+
+        ParamDesc -
+
+            reqQuery-organization_id: This is the id of the organization sending the receipt.
+            reqQuery-search_value(optional): This is a string used to filter the receipts.
+            reqQuery-sorting_key(optional): This is a string used to sort the receipts
+            reqQuery-page: This is an integer specifying the page to display. The default value is `1`.
+            reqQuery-size: This is an integer used to specify the volume of data to be retrieved in numbers.
+
+        returnDesc-
+
+        On sucessful request, it returns
+            returnBody- an object with a key `message` with a string value - `receipt sent` .
     """
     try:
         page_size = 50 if size < 1 or size > 100 else size
@@ -128,7 +165,18 @@ async def get_receipt(
     user: users_schemas.User = Depends(is_authenticated)
 ):
     """
-        An endpoint to fetch a single receipt. 
+        An endpoint to get a single receipt. 
+        Intro - 
+            This endpoint returns a receipt that matches the receipt id specified in the route.
+
+        ParamDesc -
+
+            reqParam-receipt_id: This is the id of the receipt to be fetched.
+            reqQuery-organization_id: This is the id of the organization.
+
+        returnDesc-
+
+            On sucessful request, it returns an object with the receipt details.
     """
     receipt =  await fetch_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
     return receipt
