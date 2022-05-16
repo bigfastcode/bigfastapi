@@ -43,6 +43,7 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
     """
     if filetype == "css":
         fullpath = image_fullpath(folder + "/" +image_name)
+        print("endpoint",fullpath)
     elif filetype == "js":
         fullpath = image_fullpath(folder + "/" +image_name)
     else:
@@ -264,7 +265,8 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
     image_path = getUrlFullPath(request, "image")
     css_path = getUrlFullPath(request, "css") + "/landingpage/styles.css"
     js_path = getUrlFullPath(request, "js") + "/landingpage/script.js"
-
+    print("path css",css_path)
+    print("path_js",js_path)
     # check if landing page data is returned and extract the data
     if landingpage_data:
         h = {
@@ -563,10 +565,10 @@ async def delete_landingPage(landingpage_name: str, current_user = Depends(is_au
 # Function to retrieve landing page images
 def image_fullpath(imagepath):
     root_location = os.path.abspath("filestorage")
-    root_location1 = pkg_resources.resource_filename("bigfastapi","/templates/")
     if root_location != RuntimeError:
         image_location = os.path.join(root_location, imagepath)
-    if root_location1 != RuntimeError:
+    else:
+        root_location1 = pkg_resources.resource_filename("bigfastapi","/templates/")
         image_location = os.path.join(root_location1, imagepath)
     return FileResponse(image_location)
 
@@ -574,6 +576,7 @@ def image_fullpath(imagepath):
 # Function to get host path to landing page images
 def getUrlFullPath(request: Request, filetype: str):
     hostname = request.headers.get('host')
+    request = request.url.scheme
     if filetype == "js":
         image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
     elif filetype == "css":
