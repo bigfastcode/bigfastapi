@@ -13,6 +13,7 @@ import sqlalchemy.orm as orm
 from bigfastapi.utils import settings
 import time
 import os
+from typing import Dict, List, Optional, Set
 
 app = APIRouter(tags=["Transactional Emails 📧"])
 
@@ -443,7 +444,7 @@ async def auto_send_email_debts(email: str, first_name: str, template, title: st
     return await fm.send_message(message, template)
 
 
-async def engagement_email(email: list[str], first_name: str, template, title: str, body: str, sender: str, preheader=""):
+async def engagement_email(email: List[str], first_name: str, template, title: str, body: str, sender: str, preheader=""):
     message = MessageSchema(
         subject=title,
         recipients=email,
