@@ -28,7 +28,7 @@ app = APIRouter(
 @app.post("/product", response_model=schema.Product, status_code=status.HTTP_201_CREATED)
 async def create_product(product: schema.ProductCreate=Depends(schema.ProductCreate.as_form), 
                    user: user_schema.User = fastapi.Depends(is_authenticated), 
-                   product_image: List[UploadFile] = File(...) ,
+                   product_image: Optional[List[UploadFile]] = File(None) ,
                    db: orm.Session = fastapi.Depends(get_db)):
        
     
@@ -132,8 +132,8 @@ async def get_products(business_id: str,
     # products = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.is_deleted==False).all()
 
     if not product_list:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products present")
-
+        # raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products present")
+        product_list = []
     pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_number, endpoint=f"/product")
     response = {"page": page_number, "size": page_size, "total": total_number,"previous_page":pointers['previous'], "next_page": pointers["next"], 
                 "items": product_list}
