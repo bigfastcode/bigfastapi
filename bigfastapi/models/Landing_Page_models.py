@@ -44,7 +44,6 @@ class LPage(db.Base):
   footer_h3_paragraph= Column(String(255))
   footer_name_employee= Column(String(255))
   name_job_description= Column(String(255))
-  section_four_image = Column(String(255))
   footer_h2_text = Column(String(255))
   footer_contact_address = Column(String(255))
   customer_care_email = Column(String(255))
