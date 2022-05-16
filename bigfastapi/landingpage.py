@@ -576,7 +576,6 @@ def image_fullpath(imagepath):
 # Function to get host path to landing page images
 def getUrlFullPath(request: Request, filetype: str):
     hostname = request.headers.get('host')
-    request = request.url.scheme
     if filetype == "js":
         image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
     elif filetype == "css":
