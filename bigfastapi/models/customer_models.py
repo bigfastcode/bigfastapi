@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from bigfastapi.db.database import Base
 from uuid import uuid4
 from sqlalchemy.schema import Column
-from sqlalchemy.orm import Session, relationship
+from sqlalchemy.orm import Session, relationship, selectinload
 from fastapi import Depends
 from datetime import datetime
 # from bigfastapi.models.organisation_models import Organization
@@ -44,9 +44,9 @@ class Customer(Base):
                           server_default=func.now(), onupdate=func.now())
     is_inactive = Column(Boolean, index=True, default=False)
     default_currency = Column(String(255), index=True)
-    # OtherInfo = relationship("OtherInformation", back_populates="customer_id")
+    other_info = relationship("OtherInformation", back_populates="customer")
     # customer_group_id = Column(String(255), ForeignKey("customer_group.group_id"))
-    # customer_group = relationship("CustomerGroup", back_populates="customer_group")
+    # customer_group = relationship("CustomerGroup", back_populates="customers")
 
 
 class OtherInformation(Base):
@@ -55,18 +55,18 @@ class OtherInformation(Base):
     customer_id = Column(String(255), ForeignKey("customer.customer_id"))
     key = Column(String(255), index=True, default="")
     value = Column(String(255), index=True, default="")
-    # customer = relationship("Cutomer", back_populates="customer")
+    customer = relationship("Customer", back_populates="other_info")
 
 
-class CustomerGroup(Base):
-    __tablename__ = "customer_group"
-    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    group_id = Column(String(255), index=True, default=generate_short_id(size=12))
-    group_name = Column(String(255), index=True, default="")
-    group_description =Column(String(255), index=True, default="")
-    date_created = Column(DateTime, server_default=func.now())
-    last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
-    # customers = relationship("Cutomer", back_populates="customer_group_id")
+# class CustomerGroup(Base):
+#     __tablename__ = "customer_group"
+#     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+#     group_id = Column(String(255), index=True, default=generate_short_id(size=12))
+#     group_name = Column(String(255), index=True, default="")
+#     group_description =Column(String(255), index=True, default="")
+#     date_created = Column(DateTime, server_default=func.now())
+#     last_updated = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+#     customers = relationship("Customer", back_populates="customer_group")
 
 
 #==============================Database Services=============================#
@@ -83,7 +83,8 @@ async def fetch_customers(
             Customer.organization_id == organization_id).filter(
             Customer.is_deleted == False).filter(or_(
             Customer.is_inactive == False, Customer.is_inactive == None
-            )).filter(Customer.last_updated > timestamp).order_by(Customer.date_created.desc()
+            )).filter(Customer.last_updated > timestamp).options(selectinload(Customer.other_info)
+            ).order_by(Customer.date_created.desc()
             ).offset(offset=offset).limit(limit=size).all()
         total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
             Customer.is_deleted == False).filter(or_(
@@ -94,7 +95,7 @@ async def fetch_customers(
             Customer.organization_id == organization_id).filter(
             Customer.is_deleted == False).filter(or_(
             Customer.is_inactive == False, Customer.is_inactive == None
-            )).order_by(Customer.date_created.desc()
+            )).options(selectinload(Customer.other_info)).order_by(Customer.date_created.desc()
             ).offset(offset=offset).limit(limit=size).all()
         total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
             Customer.is_deleted == False).filter(or_(
@@ -127,30 +128,12 @@ async def search_customers(
         Customer.first_name.like(search_text)|
         Customer.last_name.like(search_text)|
         Customer.unique_id.like(search_value)|
-        Customer.customer_id.like(search_value)).order_by(
+        Customer.customer_id.like(search_value)
+        ).options(selectinload(Customer.other_info)).order_by(
         Customer.date_created.desc()).offset(
         offset=offset).limit(limit=size).all()
     map_names = list(map(customer_schemas.Customer.from_orm, customers))
-    return (map_names, total_items)
-
-    # no_of_search_results2 = db.query(Customer).filter(and_(
-    #     Customer.organization_id == organization_id,
-    #     Customer.is_deleted == False)).filter(or_(
-    #     Customer.is_inactive == False, Customer.is_inactive == None
-    #     )).filter(or_(,
-    # total_items = no_of_search_results
-    # customers_by_id =db.query(Customer).filter(and_(
-    #     Customer.organization_id == organization_id,
-    #     Customer.is_deleted == False)).filter(or_(
-    #     Customer.is_inactive == False, Customer.is_inactive == None
-    #     )).filter(or_(Customer.unique_id.like(search_value),
-    #     Customer.customer_id.like(search_value))).order_by(
-    #     Customer.date_created.desc()).offset(
-    #     offset=offset).limit(limit=size).all()
-    # map_ids = list(map(customer_schemas.Customer.from_orm, customers_by_id))
-
-    # customer_list = [*map_names, *map_ids]
-    
+    return (map_names, total_items)    
 
 
 async def sort_customers(
@@ -165,14 +148,16 @@ async def sort_customers(
             Customer.organization_id == organization_id).filter(
             Customer.is_deleted == False).filter(or_(
             Customer.is_inactive == False, Customer.is_inactive == None
-            )).order_by(desc(getattr(Customer, sort_key, "first_name"))
+            )).options(selectinload(Customer.other_info)).order_by(
+            desc(getattr(Customer, sort_key, "first_name"))
             ).offset(offset=offset).limit(limit=size).all()
     else:
         customers = db.query(Customer).filter(
             Customer.organization_id == organization_id).filter(
             Customer.is_deleted == False).filter(or_(
             Customer.is_inactive == False, Customer.is_inactive == None
-            )).order_by(getattr(Customer, sort_key, "first_name")
+            )).options(selectinload(Customer.other_info)
+            ).order_by(getattr(Customer, sort_key, "first_name")
             ).offset(offset=offset).limit(limit=size).all()
     total_items = db.query(Customer).filter(Customer.organization_id == organization_id).filter(
         Customer.is_deleted == False).filter(or_(
@@ -304,7 +289,8 @@ async def put_customer(
 
 async def get_customer_by_id(customer_id: str, db: Session):
     customer = db.query(Customer).filter(
-        Customer.customer_id == customer_id).first()
+        Customer.customer_id == customer_id).options(
+        selectinload(Customer.other_info)).first()
     if customer:
         return customer_schemas.Customer.from_orm(customer)
     return {}
