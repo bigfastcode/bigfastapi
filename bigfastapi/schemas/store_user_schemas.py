@@ -1,20 +1,18 @@
-import datetime as dt
-from typing import Optional
-from .email_schema import Email
 from pydantic import BaseModel
 from typing import Optional
 
+from datetime import date
 class _StoreUserBase(BaseModel):
     store_id: Optional[str]
     user_id: Optional[str]
     role: Optional[str]
     is_deleted: Optional[str]
-    date_created: Optional[str]
+    date_created: Optional[date]
 
     class Config:
         orm_mode = True
 
-class UserUpdate(_StoreUserBase):
+class RoleUpdate(_StoreUserBase):
     email: str
 
 class UpdateRoleResponse(BaseModel):

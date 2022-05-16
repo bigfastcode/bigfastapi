@@ -63,3 +63,4 @@ forex-python
 gunicorn
 celery
 getmac
+Pillow

@@ -1,5 +1,8 @@
-import datetime as dt
-from typing import Optional
+from typing import Any, Optional
+
+from ..schemas.organisation_schemas import _OrganizationBase
+from ..schemas.store_user_schemas import _StoreUserBase
+
 from .email_schema import Email
 from pydantic import BaseModel
 
@@ -35,13 +38,31 @@ class StoreUser(_InviteBase):
 class InviteResponse(BaseModel):
     message: str
 
+org: dict = dict(
+    id="string",
+    mission="string",
+    vision="string",
+    name="string",
+    country="string",
+    state="string",
+    address="string",
+    currency_preference="string",
+    phone_number="string",
+    email="string",
+    current_subscription="string",
+    tagline="string",
+    image="string",
+    values="string",
+    business_type="retail",
+    image_full_path="string",
+)
 class SingleInviteResponse(BaseModel):
-    invite: _InviteBase
-    user: str = 'exists'
+    invite: Any = dict(id="string", user_email="string", user_id="string", user_role="string", store=org)
+    user: str
 
-class AcceptInviteResponse(_InviteBase):
-    is_accepted: bool = True
-    is_deleted: bool = True
+class AcceptInviteResponse(BaseModel):
+    invited: _StoreUserBase
+    store: _OrganizationBase
 
 class RevokedInviteResponse(_InviteBase):
     is_revoked: bool = True
