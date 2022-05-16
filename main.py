@@ -140,13 +140,12 @@ tags_metadata = [
     },  
     {
         "name": "sendsms",
-        "description": "BigFast's Send Sms api allows you to send an sms with a body of request containing details of the sms action."
+        "description": "BigFast's SMS API allows you to send an sms with a body of request containing details of the sms action."
     },
-    {      
-        "name": "sales",
-        "description": "BigFast's sales api exposes a a group of API routes related to sales. You can seamlessly create, retrieve, update and delete sale details."
+    {
+        "name": "receipt",
+        "description": "BigFast's Receipt API allows you to create, send, and retrieve receipt(s) in an organization."
     },
-
 ]
 
 app = FastAPI(openapi_tags=tags_metadata)
