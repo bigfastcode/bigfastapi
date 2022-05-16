@@ -76,7 +76,7 @@ class landingPagesection_Three_image(landingPageBody_H3_logo_Four):
     section_three_image: str
 
 class landingPagesection_Four_image(landingPagesection_Three_image):
-    section_four_image: str
+    # section_four_image: str
 
     class Config:
         orm_mode = True

@@ -42,12 +42,12 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
     This endpoint is used in the landing page html to fetch images 
     """
     if filetype == "css":
-        fullpath = image_fullpath(folder + "/" +image_name)
+        fullpath = image_fullpath("css",folder + "/" +image_name)
         print("endpoint",fullpath)
     elif filetype == "js":
-        fullpath = image_fullpath(folder + "/" +image_name)
+        fullpath = image_fullpath("js",folder + "/" +image_name)
     else:
-        fullpath = image_fullpath(folder + "/" +image_name)
+        fullpath = image_fullpath("image",folder + "/" +image_name)
     return fullpath
 
 
@@ -57,7 +57,6 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
 async def createlandingpage(request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db),current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), 
     section_three_image: UploadFile = File(...), 
-    section_four_image: UploadFile = File(...), 
     section_one_image_link: UploadFile = File(...), 
     body_h3_logo_one: UploadFile = File(...), 
     body_h3_logo_two: UploadFile = File(...),
@@ -130,12 +129,6 @@ async def createlandingpage(request: Landing_page_schemas.landingPageCreate = De
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload section_Three_image")
 
-        # check if section four image is uploaded else raise error
-        if section_four_image:
-            section_four_image = "/" +bucket_name + "/" + await upload_image(section_four_image, db=db, bucket_name = bucket_name)
-        else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Section_Four_image")
-
         # check if section one image link is uploaded else raise error
         if section_one_image_link:
             section_one_image_link = "/" +bucket_name + "/" + await upload_image(section_one_image_link, db=db, bucket_name = bucket_name)
@@ -200,7 +193,6 @@ async def createlandingpage(request: Landing_page_schemas.landingPageCreate = De
             about_link=request.about_link,
             faq_link=request.faq_link,
             contact_us_link=request.contact_us_link,
-            section_four_image=section_four_image,  
             company_name=request.company_name,
             company_logo=company_logo,
             login_link=request.login_link,
@@ -302,7 +294,6 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
             "about_link":landingpage_data.about_link,
             "faq_link":landingpage_data.faq_link,
             "contact_us_link":landingpage_data.contact_us_link,
-            "section_four_image":image_path + landingpage_data.section_four_image,
             "company_name":landingpage_data.company_name,
             "company_logo":image_path + landingpage_data.company_logo,
             "css_file": css_path,
@@ -320,7 +311,7 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
 # Endpoint to update a single landing page and use the update_landing_page function to update the data
 @app.put("/landingpage/{landingpage_name}", status_code=status.HTTP_200_OK, response_model=Landing_page_schemas.landingPageResponse)
 async def update_landing_page(landingpage_name: str,request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user = Depends(is_authenticated),
-    company_logo: UploadFile = File(...), section_three_image: UploadFile = File(...), section_four_image: UploadFile = File(...), section_one_image_link: UploadFile = File(...), body_h3_logo_one: UploadFile = File(...), body_h3_logo_two: UploadFile = File(...),
+    company_logo: UploadFile = File(...), section_three_image: UploadFile = File(...), section_one_image_link: UploadFile = File(...), body_h3_logo_one: UploadFile = File(...), body_h3_logo_two: UploadFile = File(...),
     body_h3_logo_three: UploadFile = File(...), body_h3_logo_four: UploadFile = File(...),):
     """
     This endpoint will update a single landing page in the database with data from the request
@@ -502,13 +493,6 @@ async def update_landing_page(landingpage_name: str,request: Landing_page_schema
                 section_three_image = await upload_image(section_three_image, db=db, bucket_name = update_landing_page_data.bucket_name)
                 update_landing_page_data.section_Three_image ="/"+ update_landing_page_data.bucket_name + "/" + section_three_image
         
-        # check if section four image is uploaded, update the section four image
-        if isFileExist(section_four_image) != True:
-            section_four_image1 = update_landing_page_data.section_four_image
-            if deleteFile(section_four_image1):
-                section_four_image = section_four_image
-                section_four_image = await upload_image(section_four_image, db=db, bucket_name = update_landing_page_data.bucket_name)
-                update_landing_page_data.section_Four_image ="/"+ update_landing_page_data.bucket_name + "/" + section_four_image
 
         # attempt to update the landing page data
         try:
@@ -539,7 +523,7 @@ async def delete_landingPage(landingpage_name: str, current_user = Depends(is_au
         if landingpage_data:
 
             # delete the images from the bucket
-            deleteimage=[landingpage_data.company_logo,landingpage_data.section_one_image_link,landingpage_data.body_h3_logo_one,landingpage_data.body_h3_logo_two,landingpage_data.body_h3_logo_three,landingpage_data.body_h3_logo_four,landingpage_data.section_three_image,landingpage_data.section_four_image]
+            deleteimage=[landingpage_data.company_logo,landingpage_data.section_one_image_link,landingpage_data.body_h3_logo_one,landingpage_data.body_h3_logo_two,landingpage_data.body_h3_logo_three,landingpage_data.body_h3_logo_four,landingpage_data.section_three_image,]
             for i in deleteimage:
                 if deleteFile(i):
                     pass
@@ -563,9 +547,9 @@ async def delete_landingPage(landingpage_name: str, current_user = Depends(is_au
 
 
 # Function to retrieve landing page images
-def image_fullpath(imagepath):
-    root_location = os.path.abspath("filestorage")
-    if root_location != RuntimeError:
+def image_fullpath(filetype, imagepath):
+    if filetype == "image":
+        root_location = os.path.abspath("filestorage")
         image_location = os.path.join(root_location, imagepath)
     else:
         root_location1 = pkg_resources.resource_filename("bigfastapi","/templates/")
@@ -576,9 +560,24 @@ def image_fullpath(imagepath):
 # Function to get host path to landing page images
 def getUrlFullPath(request: Request, filetype: str):
     hostname = request.headers.get('host')
-    if filetype == "js":
-        image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
-    elif filetype == "css":
-        image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
-    image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
-    return image_path
+    request = request.url.scheme +"://"
+    if hostname == "127.0.0.1:7001":
+        hostname = request + hostname
+        if filetype == "js":
+            image_path =  hostname + f"/landingpage/{filetype}"
+            print(image_path)
+        elif filetype == "css":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        else:
+            image_path =  hostname + f"/landingpage/{filetype}"
+        return image_path
+    else:
+        hostname = "https://"+ hostname
+
+        if filetype == "js":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        elif filetype == "css":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        else:
+            image_path =  hostname + f"/landingpage/{filetype}"
+        return image_path
