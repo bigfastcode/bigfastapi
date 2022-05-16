@@ -13,6 +13,7 @@ import sqlalchemy.orm as orm
 from bigfastapi.utils import settings
 import time
 import os
+from typing import Dict, List, Optional, Set
 
 app = APIRouter(tags=["Transactional Emails 📧"])
 
@@ -23,13 +24,12 @@ class ResponseModel(BaseModel):
 
 @app.post("/email/send", response_model=ResponseModel)
 def send_email(
-    email_details: email_schema.Email,
-    background_tasks: BackgroundTasks,
-    template: Optional[str] = "base_email.html",
-    db: orm.Session = fastapi.Depends(get_db)):
-
+        email_details: email_schema.Email,
+        background_tasks: BackgroundTasks,
+        template: Optional[str] = "base_email.html",
+        db: orm.Session = fastapi.Depends(get_db)):
     """intro-->This endpoint is used to send an email. To use this endpoint you need to make a post request to the /email/send endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -57,7 +57,7 @@ def send_notification_email(
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used to send a notification email. To use this endpoint you need to make a post request to the /email/send/notification endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -84,9 +84,8 @@ def send_invoice_email(
     db: orm.Session = fastapi.Depends(get_db)
 
 ):
-
     """intro-->This endpoint is used to send an invoice email. To use this endpoint you need to make a post request to the /email/send/invoice endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -112,7 +111,7 @@ def send_receipt_email(
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used to send a receipt email. To use this endpoint you need to make a post request to the /email/send/receipt endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -138,7 +137,7 @@ def send_welcome_email(
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used to send a welcome email. To use this endpoint you need to make a post request to the /email/send/welcome endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -164,7 +163,7 @@ def send_verification_email(
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used to send a Verification email. To use this endpoint you need to make a post request to the /email/send/verification endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -191,7 +190,7 @@ def send_reset_password_email(
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used to send a reset password email. To use this endpoint you need to make a post request to the /email/send/reset-password endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -218,7 +217,7 @@ def send_marketing_email(
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used to send a marketing email. To use this endpoint you need to make a post request to the /email/send/marketing-email endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -246,7 +245,7 @@ def schedule_marketing_email(
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint is used for scheduling a marketing email to be sent at a particular time. To use this endpoint you need to make a post request to the /email/send/marketing-email/schedule endpoint with a specified body of request
-    
+
         reqBody-->subject: This is the subject of the email
         reqBody-->recipient: This is an array of emails you want to send the email to
         reqBody-->title: This is the title of the email
@@ -270,7 +269,7 @@ def schedule_marketing_email(
     send_email(email_details=email_details,
                background_tasks=background_tasks, template=template, db=db)
     return {"message": "Scheduled Marketing Email will be sent in the background"}
-    
+
 
 #=================================== EMAIL SERVICES =================================#
 conf = ConnectionConfig(
@@ -437,6 +436,25 @@ async def auto_send_email_debts(email: str, first_name: str, template, title: st
             "email_message": email_message,
             "business_name": business_name,
             "payment_link": payment_link
+        },
+        subtype="html",
+    )
+    fm = FastMail(conf)
+
+    return await fm.send_message(message, template)
+
+
+async def engagement_email(email: List[str], first_name: str, template, title: str, body: str, sender: str, preheader=""):
+    message = MessageSchema(
+        subject=title,
+        recipients=email,
+        template_body={
+            "title": title,
+            "body": body,
+            "sender": sender,
+            "first_name": first_name,
+            "preheader": preheader
+
         },
         subtype="html",
     )

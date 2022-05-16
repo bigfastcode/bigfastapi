@@ -22,7 +22,7 @@ BASE_URL = config("BASE_URL")
 FILES_BASE_FOLDER = config('FILES_BASE_FOLDER')
 LANDING_PAGE_FOLDER = pkg_resources.resource_filename("bigfastapi","/templates/landingpage/")
 LANDING_PAGE_CSS = pkg_resources.resource_filename("bigfastapi","/templates/")
-LANDING_PAGE_JS = pkg_resources.resource_filename("bigfastapi","/templates//")
+LANDING_PAGE_JS = pkg_resources.resource_filename("bigfastapi","/templates/")
 
 # EMAIL_VERIFICATION_TEMPLATE="email/welcome_email.html"
 # PASSWORD_RESET_TEMPLATE="email/password_reset.html"
