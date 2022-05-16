@@ -36,7 +36,6 @@ class ProductCreate(BaseModel):
     unique_id: Optional[str] = None
     quantity: int
     discount: float
-    business_id: str
 
 class ProductImage(ProductCreate):
     product_image: str
