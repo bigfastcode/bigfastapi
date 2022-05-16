@@ -564,8 +564,8 @@ async def delete_landingPage(landingpage_name: str, current_user = Depends(is_au
 
 # Function to retrieve landing page images
 def image_fullpath(imagepath):
-    root_location = os.path.abspath("filestorage")
-    if root_location != RuntimeError:
+    if not (os.path.abspath("filestorage"+ imagepath)):
+        root_location = os.path.abspath("filestorage")
         image_location = os.path.join(root_location, imagepath)
     else:
         root_location1 = pkg_resources.resource_filename("bigfastapi","/templates/")
@@ -576,9 +576,24 @@ def image_fullpath(imagepath):
 # Function to get host path to landing page images
 def getUrlFullPath(request: Request, filetype: str):
     hostname = request.headers.get('host')
-    if filetype == "js":
-        image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
-    elif filetype == "css":
-        image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
-    image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
-    return image_path
+    request = request.url.scheme +"://"
+    if hostname == "127.0.0.1:7001":
+        hostname = request + hostname
+        if filetype == "js":
+            image_path =  hostname + f"/landingpage/{filetype}"
+            print(image_path)
+        elif filetype == "css":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        else:
+            image_path =  hostname + f"/landingpage/{filetype}"
+        return image_path
+    else:
+        hostname = "https://"+ hostname
+
+        if filetype == "js":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        elif filetype == "css":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        else:
+            image_path =  hostname + f"/landingpage/{filetype}"
+        return image_path
