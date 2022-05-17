@@ -1,4 +1,3 @@
-from re import template
 from uuid import uuid4
 from typing import List
 from sqlalchemy.orm import Session
@@ -6,11 +5,11 @@ from .auth_api import is_authenticated
 from bigfastapi.db.database import get_db
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from bigfastapi.models import Landing_Page_models
-from bigfastapi.schemas import Landing_page_schemas
+from bigfastapi.models import landing_page_models
+from bigfastapi.schemas import landing_page_schemas
 from bigfastapi.files import upload_image, deleteFile, isFileExist
 from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File, Request
-from bigfastapi.utils.schema_form import as_form
+# from bigfastapi.utils.schema_form import as_form
 import os
 from fastapi.responses import FileResponse
 from bigfastapi.utils.settings import LANDING_PAGE_FOLDER
@@ -43,7 +42,6 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
     """
     if filetype == "css":
         fullpath = image_fullpath("css",folder + "/" +image_name)
-        print("endpoint",fullpath)
     elif filetype == "js":
         fullpath = image_fullpath("js",folder + "/" +image_name)
     else:
@@ -53,8 +51,8 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
 
 
 # Endpoint to create landing page
-@app.post("/landingpage/create", status_code=201, response_model=Landing_page_schemas.landingPageResponse)
-async def createlandingpage(request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db),current_user = Depends(is_authenticated),
+@app.post("/landingpage/create", status_code=201, response_model=landing_page_schemas.landingPageResponse)
+async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db),current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), 
     section_three_image: UploadFile = File(...), 
     section_four_image: UploadFile = File(...), 
@@ -111,7 +109,7 @@ async def createlandingpage(request: Landing_page_schemas.landingPageCreate = De
         bucket_name=uuid4().hex
 
         # check if landing pAGE name already exist
-        if db.query(Landing_Page_models.LPage).filter(Landing_Page_models.LPage.landing_page_name == request.landing_page_name).first():
+        if db.query(landing_page_models.LPage).filter(landing_page_models.LPage.landing_page_name == request.landing_page_name).first():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="landing_page_name already exist")
         
         # check if all form fields are filled
@@ -165,7 +163,7 @@ async def createlandingpage(request: Landing_page_schemas.landingPageCreate = De
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_Four")
 
         # map schema to landing page model
-        landingpage_data = Landing_Page_models.LPage(
+        landingpage_data = landing_page_models.LPage(
             id = uuid4().hex,
             user_id =current_user.id,
             landing_page_name = request.landing_page_name,
@@ -231,7 +229,7 @@ async def createlandingpage(request: Landing_page_schemas.landingPageCreate = De
 
 
 # Endpoint to get all landing pages and use the fetch_all_landing_pages function to get the data
-@app.get("/landingpage/all", status_code=status.HTTP_200_OK, response_model=List[Landing_page_schemas.landingPageResponse])
+@app.get("/landingpage/all", status_code=status.HTTP_200_OK, response_model=List[landing_page_schemas.landingPageResponse])
 async def get_all_landing_pages(db: Session = Depends(get_db), current_user = Depends(is_authenticated)):
     """
     This endpoint will return all landing pages
@@ -241,7 +239,7 @@ async def get_all_landing_pages(db: Session = Depends(get_db), current_user = De
 
         # attempt to get all landing pages from the database
         try:
-            landingpages = db.query(Landing_Page_models.LPage).all()
+            landingpages = db.query(landing_page_models.LPage).all()
 
             return  landingpages
         
@@ -258,15 +256,14 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
     This endpoint will return a single landing page in html
     """
     # query the database using the landing page name
-    landingpage_data = db.query(Landing_Page_models.LPage).filter(Landing_Page_models.LPage.landing_page_name ==landingpage_name).first()
+    landingpage_data = db.query(landing_page_models.LPage).filter(landing_page_models.LPage.landing_page_name ==landingpage_name).first()
 
 
     # check if the data is returned and return the data
     image_path = getUrlFullPath(request, "image")
     css_path = getUrlFullPath(request, "css") + "/landingpage/styles.css"
     js_path = getUrlFullPath(request, "js") + "/landingpage/script.js"
-    print("path css",css_path)
-    print("path_js",js_path)
+
     # check if landing page data is returned and extract the data
     if landingpage_data:
         h = {
@@ -318,8 +315,8 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
 
 
 # Endpoint to update a single landing page and use the update_landing_page function to update the data
-@app.put("/landingpage/{landingpage_name}", status_code=status.HTTP_200_OK, response_model=Landing_page_schemas.landingPageResponse)
-async def update_landing_page(landingpage_name: str,request: Landing_page_schemas.landingPageCreate = Depends(Landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user = Depends(is_authenticated),
+@app.put("/landingpage/{landingpage_name}", status_code=status.HTTP_200_OK, response_model=landing_page_schemas.landingPageResponse)
+async def update_landing_page(landingpage_name: str,request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), section_three_image: UploadFile = File(...), section_four_image: UploadFile = File(...), section_one_image_link: UploadFile = File(...), body_h3_logo_one: UploadFile = File(...), body_h3_logo_two: UploadFile = File(...),
     body_h3_logo_three: UploadFile = File(...), body_h3_logo_four: UploadFile = File(...),):
     """
@@ -329,7 +326,7 @@ async def update_landing_page(landingpage_name: str,request: Landing_page_schema
     if current_user.is_superuser:
 
         # query the database using the landing page name
-        update_landing_page_data= db.query(Landing_Page_models.LPage).filter(Landing_Page_models.LPage.landing_page_name == landingpage_name).first()
+        update_landing_page_data= db.query(landing_page_models.LPage).filter(landing_page_models.LPage.landing_page_name == landingpage_name).first()
 
         # check if update landing page does not exist, throw an error
         if update_landing_page_data == None:
@@ -533,7 +530,7 @@ async def delete_landingPage(landingpage_name: str, current_user = Depends(is_au
     # check if user is a super user
     if current_user.is_superuser:
          # query for the landing page data
-        landingpage_data = db.query(Landing_Page_models.LPage).filter(Landing_Page_models.LPage.landing_page_name == landingpage_name).first()
+        landingpage_data = db.query(landing_page_models.LPage).filter(landing_page_models.LPage.landing_page_name == landingpage_name).first()
 
         # check if landing page data is found
         if landingpage_data:
@@ -581,7 +578,6 @@ def getUrlFullPath(request: Request, filetype: str):
         hostname = request + hostname
         if filetype == "js":
             image_path =  hostname + f"/landingpage/{filetype}"
-            print(image_path)
         elif filetype == "css":
             image_path =  hostname + f"/landingpage/{filetype}"
         else:
