@@ -19,7 +19,6 @@ from bigfastapi.comments import app as comments
 from bigfastapi.contact import app as contact
 from bigfastapi.countries import app as countries
 from bigfastapi.credit import app as credit
-from bigfastapi.customer import app as customer
 from bigfastapi.db.database import create_database
 from bigfastapi.email import app as email
 # Import all the functionality that BFA provides
@@ -96,10 +95,6 @@ tags_metadata = [
         "description": "BigFast's credit api allows you to create and retrieve custom credit rates, you can also add and retrieve credit deails for an organization. It also exposes endpoints you can use to verify payments with payment providers."
     },
     {
-        "name": "customers",
-        "description": "BigFast's customers api exposes a a group of API routes related to customers. You can seamlessly create, retrieve, update and delete customer details."
-    },
-    {
         "name": "transactionalemails",
         "description": "BigFast's Transactional Emails api allows you to send emails. We have also made more specific email templates available."
     },
@@ -145,13 +140,12 @@ tags_metadata = [
     },  
     {
         "name": "sendsms",
-        "description": "BigFast's Send Sms api allows you to send an sms with a body of request containing details of the sms action."
+        "description": "BigFast's SMS API allows you to send an sms with a body of request containing details of the sms action."
     },
-    {      
-        "name": "sales",
-        "description": "BigFast's sales api exposes a a group of API routes related to sales. You can seamlessly create, retrieve, update and delete sale details."
+    {
+        "name": "receipt",
+        "description": "BigFast's Receipt API allows you to create, send, and retrieve receipt(s) in an organization."
     },
-
 ]
 
 app = FastAPI(openapi_tags=tags_metadata)
@@ -208,11 +202,9 @@ app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
 app.include_router(jwt_services)
 app.include_router(receipts)
-app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
-
 app.include_router(api_key)
 app.include_router(landingpage)
 app.include_router(importprogress)

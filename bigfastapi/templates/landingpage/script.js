@@ -1,25 +1,18 @@
-// let menu = document.querySelector("#menu-icon");
-// let navlinks = document.querySelector(".navlinks");
+const menu = document.querySelector(".navlinks");
+const menuBtn = document.querySelector("#open-menu-btn");
+const closeBtn = document.querySelector("#close-menu-btn");
 
-// menu.addEventListener("click", function () {
-//     navlinks.classList.toggle("active");
-// });
+menuBtn.addEventListener('click', () => {
+    menu.style.display = "flex";
+    closeBtn.style.display = "inline-block";
+    menuBtn.style.display = "none";
+})
 
-// window.onscroll = () => {
-//     navlinks.classList.remove("active")
-// }
 
-const hamburger = document.querySelector(".hamburger");
-const navLinks = document.querySelector(".nav-links");
-const links = document.querySelectorAll(".nav-links li");
+const closedNav = () => {
+    menu.style.display = "none";
+    closeBtn.style.display = "none";
+    menuBtn.style.display = "inline-block";
+}
 
-hamburger.addEventListener('click', ()=>{
-   //Animate Links
-    navLinks.classList.toggle("open");
-    links.forEach(link => {
-        link.classList.toggle("fade");
-    });
-
-    //Hamburger Animation
-    hamburger.classList.toggle("toggle");
-});
+closeBtn.addEventListener('click', closedNav)
