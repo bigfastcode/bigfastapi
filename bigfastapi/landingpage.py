@@ -15,12 +15,12 @@ import os
 from fastapi.responses import FileResponse
 from bigfastapi.utils.settings import LANDING_PAGE_FOLDER
 from starlette.requests import Request
+import pkg_resources
 
 app = APIRouter(tags=["Landing Page"])
 
 
 templates = Jinja2Templates(directory=LANDING_PAGE_FOLDER)
-print(LANDING_PAGE_FOLDER)
 
 
 # Endpoint to open index.html
@@ -41,7 +41,13 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
     """
     This endpoint is used in the landing page html to fetch images 
     """
-    fullpath = image_fullpath(folder + "/" +image_name)
+    if filetype == "css":
+        fullpath = image_fullpath("css",folder + "/" +image_name)
+        print("endpoint",fullpath)
+    elif filetype == "js":
+        fullpath = image_fullpath("js",folder + "/" +image_name)
+    else:
+        fullpath = image_fullpath("image",folder + "/" +image_name)
     return fullpath
 
 
@@ -257,8 +263,10 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
 
     # check if the data is returned and return the data
     image_path = getUrlFullPath(request, "image")
-    # css_path = getUrlFullPath(request, "css")
-
+    css_path = getUrlFullPath(request, "css") + "/landingpage/styles.css"
+    js_path = getUrlFullPath(request, "js") + "/landingpage/script.js"
+    print("path css",css_path)
+    print("path_js",js_path)
     # check if landing page data is returned and extract the data
     if landingpage_data:
         h = {
@@ -297,11 +305,10 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
             "section_four_image":image_path + landingpage_data.section_four_image,
             "company_name":landingpage_data.company_name,
             "company_logo":image_path + landingpage_data.company_logo,
-            # "css_file": css_path + "/css/landingpage.css",
+            "css_file": css_path,
+            "js_file": js_path,
             "signup_link":landingpage_data.signup_link,
         }
-        # print html directory3
-        print(LANDING_PAGE_FOLDER+"landingpage.html")
         return templates.TemplateResponse("landingpage.html", {"request": request, "h": h})
     
     # if no data is returned, throw an error
@@ -556,14 +563,37 @@ async def delete_landingPage(landingpage_name: str, current_user = Depends(is_au
 
 
 # Function to retrieve landing page images
-def image_fullpath(imagepath):
-    root_location = os.path.abspath("filestorage")
-    image_location = os.path.join(root_location, imagepath)
+def image_fullpath(filetype, imagepath):
+    if filetype == "image":
+        root_location = os.path.abspath("filestorage")
+        image_location = os.path.join(root_location, imagepath)
+    else:
+        root_location1 = pkg_resources.resource_filename("bigfastapi","/templates/")
+        image_location = os.path.join(root_location1, imagepath)
     return FileResponse(image_location)
 
 
 # Function to get host path to landing page images
 def getUrlFullPath(request: Request, filetype: str):
     hostname = request.headers.get('host')
-    image_path = request.url.scheme +"://" + hostname + f"/landingpage/{filetype}"
-    return image_path
+    request = request.url.scheme +"://"
+    if hostname == "127.0.0.1:7001":
+        hostname = request + hostname
+        if filetype == "js":
+            image_path =  hostname + f"/landingpage/{filetype}"
+            print(image_path)
+        elif filetype == "css":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        else:
+            image_path =  hostname + f"/landingpage/{filetype}"
+        return image_path
+    else:
+        hostname = "https://"+ hostname
+
+        if filetype == "js":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        elif filetype == "css":
+            image_path =  hostname + f"/landingpage/{filetype}"
+        else:
+            image_path =  hostname + f"/landingpage/{filetype}"
+        return image_path
