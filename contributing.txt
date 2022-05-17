@@ -54,9 +54,11 @@ Check for all possible errors and raise a FastAPI errors
 
 
 # Documentation
-
-All API functions should be documented in the controller file. Each controller file should have a summary
-section at the top.
+---
+- All API functions should be documented in the controller file. 
+- Each controller file should have a summary section at the top.
+- All API functions should have a response model.
+- All API function services should be in their respective model files.
 
 # functions
 
