@@ -12,7 +12,7 @@ from bigfastapi.db.database import get_db
 from bigfastapi.models import bank_models
 from bigfastapi.schemas import bank_schemas, users_schemas
 from .auth_api import is_authenticated
-from .models.organisation_models import is_organization_member
+from .core.helpers import Helpers
 
 router = APIRouter()
 
@@ -53,7 +53,7 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
         HTTP_403_FORBIDDEN: incomplete details
     """
 
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -101,8 +101,7 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
     Raises
         HTTP_424_FAILED_DEPENDENCY: failed to fetch banks
     """
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
-
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to access this resource")
@@ -177,7 +176,7 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
         HTTP_4O4_NOT_FOUND: Bank does not exist.
     """
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -232,7 +231,7 @@ async def delete_bank(bank_id: str,
     """
 
     bank = await bank_models.fetch_bank(user=user, id=bank_id, db=db)
-    is_store_member = await is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -244,7 +243,7 @@ async def delete_bank(bank_id: str,
                         status_code=status.HTTP_200_OK)
 
 
-@router.get("/banks/schema", status_code=status.HTTP_200_OK)
+@router.get("/banks/schema/{country}", status_code=status.HTTP_200_OK)
 async def get_country_schema(country: str):
     """intro-->This endpoint allows you get the valid schema for every country. To use this endpoint you need to make a get request to the /banks/schema endpoint
 
@@ -261,29 +260,8 @@ async def get_country_schema(country: str):
     Raises: 
         HTTP_4O4_NOT_FOUND: Country not in the list of supported countries.
     """
-    schema = await BV.get_country_data(country=country, info="schema")
-    return {"schema": dict(schema)}
-
-
-@router.get("/banks/validator", status_code=status.HTTP_200_OK)
-async def validate_bank_details(country: str):
-    """intro-->This endpoint allows you to fetch details needed to add bank details based on country provided. To use this endpoint you need to make a get request to the /banks/validator endpoint
-
-    paramDesc-->On get request, the request url takes the query parameter country 
-        param-->country: This is the country of interest
-        
-    returnDesc--> On sucessful request, it returns the
-        returnBody-->  details needed to add bank details based on country provided
-
-    Args:
-        country: Country whose schema structure is to be fetched.
-    Returns:
-        HTTP_200_OK (bank object)
-    Raises
-        HTTP_4O4_NOT_FOUND: Country not in the list of supported countries.
-    """
-    country_info = await BV.validate_supported_country(country)
-    return country_info
+    schema = await BV.get_country_data(country=country)
+    return schema
 
 
 # =================================== Bank Service =================================#
@@ -295,21 +273,12 @@ class BankValidator:
         with open(BANK_DATA_PATH + "/bank.json") as file:
             self.country_info = json.load(file)
 
-    async def get_country_data(self, country, info=None):
-        if country not in self.country_info and info is None:
-            return self.country_info["others"]
-        elif country not in self.country_info:
-            return self.country_info["others"][info]
-        if info:
-            country_info = self.country_info[country][info]
-            return country_info
-        return self.country_info[country]
-
-    async def validate_supported_country(self, country):
-        for data in self.country_info:
-            if data == country:
-                return True
-        return False
+    async def get_country_data(self, country):
+        print("country is ", country)
+        if country in self.country_info:
+            return self.country_info[country]
+        else:
+            return self.country_info['others']
 
 
 BV = BankValidator()

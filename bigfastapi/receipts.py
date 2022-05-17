@@ -3,38 +3,59 @@ import fastapi, os
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi import APIRouter
 from fastapi import UploadFile, File
-from sqlalchemy import and_, null
-
-from bigfastapi.models import file_models
+from bigfastapi.models.receipt_models import Receipt, search_receipts, fetch_receipt_by_id
 from bigfastapi.models.organisation_models import Organization
+from bigfastapi.schemas import users_schemas
 from .schemas import receipt_schemas
 from .schemas import pdf_schema
-from .schemas import file_schemas
 from bigfastapi import pdfs
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 import random
 from fastapi.encoders import jsonable_encoder
 from bigfastapi.db.database import get_db
+from .auth_api import is_authenticated
 import sqlalchemy.orm as orm
-from .models.receipt_models import Receipt
+from sqlalchemy import and_
 from uuid import uuid4
 from fastapi import BackgroundTasks
 from bigfastapi.utils import paginator, settings
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from typing import Optional
+from typing import List, Optional
 
-app = APIRouter()
+app = APIRouter(tags=["Receipts"])
 
 
 #send receipt endpoint
-@app.post("/receipts", status_code=201, response_model=receipt_schemas.ResponseModel)
-def send_receipt(payload: receipt_schemas.atrributes, background_tasks: BackgroundTasks, db: orm.Session = Depends(get_db)):
+@app.post("/receipts", status_code=201, response_model=receipt_schemas.SendReceiptResponse)
+def send_receipt(
+    payload: receipt_schemas.atrributes, 
+    background_tasks: BackgroundTasks, 
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
+    ):
 
     """
         An endpoint to send receipts. 
+
         Note: The message field in the payload should be HTML formatted.
+
+        Intro - 
+
+            This endpoint allows you to create an send a new receipt.
+
+            reqBody-organization_id: This is the id of the organization sending the receipt.
+            reqBody-sender_email: This is the email of the sender, usually a store user.
+            reqBody-message: This is the message to be sent to the receipt recipient.
+            reqBody-subject: This is the subject of the mail to be sent to the recipient
+            reqBody-recipient: This is the list of emails to be the recipient of the receipt.
+
+        returnDesc-
+
+            On sucessful request, it returns
+
+            returnBody- 
+                an object with a key `message` with a string value - `receipt sent` .
     """
     try: 
 
@@ -67,22 +88,41 @@ def send_receipt(payload: receipt_schemas.atrributes, background_tasks: Backgrou
         return JSONResponse({"message" : "receipt sent"}, status_code=status.HTTP_201_CREATED)
 
     except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
-@app.get("/receipts", status_code=200)
+@app.get("/receipts", status_code=200, response_model=receipt_schemas.FetchReceiptsResponse)
 async def fetch_receipts(
     organization_id:str,
     search_value: str = None,
     sorting_key: str = None,
     page: int = 1, 
     size: int = 50, 
-    db: orm.Session = Depends(get_db)):
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
+    ):
 
     """
         An endpoint to fetch all receipts. 
-        Note: The message field in the payload should be HTML formatted.
+
+        Intro - 
+
+            This endpoint retrieves all the receipts in an organization.
+
+        ParamDesc -
+
+            reqQuery-organization_id: This is the id of the organization sending the receipt.
+            reqQuery-search_value(optional): This is a string used to filter the receipts.
+            reqQuery-sorting_key(optional): This is a string used to sort the receipts
+            reqQuery-page: This is an integer specifying the page to display. The default value is `1`.
+            reqQuery-size: This is an integer used to specify the volume of data to be retrieved in numbers.
+
+        returnDesc-
+
+        On sucessful request, it returns
+            returnBody- an object with a key `message` with a string value - `receipt sent` .
     """
-    # FETCH RECEIPT FROM DB.
     try:
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
@@ -117,6 +157,29 @@ async def fetch_receipts(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             , detail=str(ex))
 
+@app.get('/receipts/{receipt_id}', status_code=200, response_model=receipt_schemas.Receipt)
+async def get_receipt(
+    organization_id:str,
+    receipt_id: str,
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
+):
+    """
+        An endpoint to get a single receipt. 
+        Intro - 
+            This endpoint returns a receipt that matches the receipt id specified in the route.
+
+        ParamDesc -
+
+            reqParam-receipt_id: This is the id of the receipt to be fetched.
+            reqQuery-organization_id: This is the id of the organization.
+
+        returnDesc-
+
+            On sucessful request, it returns an object with the receipt details.
+    """
+    receipt =  await fetch_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
+    return receipt
 
 
 
@@ -163,48 +226,3 @@ def send_receipt_email(
 def convert_to_pdf(pdfSchema, db: orm.Session = Depends(get_db)):
     return pdfs.convert_to_pdf(pdfSchema, db=db) 
 
-async def search_receipts(
-    organization_id:str,
-    search_value: str,
-    offset: int, size:int=50,
-    db: orm.Session = Depends(get_db)
-    ):  
-    search_text = f"%{search_value}%"
-    search_result_count =db.query(Receipt).filter(and_(
-        Receipt.organization_id == organization_id,
-        Receipt.recipient.like(search_text))).count()
-
-    receipts_by_recipient = db.query(Receipt).filter(and_(
-        Receipt.organization_id == organization_id,
-        Receipt.recipient.like(search_text))
-        ).offset(
-        offset=offset).limit(limit=size).all()
-
-
-    recipient_list = [*receipts_by_recipient]
-    return (recipient_list, search_result_count)
-
-
-# async def sort_receipts(
-#     organization_id:str,
-#     sort_key: str,
-#     offset: int, size:int=50,
-#     sort_dir: str = "asc",
-#     db:Session = Depends(get_db)
-#     ):  
-#     if sort_dir == "desc":
-#         customers = db.query(Customer).filter(
-#             Customer.organization_id == organization_id).filter(
-#             Customer.is_deleted == False).filter(
-#             Customer.is_inactive == False).order_by(
-#             desc(getattr(Customer, sort_key, "first_name"))
-#             ).offset(offset=offset).limit(limit=size).all()
-#     else:
-#         customers = db.query(Customer).filter(
-#             Customer.organization_id == organization_id).filter(
-#             Customer.is_deleted == False).filter(
-#             Customer.is_inactive != True).order_by(
-#             getattr(Customer, sort_key, "first_name")
-#             ).offset(offset=offset).limit(limit=size).all()
-
-#     return list(map(customer_schemas.Customer.from_orm, customers))

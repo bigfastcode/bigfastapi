@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import EmailStr, BaseModel
+from pydantic import BaseModel
 
 class FailedImportOutput(BaseModel):
     id: str

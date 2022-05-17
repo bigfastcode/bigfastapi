@@ -7,60 +7,47 @@ from sqlalchemy.types import String
 
 
 class LPage(db.Base):
-  __tablename__ = 'Landing_page'
-  id = Column(String, primary_key=True, index=True)
-  user_id = Column(String, ForeignKey('users.id'), nullable=False)
-  landingPage_name = Column(String, index=True, unique=True)
-  Bucket_name = Column(String, index=True, unique=True)
-  company_Name = Column(String, nullable=False) # company_Name 
+  __tablename__ = 'landing_page'
+
+  id = Column(String(255), primary_key=True, index=True)
+  user_id = Column(String(255), ForeignKey('users.id'), nullable=False)
+  landing_page_name = Column(String(255), index=True, unique=True)
+  bucket_name = Column(String(255), index=True, unique=True)
+  company_name = Column(String(255), nullable=False) # company_name 
   login_link = Column(String(255))
   signup_link = Column(String(255))
   company_logo = Column(String(255)) # image url
-  Home_link = Column(String(255)) # home link
-  About_link = Column(String(255)) # about link
+  home_link = Column(String(255)) # home link
+  about_link = Column(String(255)) # about link
   faq_link = Column(String(255)) # faq link
   contact_us_link = Column(String(255)) # contact us link
-  Body_H1 = Column(String(255)) # body title
-  Body_paragraph = Column(String) # body content text
-  section_One_image_link = Column(String(255)) # body content logo one
-  Body_H3 = Column(String) # body title subtext
-  Body_H3_logo_One = Column(String(255)) # body title image
-  Body_H3_logo_One_name = Column(String(255))
-  Body_H3_logo_One_paragraph = Column(String(255))
-  Body_H3_logo_Two = Column(String(255))
-  Body_H3_logo_Two_name = Column(String(255))
-  Body_H3_logo_Two_paragraph = Column(String(255))
-  Body_H3_logo_Three = Column(String(255))
-  Body_H3_logo_Three_name = Column(String(255))
-  Body_H3_logo_Three_paragraph = Column(String(255))
-  Body_H3_logo_Four = Column(String(255))
-  Body_H3_logo_Four_name = Column(String(255))
-  Body_H3_logo_Four_paragraph = Column(String(255))
-  section_Three_paragraph = Column(String)
-  section_Three_sub_paragraph = Column(String(255))
-  section_Three_image= Column(String(255))
-  Footer_H3 = Column(String)
-  Footer_H3_paragraph= Column(String(255))
-  Footer_name_employee= Column(String(255))
-  Name_job_description= Column(String(255))
-  section_Four_image = Column(String)
-  Footer_H2_text = Column(String(255))
-  Footer_contact_address = Column(String(255))
+  body_h1 = Column(String(255)) # body title
+  body_paragraph = Column(String(255)) # body content text
+  section_one_image_link = Column(String(255)) # body content logo one
+  body_h3 = Column(String(255)) # body title subtext
+  body_h3_logo_one = Column(String(255)) # body title image
+  body_h3_logo_one_name = Column(String(255))
+  body_h3_logo_one_paragraph = Column(String(255))
+  body_h3_logo_two = Column(String(255))
+  body_h3_logo_two_name = Column(String(255))
+  body_h3_logo_two_paragraph = Column(String(255))
+  body_h3_logo_three = Column(String(255))
+  body_h3_logo_three_name = Column(String(255))
+  body_h3_logo_three_paragraph = Column(String(255))
+  body_h3_logo_four = Column(String(255))
+  body_h3_logo_four_name = Column(String(255))
+  body_h3_logo_four_paragraph = Column(String(255))
+  section_three_paragraph = Column(String(255))
+  section_three_sub_paragraph = Column(String(255))
+  section_three_image= Column(String(255))
+  footer_h3 = Column(String(255))
+  footer_h3_paragraph= Column(String(255))
+  footer_name_employee= Column(String(255))
+  name_job_description= Column(String(255))
+  section_four_image = Column(String(255))
+  footer_h2_text = Column(String(255))
+  footer_contact_address = Column(String(255))
   customer_care_email = Column(String(255))
 
 
-# find landing page by landing page name
-def find_landing_page(landingPage_name: str, db: orm.Session):
-  return db.query(LPage).filter((LPage.landingPage_name == landingPage_name)).first()
 
-
-
-
-# delete landing page by landing page name
-def delete_landing_page(landingPage_id: str, db: orm.Session):
-  landing_page = find_landing_page(landingPage_id, db)
-  if landing_page:
-    db.delete(landing_page)
-    db.commit()
-    return True
-  return False

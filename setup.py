@@ -15,6 +15,7 @@ setuptools.setup(
                                                 'bigfastapi.schemas', 
                                                 'bigfastapi.models',
                                                 'bigfastapi.db',  
+                                                'bigfastapi.core',
                                                 'bigfastapi.utils', 
                                                 'bigfastapi.data']),  
 
@@ -89,6 +90,8 @@ setuptools.setup(
     keywords='fastapi, bigfastapi, auth',
     package_data={
         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
+        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landingpage/*.*'],
+        
         # 'bigfastapi': ['data/*.*'],
         # 'bigfastapi': ['templates/email/*.html'],   
     },
