@@ -236,7 +236,10 @@
         "phone_number",
         "account_name"
       ]
-    }
+    },
+    "validation_url": "",
+    "banks_url": "",
+    "banks": {}
   },
   "uk": {
     "country": "United Kingdom",
@@ -245,7 +248,10 @@
         "iban",
         "account_name"
       ]
-    }
+    },
+    "validation_url": "",
+    "banks_url": "",
+    "banks": {}
   },
   "others": {
     "country": "Unknown",
@@ -266,7 +272,6 @@
     },
     "validation_url": "",
     "banks_url": "",
-    "banks": {
-    }
+    "banks": {}
   }
 }
