@@ -1,23 +1,25 @@
 
+import os
+import fastapi as fastapi
 import datetime as datetime
+import sqlalchemy.orm as orm
+import secrets
 from uuid import uuid4
 from fastapi import APIRouter, Depends, UploadFile, File
 from typing import List, Optional
-import fastapi as fastapi
 from fastapi import HTTPException, status
-import sqlalchemy.orm as orm
 from .auth_api import is_authenticated
 from .schemas import users_schemas as user_schema
 from .schemas import product_schemas as schema
 from .models import product_models as model
-from .models import organisation_models as org_model
+from .models import file_models as file_model
 from .files import upload_image
 from .utils import paginator
 from .core import helpers
 from bigfastapi.utils.schema_form import as_form
-import secrets
-from PIL import Image
-
+from starlette.requests import Request
+from fastapi.responses import FileResponse
+from bigfastapi.utils import settings as settings
 from bigfastapi.db.database import get_db
 
 app = APIRouter(
@@ -40,8 +42,6 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
     paramDesc-
         reqBody-name: This is the name of the product to be created. 
         reqBody-description: This is the description of the product to be created. 
-        reqBody-price: This is the set price for the product
-        reqBody-discount: If a discount applies to the product, this is the field to put it in. 
     returnDesc-On sucessful request, it returns
         returnBody- the blog object.
     """
@@ -53,12 +53,6 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
     #check if user is allowed to create a product in the business
     if  helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a product for this business")
-    
-    #set status
-    if product.quantity > 0:
-        product_status = True
-    else:
-        product_status = False
 
     #check and generate unique ID
     if product.unique_id is None:
@@ -78,24 +72,17 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
 
     #Add product to database
     product = model.Product(id=uuid4().hex, created_by=user.id, business_id=product.business_id, name=product.name, description=product.description,
-                            price=product.price, discount=product.discount, unique_id=product.unique_id, quantity=product.quantity
-                            ,status = product_status)
+                             unique_id=product.unique_id) 
     
     db.add(product)
     db.commit()
     db.refresh(product)
 
-    #Add price record to PriceHistory table
-    price_record = model.PriceHistory(id=uuid4().hex, product_id=product.id, price=product.price, created_by=user.id)
-    db.add(price_record)
-    db.commit()
-    db.refresh(price_record)
-
     return product
 
 
 @app.get("/product", response_model=schema.ProductOut)
-async def get_products(business_id: str, 
+async def get_products(request: Request, business_id: str, 
                 search_value: str = None,
                 sorting_key: str = None,
                 datetime_constraint: datetime.datetime = None,
@@ -129,11 +116,22 @@ async def get_products(business_id: str,
     
     total_number = len(product_list)
 
-    # products = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.is_deleted==False).all()
-
     if not product_list:
-        # raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products present")
         product_list = []
+
+    hostname = request.headers.get('host')
+
+    for product in product_list:
+        #fetch images
+        images = db.query(file_model.File).filter(file_model.File.bucketname == product.unique_id).all()
+        image_path_list = []
+        for image in images:
+            path = request.url.scheme +"://" + hostname + '/product/'+ product.id + '/'+image.id
+            image_path_list.append(path)
+        
+        product.product_image = image_path_list
+
+
     pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_number, endpoint=f"/product")
     response = {"page": page_number, "size": page_size, "total": total_number,"previous_page":pointers['previous'], "next_page": pointers["next"], 
                 "items": product_list}
@@ -142,7 +140,7 @@ async def get_products(business_id: str,
 
 
 @app.get('/product/{product_id}', response_model=schema.ShowProduct)
-def get_product(business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
+def get_product(request: Request, business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
     """
     Intro-This endpoint allows you to retreive details of a product in the database belonging to a business. 
     To retreive a product, you need to make a get request to the /products/{business_id}/{product_id} endpoint. 
@@ -150,13 +148,39 @@ def get_product(business_id: str, product_id: str, db: orm.Session = fastapi.Dep
     returnDesc-On sucessful request, it returns:
     returnBody- an array of product objects.
     """
-
+    #fetch product
     product = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.id == product_id, model.Product.is_deleted==False).first()
 
     if not product:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
 
+    #fetch images
+    hostname = request.headers.get('host')
+    images = db.query(file_model.File).filter(file_model.File.bucketname == product.unique_id).all()
+    image_path_list = []
+    for image in images:
+        path = request.url.scheme +"://" + hostname + '/product/'+ product.id + '/'+image.id
+        image_path_list.append(path)
+    
+    product.product_image = image_path_list
+
     return product
+
+
+@app.get("/product/{product_id}/{file_id}")
+async def get_product_image(product_id: str, file_id: str, 
+                                        db: orm.Session = fastapi.Depends(get_db)):
+    
+    product = model.get_product_by_id(product_id, db=db)
+    image = db.query(file_model.File).filter(file_model.File.bucketname == product.unique_id, 
+                                              file_model.File.id == file_id).first()
+
+    filename = f"/{image.bucketname}/{image.filename}"
+
+    root_location = os.path.abspath("filestorage")
+    full_image_path = root_location + filename
+
+    return FileResponse(full_image_path)
 
 
 @app.put('/product/{product_id}')
@@ -169,32 +193,17 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
     if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update a product for this business")
 
-    #check if business exists
-
-
+    #fetch products
     product = db.query(model.Product).filter(model.Product.business_id==business_id, model.Product.id==product_id, model.Product.is_deleted==False).first()
 
     #check if product exits
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Product does not exist')
-
-    
-    #check for change in price and update price history table
-    if product_update.price != None:
-        if product.price != product_update.price:
-            priceUpdate = model.PriceHistory(id=uuid4().hex, price=product_update.price, created_by=user.id, product_id=product.id)
-            db.add(priceUpdate)
-            db.commit()
-            db.refresh(priceUpdate)
     
     if product_update.name != None:
         product.name = product_update.name
     if product_update.description != None:
         product.description = product_update.description
-    if product_update.discount != None:
-        product.discount = product_update.discount
-    if product_update.price != None:
-        product.price = product_update.price
 
     product.updated_at = datetime.datetime.utcnow()
 

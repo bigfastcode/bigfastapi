@@ -2,6 +2,7 @@ import sqlalchemy.orm as _orm
 from bigfastapi.models import store_user_model
 
 from  bigfastapi.models.organisation_models import Organization
+from bigfastapi.models.product_models import Product
 
 class Helpers:
     async def is_organization_member(user_id: str, organization_id: str, db: _orm.Session):
@@ -17,3 +18,4 @@ class Helpers:
         if store_user == None and organization == None:
             return False
         return True
+
