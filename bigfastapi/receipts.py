@@ -79,7 +79,12 @@ async def send_receipt(
         
         file = convert_to_pdf(pdf_schema.Format(**schema), db=db)
 
-        await send_receipt_email(payload, background_tasks=background_tasks, template="mail_receipt.html", db=db, file="./filestorage/pdfs/"+pdf_name)
+        await send_receipt_email(
+            payload, 
+            background_tasks=background_tasks, 
+            template="mail_receipt.html", 
+            db=db, 
+            file="./filestorage/pdfs/"+pdf_name)
 
         receipt = Receipt(
             id=uuid4().hex, 
