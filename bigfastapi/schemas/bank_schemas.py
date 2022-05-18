@@ -19,9 +19,9 @@ class Countries(str, Enum):
 
 
 class Frequencies(str, Enum):
-    Yearly = "Yearly"
-    Monthly = "Monthly"
-    Daily = "Daily"
+    Yearly = "yearly"
+    Monthly = "monthly"
+    Daily = "daily"
 
 
 class BankBase(pydantic.BaseModel):

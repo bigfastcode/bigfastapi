@@ -18,5 +18,13 @@ class Receipt(BaseModel):
 class atrributes(Receipt):
     recipient: List[EmailStr] = []
 
-class ResponseModel(BaseModel):
+class SendReceiptResponse(BaseModel):
     message: str
+
+class FetchReceiptsResponse(BaseModel):
+    page: int
+    size: int
+    total: int
+    items: List[Receipt]
+    previous_page: Optional[str]
+    next_page: Optional[str]
