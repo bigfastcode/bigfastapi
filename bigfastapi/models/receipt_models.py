@@ -19,7 +19,7 @@ class Receipt(_database.Base):
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255), index=True)
     sender_email = Column(String(255), index=True)
-    message = Column(Text, index=True)
+    message = Column(Text(length=600), index=True)
     subject = Column(String(255), index=True)
     recipient = Column(String(255), index=True)
     file_id = Column(String(255), ForeignKey("files.id"))
