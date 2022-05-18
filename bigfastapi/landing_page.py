@@ -35,7 +35,7 @@ async def landing_page_index(request: Request, current_user: str = Depends(is_au
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Page not found")
 
 # Endpoint to get landing page images
-@app.get("/landingpage/{filetype}/{folder}/{image_name}", status_code=200)
+@app.get("/landing-page/{filetype}/{folder}/{image_name}", status_code=200)
 def path(filetype: str, image_name:str, folder:str, request: Request, ):
     """
     This endpoint is used in the landing page html to fetch images 
@@ -51,7 +51,7 @@ def path(filetype: str, image_name:str, folder:str, request: Request, ):
 
 
 # Endpoint to create landing page
-@app.post("/landingpage/create", status_code=201, response_model=landing_page_schemas.landingPageResponse)
+@app.post("/landing-page/create", status_code=201, response_model=landing_page_schemas.landingPageResponse)
 async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db),current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), 
     section_three_image: UploadFile = File(...), 
@@ -229,7 +229,7 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
 
 
 # Endpoint to get all landing pages and use the fetch_all_landing_pages function to get the data
-@app.get("/landingpage/all", status_code=status.HTTP_200_OK, response_model=List[landing_page_schemas.landingPageResponse])
+@app.get("/landing-page/all", status_code=status.HTTP_200_OK, response_model=List[landing_page_schemas.landingPageResponse])
 async def get_all_landing_pages(db: Session = Depends(get_db), current_user = Depends(is_authenticated)):
     """
     This endpoint will return all landing pages
@@ -250,7 +250,7 @@ async def get_all_landing_pages(db: Session = Depends(get_db), current_user = De
 
 
 # Endpoint to get a single landing page and use the fetch_landing_page function to get the data
-@app.get("/landingpage/{landingpage_name}", status_code=status.HTTP_200_OK, response_class=HTMLResponse)
+@app.get("/landing-page/{landingpage_name}", status_code=status.HTTP_200_OK, response_class=HTMLResponse)
 async def get_landing_page(request:Request,landingpage_name: str, db: Session = Depends(get_db)):
     """
     This endpoint will return a single landing page in html
@@ -261,8 +261,8 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
 
     # check if the data is returned and return the data
     image_path = getUrlFullPath(request, "image")
-    css_path = getUrlFullPath(request, "css") + "/landingpage/styles.css"
-    js_path = getUrlFullPath(request, "js") + "/landingpage/script.js"
+    css_path = getUrlFullPath(request, "css") + "/landing-page/styles.css"
+    js_path = getUrlFullPath(request, "js") + "/landing-page/script.js"
 
     # check if landing page data is returned and extract the data
     if landingpage_data:
@@ -315,7 +315,7 @@ async def get_landing_page(request:Request,landingpage_name: str, db: Session = 
 
 
 # Endpoint to update a single landing page and use the update_landing_page function to update the data
-@app.put("/landingpage/{landingpage_name}", status_code=status.HTTP_200_OK, response_model=landing_page_schemas.landingPageResponse)
+@app.put("/landing-page/{landingpage_name}", status_code=status.HTTP_200_OK, response_model=landing_page_schemas.landingPageResponse)
 async def update_landing_page(landingpage_name: str,request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user = Depends(is_authenticated),
     company_logo: UploadFile = File(...), section_three_image: UploadFile = File(...), section_four_image: UploadFile = File(...), section_one_image_link: UploadFile = File(...), body_h3_logo_one: UploadFile = File(...), body_h3_logo_two: UploadFile = File(...),
     body_h3_logo_three: UploadFile = File(...), body_h3_logo_four: UploadFile = File(...),):
@@ -522,7 +522,7 @@ async def update_landing_page(landingpage_name: str,request: landing_page_schema
 
 
 # Endpoint to delete landing page data
-@app.delete("/landingpage/{landingpage_name}",status_code=200, tags=["landingPage"])
+@app.delete("/landing-page/{landingpage_name}",status_code=200, tags=["landingPage"])
 async def delete_landingPage(landingpage_name: str, current_user = Depends(is_authenticated), db: Session = Depends(get_db)):
     """
     This endpoint is used to delete landing page data from the database and all images associated with the landing page data
@@ -577,19 +577,19 @@ def getUrlFullPath(request: Request, filetype: str):
     if hostname == "127.0.0.1:7001":
         hostname = request + hostname
         if filetype == "js":
-            image_path =  hostname + f"/landingpage/{filetype}"
+            image_path =  hostname + f"/landing-page/{filetype}"
         elif filetype == "css":
-            image_path =  hostname + f"/landingpage/{filetype}"
+            image_path =  hostname + f"/landing-page/{filetype}"
         else:
-            image_path =  hostname + f"/landingpage/{filetype}"
+            image_path =  hostname + f"/landing-page/{filetype}"
         return image_path
     else:
         hostname = "https://"+ hostname
 
         if filetype == "js":
-            image_path =  hostname + f"/landingpage/{filetype}"
+            image_path =  hostname + f"/landing-page/{filetype}"
         elif filetype == "css":
-            image_path =  hostname + f"/landingpage/{filetype}"
+            image_path =  hostname + f"/landing-page/{filetype}"
         else:
-            image_path =  hostname + f"/landingpage/{filetype}"
+            image_path =  hostname + f"/landing-page/{filetype}"
         return image_path
