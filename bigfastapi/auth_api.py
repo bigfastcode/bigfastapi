@@ -68,9 +68,7 @@ def is_authenticated(token: str = fastapi.Depends(oauth2_scheme), db: orm.Sessio
     credentials_exception = fastapi.HTTPException(status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
                                                   detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
-    # print(token)
     if type(token) == str:
-        # print('here?>>>>')
         token = verify_access_token(token, credentials_exception, db)
         user = db.query(user_models.User).filter(
             user_models.User.id == token.id).first()
