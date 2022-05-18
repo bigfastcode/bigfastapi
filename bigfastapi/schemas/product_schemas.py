@@ -1,28 +1,19 @@
 
 import datetime as dt
-from pydoc import describe
-from fastapi import File, UploadFile
 from pydantic import BaseModel 
-from pydantic import Field
-from uuid import UUID
-from typing import List, Optional
+from typing import List, Optional, Any
 from bigfastapi.utils.schema_form import as_form
 
 
 class ProductBase(BaseModel):
     name: str
-    description: str
-    price: float
-    # images: str
+    description: Optional[str] = None
     unique_id: Optional[str] = None
-    quantity: int
 
 class Product(ProductBase):
     id: str
-    discount: str
     created: dt.datetime
     business_id: str
-    status: bool
 
     class Config:
         orm_mode = True
@@ -31,11 +22,7 @@ class Product(ProductBase):
 class ProductCreate(BaseModel):
     name: str
     description: str
-    price: float
-    # images: str
     unique_id: Optional[str] = None
-    quantity: int
-    discount: float
     business_id: str
 
 class ProductImage(ProductCreate):
@@ -44,14 +31,10 @@ class ProductImage(ProductCreate):
 class ProductUpdate(ProductBase):
     name: Optional[str] = None
     description: Optional[str]= None
-    price: Optional[float] = None
-    # images: str
-    unique_id: Optional[str] = None
-    quantity: Optional[int] = None
-    discount: Optional[str] = None
 
 class ShowProduct(Product):
     created_by: str
+    product_image: List[Any]
 
     class Config:
         orm_mode = True

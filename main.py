@@ -15,6 +15,7 @@ from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.banks import router as banks
 from bigfastapi.blog import app as blog
 from bigfastapi.products import app as products
+from bigfastapi.stock import app as stock
 from bigfastapi.comments import app as comments
 from bigfastapi.contact import app as contact
 from bigfastapi.countries import app as countries
@@ -182,6 +183,7 @@ app.include_router(faq)
 app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
 app.include_router(products, tags=["Products"])
+app.include_router(stock, tags=["Stock"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(plans, tags=['Plans'])
 app.include_router(email)
