@@ -213,7 +213,7 @@ def update_product(product_update: schema.ProductUpdate,business_id: str,
 
 
 @app.delete("/product/{product_id}")
-def delete_product(business_id: str, product_id: str, 
+def delete_product(id: schema.DeleteProduct, product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
     
@@ -230,11 +230,11 @@ def delete_product(business_id: str, product_id: str,
     """
     
     #check if user is in business and can delete product
-    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db) == False:
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     #check if product exists in db
-    product = model.select_product(product_id=product_id, business_id=business_id, db=db)
+    product = model.select_product(product_id=product_id, business_id=id.business_id, db=db)
     if product is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
         
