@@ -31,6 +31,7 @@ class ProductImage(ProductCreate):
 class ProductUpdate(ProductBase):
     name: Optional[str] = None
     description: Optional[str]= None
+    business_id: str
 
 class ShowProduct(Product):
     created_by: str

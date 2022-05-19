@@ -184,17 +184,17 @@ async def get_product_image(product_id: str, file_id: str,
 
 
 @app.put('/product/{product_id}')
-def update_product(product_update: schema.ProductUpdate,business_id: str, 
+def update_product(product_update: schema.ProductUpdate,
                     product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
     
     #check if user is allowed to update products
-    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db) == False:
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product_update.business_id, db=db) == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update a product for this business")
 
     #fetch products
-    product = db.query(model.Product).filter(model.Product.business_id==business_id, model.Product.id==product_id, model.Product.is_deleted==False).first()
+    product = db.query(model.Product).filter(model.Product.business_id==product_update.business_id, model.Product.id==product_id, model.Product.is_deleted==False).first()
 
     #check if product exits
     if not product:
