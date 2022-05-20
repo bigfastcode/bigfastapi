@@ -77,12 +77,12 @@ async def search_products(
     num_results =db.query(Product).filter(and_(
         Product.business_id == business_id,
         Product.is_deleted == False)).filter(or_(Product.name.like(search_text),
-        Product.description.like(search_text),Product.unique_id.like(search_value))).count()
+        Product.description.like(search_text))).count()
 
     results = db.query(Product).filter(and_(
         Product.business_id == business_id,
         Product.is_deleted == False)).filter(or_(Product.name.like(search_text),
-        Product.description.like(search_text),Product.unique_id.like(search_value))).order_by(
+        Product.description.like(search_text))).order_by(
         Product.created.desc()).offset(
         offset=offset).limit(limit=size).all()
     
