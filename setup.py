@@ -16,6 +16,7 @@ setuptools.setup(
                                                 'bigfastapi.models',
                                                 'bigfastapi.db',  
                                                 'bigfastapi.core',
+                                                'bigfastapi.services',
                                                 'bigfastapi.utils', 
                                                 'bigfastapi.data']),  
 

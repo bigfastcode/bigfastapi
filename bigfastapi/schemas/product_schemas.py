@@ -31,10 +31,11 @@ class ProductImage(ProductCreate):
 class ProductUpdate(ProductBase):
     name: Optional[str] = None
     description: Optional[str]= None
+    business_id: str
 
 class ShowProduct(Product):
     created_by: str
-    product_image: List[Any]
+    product_image: Optional[List[Any]] = []
 
     class Config:
         orm_mode = True
@@ -49,3 +50,6 @@ class ProductOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class DeleteProduct(BaseModel):
+    business_id: str

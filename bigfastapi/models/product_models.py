@@ -30,7 +30,7 @@ def select_product(product_id: str, business_id: str, db: orm.Session):
     return product
 
 def get_product_by_id(id: str, db: orm.Session):
-    return db.query(Product).filter(Product.id == id).first()
+    return db.query(Product).filter(Product.id == id, Product.is_deleted==False).first()
 
 async def fetch_products(
     business_id: str,
