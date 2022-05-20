@@ -230,18 +230,25 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
 
 # Endpoint to get all landing pages and use the fetch_all_landing_pages function to get the data
 @app.get("/landing-page/all", status_code=status.HTTP_200_OK, response_model=List[landing_page_schemas.landingPageResponse])
-async def get_all_landing_pages(db: Session = Depends(get_db), current_user = Depends(is_authenticated)):
+async def get_all_landing_pages(request:Request, db: Session = Depends(get_db),current_user = Depends(is_authenticated),):
+    
     """
     This endpoint will return all landing pages
     """
     # check if user is a superuser
     if current_user.is_superuser:
 
-        # attempt to get all landing pages from the database
+            # attempt to get all landing pages from the database
         try:
             landingpages = db.query(landing_page_models.LPage).all()
+            css_path = getUrlFullPath(request, "css") + "/landing-page/styles.css"
+            h = {
+                "css_path": css_path,
+                "landing_page": landingpages
+            }
 
-            return  landingpages
+            # return landingpages
+            return templates.TemplateResponse("alllandingpage.html", {"request": request, "h": h})
         
         # return error if landing pages cannot be fetched
         except Exception as e:
