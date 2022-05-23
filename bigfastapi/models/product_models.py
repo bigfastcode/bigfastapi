@@ -30,7 +30,7 @@ def select_product(product_id: str, business_id: str, db: orm.Session):
     return product
 
 def get_product_by_id(id: str, db: orm.Session):
-    return db.query(Product).filter(Product.id == id).first()
+    return db.query(Product).filter(Product.id == id, Product.is_deleted==False).first()
 
 async def fetch_products(
     business_id: str,
@@ -77,12 +77,12 @@ async def search_products(
     num_results =db.query(Product).filter(and_(
         Product.business_id == business_id,
         Product.is_deleted == False)).filter(or_(Product.name.like(search_text),
-        Product.description.like(search_text),Product.unique_id.like(search_value))).count()
+        Product.description.like(search_text))).count()
 
     results = db.query(Product).filter(and_(
         Product.business_id == business_id,
         Product.is_deleted == False)).filter(or_(Product.name.like(search_text),
-        Product.description.like(search_text),Product.unique_id.like(search_value))).order_by(
+        Product.description.like(search_text))).order_by(
         Product.created.desc()).offset(
         offset=offset).limit(limit=size).all()
     

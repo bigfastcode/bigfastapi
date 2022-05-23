@@ -518,3 +518,33 @@ footer {
     object-fit: contain;
 }
 }
+
+.all-landing-pages-div-h1{
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333cc1;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+    /* background-color: #fda741; */
+}
+
+.all-landing-pages-div{
+    /* border: 10px solid black ; */
+    /* padding: 10px; */
+    margin: 2px;
+    margin-left: 0;
+    margin-right: 0;
+    display:flex;
+}
+
+.all-landing-pages-div-h3{
+    font-size: 1.5rem;
+    margin: 2.5px;
+    display:flex;
+    padding: 5px;
+    background-color: rgb(21, 53, 126);
+    color: white;
+    border-radius: 10px;
+}
+
+

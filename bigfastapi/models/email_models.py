@@ -1,4 +1,5 @@
 import datetime as dt
+from email.policy import default
 
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, DateTime, Text, PickleType
@@ -12,7 +13,7 @@ class Email(database.Base):
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     subject = Column(String(255), index=True)
     recipient = Column(MutableList.as_mutable(PickleType), default=[])
-    title = Column(String(255), index=True)
+    title = Column(String(255), index=True, default=None)
     first_name = Column(String(255), index=True)
     body = Column(String(255), index=True, nullable=True, default=None)
     amount = Column(String(255), index=True, nullable=True, default=None)
