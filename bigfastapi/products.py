@@ -12,6 +12,7 @@ from .auth_api import is_authenticated
 from .schemas import users_schemas as user_schema
 from .schemas import product_schemas as schema
 from .models import product_models as model
+from .models.organisation_models import Organization
 from .models import file_models as file_model
 from .files import upload_image
 from .utils import paginator
@@ -243,6 +244,31 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
     db.commit()
 
     return {"message":"successfully deleted"}
+
+
+@app.delete("/product/selected/delete", status_code=status.HTTP_200_OK)
+def delete_selected_products(req: schema.DeleteSelectedProduct,
+                             db: orm.Session = Depends(get_db),
+                            user: user_schema.User = fastapi.Depends(is_authenticated)):
+    try:
+        organization = db.query(Organization).filter(
+            Organization.id == req.business_id).first()
+
+        if not organization:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organisation does not exist")
+
+        for product_id in req.product_id_list:
+            product = model.get_product_by_id(product_id=product_id, db=db)
+
+            if product != None and product.business_id == req.business_id:
+                product.is_deleted = True
+                db.commit()
+
+        return {"message":"Successfully Deleted Products"}
+       
+    except Exception as ex:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            , detail=str(ex))
 
 
 
