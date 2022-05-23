@@ -23,16 +23,16 @@ templates = Jinja2Templates(directory=LANDING_PAGE_FOLDER)
 
 
 # Endpoint to open index.html
-@app.get("/index.html")
-async def landing_page_index(request: Request, current_user: str = Depends(is_authenticated), session: Session = Depends(get_db)):
+@app.get("/landing-page/index.html")
+async def landing_page_index(request: Request,  session: Session = Depends(get_db)):
     """
     This endpont will return landing page index.html
     """
-    if current_user.is_superuser:
+    # if current_user:
 
-        return templates.TemplateResponse("index.html", {"request": request})
-    else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Page not found")
+    return templates.TemplateResponse("index.html", {"request": request})
+    # else:
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Page not found")
 
 # Endpoint to get landing page images
 @app.get("/landing-page/{filetype}/{folder}/{image_name}", status_code=200)
@@ -230,30 +230,30 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
 
 # Endpoint to get all landing pages and use the fetch_all_landing_pages function to get the data
 @app.get("/landing-page/all", status_code=status.HTTP_200_OK, response_model=List[landing_page_schemas.landingPageResponse])
-async def get_all_landing_pages(request:Request, db: Session = Depends(get_db),current_user = Depends(is_authenticated),):
+async def get_all_landing_pages(request:Request, db: Session = Depends(get_db),):
     
     """
     This endpoint will return all landing pages
     """
     # check if user is a superuser
-    if current_user.is_superuser:
+    # if current_user.is_superuser:
 
             # attempt to get all landing pages from the database
-        try:
-            landingpages = db.query(landing_page_models.LPage).all()
-            css_path = getUrlFullPath(request, "css") + "/landing-page/styles.css"
-            h = {
-                "css_path": css_path,
-                "landing_page": landingpages
-            }
+    try:
+        landingpages = db.query(landing_page_models.LPage).all()
+        css_path = getUrlFullPath(request, "css") + "/landing-page/styles.css"
+        h = {
+            "css_path": css_path,
+            "landing_page": landingpages
+        }
 
-            # return landingpages
-            return templates.TemplateResponse("alllandingpage.html", {"request": request, "h": h})
-        
-        # return error if landing pages cannot be fetched
-        except Exception as e:
-            print(e)
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error fetching data")
+        # return landingpages
+        return templates.TemplateResponse("alllandingpage.html", {"request": request, "h": h})
+    
+    # return error if landing pages cannot be fetched
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error fetching data")
 
 
 # Endpoint to get a single landing page and use the fetch_landing_page function to get the data
