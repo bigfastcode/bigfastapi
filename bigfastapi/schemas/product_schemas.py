@@ -14,6 +14,8 @@ class Product(ProductBase):
     id: str
     created: dt.datetime
     business_id: str
+    product_image: Optional[List[Any]] = []
+
 
     class Config:
         orm_mode = True

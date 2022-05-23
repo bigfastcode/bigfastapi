@@ -29,7 +29,7 @@ app = APIRouter(
 
 
 @app.post("/product", response_model=schema.Product, status_code=status.HTTP_201_CREATED)
-async def create_product(product: schema.ProductCreate=Depends(schema.ProductCreate.as_form), 
+async def create_product(request: Request, product: schema.ProductCreate=Depends(schema.ProductCreate.as_form), 
                    user: user_schema.User = fastapi.Depends(is_authenticated), 
                    product_image: Optional[List[UploadFile]] = File(None) ,
                    db: orm.Session = fastapi.Depends(get_db)):
@@ -70,8 +70,10 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
     db.commit()
     db.refresh(product)
 
-     #process and upload image
+    #process and upload image
     if product_image:
+        hostname = request.headers.get('host')
+        image_path_list = []
         for file in product_image:
             filename = file.filename
             extension = filename.split(".")[1]
@@ -81,6 +83,10 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
             
             file.filename = secrets.token_hex(10) +'.'+extension
             result = await upload_image(file, db=db, bucket_name = product.id)
+            path = request.url.scheme +"://" + hostname + '/product/'+ product.id + '/'+result.id
+            image_path_list.append(path)
+        
+        product.product_image = image_path_list
 
 
     return product
@@ -110,16 +116,15 @@ async def get_products(request: Request, business_id: str,
     offset = await paginator.off_set(page=page_number, size=page_size)
 
     if search_value:
-        product_list, num_results = await model.search_products(business_id=business_id, 
+        product_list, total_items = await model.search_products(business_id=business_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
     elif sorting_key:
-        product_list = await model.sort_products(business_id=business_id, 
+        product_list, total_items = await model.sort_products(business_id=business_id, 
                 sort_key=sorting_key, offset=offset, size=page_size, sort_dir=sort_dir, db=db)
     else:
-        product_list = await model.fetch_products(business_id=business_id,
+        product_list, total_items = await model.fetch_products(business_id=business_id,
                 offset=offset, size=page_size, timestamp=datetime_constraint, db=db)
     
-    total_number = len(product_list)
 
     if not product_list:
         product_list = []
@@ -137,8 +142,8 @@ async def get_products(request: Request, business_id: str,
         product.product_image = image_path_list
 
 
-    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_number, endpoint=f"/product")
-    response = {"page": page_number, "size": page_size, "total": total_number,"previous_page":pointers['previous'], "next_page": pointers["next"], 
+    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_items, endpoint=f"/product")
+    response = {"page": page_number, "size": page_size, "total": total_items,"previous_page":pointers['previous'], "next_page": pointers["next"], 
                 "items": product_list}
     
     return response
@@ -256,7 +261,7 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
     return {"message":"successfully deleted"}
 
 
-@app.delete("/product/selected/delete", status_code=status.HTTP_200_OK)
+@app.delete("/product/selected/delete")
 def delete_selected_products(req: schema.DeleteSelectedProduct,
                              db: orm.Session = Depends(get_db),
                             user: user_schema.User = fastapi.Depends(is_authenticated)):
@@ -278,6 +283,8 @@ def delete_selected_products(req: schema.DeleteSelectedProduct,
         product = model.get_product_by_id(id=product_id, db=db)
 
         if product != None and product.business_id == req.business_id:
+           
+            print(product.id)
             product.is_deleted = True
             db.commit()
 
