@@ -171,3 +171,31 @@ def delete_product(stock_id: str,
     db.commit()
 
     return {"message":"Successfully deleted"}
+
+
+@app.delete("/stock/selected/delete", status_code=status.HTTP_200_OK)
+def delete_selected_stock(req: stock_schema.DeleteSelectedStock,
+                             db: orm.Session = Depends(get_db),
+                            user: user_schema.User = fastapi.Depends(is_authenticated)):
+    """
+    intro-This endpoint allows you to delete selected products. To delete selected products, 
+    you need to make a delete request to the /product/selected/delete endpoint.
+
+    paramDesc-On delete request the url takes no parameter
+
+    returnDesc-On sucessful request, it returns a message
+    returnBody- "successfully deleted products"
+    """
+
+    #check if user is in business and can delete product
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
+
+    for stock_id in req.stock_id_list:
+        stock = stock_model.fetch_stock_by_id(stock_id=stock_id, db=db)
+
+        if stock != None:
+            stock.is_deleted = True
+            db.commit()
+
+    return {"message":"Successfully Deleted Products"}

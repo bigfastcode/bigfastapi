@@ -47,6 +47,13 @@ class StockUpdate(StockBase):
 
 class DeleteStock(BaseModel):
     business_id: str
+
+class DeleteSelectedStock(BaseModel):
+    stock_id_list: list
+    business_id: str
+
+    class Config:
+        orm_mode = True
     
 
 

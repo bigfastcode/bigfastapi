@@ -231,15 +231,14 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
                     db: orm.Session = fastapi.Depends(get_db)):
     
     """
-    intro-This endpoint allows you to delete a particular product post. To delete a product, 
-    you need to make a delete request to the /product/{business_id}/{product_id} endpoint.
+    intro-This endpoint allows you to delete a particular product. To delete a product, 
+    you need to make a delete request to the /product/{product_id} endpoint.
 
-    paramDesc-On delete request the url takes a query parameter business_id and product_id
-    param-business_id: This is the unique id of the business
-    param-product_id: This is the unique id of the product item
+    paramDesc-On delete request the url takes a query parameter product_id
+    param-product_id: This is the id of the product item
 
-    returnDesc-On sucessful request, it returns an Object with message
-       returnBody- "successfully deleted"
+    returnDesc-On sucessful request, it returns a message
+    returnBody- "successfully deleted"
     """
     
     #check if user is in business and can delete product
@@ -261,6 +260,19 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
 def delete_selected_products(req: schema.DeleteSelectedProduct,
                              db: orm.Session = Depends(get_db),
                             user: user_schema.User = fastapi.Depends(is_authenticated)):
+    """
+    intro-This endpoint allows you to delete selected products. To delete selected products, 
+    you need to make a delete request to the /product/selected/delete endpoint.
+
+    paramDesc-On delete request the url takes no parameter
+
+    returnDesc-On sucessful request, it returns a message
+    returnBody- "successfully deleted products"
+    """
+
+    #check if user is in business and can delete product
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     for product_id in req.product_id_list:
         product = model.get_product_by_id(id=product_id, db=db)
@@ -270,6 +282,37 @@ def delete_selected_products(req: schema.DeleteSelectedProduct,
             db.commit()
 
     return {"message":"Successfully Deleted Products"}
+
+
+@app.delete("/product/business/all/delete", status_code=status.HTTP_200_OK)
+def delete_selected_products(req: schema.DeleteProduct,
+                             db: orm.Session = Depends(get_db),
+                            user: user_schema.User = fastapi.Depends(is_authenticated)):
+    """
+    intro-This endpoint allows you to delete all products in a business. To delete all products, 
+    you need to make a delete request to the /product/business/all/delete endpoint.
+
+    paramDesc-On delete request the url takes no parameter
+
+    returnDesc-On sucessful request, it returns a message
+    returnBody- "successfully deleted all products"
+    """
+
+    #check if user is in business and can delete product
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
+
+    products = db.query(model.Product).filter(model.Product.business_id==req.business_id, 
+                                              model.Product.is_deleted == False).all()
+
+    if products is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products exist in this business")
+
+    for product in products:
+        product.is_deleted = True
+        db.commit()
+
+    return {"message":"Successfully Deleted All Products"}
        
 
 
