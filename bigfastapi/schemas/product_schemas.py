@@ -53,3 +53,11 @@ class ProductOut(BaseModel):
 
 class DeleteProduct(BaseModel):
     business_id: str
+
+
+class DeleteSelectedProduct(BaseModel):
+    product_id_list: list
+    business_id: str
+
+    class Config:
+        orm_mode = True
