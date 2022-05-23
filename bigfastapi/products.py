@@ -37,14 +37,17 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
     
     """
     Intro - This endpoint allows you to create a create a new product item.
-    It takes in about four parameters. To create a product, you 
+    It takes in four parameters. To create a product, you 
     need to make a post request to the /product endpoint
 
     paramDesc-
         reqBody-name: This is the name of the product to be created. 
         reqBody-description: This is the description of the product to be created. 
+        reqBody-unique_id: This is a user given unique id for the product. Optional
+        reqBody-image: Optional product image
     returnDesc-On sucessful request, it returns
-        returnBody- the blog object.
+
+        returnBody- the product object.
     """
     #check if unique id is unique in the business
     id_status = db.query(model.Product).filter(model.Product.unique_id == product.unique_id, model.Product.business_id==product.business_id).first()
@@ -95,9 +98,9 @@ async def get_products(request: Request, business_id: str,
 
     """
     Intro-This endpoint allows you to retreive all non-deleted products in the database for a particular business. 
-    To retreive all products, you need to make a get request to the /products/{business_id} endpoint. 
+    To retreive all products, you need to make a get request to the /product endpoint. 
     
-    returnDesc-On sucessful request, it returns:
+    returnDesc- On sucessful request, it returns:
     returnBody- a list of an array of product objects.
     """
 
@@ -145,10 +148,10 @@ async def get_products(request: Request, business_id: str,
 def get_product(request: Request, business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
     """
     Intro-This endpoint allows you to retreive details of a product in the database belonging to a business. 
-    To retreive a product, you need to make a get request to the /products/{business_id}/{product_id} endpoint. 
+    To retreive a product, you need to make a get request to the /products/{product_id} endpoint. 
     
     returnDesc-On sucessful request, it returns:
-    returnBody- an array of product objects.
+    returnBody- a product object.
     """
     #fetch product
     product = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.id == product_id, model.Product.is_deleted==False).first()
@@ -190,6 +193,14 @@ def update_product(product_update: schema.ProductUpdate,
                     product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
+    """
+    Intro-This endpoint allows you to update the details of a product. 
+    To update a product, you need to make a PUT request to the /products/{product_id} endpoint. 
+    You can only update name and description of a product.
+    
+    returnDesc-On sucessful request, it returns:
+    returnBody- a product object.
+    """
     
     #check if user is allowed to update products
     if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product_update.business_id, db=db) == False:
@@ -250,25 +261,17 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
 def delete_selected_products(req: schema.DeleteSelectedProduct,
                              db: orm.Session = Depends(get_db),
                             user: user_schema.User = fastapi.Depends(is_authenticated)):
-    try:
-        organization = db.query(Organization).filter(
-            Organization.id == req.business_id).first()
 
-        if not organization:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organisation does not exist")
+    for product_id in req.product_id_list:
+        product = model.get_product_by_id(id=product_id, db=db)
 
-        for product_id in req.product_id_list:
-            product = model.get_product_by_id(product_id=product_id, db=db)
+        if product != None and product.business_id == req.business_id:
+            product.is_deleted = True
+            db.commit()
 
-            if product != None and product.business_id == req.business_id:
-                product.is_deleted = True
-                db.commit()
-
-        return {"message":"Successfully Deleted Products"}
+    return {"message":"Successfully Deleted Products"}
        
-    except Exception as ex:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex))
+
 
 
 
