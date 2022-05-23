@@ -8,6 +8,7 @@ from uuid import uuid4
 import bigfastapi.db.database as database
 import bigfastapi.schemas.users_schemas as schema
 import bigfastapi.schemas.product_schemas as product_schema
+from bigfastapi.models.product_models import Product
 from operator import and_, or_
 
 
@@ -33,3 +34,20 @@ class StockPriceHistory(database.Base):
     price = Column(Float, index=True, nullable=False)
     created_by = Column(String(255), ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+#==============================Database Services=============================#
+
+def fetch_all_stocks_in_business(db, business_id):
+    stocks = db.query(Stock).join(Product).filter(Product.business_id == business_id).all()
+    return stocks
+
+def fetch_stock_by_id(db, stock_id):
+    stock = db.query(Stock).filter(Stock.id==stock_id, Stock.is_deleted==False).first()
+    return stock
+
+def reduce_stock_quantity(db, stock_id, number):
+    stock = fetch_stock_by_id(db=db, stock_id=stock_id)
+    new_quantity = stock.quantity - number
+    stock.quantity = new_quantity
+    db.commit()

@@ -15,6 +15,7 @@ class StockBase(BaseModel):
 
 class CreateStock(StockBase):
     product_id: str
+    business_id: str
 
 class ShowStock(StockBase):
     id: str
@@ -42,6 +43,10 @@ class StockUpdate(StockBase):
     quantity: Optional[int] = None
     price: Optional[float] = None
     status: Optional[bool] = None
+    business_id: str
+
+class DeleteStock(BaseModel):
+    business_id: str
     
 
 
