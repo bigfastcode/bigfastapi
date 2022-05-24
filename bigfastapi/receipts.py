@@ -115,7 +115,7 @@ async def send_receipt(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 @app.get("/receipts", status_code=200, response_model=receipt_schemas.FetchReceiptsResponse)
-async def fetch_receipts(
+async def get_receipts(
     organization_id:str,
     search_value: str = None,
     sorting_key: str = None,
@@ -172,7 +172,7 @@ async def fetch_receipts(
             receipts, total_items = await receipt_services.search_receipts(organization_id=organization_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
         else: 
-            receipts, total_items = await receipt_services.fetch_receipts(
+            receipts, total_items = await receipt_services.get_receipts(
                 organization_id=organization_id,
                 offset=offset,
                 size=page_size, 
@@ -223,7 +223,7 @@ async def get_receipt(
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
-        receipt =  await receipt_services.fetch_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
+        receipt =  await receipt_services.get_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
         return receipt
     except Exception as ex:
         if type(ex) == HTTPException:

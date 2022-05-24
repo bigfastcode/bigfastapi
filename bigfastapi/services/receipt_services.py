@@ -11,7 +11,7 @@ from bigfastapi import pdfs
 from ..db.database import get_db
 
 
-async def fetch_receipts(
+async def get_receipts(
     organization_id: str,
     offset: int, 
     size: int = 50,
@@ -83,7 +83,7 @@ async def search_receipts(
     recipient_list = [*receipts_by_recipient]
     return (recipient_list, search_result_count)
 
-async def fetch_receipt_by_id(receipt_id:str, org_id: str, db: orm.Session = Depends(get_db)):
+async def get_receipt_by_id(receipt_id:str, org_id: str, db: orm.Session = Depends(get_db)):
     receipt = db.query(Receipt).filter(and_(
              Receipt.id == receipt_id, Receipt.organization_id == org_id)
             ).first()

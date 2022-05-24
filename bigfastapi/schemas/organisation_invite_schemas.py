@@ -1,12 +1,12 @@
 from typing import Any, Optional
 
-from ..schemas.organisation_schemas import _OrganizationBase
-from ..schemas.store_user_schemas import _StoreUserBase
+from .organisation_schemas import _OrganizationBase
+from .organisation_user_schemas import OrganisationUserBase
 
 from .email_schema import Email
 from pydantic import BaseModel
 
-class _InviteBase(BaseModel):
+class InviteBase(BaseModel):
     id: Optional[str]
     user_email: Optional[str]
     user_id: Optional[str]
@@ -18,12 +18,12 @@ class _InviteBase(BaseModel):
     class Config:
         orm_mode = True
 
-class UserInvite(_InviteBase):
+class UserInvite(InviteBase):
     store: dict
     app_url: str
     email_details: Email
 
-class Invite(_InviteBase):
+class Invite(InviteBase):
     store_id: str
     invite_code: str
     
@@ -31,7 +31,7 @@ class Invite(_InviteBase):
         orm_mode = True
 
 
-class StoreUser(_InviteBase):
+class OrganisationUser(InviteBase):
     organization_id: str
     user_id: str
 
@@ -61,12 +61,12 @@ class SingleInviteResponse(BaseModel):
     user: str
 
 class AcceptInviteResponse(BaseModel):
-    invited: _StoreUserBase
+    invited: OrganisationUserBase
     store: _OrganizationBase
 
-class RevokedInviteResponse(_InviteBase):
+class RevokedInviteResponse(InviteBase):
     is_revoked: bool = True
     is_deleted: bool = True
 
-class DeclinedInviteResponse(_InviteBase):
+class DeclinedInviteResponse(InviteBase):
     is_deleted: bool = True
