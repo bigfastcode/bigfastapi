@@ -14,6 +14,8 @@ class Product(ProductBase):
     id: str
     created: dt.datetime
     business_id: str
+    product_image: Optional[List[Any]] = []
+
 
     class Config:
         orm_mode = True
@@ -53,3 +55,11 @@ class ProductOut(BaseModel):
 
 class DeleteProduct(BaseModel):
     business_id: str
+
+
+class DeleteSelectedProduct(BaseModel):
+    product_id_list: list
+    business_id: str
+
+    class Config:
+        orm_mode = True

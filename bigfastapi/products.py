@@ -12,6 +12,7 @@ from .auth_api import is_authenticated
 from .schemas import users_schemas as user_schema
 from .schemas import product_schemas as schema
 from .models import product_models as model
+from .models.organisation_models import Organization
 from .models import file_models as file_model
 from .files import upload_image
 from .utils import paginator
@@ -28,7 +29,7 @@ app = APIRouter(
 
 
 @app.post("/product", response_model=schema.Product, status_code=status.HTTP_201_CREATED)
-async def create_product(product: schema.ProductCreate=Depends(schema.ProductCreate.as_form), 
+async def create_product(request: Request, product: schema.ProductCreate=Depends(schema.ProductCreate.as_form), 
                    user: user_schema.User = fastapi.Depends(is_authenticated), 
                    product_image: Optional[List[UploadFile]] = File(None) ,
                    db: orm.Session = fastapi.Depends(get_db)):
@@ -36,14 +37,17 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
     
     """
     Intro - This endpoint allows you to create a create a new product item.
-    It takes in about four parameters. To create a product, you 
+    It takes in four parameters. To create a product, you 
     need to make a post request to the /product endpoint
 
     paramDesc-
         reqBody-name: This is the name of the product to be created. 
         reqBody-description: This is the description of the product to be created. 
+        reqBody-unique_id: This is a user given unique id for the product. Optional
+        reqBody-image: Optional product image
     returnDesc-On sucessful request, it returns
-        returnBody- the blog object.
+
+        returnBody- the product object.
     """
     #check if unique id is unique in the business
     id_status = db.query(model.Product).filter(model.Product.unique_id == product.unique_id, model.Product.business_id==product.business_id).first()
@@ -66,8 +70,10 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
     db.commit()
     db.refresh(product)
 
-     #process and upload image
+    #process and upload image
     if product_image:
+        hostname = request.headers.get('host')
+        image_path_list = []
         for file in product_image:
             filename = file.filename
             extension = filename.split(".")[1]
@@ -77,6 +83,10 @@ async def create_product(product: schema.ProductCreate=Depends(schema.ProductCre
             
             file.filename = secrets.token_hex(10) +'.'+extension
             result = await upload_image(file, db=db, bucket_name = product.id)
+            path = request.url.scheme +"://" + hostname + '/product/'+ product.id + '/'+result.id
+            image_path_list.append(path)
+        
+        product.product_image = image_path_list
 
 
     return product
@@ -94,9 +104,9 @@ async def get_products(request: Request, business_id: str,
 
     """
     Intro-This endpoint allows you to retreive all non-deleted products in the database for a particular business. 
-    To retreive all products, you need to make a get request to the /products/{business_id} endpoint. 
+    To retreive all products, you need to make a get request to the /product endpoint. 
     
-    returnDesc-On sucessful request, it returns:
+    returnDesc- On sucessful request, it returns:
     returnBody- a list of an array of product objects.
     """
 
@@ -106,16 +116,15 @@ async def get_products(request: Request, business_id: str,
     offset = await paginator.off_set(page=page_number, size=page_size)
 
     if search_value:
-        product_list, num_results = await model.search_products(business_id=business_id, 
+        product_list, total_items = await model.search_products(business_id=business_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
     elif sorting_key:
-        product_list = await model.sort_products(business_id=business_id, 
+        product_list, total_items = await model.sort_products(business_id=business_id, 
                 sort_key=sorting_key, offset=offset, size=page_size, sort_dir=sort_dir, db=db)
     else:
-        product_list = await model.fetch_products(business_id=business_id,
+        product_list, total_items = await model.fetch_products(business_id=business_id,
                 offset=offset, size=page_size, timestamp=datetime_constraint, db=db)
     
-    total_number = len(product_list)
 
     if not product_list:
         product_list = []
@@ -133,8 +142,8 @@ async def get_products(request: Request, business_id: str,
         product.product_image = image_path_list
 
 
-    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_number, endpoint=f"/product")
-    response = {"page": page_number, "size": page_size, "total": total_number,"previous_page":pointers['previous'], "next_page": pointers["next"], 
+    pointers = await paginator.page_urls(page=page_number, size=page_size, count=total_items, endpoint=f"/product")
+    response = {"page": page_number, "size": page_size, "total": total_items,"previous_page":pointers['previous'], "next_page": pointers["next"], 
                 "items": product_list}
     
     return response
@@ -144,10 +153,10 @@ async def get_products(request: Request, business_id: str,
 def get_product(request: Request, business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
     """
     Intro-This endpoint allows you to retreive details of a product in the database belonging to a business. 
-    To retreive a product, you need to make a get request to the /products/{business_id}/{product_id} endpoint. 
+    To retreive a product, you need to make a get request to the /products/{product_id} endpoint. 
     
     returnDesc-On sucessful request, it returns:
-    returnBody- an array of product objects.
+    returnBody- a product object.
     """
     #fetch product
     product = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.id == product_id, model.Product.is_deleted==False).first()
@@ -189,6 +198,14 @@ def update_product(product_update: schema.ProductUpdate,
                     product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
+    """
+    Intro-This endpoint allows you to update the details of a product. 
+    To update a product, you need to make a PUT request to the /products/{product_id} endpoint. 
+    You can only update name and description of a product.
+    
+    returnDesc-On sucessful request, it returns:
+    returnBody- a product object.
+    """
     
     #check if user is allowed to update products
     if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product_update.business_id, db=db) == False:
@@ -219,15 +236,14 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
                     db: orm.Session = fastapi.Depends(get_db)):
     
     """
-    intro-This endpoint allows you to delete a particular product post. To delete a product, 
-    you need to make a delete request to the /product/{business_id}/{product_id} endpoint.
+    intro-This endpoint allows you to delete a particular product. To delete a product, 
+    you need to make a delete request to the /product/{product_id} endpoint.
 
-    paramDesc-On delete request the url takes a query parameter business_id and product_id
-    param-business_id: This is the unique id of the business
-    param-product_id: This is the unique id of the product item
+    paramDesc-On delete request the url takes a query parameter product_id
+    param-product_id: This is the id of the product item
 
-    returnDesc-On sucessful request, it returns an Object with message
-       returnBody- "successfully deleted"
+    returnDesc-On sucessful request, it returns a message
+    returnBody- "successfully deleted"
     """
     
     #check if user is in business and can delete product
@@ -243,6 +259,69 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
     db.commit()
 
     return {"message":"successfully deleted"}
+
+
+@app.delete("/product/selected/delete")
+def delete_selected_products(req: schema.DeleteSelectedProduct,
+                             db: orm.Session = Depends(get_db),
+                            user: user_schema.User = fastapi.Depends(is_authenticated)):
+    """
+    intro-This endpoint allows you to delete selected products. To delete selected products, 
+    you need to make a delete request to the /product/selected/delete endpoint.
+
+    paramDesc-On delete request the url takes no parameter
+
+    returnDesc-On sucessful request, it returns a message
+    returnBody- "successfully deleted products"
+    """
+
+    #check if user is in business and can delete product
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
+
+    for product_id in req.product_id_list:
+        product = model.get_product_by_id(id=product_id, db=db)
+
+        if product != None and product.business_id == req.business_id:
+           
+            print(product.id)
+            product.is_deleted = True
+            db.commit()
+
+    return {"message":"Successfully Deleted Products"}
+
+
+@app.delete("/product/business/all/delete", status_code=status.HTTP_200_OK)
+def delete_selected_products(req: schema.DeleteProduct,
+                             db: orm.Session = Depends(get_db),
+                            user: user_schema.User = fastapi.Depends(is_authenticated)):
+    """
+    intro-This endpoint allows you to delete all products in a business. To delete all products, 
+    you need to make a delete request to the /product/business/all/delete endpoint.
+
+    paramDesc-On delete request the url takes no parameter
+
+    returnDesc-On sucessful request, it returns a message
+    returnBody- "successfully deleted all products"
+    """
+
+    #check if user is in business and can delete product
+    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db) == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
+
+    products = db.query(model.Product).filter(model.Product.business_id==req.business_id, 
+                                              model.Product.is_deleted == False).all()
+
+    if products is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products exist in this business")
+
+    for product in products:
+        product.is_deleted = True
+        db.commit()
+
+    return {"message":"Successfully Deleted All Products"}
+       
+
 
 
 
