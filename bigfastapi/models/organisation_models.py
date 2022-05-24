@@ -7,7 +7,6 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Integer, DateTime, Boolean
 
 from bigfastapi.db.database import Base
-from bigfastapi.models import store_user_model
 from bigfastapi.utils.utils import defaultManu
 
 

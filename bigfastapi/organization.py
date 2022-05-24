@@ -17,9 +17,9 @@ from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
 from bigfastapi.schemas import roles_schemas
 from .auth_api import is_authenticated
 from .files import upload_image
-from .models import credit_wallet_models as credit_wallet_models
+from .models import credit_wallet_models as credit_wallet_models, organisation_invite_model, organisation_user_model
 from .models import organisation_models as _models
-from .models import store_user_model, user_models, store_invite_model, role_models, schedule_models
+from .models import user_models, role_models, schedule_models
 from .models import wallet_models as wallet_models
 from .schemas import organisation_schemas as _schemas
 from .schemas import users_schemas
@@ -227,7 +227,9 @@ async def get_organization(
     return {"data": {"organization": organization, "menu": menu}}
 
 
-@app.get("/organizations/{organization_id}/users", status_code=200)
+@app.get("/organizations/{organization_id}/users",
+ status_code=200,
+  responses={404: 'Organization does not exist'})
 async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -243,10 +245,10 @@ async def get_organization_users(
         returnBody--> list of all users in the queried organization
     """
     # query the store_users table with the organization_id
-    invited_list = db.query(store_user_model.StoreUser).filter(
+    invited_list = db.query(organisation_user_model.OrganisationUser).filter(
         and_(
-            store_user_model.StoreUser.store_id == organization_id,
-            store_user_model.StoreUser.is_deleted == False
+            organisation_user_model.OrganisationUser.store_id == organization_id,
+            organisation_user_model.OrganisationUser.is_deleted == False
         )
     ).all()
 
@@ -312,10 +314,10 @@ def delete_organization_user(
     if user is not None:
         # fetch the store user from the store user table.
         store_user = (
-            db.query(store_user_model.StoreUser)
+            db.query(organisation_user_model.OrganisationUser)
             .filter(and_(
-                    store_user_model.StoreUser.user_id == user_id,
-                    store_user_model.StoreUser.store_id == organization_id
+                    organisation_user_model.OrganisationUser.user_id == user_id,
+                    organisation_user_model.OrganisationUser.store_id == organization_id
                     ))
             .first()
         )
@@ -410,12 +412,12 @@ def get_pending_invites(
         returnBody--> all pending invites in the queried organization
     """
     pending_invites = (
-        db.query(store_invite_model.StoreInvite)
+        db.query(organisation_invite_model.OrganisationInvite)
         .filter(
-            and_(store_invite_model.StoreInvite.store_id == organization_id,
-                 store_invite_model.StoreInvite.is_deleted == False,
-                 store_invite_model.StoreInvite.is_accepted == False,
-                 store_invite_model.StoreInvite.is_revoked == False
+            and_(organisation_invite_model.OrganisationInvite.store_id == organization_id,
+                 organisation_invite_model.OrganisationInvite.is_deleted == False,
+                 organisation_invite_model.OrganisationInvite.is_accepted == False,
+                 organisation_invite_model.OrganisationInvite.is_revoked == False
                  ))
         .all()
     )
@@ -586,8 +588,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
         creator=user.id).all()
 
     invited_orgs_rep = (
-        db.query(store_user_model.StoreUser)
-        .filter(store_user_model.StoreUser.user_id == user.id)
+        db.query(organisation_user_model.OrganisationUser)
+        .filter(organisation_user_model.OrganisationUser.user_id == user.id)
         .all()
     )
 

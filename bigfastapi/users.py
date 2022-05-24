@@ -14,19 +14,16 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks,
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
-from .schemas import store_invite_schemas as _invite_schemas
-from .schemas.store_user_schemas import RoleUpdate, UpdateRoleResponse, _StoreUserBase
+from .schemas import organisation_invite_schemas as _invite_schemas
+from .schemas.organisation_user_schemas import RoleUpdate, UpdateRoleResponse, OrganisationUserBase
 from .schemas.organisation_schemas import _OrganizationBase
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import deleteFile, isFileExist, upload_image
 from .email import send_email
-from .models import store_invite_model, store_user_model, role_models
+from .models import organisation_invite_model, organisation_user_model, role_models
 
 
 app = APIRouter(tags=["User"])
-
-# app.mount('static', StaticFiles(directory="static"), name='static')
-
 
 @app.get("/users/me", response_model=_schemas.User)
 async def get_user(user: _schemas.User = fastapi.Depends(is_authenticated)):
@@ -162,7 +159,7 @@ async def updatePassword(
 
 @app.put('/users/accept-invite/{token}', response_model=_invite_schemas.AcceptInviteResponse)
 def accept_invite(
-    payload: _invite_schemas.StoreUser,
+    payload: _invite_schemas.OrganisationUser,
     token: str, 
     db: orm.Session = fastapi.Depends(get_db)): 
     """intro-->This endpoint allows for a user to accept an invite. To use this endpoint you need to make a put request to the /users/accept-invite/{token} where token is a unique value recieved by the user on invite. It also takes a specified body of request
@@ -184,11 +181,11 @@ def accept_invite(
     """
 
     existing_invite = db.query(
-        store_invite_model.StoreInvite).filter(
+        organisation_invite_model.OrganisationInvite).filter(
             and_(
-                store_invite_model.StoreInvite.invite_code == token,
-                store_invite_model.StoreInvite.is_deleted == False,
-                store_invite_model.StoreInvite.is_revoked == False
+                organisation_invite_model.OrganisationInvite.invite_code == token,
+                organisation_invite_model.OrganisationInvite.is_deleted == False,
+                organisation_invite_model.OrganisationInvite.is_revoked == False
             )).first()
 
     if existing_invite is None:
@@ -205,8 +202,8 @@ def accept_invite(
         }, status_code=403)
 
     # check if the invite token exists in the db.
-    invite = db.query(store_invite_model.StoreInvite).filter(
-        store_invite_model.StoreInvite.invite_code == token).first()
+    invite = db.query(organisation_invite_model.OrganisationInvite).filter(
+        organisation_invite_model.OrganisationInvite.invite_code == token).first()
     if invite is None:
         return JSONResponse({
             "message": "Invite not found!"
@@ -218,7 +215,7 @@ def accept_invite(
     # TO-DO
     # check if the store user exist and update before creating store user
 
-    store_user = store_user_model.StoreUser(
+    store_user = organisation_user_model.OrganisationUser(
         id=uuid4().hex,
         store_id=payload.organization_id,
         user_id=payload.user_id,
@@ -234,7 +231,7 @@ def accept_invite(
     db.commit()
     db.refresh(invite)
 
-    return { "invited": _StoreUserBase.from_orm(store_user), "store": _OrganizationBase.from_orm(store) }
+    return { "invited": OrganisationUserBase.from_orm(store_user), "store": _OrganizationBase.from_orm(store) }
 
 
 @app.post("/users/invite/", status_code=201, response_model=_invite_schemas.InviteResponse)
@@ -274,18 +271,18 @@ async def invite_user(
     if (user.email != payload.user_email):
         # check if user_email already exists
         existing_invite = (
-            db.query(store_invite_model.StoreInvite)
+            db.query(organisation_invite_model.OrganisationInvite)
             .filter(
                 and_(
-                    store_invite_model.StoreInvite.user_email == payload.user_email,
-                    store_invite_model.StoreInvite.is_deleted == False
+                    organisation_invite_model.OrganisationInvite.user_email == payload.user_email,
+                    organisation_invite_model.OrganisationInvite.is_deleted == False
                 )).first())
         if existing_invite is None:
 
             # send invite email to user
             send_email(email_details=email_info,
                        background_tasks=background_tasks, template=template, db=db)
-            invite = store_invite_model.StoreInvite(
+            invite = organisation_invite_model.OrganisationInvite(
                 id=uuid4().hex,
                 store_id=payload.store.get("id"),
                 user_id=payload.user_id,
@@ -319,11 +316,11 @@ async def get_single_invite(
     """
     # user invite code to query the invite table
     existing_invite = db.query(
-        store_invite_model.StoreInvite).filter(
+        organisation_invite_model.OrganisationInvite).filter(
             and_(
-                store_invite_model.StoreInvite.invite_code == invite_code,
-                store_invite_model.StoreInvite.is_deleted == False,
-                store_invite_model.StoreInvite.is_revoked == False
+                organisation_invite_model.OrganisationInvite.invite_code == invite_code,
+                organisation_invite_model.OrganisationInvite.is_deleted == False,
+                organisation_invite_model.OrganisationInvite.is_revoked == False
             )).first()
     if (existing_invite):
         existing_user = db.query(user_models.User).filter(
@@ -361,8 +358,8 @@ def decline_invite(invite_code: str, db: orm.Session = fastapi.Depends(get_db)):
     """
 
     declined_invite = (
-        db.query(store_invite_model.StoreInvite)
-        .filter(store_invite_model.StoreInvite.invite_code == invite_code)
+        db.query(organisation_invite_model.OrganisationInvite)
+        .filter(organisation_invite_model.OrganisationInvite.invite_code == invite_code)
         .first()
     )
 
@@ -385,12 +382,12 @@ def revoke_invite(
         param-->invite_code: This is a unique code linked to invite
         
 
-    returnDesc--> On sucessful request, it returns message,
+    returnDesc--> On successful request, it returns message,
         returnBody--> an object contain the invite data with the `is_deleted` and `is_revoked` field set to True
     """
     revoked_invite = (
-        db.query(store_invite_model.StoreInvite)
-        .filter(store_invite_model.StoreInvite.invite_code == invite_code)
+        db.query(organisation_invite_model.OrganisationInvite)
+        .filter(organisation_invite_model.OrganisationInvite.invite_code == invite_code)
         .first()
     )
 
@@ -429,13 +426,11 @@ def update_user_role(
 
     if existing_user is not None:
         existing_store_user = (
-            db.query(store_user_model.StoreUser)
-            .filter(store_user_model.StoreUser.user_id == existing_user.id)
+            db.query(organisation_user_model.OrganisationUser)
+            .filter(organisation_user_model.OrganisationUser.user_id == existing_user.id)
             .first()
         )
 
-        # fetch the role id of payload.role from the role table
-        # update the role id in existing store user to use that.
         role = (
         db.query(role_models.Role)
         .filter(role_models.Role.role_name == payload.role.lower())
