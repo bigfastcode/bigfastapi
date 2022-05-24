@@ -227,9 +227,7 @@ async def get_organization(
     return {"data": {"organization": organization, "menu": menu}}
 
 
-@app.get("/organizations/{organization_id}/users",
- status_code=200,
-  responses={404: 'Organization does not exist'})
+@app.get("/organizations/{organization_id}/users", status_code=200)
 async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
