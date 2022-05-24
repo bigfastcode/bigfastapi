@@ -182,7 +182,7 @@ async def upload_image( file: fastapi.UploadFile = fastapi.File(...),  db: orm.S
         db.commit()
         db.refresh(file)
 
-        return file.filename
+        return file
     
 async def isFileExist(filePath: str):
      """Check the existence of a file in directory
