@@ -38,12 +38,16 @@ async def fetch_products(
     timestamp: datetime.datetime = None,
     db: orm.Session = Depends(database.get_db)
     ):
+
+    total_items = db.query(Product).filter(Product.business_id == business_id).filter(
+            Product.is_deleted == False).count()
+
     products = db.query(Product).filter(
         Product.business_id == business_id).filter(
         Product.is_deleted == False).order_by(Product.created.desc()
         ).offset(offset=offset).limit(limit=size).all()
 
-    return products
+    return products, total_items
 
 async def sort_products(
     business_id:str,
@@ -65,7 +69,10 @@ async def sort_products(
             getattr(Product, sort_key, "name")
             ).offset(offset=offset).limit(limit=size).all()
 
-    return products
+    total_items = db.query(Product).filter(Product.business_id == business_id).filter(
+            Product.is_deleted == False).count()
+
+    return products, total_items
 
 async def search_products(
     business_id:str,
@@ -74,7 +81,7 @@ async def search_products(
     db: orm.Session = Depends(database.get_db)
     ):  
     search_text = f"%{search_value}%"
-    num_results =db.query(Product).filter(and_(
+    total_items =db.query(Product).filter(and_(
         Product.business_id == business_id,
         Product.is_deleted == False)).filter(or_(Product.name.like(search_text),
         Product.description.like(search_text))).count()
@@ -86,5 +93,5 @@ async def search_products(
         Product.created.desc()).offset(
         offset=offset).limit(limit=size).all()
     
-    return (results, num_results)
+    return results, total_items
 
