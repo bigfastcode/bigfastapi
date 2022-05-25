@@ -15,7 +15,8 @@ from starlette.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
-from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, wallet_models, \
+from .core.helpers import Helpers
+from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, organisation_user_model, wallet_models, \
     wallet_transaction_models, credit_wallet_history_models
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
@@ -32,6 +33,14 @@ async def add_rate(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
+    """intro-->This endpoint allows a super user to add a credit rate. To use this endpoint you need to make a post request to the /credits/rates endpoint
+
+        reqBody-->rate: This is the value of the credit rate
+        reqBody-->currency_code: This is the short code of the currency of interest
+
+    returnDesc--> On sucessful request, it returns  
+        returnBody--> details of the newly created credit rate
+    """
     if user.is_superuser:
         conversion = await _get_credit_wallet_conversion(currency=body.currency_code, db=db)
         if conversion is not None:
@@ -56,7 +65,16 @@ async def add_rate(
 async def get_rates(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
-):
+):  
+    """intro-->This endpoint allows you to retrieve all available credit rates. To use this endpoint you need to make a get request to the /credits/rates endpoint
+
+        ParamDesc-->On get request, the request url takes two(2) optional query parameters
+            param-->page: This is the page of interest, this is 1 by default
+            param-->size: This is the size per page, this is 10 by default
+
+    returnDesc--> On sucessful request, it returns  
+        returnBody--> a list of all available credit rates
+    """
     rates = db.query(credit_wallet_conversion_models.CreditWalletConversion)
     return paginate(list(rates))
 
@@ -66,7 +84,15 @@ async def get_rate(
         currency: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
-):
+):  
+    """intro-->This endpoint allows you to retrieve the credit rate for a particular currency. To use this endpoint you need to make a get request to the /credits/rates/{currency} endpoint
+
+        ParamDesc-->On get request, the request url takes the parameter, currency
+            param-->currency: This is the currency of interest
+
+    returnDesc--> On sucessful request, it returns
+        returnBody--> the details of the queried currency
+    """
     rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
         currency_code=currency).first()
     if rate is None:
@@ -87,6 +113,16 @@ async def update_rate(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
+    """intro-->This endpoint allows you to update the credit rate for a particular currency. To use this endpoint you need to make a put request to the /credits/rates/{currency} endpoint
+
+        ParamDesc-->On get request, the request url takes the parameter, currency
+            param-->currency: This is the currency of interest
+
+            reqBody-->rate: This is the credit rate of the currency to be updated
+
+    returnDesc--> On sucessful request, it returns
+        returnBody--> the details of the updated rate
+    """
     rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
         currency_code=currency).first()
     if rate is None:
@@ -103,6 +139,16 @@ async def update_rate(
 @app.get("/credits/callback/stripe")
 async def verify_stripe_payment(status: str, tx_ref: str, transaction_id: str,
                                 db: _orm.Session = fastapi.Depends(get_db)):
+    """intro-->This endpoint allows you to verify a stripe payment. To use this endpoint you need to make a get request to the /credits/callback/stripe endpoint
+
+        ParamDesc-->On get request, the request url takes three(3) query parameters
+            param-->status: This is the the status of the payment
+            param-->tx_ref: This is the transaction reference 
+            param-->transaction_id: This is the unique id of the transaction
+
+    returnDesc--> On sucessful request, it returns the
+        returnBody--> details of the transacation
+    """
     stripe.api_key = config('STRIPE_SEC_KEY')
     session = stripe.checkout.Session.retrieve(transaction_id)
     frontendUrl = session.metadata.redirect_url
@@ -170,7 +216,17 @@ async def verify_flutterwave_payment(
         tx_ref: str,
         transaction_id='',
         db: _orm.Session = fastapi.Depends(get_db),
-):
+):  
+    """intro-->This endpoint allows you to verify a flutterwave payment. To use this endpoint you need to make a get request to the /credits/callback/flutterwave endpoint
+
+        ParamDesc-->On get request, the request url takes three(3) query parameters
+            param-->status: This is the the status of the payment
+            param-->tx_ref: This is the transaction reference 
+            param-->transaction_id: This is the unique id of the transaction
+
+    returnDesc--> On sucessful request, it returns the
+        returnBody--> details of the transacation
+    """
     frontendUrl = config("FRONTEND_URL")
     if status == 'successful':
         flutterwaveKey = config('FLUTTERWAVE_SEC_KEY')
@@ -248,7 +304,15 @@ async def get_credit(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
-    """Gets the credit of an organization"""
+    """intro-->This endpoint allows you to retrieve the credit  detail for a particular organization. To use this endpoint you need to make a get request to the /credits/{organization_id} endpoint
+
+        ParamDesc-->On get request, the request url takes the parameter, organization id
+            param-->organization_id: This is the unique id of the organization
+            
+
+    returnDesc--> On sucessful request, it returns
+        returnBody--> the details of the queried organization's credit
+    """
     return await _get_credit(organization_id=organization_id, user=user, db=db)
 
 
@@ -257,7 +321,19 @@ async def add_credit(body: schema.CreditWalletFund,
                      organization_id: str,
                      user: users_schemas.User = fastapi.Depends(is_authenticated),
                      db: _orm.Session = fastapi.Depends(get_db)):
-    """Creates and returns a payment link"""
+    """intro-->This endpoint allows you to add a credit detail for a particular organization, on creation it returns a payment link. To use this endpoint you need to make a post request to the /credits/{organization_id} endpoint with a specified body of request
+
+        ParamDesc-->On get request, the request url takes the parameter, organization id
+            param-->organization_id: This is the unique id of the organization
+            
+            reqBody-->currency: This is the currency of the credit detail
+            reqBody-->amount: This is the amount/value of the credit action
+            reqBody-->provider: This is the payment provider for the credit action
+            reqBody-->redirect_url: This is the redirect url to the payment provider platform
+
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> a payment link
+    """
     await _get_organization(organization_id=organization_id, db=db, user=user)
     conversion = await _get_credit_wallet_conversion(currency=body.currency, db=db)
     if conversion is None:
@@ -307,7 +383,16 @@ async def get_credit_history(
         organization_id: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db)):
-    """Returns credit wallet history"""
+    """intro-->This endpoint allows you to retrieve the credit wallet history of a particular organization. To use this endpoint you need to make a get request to the /credits/{organization_id}/history endpoint
+
+        ParamDesc-->On get request, the request url takes the parameter organization id and two(2) optional query parameters    
+            param-->organization_id: This is the unique id of the organization
+            param-->page: This is the page of interest, this is 1 by default
+            param-->size: This is the size per page, this is 10 by default
+
+    returnDesc--> On sucessful request, it returns the
+        returnBody--> details of the credit wallet history of the queried organization
+    """
     credit = await _get_credit(organization_id=organization_id, user=user, db=db)
     history = db.query(credit_wallet_history_models.CreditWalletHistory).filter_by(credit_wallet_id=credit.id).order_by(
         desc(credit_wallet_history_models.CreditWalletHistory.date))
@@ -345,7 +430,7 @@ async def _get_market_rate(currency: str, db: _orm.Session):
     currency = currency.upper()
 
     freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
-    url = 'https://freecurrencyapi.net/api/v2/latest?apikey=' + freeCurrencyApiKey
+    url = 'https://api.currencyapi.com/v2/latest?apikey=' + freeCurrencyApiKey
     response = requests.get(url)
     if response.status_code == 200:
         jsonResponse = response.json()
@@ -377,10 +462,17 @@ async def _get_organization(organization_id: str, db: _orm.Session,
     )
 
     if organization is None:
-        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not exist")
+        is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
+        if is_store_member:
+            organization = (
+                db.query(organisation_models.Organization)
+                    .filter(organisation_models.Organization.id == organization_id)
+                    .first()
+            )
+        if (not is_store_member) or organization is None:
+            raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not exist")
 
     return organization
-
 
 async def _get_credit_wallet_conversion(currency: str, db: _orm.Session):
     conversion = (

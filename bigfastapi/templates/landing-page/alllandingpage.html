@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{h.css_path}}" />
+  <script src="https://use.fontawesome.com/528b542f33.js"></script>
+
+  <title>All Landing Pages</title>
+</head>
+<body>
+    <h1 class="all-landing-pages-div-h1">
+      All Landing Pages
+    </h1>
+    {% for page in h.landing_page %}
+      <a href="/landing-page/{{page.landing_page_name}}">
+        <div class="all-landing-pages-div">
+          <h3 class="all-landing-pages-div-h3">
+            {{page.landing_page_name}}
+          </h3>
+        </div>
+      </a>
+    {% endfor %}
+</body>
+</html>

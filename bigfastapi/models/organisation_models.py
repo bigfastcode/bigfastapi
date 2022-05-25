@@ -73,23 +73,3 @@ def getActiveMenu(businessType):
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
     return db.query(Organization).filter(Organization.id == orgId).first()
-
-
-async def deleteBizImageIfExist(org: Organization):
-    # check if user object contains image endpoint
-    if org.image is not None and len(org.image) > 17 and 'organzationImages/' in org.image:
-        # construct the image path from endpoint
-        splitPath = org.image.split('organzationImages/', 1)
-        imagePath = f"\organzationImages\{splitPath[1]}"
-        fullStoragePath = os.path.abspath("filestorage") + imagePath
-
-        isImageInFile = await isFileExist(fullStoragePath)
-
-        # check if image exist in file prior and delete it
-        if isImageInFile:
-            deleteRes = await deleteFile(fullStoragePath)
-            return deleteRes
-        else:
-            return False
-    else:
-        return False

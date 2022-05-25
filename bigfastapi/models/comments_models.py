@@ -17,16 +17,9 @@ class Comment(_database.Base):
     __tablename__ = "comment"
 
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    model_type = Column(String(255)) 
+    model_type = Column(String(255), ) 
     rel_id = Column(String(255))
-    commenter_id = Column(String(255))
-
-#     id = Column(Integer, primary_key=True, autoincrement=True)
-#     model_type = Column(String) 
-#     rel_id = Column(String)
-#     commenter_id = Column(String)
-# >>>>>>> dev
-    
+    commenter_id = Column(String(255))    
     email = Column(String(255))
     name = Column(String(255))
     text = Column(String(500))
@@ -38,16 +31,16 @@ class Comment(_database.Base):
     p_id = Column(String(255), ForeignKey("comment.id", ondelete="cascade"))
     parent = _orm.relationship("Comment", backref=_orm.backref('replies',  cascade="all, delete-orphan"), remote_side=[id], post_update=True, single_parent=True, uselist=True)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__()
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__()
         
-        self.model_type = kwargs["model_name"] 
-        self.commenter_id = kwargs["commenter_id"] 
-        self.rel_id = kwargs["rel_id"]
-        self.email = kwargs["email"] 
-        self.name = kwargs["name"] 
-        self.text = kwargs["text"] 
-        self.p_id = kwargs.get("p_id", None)
+    #     self.model_type = kwargs["model_type"] 
+    #     self.commenter_id = kwargs["commenter_id"] 
+    #     self.rel_id = kwargs["rel_id"]
+    #     self.email = kwargs["email"] 
+    #     self.name = kwargs["name"] 
+    #     self.text = kwargs["text"] 
+    #     self.p_id = kwargs.get("p_id", None)
 
     @hybrid_method
     def upvote(self):

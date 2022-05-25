@@ -7,16 +7,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 from starlette.middleware.sessions import SessionMiddleware
+from celery import Celery
+from decouple import config
 
 from bigfastapi.auth import app as authentication
 from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.banks import router as banks
 from bigfastapi.blog import app as blog
+from bigfastapi.products import app as products
+from bigfastapi.stock import app as stock
 from bigfastapi.comments import app as comments
 from bigfastapi.contact import app as contact
 from bigfastapi.countries import app as countries
 from bigfastapi.credit import app as credit
-from bigfastapi.customer import app as customer
 from bigfastapi.db.database import create_database
 from bigfastapi.email import app as email
 # Import all the functionality that BFA provides
@@ -40,6 +43,10 @@ from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
+from bigfastapi.landing_page import app as landing_page
+
+from bigfastapi.api_key import app as api_key
+from bigfastapi.import_progress import app as importprogress
 
 # Create the application
 tags_metadata = [
@@ -47,9 +54,9 @@ tags_metadata = [
         "name": "blog",
         "description": " BigFast's blog api includes various standard blog api patterns from blog creation to various api querying operations. With this group you can easily get your blog client up and running in no time 📝",
     },
-     {
+    {
         "name": "auth",
-        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specific parameters",
+        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specified parameters",
     },
     {
         "name": "countries",
@@ -57,20 +64,105 @@ tags_metadata = [
     },
     {
         "name": "pages",
-        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion on pages seamlessly. You can create pages with a specified title and content body",
+        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion of pages seamlessly. You can create pages with a specified title and content body",
     },
     {
         "name": "notification",
         "description": "BigFast's notifications api  allows you to create notifications and manage the notification flow in your application. You can easily make queries like marking a specific notification as read, marking all notifications as read e.t.c.",
     },
-
+    {
+        "name": "activitieslog",
+        "description": "BigFast's activity log api allows you to record and manage activity logs for an organization. You can log/record acitvies in an organization and easily retireve them later on."
+    },
+    {
+        "name": "banks",
+        "description": "BigFast's bank api allows you to add and manage bank details for an organization. You can also perform operations like validating a bank detail and retrieving a valid bank detail schema for a country of interest"
+    },
+    {
+        "name": "comments",
+        "description": "BigFast's comments api allows you easily build a comments architecture for your application. With bigfast's comment api you can manage creation of a comment thread, creation of a comment, replies, updating a comment and deletion of a comment. The comments api also enables upvoting and downvoting a comment"
+    },
+    {
+        "name": "contactsandcontactus",
+        "description": "BigFast's contact api allows you to create and manage contact directories while the contact us api allows you to build out a contact us architecture. With the contact us endpoints you can implement sending of a contact us message, retrieval of contact us message and carry out other more specific actions."
+    },
+    {
+        "name": "countries",
+        "description": "BigFast's countries api exposes a lot of useful functionalities. You can call and get all countries in the world and their respective states. You can also retreive more specific data using the provided."
+    },
+    {
+        "name": "creditwallet",
+        "description": "BigFast's credit api allows you to create and retrieve custom credit rates, you can also add and retrieve credit deails for an organization. It also exposes endpoints you can use to verify payments with payment providers."
+    },
+    {
+        "name": "transactionalemails",
+        "description": "BigFast's Transactional Emails api allows you to send emails. We have also made more specific email templates available."
+    },
+    {
+        "name": "file",
+        "description": "BigFast's file api allows you upload/store files in our database. When uploading a file, it is stored in a collection which you specify, we call this collection a bucket"
+    },
+    {
+        "name": "organization",
+        "description": "BigFast's organization api is very robust, and exposes many essential endpoints you can use to run an organization. You can create and manage an organization, create roles in an organization and mange invites to an organization."
+    },
+    {
+        "name": "plan",
+        "description": "BigFast's plan api allows you to create a service plan and retrieve when needed. This is useful for organizations with various service plans for customers"
+    },
+    {
+        "name": "qrcode",
+        "description": "BigFast's qr code api provides a unique qr code"
+    },
+    {
+        "name": "settings",
+        "description": "BigFast's settings api provides a schema you can use to setup/bootstrap an organization. You can add an organization settings and recall/reference it wherever. This api also allows you you to create custom settings for your application, basically your setting will have a name and a value which can then be retrieved when needed"
+    },
+    {
+        "name": "subscription",
+        "description": "BigFast's subscription api allows you create subscription packeges for an organization, which can then be subscribed to by a user"
+    },
+    {
+        "name": "tutorials",
+        "description": "BigFast's tutorial is another great api. This api allows you to create and mange tutorials for your application you can specify a category on creation and retrieve later on, based on the category. You can also retrieve a tutorial based on a specified keyword."
+    },
+    {
+        "name": "wallet",
+        "description": "BigFast's wallet is another great api. This api allows you to create a wallet for a user in an organization. You can retrieve user wallets based on the organization, the wallet currency e.t.c."
+    },
+    {
+        "name": "user",
+        "description": "BigFast's users api allows you and manage users and user related processes in your application."
+    },
+    {
+        "name": "faqandsupport",
+        "description": "BigFast's Faq and Support api allows you to and set up a faq section in your application. This api alows creation and retireval of faqs. We also offer a support ticket workflow, you can incorporate the creation, replying and closing of support tickets in your application."
+    },  
+    {
+        "name": "sendsms",
+        "description": "BigFast's SMS API allows you to send an sms with a body of request containing details of the sms action."
+    },
+    {
+        "name": "receipt",
+        "description": "BigFast's Receipt API allows you to create, send, and retrieve receipt(s) in an organization."
+    },
 ]
 
 app = FastAPI(openapi_tags=tags_metadata)
 app.add_middleware(SessionMiddleware, secret_key=env_var.JWT_SECRET)
+RABBITMQ_USERNAME = config('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD =config('RABBITMQ_PASSWORD')
+RABBITMQ_HOST_PORT =config('RABBITMQ_HOST_PORT')
+
+celery = Celery('tasks', broker=f'amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST_PORT}')
+
+celery.conf.imports = [
+    ''
+]
 
 client = TestClient(app)
 create_database()
+
 
 origins = ["*"]
 app.add_middleware(
@@ -90,6 +182,8 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
+app.include_router(products, tags=["Products"])
+app.include_router(stock, tags=["Stock"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(plans, tags=['Plans'])
 app.include_router(email)
@@ -109,10 +203,12 @@ app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
 app.include_router(jwt_services)
 app.include_router(receipts)
-app.include_router(customer)
 app.include_router(sms)
 app.include_router(schedule)
 app.include_router(activitieslog)
+app.include_router(api_key)
+app.include_router(landing_page)
+app.include_router(importprogress)
 
 
 @app.get("/", tags=["Home"])

@@ -18,5 +18,5 @@ class File(db.Base):
 
 
 
-def find_file(bucket: str, filename: str, db: orm.Session):
-    return db.query(File).filter((File.bucketname == bucket) & (File.filename == filename)).first()
+def find_file(bucket: str, file_id: str, db: orm.Session):
+    return db.query(File).filter((File.bucketname == bucket) & (File.id == file_id)).first()
