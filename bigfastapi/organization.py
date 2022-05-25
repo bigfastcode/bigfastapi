@@ -24,10 +24,6 @@ import fastapi as _fastapi
 from numpy import equal
 import sqlalchemy.orm as _orm
 from decouple import config
-<< << << < HEAD
-== == == =
-
->>>>>> > 7fed3067968df4581619c783594ea2abbe8fb9af
 
 
 app = APIRouter(tags=["Organization"])
@@ -469,6 +465,18 @@ async def changeOrganizationImage(
         organization_id: str, file: UploadFile = File(...),
         db: _orm.Session = _fastapi.Depends(get_db),
         user: str = _fastapi.Depends(is_authenticated)):
+
+    """intro--> This endpoint allows you to upload/change the cover image of an organization. 
+        To use this endpoint you need to make a get patch request to the 
+        endpoint, /organizations/{organization_id}/update-image.
+
+        requestHeader-->Authorization: Bearer token
+        requestBody-->organization_id: The organization unique id as string 
+        requestBody-->file: The image file to be uploaded
+
+    returnDesc--> On sucessful request, it returns:
+        returnBody--> Updated organization object
+    """
 
     bucketName = 'organzationImages'
     organization = db.query(_models.Organization).filter(

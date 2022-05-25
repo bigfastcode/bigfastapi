@@ -126,7 +126,7 @@ async def updateUserProfile(
 
     returnDesc--> On sucessful request, it returns message:
 
-        returnBody--> "success".
+        returnBody--> "updated User".
     """
 
     updatedUser = await updateUserDetails(db, user.id, payload)
@@ -151,7 +151,7 @@ async def updatePassword(
 
     returnDesc--> On sucessful request, it returns message:
 
-        returnBody--> "success".
+        returnBody--> "the User".
     """
 
     dbResponse = await updateUserPassword(db, user.id, payload)
@@ -525,14 +525,17 @@ async def updatePassword(
         db: orm.Session = fastapi.Depends(get_db),
         user: str = fastapi.Depends(is_authenticated)):
 
-    """intro-->This endpoint is used to update a user's image. To use this endpoint you need to make a patch request to the /users/image/upload endpoint
+    """intro-->This endpoint is used to update a user's image. 
+       To use this endpoint you need to make a patch request to the /users/image/upload endpoint
+       with the image file as payload and the user authorization/bearer token
 
 
-    returnDesc--> On sucessful request, it returns message
-        returnBody--> "success"
+    returnDesc--> On sucessful request, it returns the updated user
+        returnBody--> "Updated User Object"
     """
 
     bucketName = 'profileImages'
+    # Delete prev usuer image if exist
     checkAndDeleteRes = await deleteIfFileExistPrior(user)
 
     uploadedImage = await upload_image(file, db, bucketName)
