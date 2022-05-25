@@ -9,7 +9,6 @@ from bigfastapi.utils.schema_form import as_form
 
 
 class StockBase(BaseModel):
-    name: str
     quantity: int
     price: float
 
@@ -39,7 +38,6 @@ class StockOut(BaseModel):
         orm_mode = True
 
 class StockUpdate(StockBase):
-    name: Optional[str] = None
     quantity: Optional[int] = None
     price: Optional[float] = None
     status: Optional[bool] = None
