@@ -68,8 +68,8 @@
                         id="phone-number"
                         placeholder="Phone Number"
                      />
-                     <button type="submit" value="sign up" class="btn">
-                        Sign Up
+                     <button type="submit" value="Submit" class="btn">
+                        Submit
                      </button>
                   </div>
                </form>
@@ -156,11 +156,11 @@
          <section class="container form_wrapper">
             <!-- sign up form -->
             <div class="form_cover">
-               <form action="">
+               <form action="/leads/{{h.landing_page_name}}" method="POST">
                   <div class="container hero-form-grid">
                      <input
                         type="text"
-                        name="full-name"
+                        name="fullname"
                         id="full-name"
                         placeholder="Full Name"
                      />
@@ -174,14 +174,17 @@
 
                      <input
                         type="tel"
-                        name="phone-number"
+                        name="phone"
                         id="phone-number"
                         placeholder="Phone Number"
                      />
 
-                     <button type="submit" value="sign up" class="btn">
-                        Sign Up
+                     <button type="submit" value="submit" class="btn">
+                        Submit
                      </button>
+                     {% if form %}
+                     <p>success!</p>
+                     {% endif %}
                   </div>
                </form>
             </div>
