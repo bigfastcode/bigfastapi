@@ -172,7 +172,7 @@ async def invite_user(
         db.query(role_models.Role)
         .filter(role_models.Role.role_name == payload.user_role.lower())
         .first()
-        )
+    )
 
     # make sure you can't send invite to yourself
     invite_ctrl = (
@@ -289,12 +289,13 @@ def revoke_invite(
 
     return revoked_invite
 
+
 @app.patch("/users/{user_id}/change")
 def update_user_role(
     payload: store_user_schemas.UserUpdate,
     db: orm.Session = fastapi.Depends(get_db)
 ):
-    
+
     existing_user = (
         db.query(user_models.User)
         .filter(
@@ -313,20 +314,20 @@ def update_user_role(
         # fetch the role id of payload.role from the role table
         # update the role id in existing store user to use that.
         role = (
-        db.query(role_models.Role)
-        .filter(role_models.Role.role_name == payload.role.lower())
-        .first()
+            db.query(role_models.Role)
+            .filter(role_models.Role.role_name == payload.role.lower())
+            .first()
         )
         existing_store_user.role_id = role.id
         db.add(existing_store_user)
         db.commit()
         db.refresh(existing_store_user)
 
-        return { 
-            "message": "User role successfully updated", 
+        return {
+            "message": "User role successfully updated",
             "data": existing_store_user
-            }
-    return { "message": "User does not exist" }
+        }
+    return {"message": "User does not exist"}
 
 # ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
 
@@ -392,19 +393,15 @@ async def deleteIfFileExistPrior(user: _schemas.User):
         splitPath = user.image.split('profileImages/', 1)
         imagePath = f"\profileImages\{splitPath[1]}"
         fullStoragePath = os.path.abspath("filestorage") + imagePath
-        print(f"fullpath: {fullStoragePath}")
+
         isProfileImageExistPrior = await isFileExist(fullStoragePath)
         # check if image exist in file prior and delete it
         if isProfileImageExistPrior:
             deleteRes = await deleteFile(fullStoragePath)
-            print(f"isFileDeleted: {deleteRes}")
             return deleteRes
         else:
-            print("image does not exist prior")
             return False
-
     else:
-        print('prior image endpoint is not a valid image endpoint')
         return False
 
 

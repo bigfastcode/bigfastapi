@@ -4,9 +4,10 @@ import os
 from uuid import uuid4
 
 import fastapi as _fastapi
+from numpy import equal
 import sqlalchemy.orm as _orm
 from decouple import config
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
@@ -264,34 +265,58 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
     return await update_organization(organization_id, organization, user, db)
 
 
-@app.put("/organizations/{organization_id}/update-image")
-async def organization_image_upload(organization_id: str, file: UploadFile = File(...),
-                                    db: _orm.Session = _fastapi.Depends(
-                                        get_db),
-                                    user: users_schemas.User = _fastapi.Depends(
-                                        is_authenticated)
-                                    ):
-    org = db.query(_models.Organization).filter(
+@app.patch("/organizations/{organization_id}/update-image")
+async def changeOrganizationImage(
+        organization_id: str, file: UploadFile = File(...),
+        db: _orm.Session = _fastapi.Depends(get_db),
+        user: str = _fastapi.Depends(is_authenticated)):
+
+    bucketName = 'organzationImages'
+    organization = db.query(_models.Organization).filter(
         _models.Organization.id == organization_id).first()
-    # delete existing image
-    # if org.image != "":
-    #     image = org.image
-    #     filename = f"/{org.id}/{image}"
 
-    #     root_location = os.path.abspath("filestorage")
-    #     full_image_path =  root_location + filename
-    #     os.remove(full_image_path)
+    #  Delete previous organization image if exist
+    await _models.deleteBizImageIfExist(organization)
 
-    image = await upload_image(file, db, bucket_name=org.id)
-    org.image = image
-    db.commit()
-    db.refresh(org)
-    image = org.image
+    uploadedImage = await upload_image(file, db, bucketName)
+    # Update organization image to uploaded image endpoint
+    organization.image = f"/files/{bucketName}/{uploadedImage}"
+    try:
+        db.commit()
+        db.refresh(organization)
+        return {"message": "Successful", "data":  organization}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    appBasePath = config('API_URL')
-    imageURL = appBasePath + f'/organizations/{organization_id}/image'
-    setattr(org, 'image_full_path', imageURL)
-    return org
+
+# @app.put("/organizations/{organization_id}/update-image")
+# async def organization_image_upload(organization_id: str, file: UploadFile = File(...),
+#                                     db: _orm.Session = _fastapi.Depends(
+#                                         get_db),
+#                                     user: users_schemas.User = _fastapi.Depends(
+#                                         is_authenticated)
+#                                     ):
+#     org = db.query(_models.Organization).filter(
+#         _models.Organization.id == organization_id).first()
+#     # delete existing image
+#     # if org.image != "":
+#     #     image = org.image
+#     #     filename = f"/{org.id}/{image}"
+
+#     #     root_location = os.path.abspath("filestorage")
+#     #     full_image_path =  root_location + filename
+#     #     os.remove(full_image_path)
+
+#     image = await upload_image(file, db, bucket_name=org.id)
+#     org.image = image
+#     db.commit()
+#     db.refresh(org)
+#     image = org.image
+
+#     appBasePath = config('API_URL')
+#     imageURL = appBasePath + f'/organizations/{organization_id}/image'
+#     setattr(org, 'image_full_path', imageURL)
+#     return org
 
 
 @app.get("/organizations/{organization_id}/image")

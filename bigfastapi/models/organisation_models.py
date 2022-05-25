@@ -2,6 +2,7 @@ from ast import Str
 import datetime as _dt
 from email.policy import default
 import json
+import os
 from sqlite3 import Timestamp
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -16,6 +17,7 @@ from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 
 
 from bigfastapi.db.database import Base
+from bigfastapi.files import deleteFile, isFileExist
 from bigfastapi.schemas import organisation_schemas
 from bigfastapi.schemas.organisation_schemas import BusinessSwitch
 from bigfastapi.utils.utils import defaultManu
@@ -71,3 +73,23 @@ def getActiveMenu(businessType):
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
     return db.query(Organization).filter(Organization.id == orgId).first()
+
+
+async def deleteBizImageIfExist(org: Organization):
+    # check if user object contains image endpoint
+    if org.image is not None and len(org.image) > 17 and 'organzationImages/' in org.image:
+        # construct the image path from endpoint
+        splitPath = org.image.split('organzationImages/', 1)
+        imagePath = f"\organzationImages\{splitPath[1]}"
+        fullStoragePath = os.path.abspath("filestorage") + imagePath
+
+        isImageInFile = await isFileExist(fullStoragePath)
+
+        # check if image exist in file prior and delete it
+        if isImageInFile:
+            deleteRes = await deleteFile(fullStoragePath)
+            return deleteRes
+        else:
+            return False
+    else:
+        return False
