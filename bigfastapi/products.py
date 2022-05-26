@@ -14,6 +14,7 @@ from .schemas import product_schemas as schema
 from .models import product_models as model
 from .models.organisation_models import Organization
 from .models import file_models as file_model
+from .models import stock_models as stock_model
 from .files import upload_image
 from .utils import paginator
 from .core import helpers
@@ -55,7 +56,8 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Unique ID already exists')
 
     #check if user is allowed to create a product in the business
-    if  helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db) == False:
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db)
+    if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a product for this business")
 
     #check and generate unique ID
@@ -63,12 +65,12 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
         product.unique_id = uuid4().hex
 
     #Add product to database
-    product = model.Product(id=uuid4().hex, created_by=user.id, business_id=product.business_id, name=product.name, description=product.description,
+    created_product = model.Product(id=uuid4().hex, created_by=user.id, business_id=product.business_id, name=product.name, description=product.description,
                              unique_id=product.unique_id) 
     
-    db.add(product)
+    db.add(created_product)
     db.commit()
-    db.refresh(product)
+    db.refresh(created_product)
 
     #process and upload image
     if product_image:
@@ -82,14 +84,19 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="File format not allowed")
             
             file.filename = secrets.token_hex(10) +'.'+extension
-            result = await upload_image(file, db=db, bucket_name = product.id)
-            path = request.url.scheme +"://" + hostname + '/product/'+ product.id + '/'+result.id
+            result = await upload_image(file, db=db, bucket_name = created_product.id)
+            path = request.url.scheme +"://" + hostname + '/product/'+ created_product.id + '/'+result.id
             image_path_list.append(path)
         
-        product.product_image = image_path_list
+        created_product.product_image = image_path_list
+
+    #create stock for product
+    if product.price != None and product.quantity != None:
+        created_stock = stock_model.create_stock(db=db, quantity=product.quantity, price=product.price,
+        product_id=created_product.id, user_id=user.id)
 
 
-    return product
+    return created_product
 
 
 @app.get("/product", response_model=schema.ProductOut)

@@ -1,12 +1,25 @@
+from ast import Str
 import datetime as _dt
-from uuid import uuid4
-
+from email.policy import default
+import json
+import os
+from sqlite3 import Timestamp
+import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
-from sqlalchemy import ForeignKey
+import passlib.hash as _hash
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, DateTime, Boolean
+from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, Text
+from sqlalchemy import ForeignKey
+from uuid import UUID, uuid4
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.sql import func
+from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
+
 
 from bigfastapi.db.database import Base
+from bigfastapi.files import deleteFile, isFileExist
+from bigfastapi.schemas import organisation_schemas
+from bigfastapi.schemas.organisation_schemas import BusinessSwitch
 from bigfastapi.utils.utils import defaultManu
 
 
@@ -29,9 +42,6 @@ class Organization(Base):
     current_subscription = Column(String(225), default="")
     credit_balance = Column(Integer, default=5000)
     currency_preference = Column(String(255), default="")
-    standard_debt_percentage = Column(String(255), default=None)
-    auto_reminders = Column(String(255), default=None)
-    bank_details = Column(String(255), default=None)
     email = Column(String(255), default="", index=True)
     phone_number = Column(String(255), default="", index=True)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
@@ -72,3 +82,23 @@ def getActiveMenu(businessType):
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
     return db.query(Organization).filter(Organization.id == orgId).first()
+
+
+async def deleteBizImageIfExist(org: Organization):
+    # check if user object contains image endpoint
+    if org.image is not None and len(org.image) > 17 and 'organzationImages/' in org.image:
+        # construct the image path from endpoint
+        splitPath = org.image.split('organzationImages/', 1)
+        imagePath = f"\organzationImages\{splitPath[1]}"
+        fullStoragePath = os.path.abspath("filestorage") + imagePath
+
+        isImageInFile = await isFileExist(fullStoragePath)
+
+        # check if image exist in file prior and delete it
+        if isImageInFile:
+            deleteRes = await deleteFile(fullStoragePath)
+            return deleteRes
+        else:
+            return False
+    else:
+        return False

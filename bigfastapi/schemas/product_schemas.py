@@ -26,6 +26,8 @@ class ProductCreate(BaseModel):
     description: str
     unique_id: Optional[str] = None
     business_id: str
+    price: Optional[float] = None
+    quantity: Optional[int] = None
 
 class ProductImage(ProductCreate):
     product_image: str
