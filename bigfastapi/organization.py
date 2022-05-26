@@ -1,3 +1,4 @@
+from requests import Session
 from .utils.utils import paginate_data, row_to_dict
 from .schemas import users_schemas
 from .schemas import organisation_schemas as _schemas
@@ -479,19 +480,22 @@ async def changeOrganizationImage(
     """
 
     bucketName = 'organzationImages'
-    organization = db.query(_models.Organization).filter(
-        _models.Organization.id == organization_id).first()
+    organization = await _models.fetchOrganization(organization_id, db)
 
     #  Delete previous organization image if exist
-    await _models.deleteBizImageIfExist(organization)
+    test = await _models.deleteBizImageIfExist(organization)
 
     uploadedImage = await upload_image(file, db, bucketName)
     # Update organization image to uploaded image endpoint
-    organization.image = f"/files/{bucketName}/{uploadedImage}"
+    organization.image = f"/files/image/{bucketName}/{uploadedImage}"
+
+    menu = getOrgMenu(organization_id, db)
+    # return {"data": {"organization": organization, "menu": menu}}
+
     try:
         db.commit()
         db.refresh(organization)
-        return {"message": "Successful", "data":  organization}
+        return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

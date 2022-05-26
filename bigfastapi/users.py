@@ -567,7 +567,7 @@ async def deleteIfFileExistPrior(user: _schemas.User):
 
 
 def constructImageEndpoint(Uploadedimage: str, bucketName: str):
-    return f"/files/{bucketName}/{Uploadedimage}"
+    return f"/files/image/{bucketName}/{Uploadedimage}"
 
 
 async def updateUserImage(userId: str, db: orm.Session, imageEndpoint: str):
