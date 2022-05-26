@@ -10,7 +10,7 @@ from sqlalchemy import desc
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
-from .models import organisation_models as organisation_models, user_models, store_user_model
+from .models import organisation_models as organisation_models, organisation_user_model, user_models
 from .models import wallet_models as model
 from .models import wallet_transaction_models as wallet_transaction_models
 from .schemas import users_schemas

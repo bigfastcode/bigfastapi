@@ -14,7 +14,7 @@ from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as database
 
-class StoreInvite(database.Base):
+class OrganisationInvite(database.Base):
     __tablename__ = "store_invites"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     store_id = Column(String(255), ForeignKey("businesses.id"))

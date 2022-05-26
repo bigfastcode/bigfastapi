@@ -14,6 +14,8 @@ class Product(ProductBase):
     id: str
     created: dt.datetime
     business_id: str
+    product_image: Optional[List[Any]] = []
+
 
     class Config:
         orm_mode = True
@@ -24,6 +26,8 @@ class ProductCreate(BaseModel):
     description: str
     unique_id: Optional[str] = None
     business_id: str
+    price: Optional[float] = None
+    quantity: Optional[int] = None
 
 class ProductImage(ProductCreate):
     product_image: str
@@ -53,3 +57,11 @@ class ProductOut(BaseModel):
 
 class DeleteProduct(BaseModel):
     business_id: str
+
+
+class DeleteSelectedProduct(BaseModel):
+    product_id_list: list
+    business_id: str
+
+    class Config:
+        orm_mode = True

@@ -18,8 +18,8 @@ async def importDetails(model: str, organization_id: str,
         filter(ImportProgress.model == model).\
         filter(ImportProgress.organization_id == organization_id).\
         filter(ImportProgress.is_deleted == False).first()
-    if importProgress == None or len(failedImports) == 0:
-        return []   
+    if importProgress == None:
+        return [] 
     return {
         'failed_imports' : failedImports,
         'current_line' : importProgress.current,
@@ -27,7 +27,7 @@ async def importDetails(model: str, organization_id: str,
     }
 
 
-async def saveImportProgress(current, end, model, organization_id: str, 
+def saveImportProgress(current, end, model, organization_id: str, 
     db: orm.Session = Depends(get_db)):
     importProgress = ImportProgress(
         id=uuid4().hex, current=current, end=end,
@@ -41,7 +41,7 @@ async def saveImportProgress(current, end, model, organization_id: str,
 
     return importProgress
 
-async def updateImportProgress(current:str, id:str, 
+def updateImportProgress(current:str, id:str, 
     db: orm.Session = Depends(get_db)):
     db.query(ImportProgress).filter(ImportProgress.id == id).\
         update({'current': current})
