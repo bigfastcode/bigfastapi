@@ -1,29 +1,31 @@
+from requests import Session
+from .utils.utils import paginate_data, row_to_dict
+from .schemas import users_schemas
+from .schemas import organisation_schemas as _schemas
+from .models import wallet_models as wallet_models
+from .models import user_models, role_models, schedule_models
+from .models import organisation_models as _models
+from .models import credit_wallet_models as credit_wallet_models, organisation_invite_model, organisation_user_model
+from .files import upload_image
+from .auth_api import is_authenticated
+from bigfastapi.schemas import roles_schemas
+from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
+from bigfastapi.models import organisation_models
+from bigfastapi.db.database import get_db
+from sqlalchemy import and_
+from fastapi.responses import FileResponse
+from fastapi import UploadFile, File
+from fastapi import APIRouter, Depends, BackgroundTasks, FastAPI
+from fastapi import APIRouter, HTTPException
 import datetime as _dt
 import os
 from uuid import uuid4
 
 import fastapi as _fastapi
+from numpy import equal
 import sqlalchemy.orm as _orm
 from decouple import config
 
-from fastapi import APIRouter, Depends, BackgroundTasks, FastAPI
-from fastapi import UploadFile, File
-from fastapi.responses import FileResponse
-from sqlalchemy import and_
-
-from bigfastapi.db.database import get_db
-from bigfastapi.models import organisation_models
-from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
-from bigfastapi.schemas import roles_schemas
-from .auth_api import is_authenticated
-from .files import upload_image
-from .models import credit_wallet_models as credit_wallet_models, organisation_invite_model, organisation_user_model
-from .models import organisation_models as _models
-from .models import user_models, role_models, schedule_models
-from .models import wallet_models as wallet_models
-from .schemas import organisation_schemas as _schemas
-from .schemas import users_schemas
-from .utils.utils import paginate_data, row_to_dict
 
 app = APIRouter(tags=["Organization"])
 
@@ -54,7 +56,7 @@ def create_organization(
     reqBody-->credit_balance: This is a value representing the organization's credit balance
     reqBody-->image_full_path: This is full url path to the company's cover image
     reqBody-->add_template: This is a boolean value that determines wether to add already available templates for the organization.
-        
+
     returnDesc--> On sucessful request, it returns
         returnBody--> details of the newly created organization
     """
@@ -185,23 +187,24 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
         except:
             print('could not create auto reminder default')
 
+
 @app.get("/organizations")
 def get_organizations(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
         page_size: int = 15,
         page_number: int = 1,
-):  
+):
     """intro--> This endpoint allows you to retrieve all organizations. To use this endpoint you need to make a get request to the /organizations endpoint 
 
             paramDesc--> On get request, the request url takes two(2) optional query parameters
                 param--> page_size: This is the size per page, this is 10 by default
                 param--> page_number: This is the page of interest, this is 1 by default
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> a list of organizations
-    """ 
+    """
     all_orgs = get_organizations(user, db)
 
     return paginate_data(all_orgs, page_size, page_number)
@@ -212,16 +215,16 @@ async def get_organization(
         organization_id: str,
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
-):  
+):
     """intro--> This endpoint allows you to retrieve details of a particular organizations. To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
 
             paramDesc--> On get request, the request url takes the parameter, organization id
                 param--> organization_id: This is unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> details of the queried organization
-    """ 
+    """
     organization = await get_organization(organization_id, user, db)
     menu = getOrgMenu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
@@ -237,7 +240,7 @@ async def get_organization_users(
 
         paramDesc--> On get request, the request url takes the parameter, organization id
             param--> organization_id: This is unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> list of all users in the queried organization
@@ -295,13 +298,13 @@ def delete_organization_user(
         organization_id: str,
         user_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
-):  
+):
     """intro--> This endpoint allows you to delete a particular user from an organization. To use this endpoint you need to make a delete request to the /organizations/{organization_id}/users/{user_id} endpoint 
 
         paramDesc--> On delete request, the request url takes two(2) parameters, organization id and user id
             param--> organization_id: This is unique Id of the organization of interest
             param--> user_id: This is the unique id of the user to be removed from the organization
-        
+
     returnDesc--> On sucessful request, it returns message,
         returnBody--> User with email {email} successfully removed from the store
     """
@@ -340,7 +343,7 @@ def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db))
 
         paramDesc--> On get request, the request url takes the parameter, organization id.
             param-->organization_id: This is the unique id of the organization of interest.
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> list of all available roles in the queried organization
@@ -364,7 +367,7 @@ def add_role(payload: roles_schemas.AddRole,
 
             reqBody--> organization_id: This is a unique Id of the organization of interest
             reqBody--> role_name: This is the name of the new role to be created in the organization
-        
+
     returnDesc--> On sucessful request, it returns:
         returnBody--> details of the newly created organization role.
     """
@@ -398,13 +401,13 @@ def add_role(payload: roles_schemas.AddRole,
 def get_pending_invites(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
-):  
+):
     """intro--> This endpoint allows you to retrieve all pending invites to an organization. To use this endpoint you need to make a get request to the /organizations/invites/{organization_id} endpoint
 
         paramDesc--> On get request, the request url takes the parameter, organization id 
             param--> organization_id: This is the unique Id of the organization of interest
 
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> all pending invites in the queried organization
@@ -450,7 +453,7 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
             reqBody--> credit_balance: This is a value representing the organization's credit balance
             reqBody--> image_full_path: This is full url path to the company's cover image
             reqBody--> add_template: This is a boolean value that determines wether to add already available templates for the organization.
-        
+
     returnDesc--> On successful request, it returns:
 
         returnBody--> details of the updated organization
@@ -458,43 +461,41 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
     return await update_organization(organization_id, organization, user, db)
 
 
-@app.put("/organizations/{organization_id}/update-image")
-async def organization_image_upload(organization_id: str, file: UploadFile = File(...),
-                                    db: _orm.Session = _fastapi.Depends(
-                                        get_db),
-                                    user: users_schemas.User = _fastapi.Depends(
-                                        is_authenticated)
-                                    ):
-    """intro--> This endpoint allows you to update the cover image of an organization. To use this endpoint you need to make a put request to the /organizations/{organization_id}/update-image endpoint with a specified body of request
+@app.patch("/organizations/{organization_id}/update-image")
+async def changeOrganizationImage(
+        organization_id: str, file: UploadFile = File(...),
+        db: _orm.Session = _fastapi.Depends(get_db),
+        user: str = _fastapi.Depends(is_authenticated)):
 
-        paramDesc--> On put request, the request url takes the parameter, organization id 
-            param--> organization_id: This is the unique Id of the organization of interest
-        
+    """intro--> This endpoint allows you to upload/change the cover image of an organization. 
+        To use this endpoint you need to make a get patch request to the 
+        endpoint, /organizations/{organization_id}/update-image.
+
+        requestHeader-->Authorization: Bearer token
+        requestBody-->organization_id: The organization unique id as string 
+        requestBody-->file: The image file to be uploaded
+
     returnDesc--> On sucessful request, it returns:
-
-        returnBody--> details of the updated organization
+        returnBody--> Updated organization object
     """
-    org = db.query(_models.Organization).filter(
-        _models.Organization.id == organization_id).first()
-    # delete existing image
-    # if org.image != "":
-    #     image = org.image
-    #     filename = f"/{org.id}/{image}"
 
-    #     root_location = os.path.abspath("filestorage")
-    #     full_image_path =  root_location + filename
-    #     os.remove(full_image_path)
+    bucketName = 'organzationImages'
+    organization = await _models.fetchOrganization(organization_id, db)
 
-    image = await upload_image(file, db, bucket_name=org.id)
-    org.image = image
-    db.commit()
-    db.refresh(org)
-    image = org.image
+    #  Delete previous organization image if exist
+    test = await _models.deleteBizImageIfExist(organization)
 
-    appBasePath = config('API_URL')
-    imageURL = appBasePath + f'/organizations/{organization_id}/image'
-    setattr(org, 'image_full_path', imageURL)
-    return org
+    uploadedImage = await upload_image(file, db, bucketName)
+    # Update organization image to uploaded image endpoint
+    organization.image = f"/files/image/{bucketName}/{uploadedImage}"
+
+    try:
+        db.commit()
+        db.refresh(organization)
+        menu = getOrgMenu(organization_id, db)
+        return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/organizations/{organization_id}/image")
@@ -503,7 +504,7 @@ async def get_organization_image_upload(organization_id: str, db: _orm.Session =
 
         paramDesc--> On get request, the request url takes the parameter, organization id 
             param--> organization_id: This is the unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> full_image_path property of the organization
@@ -527,9 +528,9 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 
         paramDesc--> On delete request, the request url takes the parameter, organization id 
             param--> organization_id: This is the unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
-    
+
         returnBody--> "success"
     """
     return await delete_organization(organization_id, user, db)
