@@ -23,6 +23,22 @@ class Product(database.Base):
     updated = Column(DateTime, default=datetime.datetime.utcnow)
     is_deleted = Column(BOOLEAN, default=False)
 
+# # product price table, when, which customer, priority, currency, day of week
+# class ProductPrice(database.Base):
+#     __tablename__ = 'product_price'
+#     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+#     product_id = Column(String(255), ForeignKey("products.id"))
+#     stock_id = Column(String(255), ForeignKey("stock.id"))
+#     price = Column(Float, index=True, nullable=False)
+#     start = Column(DateTime)
+#     end = Column(DateTime)
+#     customer_group = Column(String(255), index=True, nullable=False)
+#     currency = Column(String(255), index=True, nullable=False)
+#     created_by = Column(String(255), ForeignKey("users.id"))
+#     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+#     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+#     is_deleted = Column(BOOLEAN, default=False)
+
 
 #==============================Database Services=============================#
 def select_product(product_id: str, business_id: str, db: orm.Session):
@@ -30,7 +46,7 @@ def select_product(product_id: str, business_id: str, db: orm.Session):
     return product
 
 def get_product_by_id(id: str, db: orm.Session):
-    return db.query(Product).filter(Product.id == id).first()
+    return db.query(Product).filter(Product.id == id, Product.is_deleted==False).first()
 
 async def fetch_products(
     business_id: str,
@@ -38,12 +54,16 @@ async def fetch_products(
     timestamp: datetime.datetime = None,
     db: orm.Session = Depends(database.get_db)
     ):
+
+    total_items = db.query(Product).filter(Product.business_id == business_id).filter(
+            Product.is_deleted == False).count()
+
     products = db.query(Product).filter(
         Product.business_id == business_id).filter(
         Product.is_deleted == False).order_by(Product.created.desc()
         ).offset(offset=offset).limit(limit=size).all()
 
-    return products
+    return products, total_items
 
 async def sort_products(
     business_id:str,
@@ -65,7 +85,10 @@ async def sort_products(
             getattr(Product, sort_key, "name")
             ).offset(offset=offset).limit(limit=size).all()
 
-    return products
+    total_items = db.query(Product).filter(Product.business_id == business_id).filter(
+            Product.is_deleted == False).count()
+
+    return products, total_items
 
 async def search_products(
     business_id:str,
@@ -74,17 +97,17 @@ async def search_products(
     db: orm.Session = Depends(database.get_db)
     ):  
     search_text = f"%{search_value}%"
-    num_results =db.query(Product).filter(and_(
+    total_items =db.query(Product).filter(and_(
         Product.business_id == business_id,
         Product.is_deleted == False)).filter(or_(Product.name.like(search_text),
-        Product.description.like(search_text),Product.unique_id.like(search_value))).count()
+        Product.description.like(search_text))).count()
 
     results = db.query(Product).filter(and_(
         Product.business_id == business_id,
         Product.is_deleted == False)).filter(or_(Product.name.like(search_text),
-        Product.description.like(search_text),Product.unique_id.like(search_value))).order_by(
+        Product.description.like(search_text))).order_by(
         Product.created.desc()).offset(
         offset=offset).limit(limit=size).all()
     
-    return (results, num_results)
+    return results, total_items
 

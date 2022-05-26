@@ -16,8 +16,8 @@ from starlette.responses import RedirectResponse
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
-from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, wallet_models, \
-    wallet_transaction_models, credit_wallet_history_models, store_user_model
+from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, organisation_user_model, wallet_models, \
+    wallet_transaction_models, credit_wallet_history_models
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
 from .schemas.wallet_schemas import PaymentProvider

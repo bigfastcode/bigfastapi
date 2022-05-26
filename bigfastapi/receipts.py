@@ -1,14 +1,8 @@
 from base64 import encode
-import fastapi, os
+from datetime import datetime
 from fastapi import Depends, HTTPException, status
 from fastapi import APIRouter
 from fastapi import UploadFile, File
-from .email import send_email, send_receipt_email
-from .models.receipt_models import Receipt, search_receipts, fetch_receipt_by_id
-from .models.organisation_models import Organization
-from .schemas import users_schemas
-from .schemas import receipt_schemas
-from .schemas import pdf_schema
 from bigfastapi import pdfs
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
@@ -16,15 +10,22 @@ from fastapi.encoders import jsonable_encoder
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 import sqlalchemy.orm as orm
-from sqlalchemy import and_
 from uuid import uuid4
 from fastapi import BackgroundTasks
-from .utils import paginator, settings
 from typing import List, Optional
 
-from bigfastapi.models import organisation_models
+from .models import organisation_models
 from .core import messages
 from .core.helpers import Helpers
+from .email import send_email, send_receipt_email
+from .models.receipt_models import Receipt
+from .models.organisation_models import Organization
+from .schemas import users_schemas
+from .schemas import receipt_schemas
+from .schemas import pdf_schema
+from .utils import paginator, settings
+from .services import receipt_services
+
 
 
 app = APIRouter(tags=["Receipts"])
@@ -53,12 +54,18 @@ async def send_receipt(
             reqBody-subject: This is the subject of the mail to be sent to the recipient
             reqBody-recipient: This is the list of emails to be the recipient of the receipt.
 
-        returnDesc-
+        ReturnDesc-
 
             On sucessful request, it returns
 
             returnBody- 
                 an object with a key `message` with a string value - `receipt sent` .
+        Raises -
+
+            HTTP_404_NOT_FOUND: object does not exist in db
+            HTTP_401_UNAUTHORIZED: Not Authenticated
+            HTTP_403_FORBIDDEN: User is not a member of organization
+            HTTP_422_UNPROCESSABLE_ENTITY: Request validation error
     """
     try: 
         organization = await organisation_models.fetchOrganization(orgId=payload.organization_id, db=db)
@@ -77,7 +84,7 @@ async def send_receipt(
                 "pdfName": pdf_name
         }
         
-        file = convert_to_pdf(pdf_schema.Format(**schema), db=db)
+        file = receipt_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
 
         await send_receipt_email(
             payload, 
@@ -108,10 +115,12 @@ async def send_receipt(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 @app.get("/receipts", status_code=200, response_model=receipt_schemas.FetchReceiptsResponse)
-async def fetch_receipts(
+async def get_receipts(
     organization_id:str,
     search_value: str = None,
     sorting_key: str = None,
+    datetime_constraint: datetime = None,
+    reverse_sort: bool = True,
     page: int = 1, 
     size: int = 50, 
     db: orm.Session = Depends(get_db),
@@ -123,13 +132,15 @@ async def fetch_receipts(
 
         Intro - 
 
-            This endpoint retrieves all the receipts in an organization.
+            This endpoint retrieves all the receipts in an organization and can be used to synchronize the receipts created offline.
 
         ParamDesc -
 
             reqQuery-organization_id: This is the id of the organization sending the receipt.
             reqQuery-search_value(optional): This is a string used to filter the receipts.
-            reqQuery-sorting_key(optional): This is a string used to sort the receipts
+            reqQuery-sorting_key(optional): This is a string used to sort the receipts.
+            reqQuery-datetime_constraint: This is the key used for synchronization. If provided, the receipts created after the specified time are returned.
+            reqQuery-reverse_sort(optional): This is a boolean specifying the order of the returned data.
             reqQuery-page: This is an integer specifying the page to display. The default value is `1`.
             reqQuery-size: This is an integer used to specify the volume of data to be retrieved in numbers.
 
@@ -148,36 +159,36 @@ async def fetch_receipts(
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
+        sort_dir = "asc" if reverse_sort == True else "desc"
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
         offset = await paginator.off_set(page=page_number, size=page_size)
-        total_items =  (
-            db.query(Receipt)
-                .filter(
-                    Receipt.organization_id == organization_id)
-                .count()
-            )
-        pointers = await paginator.page_urls(page=page, size=page_size, 
-            count=total_items, endpoint=f"/receipts")
+        
+        
         organization = db.query(Organization).filter(Organization.id == organization_id).first()
         if not organization:
             return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         if search_value:
-            receipts, total_items = await search_receipts(organization_id=organization_id, 
+            receipts, total_items = await receipt_services.search_receipts(organization_id=organization_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
-        else:
-            receipts = ( 
-                db.query(Receipt)
-                .filter(Receipt.organization_id == organization_id)
-                .order_by(Receipt.date_created.desc())
-                .offset(offset=offset)
-                .limit(limit=size)
-                .all()
-                )
+        else: 
+            receipts, total_items = await receipt_services.get_receipts(
+                organization_id=organization_id,
+                offset=offset,
+                size=page_size, 
+                sort_dir=sort_dir, 
+                sorting_key=sorting_key, 
+                db=db, 
+                datetime_constraint=datetime_constraint)
+
+        pointers = await paginator.page_urls(page=page, size=page_size, 
+            count=total_items, endpoint=f"/receipts")
         response = {"page": page_number, "size": page_size, "total": total_items,
             "previous_page":pointers['previous'], "next_page": pointers["next"], "items": receipts}
         return response
     except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             , detail=str(ex))
 
@@ -212,17 +223,10 @@ async def get_receipt(
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
-        receipt =  await fetch_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
+        receipt =  await receipt_services.get_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
         return receipt
     except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex))
-
-
-
-
-
-
-def convert_to_pdf(pdfSchema, db: orm.Session = Depends(get_db)):
-    return pdfs.convert_to_pdf(pdfSchema, db=db) 
-
+            , detail=str(ex)) 
