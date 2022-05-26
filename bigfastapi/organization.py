@@ -498,36 +498,6 @@ async def changeOrganizationImage(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# @app.put("/organizations/{organization_id}/update-image")
-# async def organization_image_upload(organization_id: str, file: UploadFile = File(...),
-#                                     db: _orm.Session = _fastapi.Depends(
-#                                         get_db),
-#                                     user: users_schemas.User = _fastapi.Depends(
-#                                         is_authenticated)
-#                                     ):
-#     org = db.query(_models.Organization).filter(
-#         _models.Organization.id == organization_id).first()
-#     # delete existing image
-#     # if org.image != "":
-#     #     image = org.image
-#     #     filename = f"/{org.id}/{image}"
-
-#     #     root_location = os.path.abspath("filestorage")
-#     #     full_image_path =  root_location + filename
-#     #     os.remove(full_image_path)
-
-#     image = await upload_image(file, db, bucket_name=org.id)
-#     org.image = image
-#     db.commit()
-#     db.refresh(org)
-#     image = org.image
-
-#     appBasePath = config('API_URL')
-#     imageURL = appBasePath + f'/organizations/{organization_id}/image'
-#     setattr(org, 'image_full_path', imageURL)
-#     return org
-
-
 @app.get("/organizations/{organization_id}/image")
 async def get_organization_image_upload(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
     """intro--> This endpoint allows you to retrieve the cover image of an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/image endpoint
