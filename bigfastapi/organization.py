@@ -489,12 +489,10 @@ async def changeOrganizationImage(
     # Update organization image to uploaded image endpoint
     organization.image = f"/files/image/{bucketName}/{uploadedImage}"
 
-    menu = getOrgMenu(organization_id, db)
-    # return {"data": {"organization": organization, "menu": menu}}
-
     try:
         db.commit()
         db.refresh(organization)
+        menu = getOrgMenu(organization_id, db)
         return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
