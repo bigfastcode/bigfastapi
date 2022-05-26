@@ -82,8 +82,11 @@ async def send_receipt(
         schema = {
                 "htmlString": payload.message,
                 "pdfName": pdf_name
-        }
+            }
         
+        # TO-DO
+        # Check if a receipt file exists before creating file.
+
         file = receipt_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
 
         await send_receipt_email(
