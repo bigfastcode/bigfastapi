@@ -20,6 +20,7 @@ class atrributes(Receipt):
 
 class SendReceiptResponse(BaseModel):
     message: str
+    data: Receipt
 
 class FetchReceiptsResponse(BaseModel):
     page: int

@@ -1,4 +1,5 @@
 import datetime as _dt
+from email.policy import default
 from gzip import READ
 from re import T
 from sqlalchemy.schema import Column
@@ -22,6 +23,6 @@ class Receipt(_database.Base):
     message = Column(Text(length=600), index=True)
     subject = Column(String(255), index=True)
     recipient = Column(String(255), index=True)
-    file_id = Column(String(255), ForeignKey("files.id"))
+    file_id = Column(String(255), ForeignKey("files.id"), default=None)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
