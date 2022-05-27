@@ -12,7 +12,9 @@ from .auth_api import is_authenticated
 import sqlalchemy.orm as orm
 from uuid import uuid4
 from fastapi import BackgroundTasks
-from typing import List, Optional
+from typing import List
+from fastapi.encoders import jsonable_encoder
+
 
 from .models import organisation_models
 from .core import messages
@@ -34,7 +36,8 @@ app = APIRouter(tags=["Receipts"])
 @app.post("/receipts", status_code=201, response_model=receipt_schemas.SendReceiptResponse)
 async def send_receipt(
     payload: receipt_schemas.atrributes, 
-    background_tasks: BackgroundTasks, 
+    background_tasks: BackgroundTasks,
+    create_file: bool = False, 
     db: orm.Session = Depends(get_db),
     user: users_schemas.User = Depends(is_authenticated)
     ):
@@ -59,7 +62,7 @@ async def send_receipt(
             On sucessful request, it returns
 
             returnBody- 
-                an object with a key `message` with a string value - `receipt sent` .
+                an object with a key `message` with a string value - `receipt sent` and a key `data` with the created receipt details.
         Raises -
 
             HTTP_404_NOT_FOUND: object does not exist in db
@@ -77,25 +80,6 @@ async def send_receipt(
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
-        pdf_name = (payload.subject)+str(uuid4().hex)+".pdf"
-        
-        schema = {
-                "htmlString": payload.message,
-                "pdfName": pdf_name
-            }
-        
-        # TO-DO
-        # Check if a receipt file exists before creating file.
-
-        file = receipt_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
-
-        await send_receipt_email(
-            payload, 
-            background_tasks=background_tasks, 
-            template="mail_receipt.html", 
-            db=db, 
-            file="./filestorage/pdfs/"+pdf_name)
-
         receipt = Receipt(
             id=uuid4().hex, 
             sender_email=payload.sender_email, 
@@ -105,14 +89,38 @@ async def send_receipt(
             organization_id=payload.organization_id
             )
 
-        receipt.file_id = file.id
+        if(create_file == True):
+            pdf_name = (payload.subject)+str(uuid4().hex)+".pdf"
+
+            schema = {
+                "htmlString": payload.message,
+                "pdfName": pdf_name
+            }
+            file = receipt_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
+            receipt.file_id = file.id
+                
+            await send_receipt_email(
+                payload, 
+                background_tasks=background_tasks, 
+                template="mail_receipt.html", 
+                db=db, 
+                file="./filestorage/pdfs/"+pdf_name)
+
+        await send_receipt_email(
+                payload, 
+                background_tasks=background_tasks, 
+                template="mail_receipt.html", 
+                db=db
+                )
+
         db.add(receipt)
         db.commit()
         db.refresh(receipt)
 
-        return { "message" : "receipt sent" }
+        return JSONResponse({ "message" : "receipt sent", "data": jsonable_encoder(receipt)}, status_code=201)
 
     except Exception as ex:
+        db.rollback()
         if type(ex) == HTTPException:
             raise ex
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
@@ -188,7 +196,7 @@ async def get_receipts(
             count=total_items, endpoint=f"/receipts")
         response = {"page": page_number, "size": page_size, "total": total_items,
             "previous_page":pointers['previous'], "next_page": pointers["next"], "items": receipts}
-        return response
+        return JSONResponse({ "data": jsonable_encoder(response) }, status_code=200)
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
@@ -227,7 +235,8 @@ async def get_receipt(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
         receipt =  await receipt_services.get_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
-        return receipt
+        
+        return JSONResponse({ "data": jsonable_encoder(receipt) }, status_code=200)
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
