@@ -66,6 +66,7 @@ def create_organization(
     if db_org:
         raise _fastapi.HTTPException(
             status_code=400, detail=f"{organization.name} already exist in your business collection")
+
     created_org = create_organization(
         user=user, db=db, organization=organization)
 
@@ -541,7 +542,7 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 # Organisation Services
 
 def get_orgnanization_by_name(name: str, creatorId: str, db: _orm.Session):
-    return db.query(_models.Organization).filter(_models.Organization.name == name and creatorId == _models.Organization.creator).first()
+    return db.query(_models.Organization).filter(_models.Organization.name == name, creatorId == _models.Organization.creator).first()
 
 
 async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.Session):
