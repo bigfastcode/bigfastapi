@@ -2,15 +2,18 @@
 from logging import raiseExceptions
 import fastapi
 import os
+from typing import List
+from uuid import uuid4
+import sqlalchemy.orm as orm
+
+from bigfastapi.services import files_services
 
 from .models import file_models as model
 from .schemas import file_schemas as schema
 
-from uuid import uuid4
-import sqlalchemy.orm as orm
-from typing import List
-from bigfastapi.db.database import get_db
-from bigfastapi.utils import settings as settings
+
+from .db.database import get_db
+from .utils import settings as settings
 from fastapi.responses import FileResponse
 from datetime import datetime
 
@@ -42,7 +45,7 @@ def get_file(bucket_name: str, file_id: str, db: orm.Session = fastapi.Depends(g
         A stream of the file
     """
 
-    existing_file = model.find_file(bucket_name, file_id, db)
+    existing_file = files_services.get_file_by_id(bucket_name, file_id, db)
     if existing_file:
         local_file_path = os.path.join(os.path.realpath(
             settings.FILES_BASE_FOLDER), existing_file.bucketname, existing_file.filename)

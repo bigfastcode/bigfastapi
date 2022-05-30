@@ -8,6 +8,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from bigfastapi.db.database import get_db
+from bigfastapi.services import files_services
 from .auth_api import is_authenticated
 import sqlalchemy.orm as orm
 from uuid import uuid4
@@ -25,8 +26,9 @@ from .models.organisation_models import Organization
 from .schemas import users_schemas
 from .schemas import receipt_schemas
 from .schemas import pdf_schema
-from .utils import paginator, settings
-from .services import receipt_services
+from .utils import paginator
+from .services import receipts_services
+from .files import get_file
 
 
 
@@ -96,7 +98,7 @@ async def send_receipt(
                 "htmlString": payload.message,
                 "pdfName": pdf_name
             }
-            file = receipt_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
+            file = receipts_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
             receipt.file_id = file.id
                 
             await send_receipt_email(
@@ -180,10 +182,10 @@ async def get_receipts(
         if not organization:
             return JSONResponse({"message": "Organization does not exist"}, status_code=status.HTTP_404_NOT_FOUND)
         if search_value:
-            receipts, total_items = await receipt_services.search_receipts(organization_id=organization_id, 
+            receipts, total_items = await receipts_services.search_receipts(organization_id=organization_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
         else: 
-            receipts, total_items = await receipt_services.get_receipts(
+            receipts, total_items = await receipts_services.get_receipts(
                 organization_id=organization_id,
                 offset=offset,
                 size=page_size, 
@@ -234,9 +236,51 @@ async def get_receipt(
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
-        receipt =  await receipt_services.get_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
-        
+        receipt =  await receipts_services.get_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
+
         return JSONResponse({ "data": jsonable_encoder(receipt) }, status_code=200)
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            , detail=str(ex)) 
+
+
+@app.get('/receipts/{receipt_id}/download', status_code=200)
+async def download_receipt(
+    organization_id:str,
+    receipt_id: str,
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
+):
+    """
+        An endpoint to download a receipt. 
+        Intro - 
+            This endpoint returns the generated file for the receipt that matches the receipt id specified in the route.
+
+        ParamDesc -
+
+            reqParam-receipt_id: This is the id of the receipt to be fetched.
+            reqQuery-organization_id: This is the id of the organization.
+
+        returnDesc-
+
+            On sucessful request, it returns an object with the receipt details.
+    """
+    try: 
+        organization = await organisation_models.fetchOrganization(orgId=organization_id, db=db)
+        if not organization:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                detail=messages.INVALID_ORGANIZATION)
+
+        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
+        if is_valid_member == False:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
+
+        receipt =  await receipts_services.get_receipt_by_id(receipt_id=receipt_id, org_id=organization_id, db=db)
+        file = await get_file(file_id=receipt.file_id, db=db, bucket_name='pdfs')
+
+        return file
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
