@@ -3,6 +3,9 @@ from fastapi import FastAPI, Request, APIRouter, BackgroundTasks, HTTPException,
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import passlib.hash as _hash
+from starlette.background import BackgroundTask
+
+from .core.helpers import Helpers
 from .models import auth_models, user_models
 from .schemas import auth_schemas, users_schemas
 from passlib.context import CryptContext
@@ -52,9 +55,9 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
     """
 
     if user.email == None and user.phone_number == None:
-        raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to sign up") 
+        raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to sign up")
     if user.phone_number and user.country_code == None:
-        raise fastapi.HTTPException(status_code=403, detail="you must add a country code when you add a phone number") 
+        raise fastapi.HTTPException(status_code=403, detail="you must add a country code when you add a phone number")
     if user.phone_number and user.country_code:
         check_contry_code = utils.dialcode(user.country_code)
         if check_contry_code is None:
@@ -65,7 +68,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
         check_country = utils.find_country(user.country)
         if check_country is None:
             raise fastapi.HTTPException(status_code=403, detail="this country is invalid")
-        
+
     if user.email or (user.email and user.phone_number):
         user_email = await find_user_email(user.email, db)
         if user_email["user"] != None:
@@ -76,6 +79,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
                 raise fastapi.HTTPException(status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
         access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
+        BackgroundTask(send_slack_notification, user_created)
         return { "data": user_created, "access_token": access_token}
 
     if user.phone_number:
@@ -84,8 +88,9 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
             raise fastapi.HTTPException(status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
         access_token = await create_access_token(data = {"user_id": user_created.id }, db=db)
+        BackgroundTask(send_slack_notification, user_created)
         return { "data": user_created, "access_token": access_token}
- 
+
 
 
 @app.post("/auth/login", status_code=200)
@@ -104,17 +109,18 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
     """
 
     if user.email == None and user.phone_number == None:
-        raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to login") 
-    if user.email:    
+        raise fastapi.HTTPException(status_code=403, detail="you must use a either phone_number or email to login")
+    if user.email:
         userinfo = await find_user_email(user.email, db)
         if userinfo["user"] is None:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
-            raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")    
-        access_token = await create_access_token(data = {"user_id": userinfo["user"].id }, db=db)  
+            raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
+        access_token = await create_access_token(data = {"user_id": userinfo["user"].id }, db=db)
+        BackgroundTask(send_slack_notification, userinfo["response_user"])
         return {"data": userinfo["response_user"], "access_token": access_token}
-    
+
     if user.phone_number:
         if user.country_code == None:
             raise fastapi.HTTPException(status_code=403, detail="you must add country_code when using phone_number to login")
@@ -123,8 +129,9 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
-            raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")    
-        access_token = await create_access_token(data = {"user_id": userinfo["user"].id }, db=db)  
+            raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
+        access_token = await create_access_token(data = {"user_id": userinfo["user"].id }, db=db)
+        BackgroundTask(send_slack_notification, userinfo["response_user"])
         return {"data": userinfo["response_user"], "access_token": access_token}
 
 
@@ -137,7 +144,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
         country=user.country, state= user.state, google_id = user.google_id, google_image= user.google_image,
         image = user.image, device_id = user.device_id
     )
-    
+
     db.add(user_obj)
     db.commit()
     db.refresh(user_obj)
@@ -155,6 +162,9 @@ async def find_user_phone(phone_number, country_code, db: orm.Session):
     return {"user": found_user, "response_user": auth_schemas.UserCreateOut.from_orm(found_user)}
 
 
+def send_slack_notification(user):
+    message = "New login from " + user.email
+    await Helpers.slack_notification(text=message) # sends the message to slack
 
 
 
