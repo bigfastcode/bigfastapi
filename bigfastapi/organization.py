@@ -65,7 +65,7 @@ def create_organization(
 
     if db_org:
         raise _fastapi.HTTPException(
-            status_code=400, detail="Organization name already in use")
+            status_code=400, detail=f"{organization.name} already exist in your business collection")
     created_org = create_organization(
         user=user, db=db, organization=organization)
 
