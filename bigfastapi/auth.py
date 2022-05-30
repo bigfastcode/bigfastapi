@@ -164,7 +164,7 @@ async def find_user_phone(phone_number, country_code, db: orm.Session):
 
 def send_slack_notification(user):
     message = "New login from " + user.email
-    Helpers.slack_notification(text=message) # sends the message to slack
+    await Helpers.slack_notification(text=message) # sends the message to slack
 
 
 
