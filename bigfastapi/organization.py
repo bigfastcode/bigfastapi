@@ -60,7 +60,8 @@ def create_organization(
     returnDesc--> On sucessful request, it returns
         returnBody--> details of the newly created organization
     """
-    db_org = get_orgnanization_by_name(name=organization.name, db=db)
+    db_org = get_orgnanization_by_name(
+        name=organization.name, creatorId=user.id, db=db)
 
     if db_org:
         raise _fastapi.HTTPException(
@@ -539,8 +540,8 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 # /////////////////////////////////////////////////////////////////////////////////
 # Organisation Services
 
-def get_orgnanization_by_name(name: str, db: _orm.Session):
-    return db.query(_models.Organization).filter(_models.Organization.name == name).first()
+def get_orgnanization_by_name(name: str, creatorId: str, db: _orm.Session):
+    return db.query(_models.Organization).filter(_models.Organization.name == name and creatorId == _models.Organization.creator).first()
 
 
 async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.Session):
