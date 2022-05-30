@@ -108,7 +108,7 @@ async def update_stock(stock_update: stock_schema.StockUpdate,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update a stock for this business")
 
     #fetch stock
-    stock = await stock_model.fetch_stock_by_id(db=db, stock_id=stock_id)
+    stock = stock_model.fetch_stock_by_id(db=db, stock_id=stock_id)
     if not stock:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Stock does not exist')
 
