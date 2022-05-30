@@ -64,7 +64,6 @@ def create_organization(
         name=organization.name, creatorId=user.id, db=db)
 
     if db_org:
-        print(f"We found {organization.name}")
         raise _fastapi.HTTPException(
             status_code=400, detail=f"{organization.name} already exist in your business collection")
 
