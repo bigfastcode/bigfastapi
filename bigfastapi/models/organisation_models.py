@@ -31,7 +31,7 @@ class Organization(Base):
     vision = Column(String(255), index=True)
     values = Column(String(255), index=True)
     currency = Column(String(5), index=True)
-    name = Column(String(255), unique=True, index=True, default="")
+    name = Column(String(255), index=True, default="")
     business_type = Column(String(225), default="retail")
     country = Column(String(255), index=True)
     state = Column(String(255), index=True)
