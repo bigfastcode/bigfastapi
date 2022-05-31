@@ -17,7 +17,8 @@ setuptools.setup(
                                                 'bigfastapi.db',  
                                                 'bigfastapi.core',
                                                 'bigfastapi.services',
-                                                'bigfastapi.utils', 
+                                                'bigfastapi.utils',
+                                                'bigfastapi.templates', 
                                                 'bigfastapi.data']),  
 
     classifiers=[

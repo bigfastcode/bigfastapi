@@ -41,11 +41,11 @@ class Product(database.Base):
 
 
 #==============================Database Services=============================#
-def select_product(product_id: str, business_id: str, db: orm.Session):
+def fetch_product(product_id: str, business_id: str, db: orm.Session):
     product = db.query(Product).filter(Product.business_id == business_id, Product.id == product_id, Product.is_deleted==False).first()
     return product
 
-def get_product_by_id(id: str, db: orm.Session):
+def fetch_product_by_id(id: str, db: orm.Session):
     return db.query(Product).filter(Product.id == id, Product.is_deleted==False).first()
 
 async def fetch_products(
@@ -54,18 +54,26 @@ async def fetch_products(
     timestamp: datetime.datetime = None,
     db: orm.Session = Depends(database.get_db)
     ):
+    if timestamp:
+        total_items = db.query(Product).filter(Product.business_id == business_id).filter(
+                Product.is_deleted == False, Product.updated > timestamp).count()
 
-    total_items = db.query(Product).filter(Product.business_id == business_id).filter(
-            Product.is_deleted == False).count()
+        products = db.query(Product).filter(
+            Product.business_id == business_id).filter(
+            Product.is_deleted == False, Product.updated > timestamp).order_by(Product.created.desc()
+            ).offset(offset=offset).limit(limit=size).all()
+    else:
+        total_items = db.query(Product).filter(Product.business_id == business_id).filter(
+                Product.is_deleted == False).count()
 
-    products = db.query(Product).filter(
-        Product.business_id == business_id).filter(
-        Product.is_deleted == False).order_by(Product.created.desc()
-        ).offset(offset=offset).limit(limit=size).all()
+        products = db.query(Product).filter(
+            Product.business_id == business_id).filter(
+            Product.is_deleted == False).order_by(Product.created.desc()
+            ).offset(offset=offset).limit(limit=size).all()
 
     return products, total_items
 
-async def sort_products(
+async def fetch_sorted_products(
     business_id:str,
     sort_key: str,
     offset: int, size:int=50,
