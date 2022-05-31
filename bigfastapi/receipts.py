@@ -245,6 +245,32 @@ async def get_receipt(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             , detail=str(ex)) 
 
+@app.delete("/reciepts/selected/delete", status_code=status.HTTP_200_OK)
+async def delete_selected_receipts(
+    receipts: receipt_schemas.DeleteSelectedReceipts,
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)):
+    """
+    intro-This endpoint allows you to delete selected receipts.
+
+    paramDesc-On delete request the url takes no parameter
+
+    returnDesc-On sucessful request, it returns a `message`
+    returnBody- "successfully deleted receipts"
+    """
+
+    user_status =  await Helpers.is_organization_member(user_id=user.id, organization_id=receipts.organisation_id, db=db)
+    if user_status == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete receipts for this business")
+
+    for receipt_id in receipts.receipt_id_list:
+        receipt = receipts_services.get_receipt_by_id(receipt_id=receipt_id, db=db)
+
+        if receipt != None:
+            receipt.is_deleted = True
+            db.commit()
+
+    return {"message":"Successfully Deleted Receipts"}
 
 @app.get('/receipts/{receipt_id}/download', status_code=200)
 async def download_receipt(
