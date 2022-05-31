@@ -24,5 +24,6 @@ class Receipt(_database.Base):
     subject = Column(String(255), index=True)
     recipient = Column(String(255), index=True)
     file_id = Column(String(255), ForeignKey("files.id"), default=None)
+    is_deleted = Column(String(225), index = True, default=False)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
