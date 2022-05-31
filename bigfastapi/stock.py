@@ -2,7 +2,7 @@ import fastapi as fastapi
 import sqlalchemy.orm as orm
 import datetime as datetime
 from uuid import uuid4
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from typing import List
 from fastapi import HTTPException, status
 from .auth_api import is_authenticated
@@ -127,10 +127,11 @@ async def update_stock(stock_update: stock_schema.StockUpdate,
 
 
 @app.delete("/stock/{stock_id}")
-async def delete_stock(stock_id: str,  
-                    stock: stock_schema.DeleteStock,
-                    user: user_schema.User = fastapi.Depends(is_authenticated), 
-                    db: orm.Session = fastapi.Depends(get_db)):
+async def delete_stock(
+    stock_id: str,  
+    organisation_id: str,
+    user: user_schema.User = fastapi.Depends(is_authenticated), 
+    db: orm.Session = fastapi.Depends(get_db)):
     
     """
     intro-This endpoint allows you to delete a particular stock. To delete a stock, 
@@ -143,7 +144,7 @@ async def delete_stock(stock_id: str,
        returnBody- "Successfully deleted"
     """
     #check if user is in business and can delete stock
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=stock.business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organisation_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a stock for this business")
 
