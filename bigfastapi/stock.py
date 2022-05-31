@@ -33,7 +33,7 @@ async def create_stock(stock: stock_schema.CreateStock,
     if user_status==False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a stock for a product in this business")
 
-    created_stock = await stock_model.create_stock(db=db, product_id=stock.product_id, quantity=stock.quantity, 
+    created_stock = stock_model.create_stock(db=db, product_id=stock.product_id, quantity=stock.quantity, 
                         price= stock.price, user_id=user.id)
 
     if created_stock:
