@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request, APIRouter, BackgroundTasks, HTTPException,
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
 import passlib.hash as _hash
-from starlette.background import BackgroundTask
 
 from .core.helpers import Helpers
 from .models import auth_models, user_models
@@ -32,7 +31,7 @@ app = APIRouter(tags=["Auth"])
 
 
 @app.post("/auth/signup", status_code=201)
-async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.Depends(get_db)):
+async def create_user(user: auth_schemas.UserCreate, background_tasks: BackgroundTasks, db: orm.Session = fastapi.Depends(get_db),):
 
     """intro-->This endpoint allows creation of a new user. To create a new user, you need to send a post request to the /auth/signup endpoint with a body of request containing details of the new user.
     paramDesc-->
@@ -86,7 +85,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
                     status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
         access_token = await create_access_token(data={"user_id": user_created.id}, db=db)
-        BackgroundTask(send_slack_notification, user_created)
+        background_tasks.add_task(send_slack_notification, user_created)
         return {"data": user_created, "access_token": access_token}
 
     if user.phone_number:
@@ -96,12 +95,12 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session = fastapi.D
                 status_code=403, detail="Phone_Number already exist")
         user_created = await create_user(user, db=db)
         access_token = await create_access_token(data={"user_id": user_created.id}, db=db)
-        BackgroundTask(send_slack_notification, user_created)
+        background_tasks.add_task(send_slack_notification, user_created)
         return {"data": user_created, "access_token": access_token}
 
 
 @app.post("/auth/login", status_code=200)
-async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(get_db)):
+async def login(user: auth_schemas.UserLogin, background_tasks: BackgroundTasks, db: orm.Session = fastapi.Depends(get_db)):
     """intro-->This endpoint allows you to login an existing user, to login a user you need to make a post request to the /auth/login endpoint with a required body of requst as specified below
 
     paramDesc-->
@@ -128,7 +127,7 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
             raise fastapi.HTTPException(
                 status_code=403, detail="Invalid Credentials")
         access_token = await create_access_token(data={"user_id": userinfo["user"].id}, db=db)
-        BackgroundTask(send_slack_notification, userinfo["response_user"])
+        background_tasks.add_task(send_slack_notification, userinfo["response_user"])
         return {"data": userinfo["response_user"], "access_token": access_token}
 
     if user.phone_number:
@@ -144,7 +143,7 @@ async def login(user: auth_schemas.UserLogin, db: orm.Session = fastapi.Depends(
             raise fastapi.HTTPException(
                 status_code=403, detail="Invalid Credentials")
         access_token = await create_access_token(data={"user_id": userinfo["user"].id}, db=db)
-        BackgroundTask(send_slack_notification, userinfo["response_user"])
+        background_tasks.add_task(send_slack_notification, userinfo["response_user"])
         return {"data": userinfo["response_user"], "access_token": access_token}
 
 
