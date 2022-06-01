@@ -65,3 +65,7 @@ class DeleteSelectedProduct(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+    
+    
