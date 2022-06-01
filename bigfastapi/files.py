@@ -112,7 +112,7 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
         db.commit()
         db.refresh(existing_file)
 
-        return schema.File.from_orm(existing_file)
+        return existing_file.filename
     else:
         # Create a db entry for this file. 
         file = model.File(id=uuid4().hex, filename=file.filename, bucketname=bucket_name, filesize=filesize)
@@ -120,7 +120,7 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
         db.commit()
         db.refresh(file)
 
-        return schema.File.from_orm(file)
+        return file.filename
     
 
 async def upload_image( file: fastapi.UploadFile = fastapi.File(...),  db: orm.Session = fastapi.Depends(get_db), bucket_name = str):
