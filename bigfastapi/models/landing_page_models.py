@@ -12,6 +12,7 @@ class LPage(db.Base):
   id = Column(String(255), primary_key=True, index=True)
   user_id = Column(String(255), ForeignKey('users.id'), nullable=False)
   landing_page_name = Column(String(255), index=True, unique=True)
+  title = Column(String(255), nullable=False)
   bucket_name = Column(String(255), index=True, unique=True)
   company_name = Column(String(255), nullable=False) 
   login_link = Column(String(255))
