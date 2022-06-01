@@ -1,3 +1,4 @@
+from calendar import WEDNESDAY
 import datetime as datetime
 import sqlalchemy.orm as orm
 import bigfastapi.db.database as database
@@ -22,23 +23,6 @@ class Product(database.Base):
     created = Column(DateTime, default=datetime.datetime.utcnow)
     updated = Column(DateTime, default=datetime.datetime.utcnow)
     is_deleted = Column(BOOLEAN, default=False)
-
-# # product price table, when, which customer, priority, currency, day of week
-# class ProductPrice(database.Base):
-#     __tablename__ = 'product_price'
-#     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-#     product_id = Column(String(255), ForeignKey("products.id"))
-#     stock_id = Column(String(255), ForeignKey("stock.id"))
-#     price = Column(Float, index=True, nullable=False)
-#     start = Column(DateTime)
-#     end = Column(DateTime)
-#     customer_group = Column(String(255), index=True, nullable=False)
-#     currency = Column(String(255), index=True, nullable=False)
-#     created_by = Column(String(255), ForeignKey("users.id"))
-#     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-#     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
-#     is_deleted = Column(BOOLEAN, default=False)
-
 
 #==============================Database Services=============================#
 def fetch_product(product_id: str, business_id: str, db: orm.Session):
