@@ -34,8 +34,7 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
                    user: user_schema.User = fastapi.Depends(is_authenticated), 
                    product_image: Optional[List[UploadFile]] = File(None) ,
                    db: orm.Session = fastapi.Depends(get_db)):
-       
-    
+
     """
     Intro - This endpoint allows you to create a create a new product item.
     It takes in four parameters. To create a product, you 

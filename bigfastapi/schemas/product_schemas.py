@@ -23,7 +23,7 @@ class Product(ProductBase):
 @as_form
 class ProductCreate(BaseModel):
     name: str
-    description: str
+    description: Optional[str]= None
     unique_id: Optional[str] = None
     business_id: str
     price: Optional[float] = None
@@ -39,6 +39,7 @@ class ProductUpdate(ProductBase):
 
 class ShowProduct(Product):
     created_by: str
+    updated: dt.datetime
     product_image: Optional[List[Any]] = []
 
     class Config:

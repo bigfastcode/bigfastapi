@@ -164,7 +164,7 @@ def row_to_dict(row):
 # MENU RELATED DEFAULTS
 def defaultManu():
     default_more_list = ['reports', 'invoices', 'fees', 'tutorials',
-                         'sales', 'debts', 'receipts', 'products', 'payments']
+                         'sales', 'suppliers', 'debts', 'receipts', 'products', 'payments']
 
     default_retail = ['dashboard', 'customers',
                       'debts', 'payments', 'settings', 'more']
