@@ -271,6 +271,7 @@ async def delete_selected_receipts(
             print(receipt)
             receipt.is_deleted = True
             db.commit()
+            db.refresh(receipt)
 
     return {"message":"Successfully Deleted Receipts"}
 
