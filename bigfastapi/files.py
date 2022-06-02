@@ -1,7 +1,5 @@
-
 from logging import raiseExceptions
-import fastapi
-import os
+import fastapi, os
 
 from .models import file_models as model
 from .schemas import file_schemas as schema
@@ -17,7 +15,6 @@ from datetime import datetime
 # Import the Router
 app = fastapi.APIRouter()
 
-
 @app.get("/files/{bucket_name}/", response_model=List[schema.File])
 def get_all_files(db: orm.Session = fastapi.Depends(get_db)):
     """intro-->This endpoint returns all files that are in a single bucket. To use this endpoint you need to make a get request to the /files/{bucket_name}/ endpoint 
@@ -30,8 +27,9 @@ def get_all_files(db: orm.Session = fastapi.Depends(get_db)):
     return list(map(schema.File.from_orm, files))
 
 
-@app.get("/files/{bucket_name}/{file_id}", response_class=FileResponse)
-def get_file(bucket_name: str, file_id: str, db: orm.Session = fastapi.Depends(get_db)):
+@app.get("/files/{bucket_name}/{file_name}", response_class=FileResponse)
+def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends(get_db)):
+
     """Download a single file from the storage
 
     Args:
@@ -42,21 +40,19 @@ def get_file(bucket_name: str, file_id: str, db: orm.Session = fastapi.Depends(g
         A stream of the file
     """
 
-    existing_file = model.find_file(bucket_name, file_id, db)
+    existing_file = model.find_file(bucket_name, file_name, db)
     if existing_file:
-        local_file_path = os.path.join(os.path.realpath(
-            settings.FILES_BASE_FOLDER), existing_file.bucketname, existing_file.filename)
+        local_file_path = os.path.join(os.path.realpath(settings.FILES_BASE_FOLDER), existing_file.bucketname, existing_file.filename)
 
-        common_path = os.path.commonpath(
-            (os.path.realpath(settings.FILES_BASE_FOLDER), local_file_path))
+        common_path = os.path.commonpath((os.path.realpath(settings.FILES_BASE_FOLDER), local_file_path))
         if os.path.realpath(settings.FILES_BASE_FOLDER) != common_path:
-            raise fastapi.HTTPException(
-                status_code=403, detail="File reading from unallowed path")
+            raise fastapi.HTTPException(status_code=403, detail="File reading from unallowed path")
 
         return FileResponse(local_file_path)
     else:
         raise fastapi.HTTPException(status_code=404, detail="File not found")
 
+    
 
 @app.post("/upload-file/{bucket_name}/", response_model=schema.File)
 async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(...), db: orm.Session = fastapi.Depends(get_db)):
@@ -67,16 +63,14 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
     returnDesc--> On successful request, it returns 
         returnBody--> details of the file just created
     """
-
+    
     # Make sure the base folder exists
     if settings.FILES_BASE_FOLDER == None or len(settings.FILES_BASE_FOLDER) < 2:
-        raise fastapi.HTTPException(
-            status_code=404, detail="Blog title already exists")
+        raise fastapi.HTTPException(status_code=404, detail="Blog title already exists")
 
     # Make sure the bucket name does not contain any paths
     if bucket_name.isalnum() == False:
-        raise fastapi.HTTPException(
-            status_code=406, detail="Bucket name has to be alpha-numeric")
+        raise fastapi.HTTPException(status_code=406, detail="Bucket name has to be alpha-numeric")
 
     # Create the base folder
     base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
@@ -89,16 +83,14 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
     try:
         os.makedirs(os.path.join(base_folder, bucket_name))
     except:
-        pass
+       pass
 
-    full_write_path = os.path.realpath(
-        os.path.join(base_folder, bucket_name, file.filename))
-
+    full_write_path = os.path.realpath(os.path.join(base_folder, bucket_name, file.filename))
+    
     # Make sure there has been no exit from our core folder
     common_path = os.path.commonpath((full_write_path, base_folder))
     if base_folder != common_path:
-        raise fastapi.HTTPException(
-            status_code=403, detail="File writing to unallowed path")
+        raise fastapi.HTTPException(status_code=403, detail="File writing to unallowed path")
 
     contents = await file.read()
 
@@ -107,8 +99,7 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
         with open(full_write_path, 'wb') as f:
             f.write(contents)
     except OSError:
-        raise fastapi.HTTPException(
-            status_code=423, detail="Error writing to the file")
+        raise fastapi.HTTPException(status_code=423, detail="Error writing to the file")
 
     # Retrieve the file size from what we wrote on disk, so we are sure it matches
     filesize = os.path.getsize(full_write_path)
@@ -123,27 +114,24 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
 
         return schema.File.from_orm(existing_file)
     else:
-        # Create a db entry for this file.
-        file = model.File(id=uuid4().hex, filename=file.filename,
-                          bucketname=bucket_name, filesize=filesize)
+        # Create a db entry for this file. 
+        file = model.File(id=uuid4().hex, filename=file.filename, bucketname=bucket_name, filesize=filesize)
         db.add(file)
         db.commit()
         db.refresh(file)
 
         return schema.File.from_orm(file)
+    
 
-
-async def upload_image(file: fastapi.UploadFile = fastapi.File(...),  db: orm.Session = fastapi.Depends(get_db), bucket_name=str):
-
+async def upload_image( file: fastapi.UploadFile = fastapi.File(...),  db: orm.Session = fastapi.Depends(get_db), bucket_name = str):
+    
     # Make sure the base folder exists
     if settings.FILES_BASE_FOLDER == None or len(settings.FILES_BASE_FOLDER) < 2:
-        raise fastapi.HTTPException(
-            status_code=404, detail="base folder does not exist or base folder length too short")
+        raise fastapi.HTTPException(status_code=404, detail="base folder does not exist or base folder length too short")
 
     # Make sure the bucket name does not contain any paths
     if bucket_name.isalnum() == False:
-        raise fastapi.HTTPException(
-            status_code=406, detail="Bucket name has to be alpha-numeric")
+        raise fastapi.HTTPException(status_code=406, detail="Bucket name has to be alpha-numeric")
 
     # Create the base folder
     base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
@@ -156,16 +144,14 @@ async def upload_image(file: fastapi.UploadFile = fastapi.File(...),  db: orm.Se
     try:
         os.makedirs(os.path.join(base_folder, bucket_name))
     except:
-        pass
+       pass
 
-    full_write_path = os.path.realpath(
-        os.path.join(base_folder, bucket_name, file.filename))
-
+    full_write_path = os.path.realpath(os.path.join(base_folder, bucket_name, file.filename))
+    
     # Make sure there has been no exit from our core folder
     common_path = os.path.commonpath((full_write_path, base_folder))
     if base_folder != common_path:
-        raise fastapi.HTTPException(
-            status_code=403, detail="File writing to unallowed path")
+        raise fastapi.HTTPException(status_code=403, detail="File writing to unallowed path")
 
     contents = await file.read()
 
@@ -174,8 +160,7 @@ async def upload_image(file: fastapi.UploadFile = fastapi.File(...),  db: orm.Se
         with open(full_write_path, 'wb') as f:
             f.write(contents)
     except OSError:
-        raise fastapi.HTTPException(
-            status_code=423, detail="Error writing to the file")
+        raise fastapi.HTTPException(status_code=423, detail="Error writing to the file")
 
     # Retrieve the file size from what we wrote on disk, so we are sure it matches
     filesize = os.path.getsize(full_write_path)
@@ -190,42 +175,40 @@ async def upload_image(file: fastapi.UploadFile = fastapi.File(...),  db: orm.Se
 
         return existing_file.filename
     else:
-        # Create a db entry for this file.
-        file = model.File(id=uuid4().hex, filename=file.filename,
-                          bucketname=bucket_name, filesize=filesize)
+        # Create a db entry for this file. 
+        file = model.File(id=uuid4().hex, filename=file.filename, bucketname=bucket_name, filesize=filesize)
         db.add(file)
         db.commit()
         db.refresh(file)
 
         return file.filename
-
-
+    
 async def isFileExist(filePath: str):
-    """Check the existence of a file in directory
+     """Check the existence of a file in directory
 
-   Args:
-       File path (str): path to the file example "/testImages/test.png".
-
-   Returns:
-       Boolean: true or false depending if file exist
-   """
-    basePath = os.path.abspath("filestorage")
-    fullPath = basePath + filePath
-    return os.path.exists(fullPath)
-
-
+    Args:
+        File path (str): path to the file example "/testImages/test.png".
+        
+    Returns:
+        Boolean: true or false depending if file exist
+    """
+     basePath = os.path.abspath("filestorage")
+     fullPath =  basePath + filePath
+     return os.path.exists(fullPath)
+    
+ 
 async def deleteFile(filePath: str):
     """Delete a file from directory
 
     Args:
         File path (str): path to the file example "/testImages/test.png".
-
+        
     Returns:
         Boolean: true or false depending if operation is successful
     """
     try:
         basePath = os.path.abspath("filestorage")
-        fullPath = basePath + filePath
+        fullPath =  basePath + filePath
         os.remove(fullPath)
         return True
     except Exception as e:

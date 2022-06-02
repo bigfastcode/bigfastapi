@@ -1,7 +1,10 @@
+import requests
 import sqlalchemy.orm as _orm
-from bigfastapi.models import organisation_user_model
+from decouple import config
 
-from  bigfastapi.models.organisation_models import Organization
+from bigfastapi.models import organisation_user_model
+from bigfastapi.models.organisation_models import Organization
+
 
 class Helpers:
     async def is_organization_member(user_id: str, organization_id: str, db: _orm.Session):
@@ -18,3 +21,9 @@ class Helpers:
             return False
         return True
 
+    # Sends a notification to slack.
+    # NOTE: DO NOT CALL THIS METHOD IN THE SAME THREAD AS YOUR REQUEST. USE A BACKGROUND TASK
+    @staticmethod
+    def slack_notification(url:str, text: str, verify: bool = True):
+        requests.post(url=config(url), json={"text": text}, headers={"Content-Type": "application/json"},
+                    verify=verify)

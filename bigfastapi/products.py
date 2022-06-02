@@ -85,7 +85,7 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
             
             file.filename = secrets.token_hex(10) +'.'+extension
             result = await upload_image(file, db=db, bucket_name = created_product.id)
-            path = request.url.scheme +"://" + hostname + '/product/'+ created_product.id + '/'+result.id
+            path = request.url.scheme +"://" + hostname + '/product/'+ created_product.id + '/'+result
             image_path_list.append(path)
         
         created_product.product_image = image_path_list
@@ -126,26 +126,17 @@ async def get_products(request: Request, business_id: str,
         product_list, total_items = await model.search_products(business_id=business_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
     elif sorting_key:
-        product_list, total_items = await model.sort_products(business_id=business_id, 
+        product_list, total_items = await model.fetch_sorted_products(business_id=business_id, 
                 sort_key=sorting_key, offset=offset, size=page_size, sort_dir=sort_dir, db=db)
     else:
         product_list, total_items = await model.fetch_products(business_id=business_id,
                 offset=offset, size=page_size, timestamp=datetime_constraint, db=db)
     
-
     if not product_list:
         product_list = []
 
-    hostname = request.headers.get('host')
-
     for product in product_list:
-        #fetch images
-        images = db.query(file_model.File).filter(file_model.File.bucketname == product.id).all()
-        image_path_list = []
-        for image in images:
-            path = request.url.scheme +"://" + hostname + '/product/'+ product.id + '/'+image.id
-            image_path_list.append(path)
-        
+        image_path_list = fetch_product_images(db=db, product_id=product.id, request=request)
         product.product_image = image_path_list
 
 
@@ -155,6 +146,15 @@ async def get_products(request: Request, business_id: str,
     
     return response
 
+def fetch_product_images(db, product_id, request):
+    hostname = request.headers.get('host')
+    images = db.query(file_model.File).filter(file_model.File.bucketname == product_id).all()
+    image_path_list = []
+    for image in images:
+        path = request.url.scheme +"://" + hostname + '/product/'+ product_id + '/'+image.filename
+        image_path_list.append(path)
+
+    return image_path_list
 
 @app.get('/product/{product_id}', response_model=schema.ShowProduct)
 def get_product(request: Request, business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
@@ -171,37 +171,27 @@ def get_product(request: Request, business_id: str, product_id: str, db: orm.Ses
     if not product:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
 
-    #fetch images
-    hostname = request.headers.get('host')
-    images = db.query(file_model.File).filter(file_model.File.bucketname == product.id).all()
-    image_path_list = []
-    for image in images:
-        path = request.url.scheme +"://" + hostname + '/product/'+ product.id + '/'+image.id
-        image_path_list.append(path)
+    image_path_list = fetch_product_images(db=db, product_id=product_id, request=request)
     
     product.product_image = image_path_list
 
     return product
 
 
-@app.get("/product/{product_id}/{file_id}")
-async def get_product_image(product_id: str, file_id: str, 
+@app.get("/product/{product_id}/{filename}")
+async def get_product_image(product_id: str, filename: str, 
                                         db: orm.Session = fastapi.Depends(get_db)):
-    
-    product = model.get_product_by_id(product_id, db=db)
-    image = db.query(file_model.File).filter(file_model.File.bucketname == product.id, 
-                                              file_model.File.id == file_id).first()
 
-    filename = f"/{image.bucketname}/{image.filename}"
+    filepath = f"/{product_id}/{filename}"
 
     root_location = os.path.abspath("filestorage")
-    full_image_path = root_location + filename
+    full_image_path = root_location + filepath
 
     return FileResponse(full_image_path)
 
 
 @app.put('/product/{product_id}')
-def update_product(product_update: schema.ProductUpdate,
+async def update_product(product_update: schema.ProductUpdate,
                     product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
@@ -215,7 +205,8 @@ def update_product(product_update: schema.ProductUpdate,
     """
     
     #check if user is allowed to update products
-    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product_update.business_id, db=db) == False:
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product_update.business_id, db=db)
+    if user_status ==False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update a product for this business")
 
     #fetch products
@@ -238,7 +229,7 @@ def update_product(product_update: schema.ProductUpdate,
 
 
 @app.delete("/product/{product_id}")
-def delete_product(id: schema.DeleteProduct, product_id: str,
+async def delete_product(id: schema.DeleteProduct, product_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
     
@@ -254,11 +245,12 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
     """
     
     #check if user is in business and can delete product
-    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.business_id, db=db) == False:
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.business_id, db=db) 
+    if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     #check if product exists in db
-    product = model.select_product(product_id=product_id, business_id=id.business_id, db=db)
+    product = model.fetch_product(product_id=product_id, business_id=id.business_id, db=db)
     if product is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
         
@@ -269,7 +261,7 @@ def delete_product(id: schema.DeleteProduct, product_id: str,
 
 
 @app.delete("/product/selected/delete")
-def delete_selected_products(req: schema.DeleteSelectedProduct,
+async def delete_selected_products(req: schema.DeleteSelectedProduct,
                              db: orm.Session = Depends(get_db),
                             user: user_schema.User = fastapi.Depends(is_authenticated)):
     """
@@ -283,11 +275,12 @@ def delete_selected_products(req: schema.DeleteSelectedProduct,
     """
 
     #check if user is in business and can delete product
-    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db) == False:
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db)
+    if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     for product_id in req.product_id_list:
-        product = model.get_product_by_id(id=product_id, db=db)
+        product = model.fetch_product_by_id(id=product_id, db=db)
 
         if product != None and product.business_id == req.business_id:
            
@@ -313,7 +306,8 @@ def delete_selected_products(req: schema.DeleteProduct,
     """
 
     #check if user is in business and can delete product
-    if helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db) == False:
+    user_status = helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db)
+    if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     products = db.query(model.Product).filter(model.Product.business_id==req.business_id, 
@@ -331,9 +325,6 @@ def delete_selected_products(req: schema.DeleteProduct,
 
 
 
-
-
-    
 
     
 

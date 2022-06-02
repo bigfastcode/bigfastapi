@@ -1,7 +1,7 @@
 from bigfastapi.schemas import receipt_schemas
 from .models import email_models
 from .schemas import email_schema
-from typing import Optional
+from typing import Optional, Union
 from uuid import uuid4
 from datetime import datetime
 from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, status
@@ -291,18 +291,28 @@ async def send_receipt_email(
     background_tasks: BackgroundTasks,
     template: Optional[str] = "mail_receipt.html",
     db: orm.Session = fastapi.Depends(get_db),
-    file: UploadFile = File(...)
+    file: Union[UploadFile, None] = None
 ):
-    try: 
-        message = MessageSchema(
-            subject=email_details.subject,
-            recipients=email_details.recipient,
-            template_body={
-                "message": email_details.message,
-            },
-            subtype="html",
-            attachments=[file]
-        )
+    try:
+        if file is not None:
+            message = MessageSchema(
+                subject=email_details.subject,
+                recipients=email_details.recipient,
+                template_body={
+                    "message": email_details.message,
+                },
+                subtype="html",
+                attachments=[file]
+            )
+        else: 
+            message = MessageSchema(
+                subject=email_details.subject,
+                recipients=email_details.recipient,
+                template_body={
+                    "message": email_details.message,
+                },
+                subtype="html",
+            )
 
         fm = FastMail(conf)
         background_tasks.add_task(fm.send_message, message, template_name=template)
