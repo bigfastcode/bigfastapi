@@ -20,7 +20,7 @@ class atrributes(Receipt):
 
 class DeleteSelectedReceipts(BaseModel):
     organisation_id: str
-    receipt_id_list: str
+    receipt_id_list: list
 
 class SendReceiptResponse(BaseModel):
     message: str
