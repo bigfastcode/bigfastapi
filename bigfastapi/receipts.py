@@ -265,7 +265,7 @@ async def delete_selected_receipts(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete receipts for this business")
 
     for receipt_id in receipts.receipt_id_list:
-        receipt = receipts_services.get_receipt_by_id(receipt_id=receipt_id, org_id=receipts.organisation_id, db=db)
+        receipt = await receipts_services.get_receipt_by_id(receipt_id=receipt_id, org_id=receipts.organisation_id, db=db)
 
         if receipt is not None:
             print(receipt)

@@ -10,6 +10,7 @@ class Receipt(BaseModel):
     message: Optional[str]
     subject: Optional[str]
     recipient: Optional[str]
+    is_deleted: Optional[bool]
     file_id: Optional[str]
 
     class Config:
