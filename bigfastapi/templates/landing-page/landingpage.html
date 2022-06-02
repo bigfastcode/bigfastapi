@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>{{h.title}}</title>
+    <link rel = "icon" href ="{{h.company_logo}}" type="image/x-icon">
     <link rel="stylesheet" href="{{h.css_file}}" />
   </head>
 
@@ -55,7 +56,7 @@
           <h1>{{h.body_h1}}</h1>
           <p>{{h.body_paragraph}}</p>
           <!-- sign up form on the hero -->
-          <form action="{{h.signup_link}}">
+          <form action="/leads/{{h.landing_page_name}}">
             <div class="hero-form-grid">
               <input
                 type="text"
@@ -86,9 +87,7 @@
             </div>
           </form>
 
-          <button type="submit" value="sign up" class="btn" id="button-grid">
-            Sign Up
-          </button>
+          <button type="submit" value="submit" class="btn">Submit</button>
         </div>
         <!-- right side of the hero -->
         <div class="hero-right">
