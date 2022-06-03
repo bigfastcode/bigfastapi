@@ -64,7 +64,7 @@ async def create_product_price(price: schema.CreateProductPrice,
     db.commit()
     db.refresh(created_price)
 
-
+    # add message field to response e.g JSONResponse({ "message": "Price added for stock", "data": created_price })
     return created_price
 
 
