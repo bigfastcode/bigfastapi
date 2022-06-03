@@ -31,8 +31,8 @@ class ProductPrice(database.Base):
     currency = Column(String(255), index=True, nullable=False)
     priority = Column(Integer, default=5)
     created_by = Column(String(255), ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+    date_created = Column(DateTime, default=datetime.datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
     is_deleted = Column(BOOLEAN, default=False)
 
 #==============================Database Services=============================# 
