@@ -14,7 +14,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 ### Implemented
 - Authentication (login, logout)
 - Users
-- Organisations
+- Organizations
 - Comments
 - Blog
 - FAQ

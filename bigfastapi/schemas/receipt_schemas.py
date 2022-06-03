@@ -20,7 +20,7 @@ class atrributes(Receipt):
     recipient: List[EmailStr] = []
 
 class DeleteSelectedReceipts(BaseModel):
-    organisation_id: str
+    organization_id: str
     receipt_id_list: list
 
 class SendReceiptResponse(BaseModel):

@@ -7,7 +7,7 @@ from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
 import bigfastapi.db.database as database
 
-class OrganisationUser(database.Base):
+class organizationUser(database.Base):
     __tablename__ = "store_users"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     store_id = Column(String(255), index=True)
