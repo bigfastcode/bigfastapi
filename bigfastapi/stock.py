@@ -29,11 +29,11 @@ async def create_stock(stock: stock_schema.CreateStock,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
     
     #check if user is allowed to create a stock for product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=stock.business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=stock.organization_id, db=db)
     if user_status==False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a stock for a product in this business")
 
-    created_stock = stock_model.create_stock(db=db, product_id=stock.product_id, quantity=stock.quantity, 
+    created_stock = stock_model.create_stock(db=db, name=stock.name, product_id=stock.product_id, quantity=stock.quantity, 
                         price= stock.price, user_id=user.id)
 
     if created_stock:
@@ -41,11 +41,11 @@ async def create_stock(stock: stock_schema.CreateStock,
 
 
 @app.get('/stock/{stock_id}', response_model=stock_schema.ShowStock)
-async def get_stock(stock_id: str, business_id: str,  db: orm.Session = fastapi.Depends(get_db),
+async def get_stock(stock_id: str, organization_id: str,  db: orm.Session = fastapi.Depends(get_db),
               user: user_schema.User = fastapi.Depends(is_authenticated)):
     
     #check if user is allowed to view stock for a product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to view stock for a product in this business")
  
@@ -59,11 +59,11 @@ async def get_stock(stock_id: str, business_id: str,  db: orm.Session = fastapi.
 
 
 @app.get('/stock/product/{product_id}', response_model=List[stock_schema.ShowStock])
-async def get_stocks(product_id: str, business_id:  str, db: orm.Session = fastapi.Depends(get_db), 
+async def get_stocks(product_id: str, organization_id:  str, db: orm.Session = fastapi.Depends(get_db), 
                 user: user_schema.User = fastapi.Depends(is_authenticated)):
 
     #check if user is allowed to view stock for a product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to view stock for a product in this business")
  
@@ -77,17 +77,17 @@ async def get_stocks(product_id: str, business_id:  str, db: orm.Session = fasta
     return stocks
 
 
-@app.get('/stock/{business_id}', response_model=List[stock_schema.ShowStock])
-async def get_all_stocks(business_id: str, db: orm.Session = fastapi.Depends(get_db), 
+@app.get('/stock/{organization_id}', response_model=List[stock_schema.ShowStock])
+async def get_all_stocks(organization_id: str, db: orm.Session = fastapi.Depends(get_db), 
                     user: user_schema.User = fastapi.Depends(is_authenticated)):
 
     #check if user is allowed to view stock for a product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to view stock for a product in this business")
  
     #fetch stocks
-    stocks = stock_model.fetch_all_stocks_in_business(db=db, business_id=business_id)
+    stocks = stock_model.fetch_all_stocks_in_business(db=db, organization_id=organization_id)
 
     if not stocks:
         return []
@@ -103,7 +103,7 @@ async def update_stock(stock_update: stock_schema.StockUpdate,
                     db: orm.Session = fastapi.Depends(get_db)):
 
     #check if user is allowed to update stock
-    user_status =  await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=stock_update.business_id, db=db)
+    user_status =  await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=stock_update.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update a stock for this business")
 
@@ -118,6 +118,8 @@ async def update_stock(stock_update: stock_schema.StockUpdate,
         stock.status = stock_update.status
     if stock_update.price != None:
         stock.price = stock_update.price
+    if stock_update.name != None:
+        stock.name = stock_update.name
 
     stock.updated_at = datetime.datetime.utcnow()
     db.commit()
@@ -129,7 +131,7 @@ async def update_stock(stock_update: stock_schema.StockUpdate,
 @app.delete("/stock/{stock_id}")
 async def delete_stock(
     stock_id: str,  
-    organisation_id: str,
+    id: stock_schema.DeleteStock,
     user: user_schema.User = fastapi.Depends(is_authenticated), 
     db: orm.Session = fastapi.Depends(get_db)):
     
@@ -144,7 +146,7 @@ async def delete_stock(
        returnBody- "Successfully deleted"
     """
     #check if user is in business and can delete stock
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organisation_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a stock for this business")
 
@@ -174,7 +176,7 @@ async def delete_selected_stock(req: stock_schema.DeleteSelectedStock,
     """
 
     #check if user is in business and can delete stock
-    user_status =  await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db)
+    user_status =  await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a stock for this business")
 
@@ -186,3 +188,26 @@ async def delete_selected_stock(req: stock_schema.DeleteSelectedStock,
             db.commit()
 
     return {"message":"Successfully Deleted Products"}
+
+
+@app.delete("/stock/{product_id}/all/delete", status_code=status.HTTP_200_OK)
+def delete_selected_products(req: stock_schema.DeleteStock, product_id: str,
+                             db: orm.Session = Depends(get_db),
+                            user: user_schema.User = fastapi.Depends(is_authenticated)):
+
+    #check if user is in business and can delete stock
+    user_status = helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.organization_id, db=db)
+    if user_status == False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a stock for a product in this business")
+
+    stocks = db.query(stock_model.Stock).filter(stock_model.Stock.product_id==product_id, 
+                                              stock_model.Stock.is_deleted == False).all()
+
+    if stocks is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No stocks exist for this product")
+
+    for stock in stocks:
+        stock.is_deleted = True
+        db.commit()
+
+    return {"message":"Successfully Deleted All Stocks for this Product"}
