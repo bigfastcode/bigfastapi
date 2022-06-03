@@ -14,7 +14,7 @@ class CreateProductPrice(ProductPriceBase):
     start: Optional[dt.datetime] = None
     end: Optional[dt.datetime] = None
     apply_on: Optional[str] = None
-    business_id: str
+    organization_id: str
     
 class ProductPrice(ProductPriceBase):
     id: str
@@ -22,11 +22,11 @@ class ProductPrice(ProductPriceBase):
     end: Optional[dt.datetime] = None
     apply_on: Optional[str] = None
     created_by: str
-    created_at: dt.datetime
-    updated_at: dt.datetime
+    date_created: dt.datetime
+    last_updated: dt.datetime
 
     class Config:
         orm_mode = True
 
 class DeleteProductPrice(BaseModel):
-    business_id: str
+    organization_id: str

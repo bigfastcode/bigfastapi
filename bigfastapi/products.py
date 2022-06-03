@@ -1,4 +1,3 @@
-
 import os
 import fastapi as fastapi
 import datetime as datetime
@@ -21,7 +20,7 @@ from .core import helpers
 from bigfastapi.utils.schema_form import as_form
 from starlette.requests import Request
 from fastapi.responses import FileResponse
-from bigfastapi.utils import settings as settings
+from bigfastapi.utils.generate_unique_id import generate_unique_id
 from bigfastapi.db.database import get_db
 
 app = APIRouter(
@@ -42,7 +41,7 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
 
     paramDesc-
         reqBody-name: This is the name of the product to be created. 
-        reqBody-description: This is the description of the product to be created. 
+        reqBody-description: This is the description of the product to be created. Optional
         reqBody-unique_id: This is a user given unique id for the product. Optional
         reqBody-image: Optional product image
     returnDesc-On sucessful request, it returns
@@ -50,21 +49,22 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
         returnBody- the product object.
     """
     #check if unique id is unique in the business
-    id_status = db.query(model.Product).filter(model.Product.unique_id == product.unique_id, model.Product.business_id==product.business_id).first()
+    id_status = db.query(model.Product).filter(model.Product.unique_id == product.unique_id, model.Product.organization_id==product.organization_id).first()
     if id_status:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Unique ID already exists')
 
     #check if user is allowed to create a product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product.business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create a product for this business")
 
     #check and generate unique ID
     if product.unique_id is None:
-        product.unique_id = uuid4().hex
+        product.unique_id = generate_unique_id(model=model.Product, organization_id=product.organization_id,db=db,
+                                                 sort_key='date_created')
 
     #Add product to database
-    created_product = model.Product(id=uuid4().hex, created_by=user.id, business_id=product.business_id, name=product.name, description=product.description,
+    created_product = model.Product(id=uuid4().hex, created_by=user.id, organization_id=product.organization_id, name=product.name, description=product.description,
                              unique_id=product.unique_id) 
     
     db.add(created_product)
@@ -91,15 +91,15 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
 
     #create stock for product
     if product.price != None and product.quantity != None:
-        created_stock = stock_model.create_stock(db=db, quantity=product.quantity, price=product.price,
-        product_id=created_product.id, user_id=user.id)
+        created_stock = stock_model.create_stock(db=db, quantity=product.quantity, price=product.price, 
+                                                name= product.name+'-default', product_id=created_product.id, user_id=user.id)
 
 
     return created_product
 
 
 @app.get("/product", response_model=schema.ProductOut)
-async def get_products(request: Request, business_id: str, 
+async def get_products(request: Request, organization_id: str, 
                 search_value: str = None,
                 sorting_key: str = None,
                 datetime_constraint: datetime.datetime = None,
@@ -122,13 +122,13 @@ async def get_products(request: Request, business_id: str,
     offset = await paginator.off_set(page=page_number, size=page_size)
 
     if search_value:
-        product_list, total_items = await model.search_products(business_id=business_id, 
+        product_list, total_items = await model.search_products(organization_id=organization_id, 
                 search_value=search_value, offset=offset, size=page_size, db=db)
     elif sorting_key:
-        product_list, total_items = await model.fetch_sorted_products(business_id=business_id, 
+        product_list, total_items = await model.fetch_sorted_products(organization_id=organization_id, 
                 sort_key=sorting_key, offset=offset, size=page_size, sort_dir=sort_dir, db=db)
     else:
-        product_list, total_items = await model.fetch_products(business_id=business_id,
+        product_list, total_items = await model.fetch_products(organization_id=organization_id,
                 offset=offset, size=page_size, timestamp=datetime_constraint, db=db)
     
     if not product_list:
@@ -156,7 +156,7 @@ def fetch_product_images(db, product_id, request):
     return image_path_list
 
 @app.get('/product/{product_id}', response_model=schema.ShowProduct)
-def get_product(request: Request, business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
+def get_product(request: Request, organization_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db)):
     """
     Intro-This endpoint allows you to retreive details of a product in the database belonging to a business. 
     To retreive a product, you need to make a get request to the /products/{product_id} endpoint. 
@@ -165,7 +165,7 @@ def get_product(request: Request, business_id: str, product_id: str, db: orm.Ses
     returnBody- a product object.
     """
     #fetch product
-    product = db.query(model.Product).filter(model.Product.business_id == business_id, model.Product.id == product_id, model.Product.is_deleted==False).first()
+    product = db.query(model.Product).filter(model.Product.organization_id == organization_id, model.Product.id == product_id, model.Product.is_deleted==False).first()
 
     if not product:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
@@ -204,12 +204,12 @@ async def update_product(product_update: schema.ProductUpdate,
     """
     
     #check if user is allowed to update products
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product_update.business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=product_update.organization_id, db=db)
     if user_status ==False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update a product for this business")
 
     #fetch products
-    product = db.query(model.Product).filter(model.Product.business_id==product_update.business_id, model.Product.id==product_id, model.Product.is_deleted==False).first()
+    product = db.query(model.Product).filter(model.Product.organization_id==product_update.organization_id, model.Product.id==product_id, model.Product.is_deleted==False).first()
 
     #check if product exits
     if not product:
@@ -244,12 +244,12 @@ async def delete_product(id: schema.DeleteProduct, product_id: str,
     """
     
     #check if user is in business and can delete product
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.business_id, db=db) 
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.organization_id, db=db) 
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     #check if product exists in db
-    product = model.fetch_product(product_id=product_id, business_id=id.business_id, db=db)
+    product = model.fetch_product(product_id=product_id, organization_id=id.organization_id, db=db)
     if product is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
         
@@ -274,14 +274,14 @@ async def delete_selected_products(req: schema.DeleteSelectedProduct,
     """
 
     #check if user is in business and can delete product
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     for product_id in req.product_id_list:
         product = model.fetch_product_by_id(id=product_id, db=db)
 
-        if product != None and product.business_id == req.business_id:
+        if product != None and product.organization_id == req.organization_id:
            
             print(product.id)
             product.is_deleted = True
@@ -305,11 +305,11 @@ def delete_selected_products(req: schema.DeleteProduct,
     """
 
     #check if user is in business and can delete product
-    user_status = helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.business_id, db=db)
+    user_status = helpers.Helpers.is_organization_member(user_id=user.id, organization_id=req.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
-    products = db.query(model.Product).filter(model.Product.business_id==req.business_id, 
+    products = db.query(model.Product).filter(model.Product.organization_id==req.organization_id, 
                                               model.Product.is_deleted == False).all()
 
     if products is None:
