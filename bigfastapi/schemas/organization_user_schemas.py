@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from datetime import date
-class OrganisationUserBase(BaseModel):
+class organizationUserBase(BaseModel):
     store_id: Optional[str]
     user_id: Optional[str]
     role: Optional[str]
@@ -12,7 +12,7 @@ class OrganisationUserBase(BaseModel):
     class Config:
         orm_mode = True
 
-class RoleUpdate(OrganisationUserBase):
+class RoleUpdate(organizationUserBase):
     email: str
 
 class UpdateRoleResponse(BaseModel):

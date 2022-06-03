@@ -10,7 +10,7 @@ from .schemas import users_schemas as user_schema
 from .schemas import product_price_schemas as schema
 from .models import product_price_models as model
 from .models import product_models as product_model
-from .models.organisation_models import Organization
+from .models.organization_models import Organization
 from .utils import paginator
 from .core import helpers
 from bigfastapi.db.database import get_db
@@ -64,7 +64,7 @@ async def create_product_price(price: schema.CreateProductPrice,
     db.commit()
     db.refresh(created_price)
 
-
+    # add message field to response e.g JSONResponse({ "message": "Price added for stock", "data": created_price })
     return created_price
 
 

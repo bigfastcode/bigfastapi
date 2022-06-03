@@ -11,18 +11,19 @@ from bigfastapi.db.database import get_db
 from bigfastapi.services import files_services
 from .auth_api import is_authenticated
 import sqlalchemy.orm as orm
+from sqlalchemy import and_
 from uuid import uuid4
 from fastapi import BackgroundTasks
 from typing import List
 from fastapi.encoders import jsonable_encoder
 
 
-from .models import organisation_models
+from .models import organization_models
 from .core import messages
 from .core.helpers import Helpers
 from .email import send_email, send_receipt_email
 from .models.receipt_models import Receipt
-from .models.organisation_models import Organization
+from .models.organization_models import Organization
 from .schemas import users_schemas
 from .schemas import receipt_schemas
 from .schemas import pdf_schema
@@ -74,7 +75,7 @@ async def send_receipt(
             HTTP_422_UNPROCESSABLE_ENTITY: Request validation error
     """
     try: 
-        organization = await organisation_models.fetchOrganization(orgId=payload.organization_id, db=db)
+        organization = await organization_models.fetchOrganization(orgId=payload.organization_id, db=db)
         if not organization:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                 detail=messages.INVALID_ORGANIZATION)
@@ -164,7 +165,7 @@ async def get_receipts(
             returnBody- an object with a key `message` with a string value - `receipt sent` .
     """
     try:
-        organization = await organisation_models.fetchOrganization(orgId=organization_id, db=db)
+        organization = await organization_models.fetchOrganization(orgId=organization_id, db=db)
         if not organization:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                 detail=messages.INVALID_ORGANIZATION)
@@ -228,7 +229,7 @@ async def get_receipt(
             On sucessful request, it returns an object with the receipt details.
     """
     try: 
-        organization = await organisation_models.fetchOrganization(orgId=organization_id, db=db)
+        organization = await organization_models.fetchOrganization(orgId=organization_id, db=db)
         if not organization:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                 detail=messages.INVALID_ORGANIZATION)
@@ -260,17 +261,18 @@ async def delete_selected_receipts(
     returnBody- "successfully deleted receipts"
     """
 
-    user_status =  await Helpers.is_organization_member(user_id=user.id, organization_id=receipts.organisation_id, db=db)
+    user_status =  await Helpers.is_organization_member(user_id=user.id, organization_id=receipts.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete receipts for this business")
 
     for receipt_id in receipts.receipt_id_list:
-        receipt = receipts_services.get_receipt_by_id(receipt_id=receipt_id, org_id=receipts.organisation_id, db=db)
-
+        receipt = db.query(Receipt).filter(and_(
+             Receipt.id == receipt_id, Receipt.organization_id == receipts.organization_id)
+            ).first()
         if receipt is not None:
-            print(receipt)
             receipt.is_deleted = True
             db.commit()
+            db.refresh(receipt)
 
     return {"message":"Successfully Deleted Receipts"}
 
@@ -296,7 +298,7 @@ async def download_receipt(
             On sucessful request, it returns an object with the receipt details.
     """
     try: 
-        organization = await organisation_models.fetchOrganization(orgId=organization_id, db=db)
+        organization = await organization_models.fetchOrganization(orgId=organization_id, db=db)
         if not organization:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                 detail=messages.INVALID_ORGANIZATION)

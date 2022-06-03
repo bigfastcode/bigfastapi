@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from bigfastapi.models import product_models, organisation_models
+from bigfastapi.models import product_models, organization_models
 from bigfastapi.schemas import product_schemas, users_schemas
 from bigfastapi.db.database import Base, get_db
 from main import app

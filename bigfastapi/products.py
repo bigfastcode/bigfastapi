@@ -11,7 +11,7 @@ from .auth_api import is_authenticated
 from .schemas import users_schemas as user_schema
 from .schemas import product_schemas as schema
 from .models import product_models as model
-from .models.organisation_models import Organization
+from .models.organization_models import Organization
 from .models import file_models as file_model
 from .models import stock_models as stock_model
 from .files import upload_image

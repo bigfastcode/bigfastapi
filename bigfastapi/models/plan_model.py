@@ -3,7 +3,7 @@ from operator import index
 from sqlite3 import Timestamp
 from tkinter.messagebox import CANCEL
 from tokenize import Floatnumber
-from bigfastapi.models.organisation_models import Organization
+from bigfastapi.models.organization_models import Organization
 from bigfastapi.models.user_models import User
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Integer, DateTime, Boolean, ARRAY, Text
