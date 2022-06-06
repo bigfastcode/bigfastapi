@@ -10,7 +10,7 @@ from .schemas import users_schemas as user_schema
 from .schemas import product_price_schemas as schema
 from .models import product_price_models as model
 from .models import product_models as product_model
-from .models.organisation_models import Organization
+from .models.organization_models import Organization
 from .utils import paginator
 from .core import helpers
 from bigfastapi.db.database import get_db
@@ -25,7 +25,7 @@ async def create_product_price(price: schema.CreateProductPrice,
                    db: orm.Session = fastapi.Depends(get_db)):
     
     #check if user is allowed to create a price for product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=price.business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=price.organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to create pricing for a product in this business")
 
@@ -64,16 +64,16 @@ async def create_product_price(price: schema.CreateProductPrice,
     db.commit()
     db.refresh(created_price)
 
-
+    # add message field to response e.g JSONResponse({ "message": "Price added for stock", "data": created_price })
     return created_price
 
 
 @app.get('/prices/product/{product_id}', response_model=List[schema.ProductPrice])
-async def get_product_prices(business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db),
+async def get_product_prices(organization_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db),
                             user: user_schema.User = fastapi.Depends(is_authenticated)):
 
     #check if user is allowed to view prices for product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to view pricing for a product in this business")
     
@@ -87,11 +87,11 @@ async def get_product_prices(business_id: str, product_id: str, db: orm.Session 
 
 
 @app.get('/prices/{price_id}', response_model=schema.ProductPrice)
-async def get_product_price(business_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db),
+async def get_product_price(organization_id: str, product_id: str, db: orm.Session = fastapi.Depends(get_db),
                             user: user_schema.User = fastapi.Depends(is_authenticated)):
 
     #check if user is allowed to view prices for product in the business
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=business_id, db=db)
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to view pricing for a product in this business")
 
@@ -111,7 +111,7 @@ async def delete_product_price(id: schema.DeleteProductPrice,price_id: str,
                     db: orm.Session = fastapi.Depends(get_db)):
     
     #check if user is in business and can delete product price
-    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.business_id, db=db) 
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=id.organization_id, db=db) 
     if user_status == False:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product price for this business")
 

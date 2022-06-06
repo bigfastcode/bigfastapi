@@ -27,7 +27,7 @@ async def get_receipts(
                     Receipt.organization_id == organization_id)
                 .count()
             )
-    receipts = db.query(Receipt).filter(Receipt.organization_id == organization_id)
+    receipts = db.query(Receipt).filter(and_(Receipt.organization_id == organization_id, Receipt.is_deleted == False))
 
     if datetime_constraint:
             receipts = ( 

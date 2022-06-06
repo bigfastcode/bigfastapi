@@ -18,8 +18,8 @@ from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 
 from bigfastapi.db.database import Base
 from bigfastapi.files import deleteFile, isFileExist
-from bigfastapi.schemas import organisation_schemas
-from bigfastapi.schemas.organisation_schemas import BusinessSwitch
+from bigfastapi.schemas import organization_schemas
+from bigfastapi.schemas.organization_schemas import BusinessSwitch
 from bigfastapi.utils.utils import defaultManu
 
 

@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from bigfastapi.models import product_models, organisation_models
+from bigfastapi.models import product_models, organization_models
 from bigfastapi.schemas import product_schemas, users_schemas
 from bigfastapi.db.database import Base, get_db
 from main import app
@@ -86,7 +86,7 @@ def test_products(test_user, session):
                 "description": "this is the first product",
                 "price": 150,
                 "discount": 5,
-                "business_id": "test",
+                "organization_id": "test",
                 "unique_id":"ABC123",
                 "quantity":10,
                 }, 
@@ -95,7 +95,7 @@ def test_products(test_user, session):
                 "description": "this is the second product",
                 "price": 200,
                 "discount": 10,
-                "business_id": "test",
+                "organization_id": "test",
                 "unique_id":"ABC124",
                 "quantity":11},
      {
@@ -103,7 +103,7 @@ def test_products(test_user, session):
                 "description": "this is the third product",
                 "price": 150,
                 "discount": 5,
-                "business_id": "test",
+                "organization_id": "test",
                 "unique_id":"ABC125",
                 "quantity":20}]
 
