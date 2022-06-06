@@ -250,10 +250,3 @@ async def check_user_exist(body: auth_schemas.APIKey, db: orm.Session):
 
 
 
-# disujt@gmail.com
-# {
-#     "message": "success",
-#     "API_KEY": "8134bab588c44ecf9b090a74c41d3b8820220525135814346737",
-#     "APP_ID": "RIJYHGS7QPAHATP",
-#     "Mac_Address": "70:77:81:31:87:93"
-# }
