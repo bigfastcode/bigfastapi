@@ -1,16 +1,16 @@
 from requests import Session
 from .utils.utils import paginate_data, row_to_dict
 from .schemas import users_schemas
-from .schemas import organisation_schemas as _schemas
+from .schemas import organization_schemas as _schemas
 from .models import wallet_models as wallet_models
 from .models import user_models, role_models, schedule_models
-from .models import organisation_models as _models
-from .models import credit_wallet_models as credit_wallet_models, organisation_invite_model, organisation_user_model
+from .models import organization_models as _models
+from .models import credit_wallet_models as credit_wallet_models, organization_invite_model, organization_user_model
 from .files import upload_image
 from .auth_api import is_authenticated
 from bigfastapi.schemas import roles_schemas
 from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
-from bigfastapi.models import organisation_models
+from bigfastapi.models import organization_models
 from bigfastapi.db.database import get_db
 from sqlalchemy import and_
 from fastapi.responses import FileResponse
@@ -144,7 +144,7 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
         try:
 
             for temp in defaultTemplates:
-                template_obj = organisation_models.DefaultTemplates(
+                template_obj = organization_models.DefaultTemplates(
                     id=uuid4(
                     ).hex, organization_id=created_org.id, subject=temp["subject"],
                     escalation_level=temp["escalation_level"], email_message=temp["email_message"],
@@ -178,7 +178,7 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
 
         try:
 
-            autoreminder_obj = organisation_models.DefaultAutoReminder(
+            autoreminder_obj = organization_models.DefaultAutoReminder(
                 id=uuid4().hex, organization_id=created_org.id, days_before_debt=3,
                 first_template="escalation_level_1", second_template="escalation_level_3")
 
@@ -238,7 +238,7 @@ async def get_organization_users(
         db: _orm.Session = _fastapi.Depends(get_db)
 ):
     """intro--> This endpoint allows you to get all users in an organization. To use this endpoint you need to make a get request to the `/organizations/{organization_id}/users` endpoint.
-    The `organization_id` parameter is used to query the users(invited users included) in an organisation.
+    The `organization_id` parameter is used to query the users(invited users included) in an organization.
 
         paramDesc--> On get request, the request url takes the parameter, organization id
             param--> organization_id: This is unique Id of the organization of interest
@@ -248,10 +248,10 @@ async def get_organization_users(
         returnBody--> list of all users in the queried organization
     """
     # query the store_users table with the organization_id
-    invited_list = db.query(organisation_user_model.OrganisationUser).filter(
+    invited_list = db.query(organization_user_model.organizationUser).filter(
         and_(
-            organisation_user_model.OrganisationUser.store_id == organization_id,
-            organisation_user_model.OrganisationUser.is_deleted == False
+            organization_user_model.organizationUser.store_id == organization_id,
+            organization_user_model.organizationUser.is_deleted == False
         )
     ).all()
 
@@ -317,10 +317,10 @@ def delete_organization_user(
     if user is not None:
         # fetch the store user from the store user table.
         store_user = (
-            db.query(organisation_user_model.OrganisationUser)
+            db.query(organization_user_model.organizationUser)
             .filter(and_(
-                    organisation_user_model.OrganisationUser.user_id == user_id,
-                    organisation_user_model.OrganisationUser.store_id == organization_id
+                    organization_user_model.organizationUser.user_id == user_id,
+                    organization_user_model.organizationUser.store_id == organization_id
                     ))
             .first()
         )
@@ -415,12 +415,12 @@ def get_pending_invites(
         returnBody--> all pending invites in the queried organization
     """
     pending_invites = (
-        db.query(organisation_invite_model.OrganisationInvite)
+        db.query(organization_invite_model.organizationInvite)
         .filter(
-            and_(organisation_invite_model.OrganisationInvite.store_id == organization_id,
-                 organisation_invite_model.OrganisationInvite.is_deleted == False,
-                 organisation_invite_model.OrganisationInvite.is_accepted == False,
-                 organisation_invite_model.OrganisationInvite.is_revoked == False
+            and_(organization_invite_model.organizationInvite.store_id == organization_id,
+                 organization_invite_model.organizationInvite.is_deleted == False,
+                 organization_invite_model.organizationInvite.is_accepted == False,
+                 organization_invite_model.organizationInvite.is_revoked == False
                  ))
         .all()
     )
@@ -539,7 +539,7 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 
 
 # /////////////////////////////////////////////////////////////////////////////////
-# Organisation Services
+# organization Services
 
 def get_orgnanization_by_name(name: str, creatorId: str, db: _orm.Session):
     return db.query(_models.Organization).filter(_models.Organization.name == name, creatorId == _models.Organization.creator).first()
@@ -567,7 +567,7 @@ def create_organization(user: users_schemas.User, db: _orm.Session, organization
     return newOrganization
 
 
-def runWalletCreation(newOrganization: organisation_models.Organization, db: _orm.Session):
+def runWalletCreation(newOrganization: organization_models.Organization, db: _orm.Session):
     roles = ["Assistant", "Admin", "Owner"]
     for role in roles:
         new_role = role_models.Role(
@@ -589,8 +589,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
         creator=user.id).all()
 
     invited_orgs_rep = (
-        db.query(organisation_user_model.OrganisationUser)
-        .filter(organisation_user_model.OrganisationUser.user_id == user.id)
+        db.query(organization_user_model.organizationUser)
+        .filter(organization_user_model.organizationUser.user_id == user.id)
         .all()
     )
 

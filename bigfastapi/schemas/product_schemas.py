@@ -12,8 +12,8 @@ class ProductBase(BaseModel):
 
 class Product(ProductBase):
     id: str
-    created: dt.datetime
-    business_id: str
+    date_created: dt.datetime
+    organization_id: str
     product_image: Optional[List[Any]] = []
 
 
@@ -23,9 +23,9 @@ class Product(ProductBase):
 @as_form
 class ProductCreate(BaseModel):
     name: str
-    description: str
+    description: Optional[str]= None
     unique_id: Optional[str] = None
-    business_id: str
+    organization_id: str
     price: Optional[float] = None
     quantity: Optional[int] = None
 
@@ -35,10 +35,11 @@ class ProductImage(ProductCreate):
 class ProductUpdate(ProductBase):
     name: Optional[str] = None
     description: Optional[str]= None
-    business_id: str
+    organization_id: str
 
 class ShowProduct(Product):
     created_by: str
+    last_updated: dt.datetime
     product_image: Optional[List[Any]] = []
 
     class Config:
@@ -56,12 +57,12 @@ class ProductOut(BaseModel):
         orm_mode = True
 
 class DeleteProduct(BaseModel):
-    business_id: str
+    organization_id: str
 
 
 class DeleteSelectedProduct(BaseModel):
     product_id_list: list
-    business_id: str
+    organization_id: str
 
     class Config:
         orm_mode = True

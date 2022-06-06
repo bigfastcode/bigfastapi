@@ -10,7 +10,7 @@ from sqlalchemy import desc
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
-from .models import organisation_models as organisation_models, organisation_user_model, user_models
+from .models import organization_models as organization_models, organization_user_model, user_models
 from .models import wallet_models as model
 from .models import wallet_transaction_models as wallet_transaction_models
 from .schemas import users_schemas
@@ -120,17 +120,17 @@ async def get_wallet_transactions(
 async def _get_organization(organization_id: str, db: _orm.Session,
                             user: users_schemas.User = fastapi.Depends(is_authenticated)):
     organization = (
-        db.query(organisation_models.Organization)
+        db.query(organization_models.Organization)
             .filter_by(creator=user.id)
-            .filter(organisation_models.Organization.id == organization_id)
+            .filter(organization_models.Organization.id == organization_id)
             .first()
     )
 
     is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if is_store_member:
         organization = (
-            db.query(organisation_models.Organization)
-                .filter(organisation_models.Organization.id == organization_id)
+            db.query(organization_models.Organization)
+                .filter(organization_models.Organization.id == organization_id)
                 .first()
         )
     if (not is_store_member) and organization is None:
@@ -213,7 +213,7 @@ async def _get_wallet(wallet_id: str,
 
 async def _get_super_admin_wallet(db: _orm.Session, currency: str):
     admin = db.query(user_models.User).filter_by(is_superuser=True).filter_by(is_deleted=False).first()
-    organization = db.query(organisation_models.Organization).filter_by(creator=admin.id).filter_by(
+    organization = db.query(organization_models.Organization).filter_by(creator=admin.id).filter_by(
         is_deleted=False).first()
     wallet = db.query(model.Wallet).filter_by(organization_id=organization.id).filter_by(
         currency_code=currency).first()

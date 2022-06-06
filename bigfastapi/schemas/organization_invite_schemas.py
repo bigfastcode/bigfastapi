@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
-from .organisation_schemas import _OrganizationBase
-from .organisation_user_schemas import OrganisationUserBase
+from .organization_schemas import _OrganizationBase
+from .organization_user_schemas import organizationUserBase
 
 from .email_schema import Email
 from pydantic import BaseModel
@@ -31,7 +31,7 @@ class Invite(InviteBase):
         orm_mode = True
 
 
-class OrganisationUser(InviteBase):
+class organizationUser(InviteBase):
     organization_id: str
     user_id: str
 
@@ -61,7 +61,7 @@ class SingleInviteResponse(BaseModel):
     user: str
 
 class AcceptInviteResponse(BaseModel):
-    invited: OrganisationUserBase
+    invited: organizationUserBase
     store: _OrganizationBase
 
 class RevokedInviteResponse(InviteBase):

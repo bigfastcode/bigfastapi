@@ -13,7 +13,7 @@ from bigfastapi.schemas.activities_log_schemas import DeleteActivitiesLogBase
 from .auth_api import *
 from bigfastapi.models.activities_log_models import Activitieslog as ActivitiesModel
 from fastapi import APIRouter, Depends, status, HTTPException
-from bigfastapi.models.organisation_models import Organization
+from bigfastapi.models.organization_models import Organization
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import requests

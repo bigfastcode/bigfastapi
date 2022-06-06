@@ -15,30 +15,20 @@ from operator import and_, or_
 class Stock(database.Base):
     __tablename__ = 'product_stock'
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    name = Column(String(255), index=True, nullable=True)
     product_id = Column(String(255), ForeignKey("products.id"))
     quantity = Column(Integer, index=True, nullable=False)
     price = Column(Float, index=True, nullable=False)
     status = Column(BOOLEAN, default=False)
     created_by = Column(String(255), ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+    date_created = Column(DateTime, default=datetime.datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
     is_deleted = Column(BOOLEAN, default=False)
-
-
-# class StockPriceHistory(database.Base):
-#     __tablename__ = 'stock_price_history'
-#     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-#     stock_id = Column(String(255), ForeignKey("product_stock.id"))
-#     price = Column(Float, index=True, nullable=False)
-#     created_by = Column(String(255), ForeignKey("users.id"))
-#     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-
-#drop stock_price_history on migrations.py
 
 
 #==============================Database Services=============================#
 
-def create_stock(db, product_id, quantity, price, user_id):
+def create_stock(db, product_id, quantity, price, user_id, name):
     #set status
     if quantity > 0:
         stock_status = True
@@ -46,7 +36,7 @@ def create_stock(db, product_id, quantity, price, user_id):
         stock_status = False
 
     #Add stock to database
-    stock = Stock(id=uuid4().hex, product_id = product_id, quantity=quantity, 
+    stock = Stock(id=uuid4().hex, name=name, product_id = product_id, quantity=quantity, 
                   price=price, status=stock_status,created_by=user_id)
     
     db.add(stock)
@@ -55,8 +45,8 @@ def create_stock(db, product_id, quantity, price, user_id):
 
     return stock
 
-def fetch_all_stocks_in_business(db, business_id):
-    stocks = db.query(Stock).join(Product).filter(Product.business_id == business_id).all()
+def fetch_all_stocks_in_business(db, organization_id):
+    stocks = db.query(Stock).join(Product).filter(Product.organization_id == organization_id).all()
     return stocks
 
 def fetch_stock_by_id(db, stock_id):

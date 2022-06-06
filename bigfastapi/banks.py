@@ -30,7 +30,7 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
     reqBody-->bank_name: This is the user's bank name
     reqBody-->recipient_name: This is the name of the account owner
     reqBody-->account_type: This is the type of bank account
-    reqBody-->organisation_id: This is the organization Id of the organization requiring the bank detail
+    reqBody-->organization_id: This is the organization Id of the organization requiring the bank detail
     reqBody-->bank_addres: This is the branch address of the user's account creation 
     reqBody-->swift_code: This is the bank's swift code
     reqBody-->sort_code: This is the bank's sort code
@@ -53,14 +53,14 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
         HTTP_403_FORBIDDEN: incomplete details
     """
 
-    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organization_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to add a bank account to this organization")
 
     addbank = bank_models.BankModels(id=uuid4().hex,
-                                     organisation_id=bank.organisation_id,
+                                     organization_id=bank.organization_id,
                                      creator_id=user.id,
                                      account_number=bank.account_number,
                                      bank_name=bank.bank_name,
@@ -106,7 +106,7 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to access this resource")
 
-    banks = db.query(bank_models.BankModels).filter_by(organisation_id=organization_id).filter_by(is_deleted=False)
+    banks = db.query(bank_models.BankModels).filter_by(organization_id=organization_id).filter_by(is_deleted=False)
     banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
     return paginate(banks_list)
 
@@ -153,7 +153,7 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
         reqBody-->bank_name: This is the user's bank name
         reqBody-->recipient_name: This is the name of the account owner
         reqBody-->account_type: This is the type of bank account
-        reqBody-->organisation_id: This is the organization Id of the organization requiring the bank detail
+        reqBody-->organization_id: This is the organization Id of the organization requiring the bank detail
         reqBody-->bank_addres: This is the branch address of the user's account creation 
         reqBody-->swift_code: This is the bank's swift code
         reqBody-->sort_code: This is the bank's sort code
@@ -176,7 +176,7 @@ async def update_bank_details(bank_id: str, bank: bank_schemas.AddBank,
         HTTP_424_FAILED_DEPENDENCY: failed to create bank object
         HTTP_4O4_NOT_FOUND: Bank does not exist.
     """
-    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organization_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
@@ -231,7 +231,7 @@ async def delete_bank(bank_id: str,
     """
 
     bank = await bank_models.fetch_bank(user=user, id=bank_id, db=db)
-    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organisation_id, db=db)
+    is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=bank.organization_id, db=db)
 
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
