@@ -18,6 +18,10 @@ class Receipt(BaseModel):
 class atrributes(Receipt):
     recipient: List[EmailStr] = []
 
+class DeleteSelectedReceipts(BaseModel):
+    organisation_id: str
+    receipt_id_list: list
+
 class SendReceiptResponse(BaseModel):
     message: str
     data: Receipt

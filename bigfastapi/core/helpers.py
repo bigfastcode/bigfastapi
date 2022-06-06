@@ -24,6 +24,6 @@ class Helpers:
     # Sends a notification to slack.
     # NOTE: DO NOT CALL THIS METHOD IN THE SAME THREAD AS YOUR REQUEST. USE A BACKGROUND TASK
     @staticmethod
-    def slack_notification(text: str, verify: bool = True):
-        requests.post(url=config('LOG_WEBHOOK_URL'), json={"text": text}, headers={"Content-Type": "application/json"},
-                      verify=verify)
+    def slack_notification(url:str, text: str, verify: bool = True):
+        requests.post(url=config(url), json={"text": text}, headers={"Content-Type": "application/json"},
+                    verify=verify)

@@ -213,6 +213,7 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
             company_logo=company_logo,
             login_link=request.login_link,
             signup_link=request.signup_link,
+            title = request.title,
 
 
         )
@@ -324,6 +325,7 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
             "css_file": css_path,
             "js_file": js_path,
             "signup_link": landingpage_data.signup_link,
+            "title": landingpage_data.title,
         }
         return templates.TemplateResponse("landingpage.html", {"request": request, "h": h})
 
@@ -464,6 +466,9 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
         #  check if customer care mail is not the same, update the customer care mail
         if update_landing_page_data.customer_care_email != request.customer_care_email:
             update_landing_page_data.customer_care_email = request.customer_care_email
+        
+        if update_landing_page_data.title != request.title:
+            update_landing_page_data.title = request.title
 
         # check company logo is uploaded, update the company logo
         if isFileExist(company_logo) != True:

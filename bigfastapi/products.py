@@ -34,8 +34,7 @@ async def create_product(request: Request, product: schema.ProductCreate=Depends
                    user: user_schema.User = fastapi.Depends(is_authenticated), 
                    product_image: Optional[List[UploadFile]] = File(None) ,
                    db: orm.Session = fastapi.Depends(get_db)):
-       
-    
+
     """
     Intro - This endpoint allows you to create a create a new product item.
     It takes in four parameters. To create a product, you 
@@ -250,7 +249,7 @@ async def delete_product(id: schema.DeleteProduct, product_id: str,
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete a product for this business")
 
     #check if product exists in db
-    product = model.select_product(product_id=product_id, business_id=id.business_id, db=db)
+    product = model.fetch_product(product_id=product_id, business_id=id.business_id, db=db)
     if product is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product does not exist")
         
@@ -325,9 +324,6 @@ def delete_selected_products(req: schema.DeleteProduct,
 
 
 
-
-
-    
 
     
 
