@@ -35,6 +35,7 @@ class ProductPrice(database.Base):
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
     is_deleted = Column(BOOLEAN, default=False)
 
+
 #==============================Database Services=============================# 
 
 def fetch_product_prices(db: orm.Session, product_id: str):
