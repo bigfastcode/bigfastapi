@@ -11,8 +11,8 @@ class ProductPriceBase(BaseModel):
     customer_group: str
 
 class CreateProductPrice(ProductPriceBase):
-    start: Optional[dt.datetime] = None
-    end: Optional[dt.datetime] = None
+    start: Optional[dt.date] = None
+    end: Optional[dt.date] = None
     apply_on: Optional[str] = None
     organization_id: str
     
