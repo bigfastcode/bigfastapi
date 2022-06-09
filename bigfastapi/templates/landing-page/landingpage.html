@@ -53,44 +53,45 @@
     <header>
       <section class="container hero_container" id="hero-section">
         <div class="hero-left">
-          <h1>{{h.body_h1}}</h1>
-          <p>{{h.body_paragraph}}</p>
-          <!-- sign up form on the hero -->
-          <form action="/leads/{{h.landing_page_name}}" method="post">
-            <div class="hero-form-grid">
-              <input
-                type="text"
-                name="fullname"
-                id="full-name"
-                placeholder="Full Name"
+           <h1>{{h.body_h1}}</h1>
+           <p>{{h.body_paragraph}}</p>               <!-- sign up form on the hero -->
+           <form action="/leads/{{h.landing_page_name}}" method="post">
+              <div class="hero-form-grid">
+                 <input
+                    type="text"
+                    name="full-name"
+                    id="full-name"
+                    placeholder="Full Name"
+                 />
+                 <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder="Email"
+                 />
+                 <input
+                    type="tel"
+                    name="phone-number"
+                    id="phone-number"
+                    placeholder="Phone Number"
+                 />
+                 <input
+                 type="text"
+                 name="business-name"
+                 id="business-name"
+                 placeholder="Business Name"
+                 
               />
+                
+              </div>
+             
+           </form>
+           
+              <button type="submit" value="sign up" class="btn" id="button-grid">
+                 Sign Up
+              </button>
 
-              <input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="Your Email"
-              />
-              <input
-                type="text"
-                name="business_name"
-                id="businessname"
-                placeholder="Your business Name"
-              />
-
-              <input
-                type="tel"
-                name="phone"
-                id="phone-number"
-                placeholder="Phone Number"
-              />
-            </div>
-            <button type="submit" value="submit" class="btn">Submit</button>
-          </form>
-
-
-        </div>
-        <!-- right side of the hero -->
+        </div>                <!-- right side of the hero -->
         <div class="hero-right">
           <img src="{{h.section_one_image_link}}" alt="" class="hero-image" />
         </div>
@@ -189,6 +190,7 @@
                 id="email"
                 placeholder="Your Email"
               />
+              </div>
               <input
                 type="text"
                 name="business_name"
@@ -201,6 +203,7 @@
                 name="phone"
                 id="phone-number"
                 placeholder="Phone Number"
+                class="col-span-2"
               />
 
               <button type="submit" value="submit" class="btn">Submit</button>
