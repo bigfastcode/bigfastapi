@@ -1,4 +1,7 @@
 import fastapi as fastapi
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+
 import datetime as datetime
 import sqlalchemy.orm as orm
 from uuid import uuid4
@@ -64,8 +67,7 @@ async def create_product_price(price: schema.CreateProductPrice,
     db.commit()
     db.refresh(created_price)
 
-    # add message field to response e.g JSONResponse({ "message": "Price added for stock", "data": created_price })
-    return created_price
+    return JSONResponse({ "message": "Price added successfully", "data": jsonable_encoder(created_price) }, status_code=201)
 
 
 @app.get('/prices/product/{product_id}', response_model=List[schema.ProductPrice])
@@ -162,8 +164,9 @@ async def update_product_price(price_update: schema.ProductPriceUpdate,
     price.last_updated = datetime.datetime.utcnow()
 
     db.commit()
+    db.refresh(price)
 
-    return {'message':'Product Price updated successfully'}
+    return { 'message':'Product Price updated successfully', 'data': price }
 
 
 

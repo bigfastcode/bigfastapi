@@ -123,8 +123,9 @@ async def update_stock(stock_update: stock_schema.StockUpdate,
 
     stock.updated_at = datetime.datetime.utcnow()
     db.commit()
+    db.refresh(stock)
 
-    return {'message':'Stock updated successfully'}
+    return {'message':'Stock updated successfully', 'data': stock }
 
 
 
