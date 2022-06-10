@@ -121,7 +121,7 @@ async def send_receipt(
         db.commit()
         db.refresh(receipt)
 
-        return JSONResponse({ "message" : "receipt sent", "data": jsonable_encoder(receipt)}, status_code=201)
+        return { "message" : "receipt sent", "data": receipt }
 
     except Exception as ex:
         db.rollback()
@@ -200,7 +200,7 @@ async def get_receipts(
             count=total_items, endpoint=f"/receipts")
         response = {"page": page_number, "size": page_size, "total": total_items,
             "previous_page":pointers['previous'], "next_page": pointers["next"], "items": receipts}
-        return JSONResponse({ "data": jsonable_encoder(response) }, status_code=200)
+        return { "data": response }
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
