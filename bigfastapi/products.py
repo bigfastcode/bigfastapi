@@ -220,7 +220,7 @@ async def update_product(product_update: schema.ProductUpdate,
     if product_update.description != None:
         product.description = product_update.description
 
-    product.updated_at = datetime.datetime.utcnow()
+    product.last_updated = datetime.datetime.utcnow()
 
     db.commit()
 

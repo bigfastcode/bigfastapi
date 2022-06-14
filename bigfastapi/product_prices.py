@@ -1,4 +1,7 @@
 import fastapi as fastapi
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+
 import datetime as datetime
 import sqlalchemy.orm as orm
 from uuid import uuid4
@@ -64,8 +67,7 @@ async def create_product_price(price: schema.CreateProductPrice,
     db.commit()
     db.refresh(created_price)
 
-    # add message field to response e.g JSONResponse({ "message": "Price added for stock", "data": created_price })
-    return created_price
+    return JSONResponse({ "message": "Price added successfully", "data": jsonable_encoder(created_price) }, status_code=201)
 
 
 @app.get('/prices/product/{product_id}', response_model=List[schema.ProductPrice])
@@ -82,6 +84,12 @@ async def get_product_prices(organization_id: str, product_id: str, db: orm.Sess
 
     if not productprices:
         return []
+    
+    for price in productprices:
+        if price.monday == False:
+            price.apply_on = 'weekend'
+        else:
+            price.apply_on = 'all'
 
     return productprices
 
@@ -100,8 +108,65 @@ async def get_product_price(organization_id: str, product_id: str, db: orm.Sessi
 
     if not productprice:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Product Price does not exist")
+    
+    if productprice.monday == False:
+        productprice.apply_on = 'weekend'
+    else:
+        productprice.apply_on = 'all'
 
     return productprice 
+
+
+@app.put('/prices/{price_id}')
+async def update_product_price(price_update: schema.ProductPriceUpdate,
+                    price_id: str,
+                    user: user_schema.User = fastapi.Depends(is_authenticated), 
+                    db: orm.Session = fastapi.Depends(get_db)):
+    
+    #check if user is allowed to update price in business
+    user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=price_update.organization_id, db=db)
+    if user_status ==False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update prices for a product for this business")
+
+    #fetch price
+    price = model.fetch_product_price_by_id(db=db, price_id=price_id)
+
+    #check if product price exits
+    if not price:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Product Price does not exist')
+    
+    if price_update.price != None:
+        price.price = price_update.price
+    if price_update.currency != None:
+        price.currency = price_update.currency
+    if price_update.start != None:
+        price.start = price_update.start
+    if price_update.end != None:
+        price.end = price_update.end
+    if price_update.apply_on != None:
+        if price_update.apply_on == 'weekend':
+            price.monday = False
+            price.tuesday = False
+            price.wednesday = False
+            price.thursday = False
+            price.friday =  False
+            price.saturday = True
+            price.sunday = True
+        elif price_update.apply_on == 'all':
+            price.monday = True
+            price.tuesday = True
+            price.wednesday = True
+            price.thursday = True
+            price.friday =  True
+            price.saturday = True
+            price.sunday = True
+
+    price.last_updated = datetime.datetime.utcnow()
+
+    db.commit()
+    db.refresh(price)
+
+    return { 'message':'Product Price updated successfully', 'data': price }
 
 
 

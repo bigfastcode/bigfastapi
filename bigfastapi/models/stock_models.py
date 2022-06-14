@@ -55,6 +55,9 @@ def fetch_stock_by_id(db, stock_id):
 
 def reduce_stock_quantity(db, stock_id, number):
     stock = fetch_stock_by_id(db=db, stock_id=stock_id)
-    new_quantity = stock.quantity - number
-    stock.quantity = new_quantity
+    stock.quantity -= number
+    if stock.quantity == 0:
+        stock.status = False
     db.commit()
+    db.refresh(stock)
+    return stock

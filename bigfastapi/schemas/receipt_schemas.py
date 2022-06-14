@@ -27,10 +27,16 @@ class SendReceiptResponse(BaseModel):
     message: str
     data: Receipt
 
-class FetchReceiptsResponse(BaseModel):
+class ReceiptsResponse(BaseModel):
     page: int
     size: int
     total: int
     items: List[Receipt]
     previous_page: Optional[str]
     next_page: Optional[str]
+
+class FetchReceiptsResponse(BaseModel):
+    data: ReceiptsResponse
+
+class SingleReceiptResponse(BaseModel):
+    data: Receipt

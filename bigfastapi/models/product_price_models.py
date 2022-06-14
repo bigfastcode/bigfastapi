@@ -7,7 +7,7 @@ import bigfastapi.schemas.product_schemas as product_schema
 from fastapi import Depends
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, DateTime, Text, Float, BOOLEAN, Integer
-from sqlalchemy import ForeignKey, Integer, desc
+from sqlalchemy import Date, ForeignKey, Integer, desc
 from uuid import uuid4
 from operator import and_, or_
 
@@ -18,8 +18,8 @@ class ProductPrice(database.Base):
     product_id = Column(String(255), ForeignKey("products.id"))
     stock_id = Column(String(255), ForeignKey("product_stock.id"))
     price = Column(Float, index=True, nullable=False)
-    start = Column(DateTime)
-    end = Column(DateTime)
+    start = Column(Date)
+    end = Column(Date)
     monday = Column(BOOLEAN, default=True)
     tuesday = Column(BOOLEAN, default=True)
     wednesday = Column(BOOLEAN, default=True)
@@ -34,6 +34,7 @@ class ProductPrice(database.Base):
     date_created = Column(DateTime, default=datetime.datetime.utcnow)
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
     is_deleted = Column(BOOLEAN, default=False)
+
 
 #==============================Database Services=============================# 
 

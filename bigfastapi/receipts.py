@@ -1,5 +1,6 @@
 from base64 import encode
 from datetime import datetime
+import json
 from fastapi import Depends, HTTPException, status
 from fastapi import APIRouter
 from fastapi import UploadFile, File
@@ -121,7 +122,7 @@ async def send_receipt(
         db.commit()
         db.refresh(receipt)
 
-        return JSONResponse({ "message" : "receipt sent", "data": jsonable_encoder(receipt)}, status_code=201)
+        return JSONResponse({ "message" : "receipt sent", "data": jsonable_encoder(receipt) }, status_code=201)
 
     except Exception as ex:
         db.rollback()
@@ -162,7 +163,7 @@ async def get_receipts(
         returnDesc-
 
         On sucessful request, it returns
-            returnBody- an object with a key `message` with a string value - `receipt sent` .
+            returnBody- an object with a key `data` containing a paginated response for the list of receipts.
     """
     try:
         organization = await organization_models.fetchOrganization(orgId=organization_id, db=db)
@@ -207,7 +208,7 @@ async def get_receipts(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             , detail=str(ex))
 
-@app.get('/receipts/{receipt_id}', status_code=200, response_model=receipt_schemas.Receipt)
+@app.get('/receipts/{receipt_id}', status_code=200, response_model=receipt_schemas.SingleReceiptResponse)
 async def get_receipt(
     organization_id:str,
     receipt_id: str,
@@ -226,7 +227,7 @@ async def get_receipt(
 
         returnDesc-
 
-            On sucessful request, it returns an object with the receipt details.
+            On sucessful request, it returns an object with the key `data` containing the receipt details.
     """
     try: 
         organization = await organization_models.fetchOrganization(orgId=organization_id, db=db)
@@ -238,7 +239,7 @@ async def get_receipt(
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
-        receipt =  await receipts_services.get_receipt_by_id(receipt_id==receipt_id, org_id=organization_id, db=db)
+        receipt = await receipts_services.get_receipt_by_id(receipt_id=receipt_id, org_id=organization_id, db=db)
 
         return JSONResponse({ "data": jsonable_encoder(receipt) }, status_code=200)
     except Exception as ex:
