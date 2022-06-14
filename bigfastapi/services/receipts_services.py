@@ -1,6 +1,5 @@
 from base64 import encode
 from datetime import datetime
-import fastapi, os
 from fastapi import Depends
 import sqlalchemy.orm as orm
 from sqlalchemy import and_, desc
@@ -84,9 +83,7 @@ async def search_receipts(
     return (recipient_list, search_result_count)
 
 async def get_receipt_by_id(receipt_id:str, org_id: str, db: orm.Session = Depends(get_db)):
-    receipt = db.query(Receipt).filter(and_(
-             Receipt.id == receipt_id, Receipt.organization_id == org_id)
-            ).first()
+    receipt = db.query(Receipt).filter(Receipt.id == receipt_id, Receipt.organization_id == org_id).first()
     if not receipt:
         return None
     return receipt_schemas.Receipt.from_orm(receipt)

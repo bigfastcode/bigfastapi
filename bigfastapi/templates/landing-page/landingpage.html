@@ -53,51 +53,53 @@
     <header>
       <section class="container hero_container" id="hero-section">
         <div class="hero-left">
-          <h1>{{h.body_h1}}</h1>
-          <p>{{h.body_paragraph}}</p>
-          <!-- sign up form on the hero -->
-          <form action="/leads/{{h.landing_page_name}}" method="post">
-            <div class="hero-form-grid">
-              <input
-                type="text"
-                name="fullname"
-                id="full-name"
-                placeholder="Full Name"
+           <h1>{{h.body_h1}}</h1>
+           <p>{{h.body_paragraph}}</p>               <!-- sign up form on the hero -->
+           <form action="/leads/{{h.landing_page_name}}" method="post">
+              <div class="hero-form-grid">
+                 <input
+                    type="text"
+                    name="fullname"
+                    id="full-name"
+                    placeholder="Full Name"
+                 />
+                 <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder="Email"
+                 />
+                 <input
+                    type="tel"
+                    name="phone"
+                    id="phone-number"
+                    placeholder="Phone Number"
+                 />
+                 <input
+                 type="text"
+                 name="business_name"
+                 id="business-name"
+                 placeholder="Business Name"
+                 
               />
-
-              <input
-                type="email"
-                name="email"
-                id="email"
-                placeholder="Your Email"
-              />
-              <input
-                type="text"
-                name="business_name"
-                id="businessname"
-                placeholder="Your business Name"
-              />
-
-              <input
-                type="tel"
-                name="phone"
-                id="phone-number"
-                placeholder="Phone Number"
-              />
+                
             </div>
-            <button type="submit" value="submit" class="btn">Submit</button>
-          </form>
+            
+            <button type="submit" value="sign up" class="btn" id="button-grid">
+               Submit
+            </button>
+           </form>
+           
 
-
-        </div>
-        <!-- right side of the hero -->
+        </div>                <!-- right side of the hero -->
         <div class="hero-right">
           <img src="{{h.section_one_image_link}}" alt="" class="hero-image" />
-          <h1></h1>
         </div>
         <!-- </div> -->
       </section>
     </header>
+
+    <div class="color_2 align"></div>
 
     <!-- second section -->
     <div class="bg-style">
@@ -130,6 +132,8 @@
       </section>
     </div>
 
+    <div class="color_3 align"></div>
+
     <!-- third section -->
     <section class="started">
       <div class="container started_wrapper">
@@ -155,9 +159,8 @@
           <p>{{h.name_job_description}}</p>
         </div>
       </div>
-      <div class="about-section-right">
-        <img src="{{h.section_four_image}}" alt="#" class="large_screen_img" />
-        <img src="{{h.section_four_image}}" alt="#" class="small_screen_img" />
+      <div class="about-section-right" style="background: url('{{ h.section_four_image }}')">
+        <!-- <img src="{{h.section_four_image}}" alt="#" class="large_screen_img" /> -->
       </div>
       <!-- </div> -->
     </section>
@@ -168,14 +171,16 @@
         <div class="bottom_wrapper">
           <h2>{{h.footer_h2_text}}</h2>
         </div>
+        <span class="circle"></span>
       </section>
     </div>
 
+    <div class="color_1 align"></div>
     <div class="form_bg">
       <!-- <section class="container form_wrapper"> -->
       <!-- sign up form -->
       <div class="form_cover">
-        <form action="/leads/{{h.landing_page_name}}">
+        <form action="/leads/{{h.landing_page_name}}" method="post">
           <div class="container footer-form-grid">
             <div class="form_row">
               <input
@@ -191,6 +196,7 @@
                 id="email"
                 placeholder="Your Email"
               />
+              </div>
               <input
                 type="text"
                 name="business_name"
@@ -203,6 +209,7 @@
                 name="phone"
                 id="phone-number"
                 placeholder="Phone Number"
+                class="col-span-2"
               />
 
               <button type="submit" value="submit" class="btn">Submit</button>
