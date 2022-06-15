@@ -10,27 +10,25 @@ app = APIRouter(tags=["import_progress"],)
 @app.get("/import/details")
 async def importDetails(model: str, organization_id: str, 
     db: orm.Session = Depends(get_db)):
-    failedImports = db.query(FailedImports).\
-        filter(FailedImports.organization_id == organization_id).\
-        filter(FailedImports.model == model).\
-        filter(FailedImports.is_deleted == False).all()
     importProgress = db.query(ImportProgress).\
         filter(ImportProgress.model == model).\
         filter(ImportProgress.organization_id == organization_id).\
         filter(ImportProgress.is_deleted == False).first()
     if importProgress == None:
-        return [] 
+        return {}
+
     return {
-        'failed_imports' : failedImports,
-        'current_line' : importProgress.current,
-        'total_line' : importProgress.end
+        'error_message' : importProgress.error_message,
+        'current_line' : importProgress.current_line,
+        'status': importProgress.status,
+        'total_line' : importProgress.total_line
     }
 
 
-def saveImportProgress(current, end, model, organization_id: str, 
+def saveImportProgress(current_line, total_line, model, organization_id: str, 
     db: orm.Session = Depends(get_db)):
     importProgress = ImportProgress(
-        id=uuid4().hex, current=current, end=end,
+        id=uuid4().hex, current_line=current_line, total_line=total_line,
         model=model, organization_id=organization_id, 
         is_deleted=False, created_at= datetime.now(), 
         updated_at= datetime.now()
@@ -41,10 +39,10 @@ def saveImportProgress(current, end, model, organization_id: str,
 
     return importProgress
 
-def updateImportProgress(current:str, id:str, 
+async def updateImportProgress(id:str, current_line:str, error_message:str='', status:bool=True, 
     db: orm.Session = Depends(get_db)):
     db.query(ImportProgress).filter(ImportProgress.id == id).\
-        update({'current': current})
+        update({'current_line': current_line, 'error_message':error_message, 'status':status})
     db.commit()
     return
 
