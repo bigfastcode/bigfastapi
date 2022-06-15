@@ -1,10 +1,17 @@
 from base64 import encode
 from datetime import datetime
-from fastapi import Depends
+import os
+from fastapi import Depends, HTTPException
+from fastapi.responses import FileResponse
+
 import sqlalchemy.orm as orm
 from sqlalchemy import and_, desc
 
+from bigfastapi.utils import settings
+
+
 from ..models.receipt_models import Receipt
+from ..models.file_models import File
 from ..schemas import receipt_schemas
 from bigfastapi import pdfs
 from ..db.database import get_db
@@ -31,10 +38,9 @@ async def get_receipts(
     if datetime_constraint:
             receipts = ( 
                 receipts
-                .filter(and_(
-                    Receipt.organization_id == organization_id,
+                .filter(
                     Receipt.last_updated > datetime_constraint
-                    ))
+                    )
                 .order_by(Receipt.date_created.desc())
                 .offset(offset=offset)
                 .limit(limit=size)
@@ -52,7 +58,6 @@ async def get_receipts(
     else:
         receipts = ( 
             receipts
-            .filter(Receipt.organization_id == organization_id)
             .order_by(Receipt.date_created.desc())
             .offset(offset=offset)
             .limit(limit=size)
@@ -91,3 +96,27 @@ async def get_receipt_by_id(receipt_id:str, org_id: str, db: orm.Session = Depen
 
 def convert_to_pdf(pdfSchema, db: orm.Session = Depends(get_db)):
     return pdfs.convert_to_pdf(pdfSchema, db=db)
+
+def get_file(bucket_name: str, file_id: str, db: orm.Session = Depends(get_db)):
+
+    """Download a single file from the storage
+
+    Args:
+        bucket_name (str): the bucket to list all the files.
+        file_name (str): the file that you want to retrieve
+
+    Returns:
+        A stream of the file
+    """
+
+    existing_file = db.query(File).filter(and_(File.bucketname == bucket_name, File.id == file_id)).first()
+    if existing_file:
+        local_file_path = os.path.join(os.path.realpath(settings.FILES_BASE_FOLDER), existing_file.bucketname, existing_file.filename)
+
+        common_path = os.path.commonpath((os.path.realpath(settings.FILES_BASE_FOLDER), local_file_path))
+        if os.path.realpath(settings.FILES_BASE_FOLDER) != common_path:
+            raise HTTPException(status_code=403, detail="File reading from unallowed path")
+
+        return FileResponse(local_file_path)
+    else:
+        raise HTTPException(status_code=404, detail="File not found")
