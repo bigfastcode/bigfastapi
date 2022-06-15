@@ -20,6 +20,7 @@ async def importDetails(model: str, organization_id: str,
     return {
         'error_message' : importProgress.error_message,
         'current_line' : importProgress.current_line,
+        'status': importProgress.status,
         'total_line' : importProgress.total_line
     }
 
