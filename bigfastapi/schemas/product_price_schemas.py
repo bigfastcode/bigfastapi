@@ -8,7 +8,7 @@ class ProductPriceBase(BaseModel):
     stock_id: str
     price: float
     currency: str
-    customer_group: str
+    customer_group: Optional[str] = None
 
 class CreateProductPrice(ProductPriceBase):
     start: Optional[dt.date] = None
