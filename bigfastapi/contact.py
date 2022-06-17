@@ -5,7 +5,7 @@ from fastapi import APIRouter, status, HTTPException, BackgroundTasks
 from typing import List
 import fastapi
 from fastapi_mail import FastMail, MessageSchema
-from .email import conf
+from .templates.email.email import conf
 import sqlalchemy.orm as orm
 from fastapi.responses import JSONResponse
 from .auth_api import is_authenticated
