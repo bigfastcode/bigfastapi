@@ -55,13 +55,17 @@ def path(filetype: str, image_name: str, folder: str, request: Request, ):
 @app.post("/landing-page/create", status_code=201, response_model=landing_page_schemas.landingPageResponse)
 async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user=Depends(is_authenticated),
                             company_logo: UploadFile = File(...),
+                            favicon: UploadFile = File(...),
                             section_three_image: UploadFile = File(...),
                             section_four_image: UploadFile = File(...),
                             section_one_image_link: UploadFile = File(...),
                             body_h3_logo_one: UploadFile = File(...),
                             body_h3_logo_two: UploadFile = File(...),
                             body_h3_logo_three: UploadFile = File(...),
-                            body_h3_logo_four: UploadFile = File(...),):
+                            body_h3_logo_four: UploadFile = File(...),
+                            shape_one: UploadFile = File(...),
+                            shape_two: UploadFile = File(...),
+                            shape_three: UploadFile = File(...),):
     """
     This endpoint is used to create a landing page
     It takes in the following parameters:
@@ -125,6 +129,30 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload company logo")
+        
+        if favicon:
+            favicon = "/" + bucket_name + "/" + await upload_image(favicon, db=db, bucket_name=bucket_name)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload favicon")
+        
+        if shape_one:
+            shape_one = "/" + bucket_name + "/" + await upload_image(shape_one, db=db, bucket_name=bucket_name)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape one")
+        
+        if shape_two:
+            shape_two = "/" + bucket_name + "/" + await upload_image(shape_two, db=db, bucket_name=bucket_name)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape two")
+        
+        if shape_three:
+            shape_three = "/" + bucket_name + "/" + await upload_image(shape_three, db=db, bucket_name=bucket_name)
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape three")
 
         # check if section three image is uploaded else raise error
         if section_three_image:
@@ -214,7 +242,10 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
             login_link=request.login_link,
             signup_link=request.signup_link,
             title = request.title,
-
+            favicon = favicon,
+            shape_one = shape_one,
+            shape_two = shape_two,
+            shape_three = shape_three,
 
         )
 
@@ -326,6 +357,10 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
             "js_file": js_path,
             "signup_link": landingpage_data.signup_link,
             "title": landingpage_data.title,
+            "favicon": image_path + landingpage_data.favicon,
+            "shape_one": image_path + landingpage_data.shape_one,
+            "shape_two": image_path + landingpage_data.shape_two,
+            "shape_three": image_path + landingpage_data.shape_three,
         }
         return templates.TemplateResponse("landingpage.html", {"request": request, "h": h})
 
@@ -338,7 +373,8 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
 @app.put("/landing-page/{landingpage_name}", status_code=status.HTTP_200_OK, response_model=landing_page_schemas.landingPageResponse)
 async def update_landing_page(landingpage_name: str, request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user=Depends(is_authenticated),
                               company_logo: UploadFile = File(...), section_three_image: UploadFile = File(...), section_four_image: UploadFile = File(...), section_one_image_link: UploadFile = File(...), body_h3_logo_one: UploadFile = File(...), body_h3_logo_two: UploadFile = File(...),
-                              body_h3_logo_three: UploadFile = File(...), body_h3_logo_four: UploadFile = File(...),):
+                              body_h3_logo_three: UploadFile = File(...), body_h3_logo_four: UploadFile = File(...),
+                              shape_one: UploadFile = File(...), shape_two: UploadFile = File(...), shape_three: UploadFile = File(...), favicon: UploadFile = File(...),):
     """
     This endpoint will update a single landing page in the database with data from the request
     """
@@ -470,6 +506,30 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
         if update_landing_page_data.title != request.title:
             update_landing_page_data.title = request.title
 
+        if isFileExist(favicon) != True:
+            favicon1 =update_landing_page_data.favicon
+            if deleteFile(favicon1):
+                favicon = await upload_image(favicon, db=db, bucket_name=update_landing_page_data.bucket_name)
+                update_landing_page_data.favicon = "/" + update_landing_page_data.bucket_name + "/" + favicon
+        
+        if isFileExist(shape_one) != True:
+            shape_one1 =update_landing_page_data.shape_one
+            if deleteFile(shape_one1):
+                shape_one = await upload_image(shape_one, db=db, bucket_name=update_landing_page_data.bucket_name)
+                update_landing_page_data.shape_one = "/" + update_landing_page_data.bucket_name + "/" + shape_one
+        
+        if isFileExist(shape_two) != True:
+            shape_two1 =update_landing_page_data.shape_two
+            if deleteFile(shape_two1):
+                shape_two = await upload_image(shape_two, db=db, bucket_name=update_landing_page_data.bucket_name)
+                update_landing_page_data.shape_two = "/" + update_landing_page_data.bucket_name + "/" + shape_two
+        
+        if isFileExist(shape_three) != True:
+            shape_three1 =update_landing_page_data.shape_three
+            if deleteFile(shape_three1):
+                shape_three = await upload_image(shape_three, db=db, bucket_name=update_landing_page_data.bucket_name)
+                update_landing_page_data.shape_three = "/" + update_landing_page_data.bucket_name + "/" + shape_three
+
         # check company logo is uploaded, update the company logo
         if isFileExist(company_logo) != True:
             company_logo1 = update_landing_page_data.company_logo
@@ -571,8 +631,13 @@ async def delete_landingPage(landingpage_name: str, current_user=Depends(is_auth
         if landingpage_data:
 
             # delete the images from the bucket
-            deleteimage = [landingpage_data.company_logo, landingpage_data.section_one_image_link, landingpage_data.body_h3_logo_one, landingpage_data.body_h3_logo_two,
-                           landingpage_data.body_h3_logo_three, landingpage_data.body_h3_logo_four, landingpage_data.section_three_image, landingpage_data.section_four_image]
+            deleteimage = [landingpage_data.company_logo, landingpage_data.section_one_image_link, 
+                            landingpage_data.body_h3_logo_one, landingpage_data.body_h3_logo_two,
+                            landingpage_data.body_h3_logo_three, landingpage_data.body_h3_logo_four, 
+                            landingpage_data.section_three_image, landingpage_data.section_four_image,
+                            landingpage_data.favicon_image, landingpage_data.shape_one, 
+                            landingpage_data.shape_two, landingpage_data.shape_three,]
+                            
             for i in deleteimage:
                 if deleteFile(i):
                     pass

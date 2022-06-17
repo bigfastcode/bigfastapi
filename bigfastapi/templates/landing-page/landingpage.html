@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>{{h.title}}</title>
-    <link rel = "icon" href ="{{h.company_logo}}" type="image/x-icon">
+    <link rel = "icon" href ="{{h.favicon}}" type="image/x-icon">
     <link rel="stylesheet" href="{{h.css_file}}" />
   </head>
 
@@ -99,8 +99,7 @@
       </section>
     </header>
 
-    <div class="color_2 align"></div>
-
+    <img src="{{h.shape_two}}" class="color_2 align" alt="">
     <!-- second section -->
     <div class="bg-style">
       <section class="container">
@@ -132,7 +131,7 @@
       </section>
     </div>
 
-    <div class="color_3 align"></div>
+    <img src="{{h.shape_one}}" class="color_3 align" alt=""/>
 
     <!-- third section -->
     <section class="started">
@@ -175,7 +174,7 @@
       </section>
     </div>
 
-    <div class="color_1 align"></div>
+    <img src="{{h.shape_three}}" class="color_1 align" />
     <div class="form_bg">
       <!-- <section class="container form_wrapper"> -->
       <!-- sign up form -->
@@ -221,30 +220,32 @@
 
     <footer>
       <section class="container footer">
-        <div class="footer-wrapper">
-          <div class="footer_heading">
-            <h3>{{h.company_name}}</h3>
-            <p><a href="{{h.home_link}}">{{h.home_link}}</a></p>
-          </div>
-          <div>
-            <p>menu links</p>
-            <ul class="menu-links">
-              <li><a href="{{h.home_link}}">home</a></li>
-              <li><a href="{{h.about_link}}">about</a></li>
-              <li><a href="{{h.faq_link}}">faq</a></li>
-              <li><a href="{{h.contact_us_link}}">contact</a></li>
-            </ul>
-          </div>
-          <div class="footer_contact">
-            <p>contact</p>
-            <p>{{h.footer_contact_address}}</p>
-            <p>
-              <a href="{{h.customer_care_email}}">{{h.customer_care_email}}</a>
-            </p>
-          </div>
-        </div>
+         <div class="footer-wrapper">
+            <div class="footer_heading">
+               <h3>{{h.company_name}}</h3>
+               <p><a href="{{h.home_link}}">{{h.home_link}}</a></p>
+            </div>
+            <div class="footer-menu-links">
+               <h5>menu links</h5>
+               <ul class="menu-links">
+                  <li><a href="{{h.home_link}}">home</a></li>
+                  <li><a href="{{h.about_link}}">about</a></li>
+                  <li><a href="{{h.faq_link}}">faq</a></li>
+                  <li><a href="{{h.contact_us_link}}">contact</a></li>
+               </ul>
+            </div>
+            <div class="footer_contact">
+               <h5>contact</h5>
+               <p>{{h.footer_contact_address}}</p>
+               <p>
+                  <a href="{{h.customer_care_email}}"
+                     >{{h.customer_care_email}}</a
+                  >
+               </p>
+            </div>
+         </div>
       </section>
-    </footer>
+   </footer>
 
     <script type="text/javascript" src="{{h.js_file}}"></script>
     <script

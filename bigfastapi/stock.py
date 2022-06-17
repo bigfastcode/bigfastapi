@@ -22,6 +22,21 @@ app = APIRouter(
 async def create_stock(stock: stock_schema.CreateStock, 
                        user: user_schema.User = fastapi.Depends(is_authenticated),
                        db: orm.Session = fastapi.Depends(get_db)):
+    """
+    Intro - This endpoint allows you to create a create a new stock item.
+    It takes in four parameters. To create a stock, you 
+    need to make a post request to the /stock endpoint
+
+    paramDesc-
+        reqBody-name: This is the name of the stock to be created. 
+        reqBody-product_id: This is the id for which the stock is being created. 
+        reqBody-price: This is the buying price of the stock. 
+        reqBody-quantity: Quantity of product available on that stock.
+
+    returnDesc-On sucessful request, it returns
+
+        returnBody- the stock object.
+    """
 
     #check if product to create stock for exists
     product = model.fetch_product_by_id(id=stock.product_id, db=db)
@@ -44,6 +59,15 @@ async def create_stock(stock: stock_schema.CreateStock,
 async def get_stock(stock_id: str, organization_id: str,  db: orm.Session = fastapi.Depends(get_db),
               user: user_schema.User = fastapi.Depends(is_authenticated)):
     
+    """
+    Intro-This endpoint allows you to retreive details of a stock in the database for a particular product. 
+    To retreive the stock details, you need to make a get request to the /stock/{stock_id} endpoint. 
+    
+    paramDesc-On get request the url takes a path parameter stock_id
+    returnDesc- On sucessful request, it returns:
+    returnBody- the stock object.
+    """
+
     #check if user is allowed to view stock for a product in the business
     user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if user_status == False:
@@ -61,6 +85,16 @@ async def get_stock(stock_id: str, organization_id: str,  db: orm.Session = fast
 @app.get('/stock/product/{product_id}', response_model=List[stock_schema.ShowStock])
 async def get_stocks(product_id: str, organization_id:  str, db: orm.Session = fastapi.Depends(get_db), 
                 user: user_schema.User = fastapi.Depends(is_authenticated)):
+
+    """
+    Intro-This endpoint allows you to retreive all non-deleted stock in the database for a particular product in a business. 
+    To retreive all stock for a product, you need to make a get request to the /stock/product/{product_id} endpoint. 
+    
+    paramDesc-On get request the url takes a path parameter product_id
+    returnDesc- On sucessful request, it returns:
+    returnBody- a list of an array of stock objects.
+    """
+
 
     #check if user is allowed to view stock for a product in the business
     user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
@@ -80,6 +114,15 @@ async def get_stocks(product_id: str, organization_id:  str, db: orm.Session = f
 @app.get('/stock/{organization_id}', response_model=List[stock_schema.ShowStock])
 async def get_all_stocks(organization_id: str, db: orm.Session = fastapi.Depends(get_db), 
                     user: user_schema.User = fastapi.Depends(is_authenticated)):
+
+    """
+    Intro-This endpoint allows you to retreive all non-deleted stock in the database for a particular business. 
+    To retreive all stock for a business, you need to make a get request to the /stock/{organization_id} endpoint. 
+    
+    paramDesc-On get request the url takes a path parameter organization_id
+    returnDesc- On sucessful request, it returns:
+    returnBody- a list of an array of stock objects.
+    """
 
     #check if user is allowed to view stock for a product in the business
     user_status = await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
@@ -101,6 +144,18 @@ async def update_stock(stock_update: stock_schema.StockUpdate,
                     stock_id: str,
                     user: user_schema.User = fastapi.Depends(is_authenticated), 
                     db: orm.Session = fastapi.Depends(get_db)):
+    """
+    Intro-This endpoint allows you to update the details of a stock in the database for a particular product. 
+    To retreive the stock details, you need to make a put request to the /stock/{stock_id} endpoint. 
+    
+    paramDesc-
+        reqBody-name: This is the name of the stock to be updated. Optional
+        reqBody-price: This is the price of the stock to be updated. Optional
+        reqBody-quantity: This is the quantity of stock to be updated. Optional
+
+    returnDesc- On sucessful request, it returns:
+    returnBody- the stock object.
+    """
 
     #check if user is allowed to update stock
     user_status =  await helpers.Helpers.is_organization_member(user_id=user.id, organization_id=stock_update.organization_id, db=db)

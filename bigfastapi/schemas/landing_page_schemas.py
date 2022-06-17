@@ -47,6 +47,7 @@ class landingPageCreate(BaseModel):
 
 class landingPagecompanylogo(landingPageCreate):
     company_logo: str
+    favicon: str
 
 class landingPagesection_One_image_link(landingPagecompanylogo):
     section_one_image_link: str
@@ -77,6 +78,7 @@ class landingPageResponse(BaseModel):
     landing_page_name: str
  
     title: str
+    favicon: str
     company_name: str 
     home_link: str
     about_link: str
@@ -112,6 +114,9 @@ class landingPageResponse(BaseModel):
     body_h3_logo_four: str
     section_three_image: str
     section_four_image: str
+    shape_one: str
+    shape_two: str
+    shape_three: str
     class Config:
         orm_mode = True
 
