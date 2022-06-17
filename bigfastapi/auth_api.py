@@ -15,7 +15,7 @@ import random
 from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
-from .templates.email.email import send_email_user
+from .email import send_email_user
 from bigfastapi.api_key import check_api_key
 # from .users import get_user
 
@@ -209,8 +209,7 @@ async def create_passwordreset_token(user: user_models.User):
     if db_token:
         validate_resp = await verify_access_token(db_token.token)
         if not validate_resp["status"]:
-            db.delete(db_token)    # TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email")
-
+            db.delete(db_token)
             db.commit()
             token = await generate_verification_token(user_obj.id, db)
         else:

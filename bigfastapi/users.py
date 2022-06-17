@@ -19,7 +19,7 @@ from .schemas.organization_user_schemas import RoleUpdate, UpdateRoleResponse, o
 from .schemas.organization_schemas import _OrganizationBase
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import deleteFile, isFileExist, upload_image
-from .templates.email.email import send_email
+from .email import send_email
 from .models import organization_invite_model, organization_user_model, role_models
 
 

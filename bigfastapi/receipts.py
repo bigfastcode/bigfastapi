@@ -22,7 +22,7 @@ from fastapi.encoders import jsonable_encoder
 from .models import organization_models
 from .core import messages
 from .core.helpers import Helpers
-from .templates.email.email import send_email, send_receipt_email
+from .email import send_email, send_receipt_email
 from .models.receipt_models import Receipt
 from .models.organization_models import Organization
 from .schemas import users_schemas

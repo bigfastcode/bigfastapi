@@ -1,6 +1,6 @@
 from bigfastapi.schemas import receipt_schemas
-from ...models import email_models
-from ...schemas import email_schema
+from .models import email_models
+from .schemas import email_schema
 from typing import Optional, Union
 from uuid import uuid4
 from datetime import datetime
@@ -284,6 +284,7 @@ conf = ConnectionConfig(
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
     TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER,)
+    # TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email")
 )
 
 async def send_receipt_email(
