@@ -30,9 +30,7 @@ from .schemas import receipt_schemas
 from .schemas import pdf_schema
 from .utils import paginator
 from .services import receipts_services
-from .files import get_file
 
-from .utils.utils import row_to_dict
 
 
 app = APIRouter(tags=["Receipts"])
@@ -309,7 +307,7 @@ async def download_receipt(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
         receipt =  await receipts_services.get_receipt_by_id(receipt_id=receipt_id, org_id=organization_id, db=db)
-        file = await get_file(file_id=receipt.file_id, db=db, bucket_name='pdfs')
+        file = receipts_services.get_file(file_id=receipt.file_id, db=db, bucket_name='pdfs')
 
         return file
     except Exception as ex:
