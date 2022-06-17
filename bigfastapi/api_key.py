@@ -16,7 +16,7 @@ import random
 from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
-from .email import send_email_user
+from .templates.email.email import send_email_user
 from sqlalchemy import and_, or_, not_, desc
 import datetime
 import socket

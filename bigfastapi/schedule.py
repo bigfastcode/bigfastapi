@@ -6,7 +6,7 @@ from bigfastapi.schemas import schedule_schemas as Schema
 from bigfastapi.models import schedule_models as ScheduleModels
 
 from bigfastapi.schemas import users_schemas as UserSchema
-from bigfastapi.email import send_email_user
+from bigfastapi.bigfastapi.templates.email.email import send_email_user
 from bigfastapi.models import organization_models as OrgModels
 from bigfastapi.organization import get_organization
 from bigfastapi.db.database import get_db

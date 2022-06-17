@@ -22,7 +22,7 @@ from bigfastapi.contact import app as contact
 from bigfastapi.countries import app as countries
 from bigfastapi.credit import app as credit
 from bigfastapi.db.database import create_database
-from bigfastapi.email import app as email
+from bigfastapi.bigfastapi.templates.email.email import app as email
 # Import all the functionality that BFA provides
 from bigfastapi.faq import app as faq
 from bigfastapi.files import app as files
