@@ -388,12 +388,12 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
         # check if update landing page does not exist, throw an error
         if update_landing_page_data == None:
             raise HTTPException(
-                status_code=404, detail="Landing page does not exist")
+                status_code=status.HTTP_404_NOT_FOUND, detail="Landing page does not exist")
 
         # check if the landing page name is not the same as the landing page name in the database, throw an error
         if update_landing_page_data.landing_page_name != request.landing_page_name:
             raise HTTPException(
-                status_code=400, detail="Landing page name cannot be changed")
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Landing page name cannot be changed")
 
         #  check if landing page company name is not the same, update the landing page company name
         if update_landing_page_data.company_name != request.company_name:
@@ -609,7 +609,7 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
         except Exception as e:
             print(e)
             raise HTTPException(
-                status_code=500, detail="An error occured while updating the landing page data")
+                status_code=status.HTTP_400_BAD_REQUEST, detail="An error occured while updating the landing page data")
 
     else:
         raise HTTPException(status_code=404, detail="Landing page not found")

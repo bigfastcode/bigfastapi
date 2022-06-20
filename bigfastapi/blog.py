@@ -20,10 +20,14 @@ def create_blog(blog: schema.BlogCreate, user: user_schema.User = fastapi.Depend
     """intro-->This endpoint allows you to create a create a new blog post on the fly and takes in about two paramenters. To create a blog, you need to make a post request to the /blog endpoint
 
     paramDesc-->
+
+
         reqBody-->title: This is the title of the blog post to be created.
         reqBody-->content: This is the content of the blog post to be created.
 
     returnDesc-->On sucessful request, it returns
+
+    
         returnBody--> the blog object with details specified below.
     """
     
@@ -43,7 +47,6 @@ def get_blog(blog_id: str, db: orm.Session = fastapi.Depends(get_db), ):
     """intro-->This endpoint allows you to retreive a blog post based on it's id which is included in the request url. To get a blog post, you need to make a get request to the /blog/blog_id endpoint in which "id" is the unique identifier of the blog item.
 
     paramDesc-->On get request the url takes a query parameter "blog_id":
-        url-: /blog/${blog_id}
         param-->blog_id: This is the id of the blog item
 
     returnDesc-->On sucessful request, it returns message,
