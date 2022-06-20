@@ -162,10 +162,13 @@ def row_to_dict(row):
 
 
 # MENU RELATED DEFAULTS
-def defaultManu():
-    default_more_list = ['reports', 'invoices', 'fees', 'tutorials',
-                         'sales', 'suppliers', 'debts', 'receipts', 'products', 'payments']
 
+
+default_more_list = ['reports', 'invoices', 'fees', 'tutorials', 'logs', 'marketting',
+                     'sales', 'suppliers', 'debts', 'receipts', 'products', 'payments']
+
+
+def defaultManu():
     default_retail = ['dashboard', 'customers',
                       'debts', 'payments', 'settings', 'more']
 
@@ -174,7 +177,8 @@ def defaultManu():
     default_hos = ['dashboard', 'reservations',
                    'customers', 'settings', 'more']
 
-    default_freeLance = ['dashboard', 'clients', 'invoices', 'settings', 'more']
+    default_freeLance = ['dashboard', 'clients',
+                         'invoices', 'settings', 'more']
 
     return {
         "education": {"menu": default_edu, 'more': default_more_list},

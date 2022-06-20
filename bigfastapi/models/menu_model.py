@@ -1,11 +1,12 @@
 
+from http.client import HTTPException
 import json
 import sqlalchemy.orm as _orm
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String
 from uuid import uuid4
 from bigfastapi.db.database import Base
-from bigfastapi.utils.utils import defaultManu
+from bigfastapi.utils.utils import defaultManu, default_more_list
 
 
 class Menu(Base):
@@ -44,3 +45,18 @@ def getOrgMenu(orgId: str, db: _orm.Session):
     else:
         # Add Default Menu
         return addDefaultMenuList(orgId, 'retail', db)
+
+
+def addFeature(businessType: str, newFeature: str, menuSet: str, db: _orm.Session):
+
+    menuConstruct = defaultManu()
+    # filter menu by biz type
+    newActiveMneu = menuConstruct['education']
+
+    try:
+        organizationMenu = db.query(Menu).update(
+            {"active_menu": newActiveMneu, "menu_list": menuConstruct})
+        db.Commit()
+        return {"status": 200, "message": "Menu Updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
