@@ -283,7 +283,7 @@ conf = ConnectionConfig(
     MAIL_TLS=False,
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
-    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email")
+    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER,)
 )
 
 async def send_receipt_email(
