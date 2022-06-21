@@ -42,6 +42,7 @@ from bigfastapi.tutorial import app as tutorial
 from bigfastapi.users import app as accounts_router
 from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
+from bigfastapi.menu import app as menu
 from bigfastapi.schedule import app as schedule
 from bigfastapi.activities_log import app as activitieslog
 from bigfastapi.landing_page import app as landing_page
@@ -199,7 +200,7 @@ tags_metadata = [
         "description": '''BigFast's Freqently asked questions(FAQ) and Support api allows you to and set up a faq section in your application. This api allows creation and retireval of faqs.
          We also offer a support ticket workflow which you can incorporate into your application. The support feature enables creation,
           reply and closing of support tickets an application where it has been imported into.'''
-    },  
+    },
     {
         "name": "sms",
         "description": '''BigFast's SMS API allows you to send an sms
@@ -217,10 +218,11 @@ tags_metadata = [
 app = FastAPI(openapi_tags=tags_metadata)
 app.add_middleware(SessionMiddleware, secret_key=env_var.JWT_SECRET)
 RABBITMQ_USERNAME = config('RABBITMQ_USERNAME')
-RABBITMQ_PASSWORD =config('RABBITMQ_PASSWORD')
-RABBITMQ_HOST_PORT =config('RABBITMQ_HOST_PORT')
+RABBITMQ_PASSWORD = config('RABBITMQ_PASSWORD')
+RABBITMQ_HOST_PORT = config('RABBITMQ_HOST_PORT')
 
-celery = Celery('tasks', broker=f'amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST_PORT}')
+celery = Celery(
+    'tasks', broker=f'amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST_PORT}')
 
 celery.conf.imports = [
     ''
@@ -250,6 +252,7 @@ app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
 app.include_router(products, tags=["Products"])
 app.include_router(stock, tags=["Stock"])
+app.include_router(menu, tags=['Menu'])
 app.include_router(product_prices, tags=["Product Prices"])
 app.include_router(pages, tags=["Pages"])
 app.include_router(plans, tags=['Plans'])

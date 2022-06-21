@@ -47,11 +47,16 @@ def getOrgMenu(orgId: str, db: _orm.Session):
         return addDefaultMenuList(orgId, 'retail', db)
 
 
-def addFeature(businessType: str, newFeature: str, menuSet: str, db: _orm.Session):
+def addFeature(db: _orm.Session):
 
     menuConstruct = defaultManu()
-    # filter menu by biz type
+    # RE-SET Active menu to
     newActiveMneu = menuConstruct['education']
+
+    organizationMenu = db.query(Menu).update(
+        {"active_menu": newActiveMneu, "menu_list": menuConstruct})
+    db.commit()
+    return {"status": 200, "message": "Menu Updated successfully"}
 
     try:
         organizationMenu = db.query(Menu).update(
