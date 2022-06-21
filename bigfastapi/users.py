@@ -4,17 +4,15 @@ import os
 
 import passlib.hash as _hash
 from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, status
+from fastapi import APIRouter, HTTPException, UploadFile, File, status
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
-from .schemas import organizationorganization_schemas as organization_schemas
-from .schemas.organization_schemas import _OrganizationBase, RoleUpdate, UpdateRoleResponse, OrganizationUserBase
+from .schemas.organization_schemas import RoleUpdate, UpdateRoleResponse
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import deleteFile, isFileExist, upload_image
 from .email import send_email
 from .models.organization_models import OrganizationUser, Role
-from bigfastapi.schemas import organization_schemas
 
 
 app = APIRouter(tags=["User"])

@@ -32,7 +32,7 @@ class _OrganizationBase(BaseModel):
         orm_mode = True
 
 class OrganizationUserBase(BaseModel):
-    store_id: Optional[str]
+    organization_id: Optional[str]
     user_id: Optional[str]
     role: Optional[str]
     is_deleted: Optional[str]
@@ -106,7 +106,7 @@ class UserInvite(InviteBase):
     email_details: Email
 
 class Invite(InviteBase):
-    store_id: str
+    organization_id: str
     invite_code: str
     
     class Config:
@@ -138,7 +138,7 @@ org: dict = dict(
     image_full_path="string",
 )
 class SingleInviteResponse(BaseModel):
-    invite: Any = dict(id="string", user_email="string", user_id="string", user_role="string", store=org)
+    invite: Any = dict(id="string", user_email="string", user_id="string", user_role="string", organization=org)
     user: str
 
 class AllInvites(BaseModel):
@@ -146,7 +146,7 @@ class AllInvites(BaseModel):
 
 class AcceptInviteResponse(BaseModel):
     invited: OrganizationUserBase
-    store: _OrganizationBase
+    organization: _OrganizationBase
 
 class RevokedInviteResponse(InviteBase):
     is_revoked: bool = True
@@ -177,6 +177,6 @@ class RoleUpdate(OrganizationUserBase):
 
 class UpdateRoleResponse(BaseModel):
     message: str
-    data: dict = dict(store_id="string", user_id="string", role_id="string", is_deleted="string", date_created="string")
+    data: dict = dict(organization_id="string", user_id="string", role_id="string", is_deleted="string", date_created="string")
 
 # END ORGANIZATION ROLE SCHEMAS
