@@ -5,7 +5,7 @@ from bigfastapi.db import database
 import datetime as dt
 
 
-class Contact(database.Base):
+class ContactUs(database.Base):
     __tablename__ = "contact"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     address = Column(String(500), index=True)
@@ -14,8 +14,7 @@ class Contact(database.Base):
     date_created = Column(DateTime, default=dt.datetime.utcnow)
     last_updated = Column(DateTime, default=dt.datetime.utcnow)
 
-
-class ContactUS(database.Base):
+class ContactRequest(database.Base):
     __tablename__ = "contact us"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     name = Column(String(255), index=True)
