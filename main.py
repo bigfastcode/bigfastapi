@@ -31,7 +31,6 @@ from bigfastapi.notification import app as notification
 from bigfastapi.organization import app as organization
 from bigfastapi.pages import app as pages
 from bigfastapi.pdfs import app as pdfs
-from bigfastapi.plan import app as plan
 from bigfastapi.plans import app as plans
 from bigfastapi.qrcode import app as qrcode
 from bigfastapi.receipts import app as receipts
@@ -257,7 +256,6 @@ app.include_router(email)
 app.include_router(files, tags=["File"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
-app.include_router(plan, tags=["Plan"])
 app.include_router(tutorial, tags=["Tutorials"])
 app.include_router(banks, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
