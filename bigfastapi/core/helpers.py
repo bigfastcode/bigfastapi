@@ -2,8 +2,7 @@ import requests
 import sqlalchemy.orm as _orm
 from decouple import config
 
-from bigfastapi.models import organization_user_model
-from bigfastapi.models.organization_models import Organization
+from bigfastapi.models.organization_models import Organization, OrganizationUser
 
 
 class Helpers:
@@ -15,7 +14,7 @@ class Helpers:
                 .first()
         )
 
-        store_user = db.query(organization_user_model.organizationUser).filter_by(store_id=organization_id).filter_by(
+        store_user = db.query(OrganizationUser).filter_by(store_id=organization_id).filter_by(
             user_id=user_id).first()
         if store_user == None and organization == None:
             return False

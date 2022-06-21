@@ -1,17 +1,20 @@
 import datetime as _dt
 import os
+from typing import Optional
 from uuid import uuid4
 
 import fastapi as _fastapi
+from fastapi.responses import JSONResponse
 import sqlalchemy.orm as _orm
 from decouple import config
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from fastapi import BackgroundTasks
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
+from bigfastapi.email import send_email
 from bigfastapi.models import organization_models
 from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
 from bigfastapi.schemas import roles_schemas
@@ -19,12 +22,15 @@ from .auth_api import is_authenticated
 from .core.helpers import Helpers
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models, organization_invite_model, organization_user_model
+from .schemas.organization_schemas import _OrganizationBase, RoleUpdate, UpdateRoleResponse, OrganizationUserBase
+from .models.organization_models import OrganizationInvite, OrganizationUser, Role
 from .models import organization_models as _models
 from .models import user_models, role_models, schedule_models
 from .models import wallet_models as wallet_models
 from .schemas import organization_schemas as _schemas
 from .schemas import users_schemas
 from .utils.utils import paginate_data, row_to_dict
+from bigfastapi.schemas import organization_schemas
 
 app = APIRouter(tags=["Organization"])
 
@@ -232,7 +238,7 @@ async def get_organization(
     return {"data": {"organization": organization, "menu": menu}}
 
 
-@app.get("/organizations/{organization_id}/users", status_code=200)
+@app.get("/organizations/{organization_id}/users", status_code=200, response_model=organization_schemas.OrganizationUsersResponse)
 async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -399,7 +405,291 @@ def add_role(payload: roles_schemas.AddRole,
     return
 
 
-@app.get("/organizations/invites/{organization_id}")
+
+@app.put('/organizations/{organization_id}/accept-invite/{token}', response_model=organization_schemas.AcceptInviteResponse)
+def accept_invite(
+        organization_id: str,
+        payload: organization_schemas.organizationUser,
+        token: str,
+        db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro-->This endpoint allows for a user to accept an invite. To use this endpoint you need to make a put request to the /users/accept-invite/{token} where token is a unique value recieved by the user on invite. It also takes a specified body of request
+
+    paramDesc-->On put request this enpoint takes the query parameter "token" 
+        param-->token: This is a unique token recieved by the user on invite
+        reqBody-->user_email: This is the email address of the user 
+        reqBody-->user_id: This is the unique user id
+        reqBody-->user_role: This specifies the role of the user in the organization  
+        reqBody-->is_accepted: This is the the acceptance state of the invite  
+        reqBody-->is_revoked: This is the revoke state of the user  
+        reqBody-->is_deleted: This specifies if the invite is deleted/expired  
+        reqBody-->organization_id: This is a unique id of the registered organization
+
+    returnDesc--> On sucessful request, it returns:
+
+        returnBody--> An object with a key `invited` containing the new store user data, and `store` containing information about the store
+         the user is invited to.
+    """
+    try: 
+
+        existing_invite = db.query(
+            OrganizationInvite).filter(
+                and_(
+                    OrganizationInvite.organization_id == organization_id,
+                    OrganizationInvite.invite_code == token,
+                    OrganizationInvite.is_deleted == False,
+                    OrganizationInvite.is_revoked == False
+                )).first()
+
+        if existing_invite is None:
+            return JSONResponse({
+                "message": "Invite not found! Try again or ask the inviter to invite you again."
+            }, status_code=404)
+
+        existing_user = db.query(user_models.User).filter(
+            user_models.User.email == existing_invite.user_email).first()
+
+        if existing_user is None:
+            return JSONResponse({
+                "message": "You must log in first"
+            }, status_code=403)
+
+        # check if the invite token exists in the db.
+        invite = (db.query(OrganizationInvite).
+                filter(and_(OrganizationInvite.organization_id == organization_id, OrganizationInvite.invite_code == token))
+                .first())
+
+        if invite is None:
+            return JSONResponse({
+                "message": "Invite not found!"
+            }, status_code=status.HTTP_404_NOT_FOUND)
+
+        organization = db.query(organization_models.Organization).filter(
+            organization_models.Organization.id == organization_id).first()
+
+        organization_user = OrganizationUser(
+            id=uuid4().hex,
+            organization_id=payload.organization_id,
+            user_id=payload.user_id,
+            role_id=invite.role_id
+        )
+        db.add(organization_user)
+        db.commit()
+        db.refresh(organization_user)
+
+        invite.is_deleted = True
+        invite.is_accepted = True
+        db.add(invite)
+        db.commit()
+        db.refresh(invite)
+
+        return { "invited": OrganizationUserBase.from_orm(organization_user), "organization": _OrganizationBase.from_orm(organization) }
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            , detail=str(ex))
+
+
+
+@app.post("/organizations/{organization_id}/invite/", status_code=201, response_model=organization_schemas.InviteResponse)
+async def invite_user(
+    payload: organization_schemas.UserInvite,
+    background_tasks: BackgroundTasks,
+    template: Optional[str] = "invite_email.html",
+    user: str = _fastapi.Depends(is_authenticated),
+    db: _orm.Session = _fastapi.Depends(get_db)
+):
+    """intro--> This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with the specified body of request 
+
+        reqBody--> user_email: This is the email address of the user to be invited.
+        reqBody--> user_id: This is the unique user id of the logged in user
+        reqBody--> user_role: This specifies the role of the user to be invited in the organization   
+        reqBody--> store: This specifies the information of the registered organization
+        reqBody--> app_url: This is the url to be navigated to on invite accept, usually the url of the application.
+        reqBody--> email_details: This is the key content of the invite email to be sent.
+
+    'returnDesc'--> On sucessful request, it returns:
+
+        returnBody-->  An object with a key `message`.
+    """
+    try:
+        invite_token = uuid4().hex
+        invite_url = f"{payload.app_url}/accept-invite?code={invite_token}"
+        payload.email_details.link = invite_url
+        email_info = payload.email_details
+
+        role = (
+            db.query(Role)
+            .filter(Role.role_name == payload.user_role.lower())
+            .first()
+        )
+
+        # make sure you can't send invite to yourself
+        if (user.email != payload.user_email):
+            existing_invite = (
+                db.query(OrganizationInvite)
+                .filter(
+                    and_(
+                        OrganizationInvite.user_email == payload.user_email,
+                        OrganizationInvite.is_deleted == False
+                    )).first())
+            if existing_invite is None:
+
+                send_email(email_details=email_info,
+                        background_tasks=background_tasks, template=template, db=db)
+                invite = OrganizationInvite(
+                    id=uuid4().hex,
+                    organization_id=payload.organization.get("id"),
+                    user_id=payload.user_id,
+                    user_email=payload.user_email,
+                    role_id=role.id,
+                    invite_code=invite_token
+                )
+                db.add(invite)
+                db.commit()
+                db.refresh(invite)
+
+                return {"message": "Store invite email will be sent in the background."}
+            return {"message": "invite already sent"}
+        return {"message": "Enter an email you're not logged in with."}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            , detail=str(ex)) 
+
+
+@app.get('/organizations/invite/{invite_code}', response_model=organization_schemas.SingleInviteResponse)
+async def get_single_invite(
+    invite_code: str,
+    db: _orm.Session = _fastapi.Depends(get_db),
+):
+    """intro--> This endpoint is used to get an invite link for a single user. To use this endpoint you need to make a get request to the /users/invite/{invite_code} endpoint
+
+    paramDesc--> On get request, the url takes an invite code
+        param--> invite_code: This is a unique code needed to get an invite link
+
+
+    returnDesc--> On sucessful request, it returns
+        returnBody--> An object with a key `invite` containing the invite data and a key `user` containing an empty string `''`
+        indicating the user is not a member of another organization in the application or `exists` indicating that the invited user is a member of another organization in the application.
+    """
+    try:
+
+        # user invite code to query the invite table
+        existing_invite = db.query(
+            OrganizationInvite).filter(
+                and_(
+                    OrganizationInvite.invite_code == invite_code,
+                    OrganizationInvite.is_deleted == False,
+                    OrganizationInvite.is_revoked == False
+                )).first()
+        if (existing_invite):
+            existing_user = db.query(user_models.User).filter(
+                user_models.User.email == existing_invite.user_email).first()
+
+            organization = db.query(organization_models.Organization).filter(
+                organization_models.Organization.id == existing_invite.organization_id).first()
+
+            setattr(existing_invite, 'organization', organization)
+            user_exists = ''
+            if(existing_user is not None):
+                user_exists = 'exists'
+            if not existing_invite:
+                return JSONResponse({
+                    "message": "Invite not found! Try again or ask the inviter to invite you again."
+                }, status_code=404)
+
+            return {"invite": existing_invite, "user": user_exists}
+        return JSONResponse({
+            "message": "Invalid invite code"
+        }, status_code=400)
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            , detail=str(ex)) 
+
+
+@app.put("/organizations/{organization_id}/decline-invite/{invite_code}", response_model=organization_schemas.DeclinedInviteResponse)
+def decline_invite(
+    organization_id: str,
+    invite_code: str,
+    db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro--> This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
+
+    paramDesc--> On put request, the url takes an invite code
+        param-->invite_code: This is a unique code linked to invite
+
+
+    returnDesc--> On sucessful request, it returns message:
+
+        returnBody--> an object contain the invite data with the `is_deleted` field set to True
+    """
+    try:
+
+        declined_invite = (
+            db.query(OrganizationInvite)
+            .filter(and_(OrganizationInvite.organization_id == organization_id, OrganizationInvite.invite_code == invite_code))
+            .first()
+        )
+
+        declined_invite.is_deleted = True
+        db.add(declined_invite)
+        db.commit()
+        db.refresh(declined_invite)
+
+        return declined_invite
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            , detail=str(ex)) 
+
+
+@app.delete("/organizations/{organization_id}/revoke-invite/{invite_code}", response_model=organization_schemas.RevokedInviteResponse)
+def revoke_invite(
+    organization_id: str,
+    invite_code: str,
+    db: _orm.Session = _fastapi.Depends(get_db)
+):
+    """intro-->This endpoint is used to revoke the invitation of a previously invited user. To use this endpoint you need to make a delete request to the /users/revoke-invite/{invite_code} endpoint
+
+    paramDesc-->On delete request, the url takes an invite code
+        param-->invite_code: This is a unique code linked to invite
+
+
+    returnDesc--> On successful request, it returns message,
+        returnBody--> an object contain the invite data with the `is_deleted` and `is_revoked` field set to True
+    """
+    try:
+
+        revoked_invite = (
+            db.query(OrganizationInvite)
+            .filter(and_(OrganizationInvite.organization_id == organization_id, OrganizationInvite.invite_code == invite_code))
+            .first()
+        )
+
+        revoked_invite.is_revoked = True
+        revoked_invite.is_deleted = True
+        db.add(revoked_invite)
+        db.commit()
+        db.refresh(revoked_invite)
+
+        return revoked_invite
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            , detail=str(ex)) 
+
+
+@app.get("/organizations/{organization_id}/invites", status_code=200, response_model=organization_schemas.AllInvites)
 def get_pending_invites(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -414,18 +704,25 @@ def get_pending_invites(
 
         returnBody--> all pending invites in the queried organization
     """
-    pending_invites = (
-        db.query(organization_invite_model.organizationInvite)
-            .filter(
-            and_(organization_invite_model.organizationInvite.store_id == organization_id,
-                 organization_invite_model.organizationInvite.is_deleted == False,
-                 organization_invite_model.organizationInvite.is_accepted == False,
-                 organization_invite_model.organizationInvite.is_revoked == False
-                 ))
-            .all()
-    )
+    try:
+        pending_invites = (
+            db.query(OrganizationInvite)
+                .filter(
+                and_(OrganizationInvite.organization_id == organization_id,
+                    OrganizationInvite.is_deleted == False,
+                    OrganizationInvite.is_accepted == False,
+                    OrganizationInvite.is_revoked == False
+                    ))
+                .all()
+        )
 
-    return pending_invites
+        return { "data": pending_invites }
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)) 
+    
 
 
 @app.put("/organizations/{organization_id}")

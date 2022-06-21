@@ -1,15 +1,14 @@
 
 
 import datetime as _dt
-from locale import currency
+from pydantic import BaseModel
+from typing import Any, List, Optional
 
-import pydantic as _pydantic
-from pydantic import Field
-from uuid import UUID
-from typing import List, Optional
+from .email_schema import Email
+from .users_schemas import User
 
 
-class _OrganizationBase(_pydantic.BaseModel):
+class _OrganizationBase(BaseModel):
     id: Optional[str]
     mission: Optional[str]
     vision: Optional[str]
@@ -32,14 +31,44 @@ class _OrganizationBase(_pydantic.BaseModel):
     class Config:
         orm_mode = True
 
+class OrganizationUserBase(BaseModel):
+    store_id: Optional[str]
+    user_id: Optional[str]
+    role: Optional[str]
+    is_deleted: Optional[str]
+    date_created: Optional[_dt.date]
+
+    class Config:
+        orm_mode = True
+
+class InviteBase(BaseModel):
+    id: Optional[str]
+    user_email: Optional[str]
+    user_id: Optional[str]
+    user_role: Optional[str]
+    is_accepted: Optional[bool] = False
+    is_revoked: Optional[bool] = False
+    is_deleted: Optional[bool] = False
+
+    class Config:
+        orm_mode = True
+
+class Role(BaseModel):
+    organization_id: Optional[str]
+    role_name: str
+
+    class Config:
+        orm_mode = True
+
+
+
+# ORGANIZATION SCHEMAS
 
 class OrganizationCreate(_OrganizationBase):
     pass
 
-
 class OrganizationUpdate(_OrganizationBase):
     pass
-
 
 class Organization(_OrganizationBase):
     id: str
@@ -51,14 +80,12 @@ class Organization(_OrganizationBase):
     class Config:
         orm_mode = True
 
-
-class BusinessSwitch(_pydantic.BaseModel):
+class BusinessSwitch(BaseModel):
     id: str
     business_type: str
 
     class Config:
         orm_mode = True
-
 
 class PinOrUnpin(BusinessSwitch):
     menu_item: str
@@ -66,3 +93,90 @@ class PinOrUnpin(BusinessSwitch):
 
     class Config:
         orm_mode = True
+
+# END ORGANIZATION SCHEMAS
+
+# -------------------------------------- #
+
+# ORGANIZATION INVITE SCHEMAS
+
+class UserInvite(InviteBase):
+    organization: dict
+    app_url: str
+    email_details: Email
+
+class Invite(InviteBase):
+    store_id: str
+    invite_code: str
+    
+    class Config:
+        orm_mode = True
+
+class OrganizationUser(InviteBase):
+    organization_id: str
+    user_id: str
+
+class InviteResponse(BaseModel):
+    message: str
+
+org: dict = dict(
+    id="string",
+    mission="string",
+    vision="string",
+    name="string",
+    country="string",
+    state="string",
+    address="string",
+    currency_preference="string",
+    phone_number="string",
+    email="string",
+    current_subscription="string",
+    tagline="string",
+    image="string",
+    values="string",
+    business_type="retail",
+    image_full_path="string",
+)
+class SingleInviteResponse(BaseModel):
+    invite: Any = dict(id="string", user_email="string", user_id="string", user_role="string", store=org)
+    user: str
+
+class AllInvites(BaseModel):
+    data: List[InviteBase]
+
+class AcceptInviteResponse(BaseModel):
+    invited: OrganizationUserBase
+    store: _OrganizationBase
+
+class RevokedInviteResponse(InviteBase):
+    is_revoked: bool = True
+    is_deleted: bool = True
+
+class DeclinedInviteResponse(InviteBase):
+    is_deleted: bool = True
+
+# END ORGANIZATION INVITE SCHEMAS
+
+# ------------------------------ #
+
+# ORGANIZATION USER SCHEMAS
+class OrganizationUsersResponse(BaseModel):
+    user: User
+    invited: List[InviteBase]
+
+# END ORGANIZATION USER SCHEMAS
+
+
+# ---------------------------------- #
+
+# ORGANIZATION ROLE SCHEMAS
+class AddRole(Role):
+    role_name: str
+class RoleUpdate(OrganizationUserBase):
+    email: str
+
+class UpdateRoleResponse(BaseModel):
+    message: str
+    data: dict = dict(store_id="string", user_id="string", role_id="string", is_deleted="string", date_created="string")
+
+# END ORGANIZATION ROLE SCHEMAS
