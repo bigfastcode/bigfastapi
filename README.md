@@ -67,7 +67,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 1. Fork and clone the bigfastapi repository.
 2. Create a virtual environment with `python3 -m venv env` or `python -m venv env`
 3. Activate the virtual environment using `.\env\Scripts\Activate.ps1` (windows-powershell) 
-    or `./env/Scripts/activate.bat` (windows-command prompt) or `source /path/to/venv/bin/activate` (linux/mac)
+    or `.\env\Scripts\activate.bat` (windows-command prompt) or `source /path/to/venv/bin/activate` (linux/mac)
 4. run `pip install -r requirements.txt`
 5. Create a .env file by copying the .env.sample file
 6. Run `python main.py`. Check the code to understand how to use the library
