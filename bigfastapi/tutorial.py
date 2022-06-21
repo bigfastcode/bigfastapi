@@ -1,20 +1,11 @@
-from operator import or_
-import sqlalchemy
-from fastapi import APIRouter, HTTPException, status
-from fastapi.param_functions import Depends
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException
 from fastapi import APIRouter
 import fastapi as _fastapi
 import sqlalchemy.orm as _orm
 from bigfastapi.db.database import get_db
-from bigfastapi.schemas import plan_schema, tutorial_schema
-from bigfastapi.models import plan_model, tutorial_model, user_models
-from uuid import uuid4
-from bigfastapi import db, users
+from bigfastapi.schemas import tutorial_schema
+from bigfastapi.models import tutorial_models
 from typing import List
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func
-import datetime as _dt
 
 
 app = APIRouter(tags=["Tutorials"])
@@ -38,7 +29,7 @@ async def store(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session =
     """
     try:
         tutorial = await saveNewTutorial(newTutorial, db)
-        return tutorial_model.buildSuccessRes(tutorial, False)
+        return tutorial_models.buildSuccessRes(tutorial, False)
     except PermissionError as exception:
         raise HTTPException(status_code=401, detail=str(exception))
     except LookupError as exception:
@@ -64,7 +55,7 @@ async def getTutorials(
         returnBody--> an array of queried tutorials
     """
 
-    rowCount = await tutorial_model.getRowCount(db)
+    rowCount = await tutorial_models.getRowCount(db)
     skip = getSkip(page, page_size)
 
     tutorials = await runFetchQuery(category, title, page_size, skip, rowCount, db)
@@ -89,9 +80,9 @@ async def getGroup(
         returnBody--> grouped list of queried tutorials
     """
 
-    rowCount = await tutorial_model.getRowCount(db)
+    rowCount = await tutorial_models.getRowCount(db)
     skip = getSkip(page, page_size)
-    groupedTutorials = await tutorial_model.groupByCategory(db, skip, page_size)
+    groupedTutorials = await tutorial_models.groupByCategory(db, skip, page_size)
     pagination = getPagination(
         page, page_size, rowCount, '/tutorials/group/categories')
     return {"data": groupedTutorials, "total": rowCount, "count": page_size, "pagination": pagination}
@@ -111,7 +102,7 @@ async def getCategoryLsit(page_size: int = 10, page: int = 1,
         returnBody--> list of all available tutorial categories
     """
     skip = getSkip(page, page_size)
-    tutorials = await tutorial_model.groupByCategory(db, skip, page_size)
+    tutorials = await tutorial_models.groupByCategory(db, skip, page_size)
     categories = buildCategoryList(tutorials)
     return {"data": categories}
 
@@ -131,11 +122,11 @@ async def searchByKeyWord(
     returnDesc--> On sucessful request, it returns a 
         returnBody--> list of all tutorials that contains the queried keyword
     """
-    rowCount = await tutorial_model.getRowCount(db)
+    rowCount = await tutorial_models.getRowCount(db)
     skip = getSkip(page, page_size)
     pagination = getPagination(
         page, page_size, rowCount, '/tutorials/search/{keyword}')
-    tutorials = await tutorial_model.searchWithAll(keyword, db, skip, page_size)
+    tutorials = await tutorial_models.searchWithAll(keyword, db, skip, page_size)
     return buildSuccessRes(tutorials, True, page_size, rowCount, pagination)
 
 
@@ -155,8 +146,8 @@ async def update(
         returnBody--> list of all available tutorial categories
     """
     try:
-        tutorial = await tutorial_model.update(newTutorial, itemId, newTutorial.added_by, db)
-        return tutorial_model.buildSuccessRes(tutorial, False)
+        tutorial = await tutorial_models.update(newTutorial, itemId, newTutorial.added_by, db)
+        return tutorial_models.buildSuccessRes(tutorial, False)
     except PermissionError as exception:
         raise HTTPException(status_code=401, details=str(exception))
     except LookupError as exception:
@@ -177,7 +168,7 @@ async def delete(itemId: str, userId: str, db: _orm.Session = _fastapi.Depends(g
     """
 
     try:
-        dbResponse = await tutorial_model.delete(itemId, userId, db)
+        dbResponse = await tutorial_models.delete(itemId, userId, db)
         return {'data': dbResponse}
     except PermissionError as exception:
         raise HTTPException(status_code=401, details=str(exception))
@@ -197,10 +188,10 @@ def getSkip(page: int, pageSize: int):
 
 # SAVE A NEW TUTORIA
 async def saveNewTutorial(newTutorial: tutorial_schema.TutorialRequest, db: _orm.Session):
-    user = await tutorial_model.getUser(newTutorial.added_by, db)
+    user = await tutorial_models.getUser(newTutorial.added_by, db)
     if user != None:
         if user.is_superuser:
-            dbRes = await tutorial_model.store(newTutorial, db)
+            dbRes = await tutorial_models.store(newTutorial, db)
             return dbRes
         else:
             raise PermissionError("Lacks super admin access")
@@ -233,15 +224,15 @@ async def runFetchQuery(
         rowCount: int, db: _orm.Session = _fastapi.Depends(get_db)):
 
     if category is None and title is None:
-        return await tutorial_model.fetchAll(db, skip, page_size)
+        return await tutorial_models.fetchAll(db, skip, page_size)
     if category is None and title != None:
-        return await tutorial_model.getBytitle(title, db, skip, page_size)
+        return await tutorial_models.getBytitle(title, db, skip, page_size)
     if category != None and title != None:
-        return await tutorial_model.getByCatByTitle(category, title, db, skip, page_size)
+        return await tutorial_models.getByCatByTitle(category, title, db, skip, page_size)
 
 
 # BUID CATEGORY LIST
-def buildCategoryList(tutorials: List[tutorial_model.Tutorial]):
+def buildCategoryList(tutorials: List[tutorial_models.Tutorial]):
     categories = []
     for tutorial in tutorials:
         categories.append(tutorial.category)

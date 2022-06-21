@@ -30,7 +30,6 @@ from bigfastapi.google_auth import app as social_auth
 from bigfastapi.notification import app as notification
 from bigfastapi.organization import app as organization
 from bigfastapi.pdfs import app as pdfs
-from bigfastapi.plan import app as plan
 from bigfastapi.plans import app as plans
 from bigfastapi.qrcode import app as qrcode
 from bigfastapi.receipts import app as receipts
@@ -52,99 +51,164 @@ from bigfastapi.import_progress import app as importprogress
 tags_metadata = [
     {
         "name": "blog",
-        "description": " BigFast's blog api includes various standard blog api patterns from blog creation to various api querying operations. With this group you can easily get your blog client up and running in no time 📝",
+        "description": '''BigFast's blog api includes various standard blog api patterns from blog 
+        creation to various api querying operations. With this group you can easily get your blog client up and running in no time. You
+        can create a blog by specifying it's title and content. We have also created a relationship between blogs and users whereby you can retrieve a blog belonging
+        to a specific user.''',
     },
     {
         "name": "auth",
-        "description": "BigFast's auth api allows you to manage creation and authentication of users in a seamless manner. You can create new users and authenticate existing users based on specified parameters",
+        "description": '''BigFast's authentication api allows you to manage creation and authentication of 
+         users in a seamless manner. You can create new users and authenticate existing users based on specified parameters
+         We have incorporated a number of the more common details you would typically request from a user and also
+         details provided by a third-party such as google id and  google image.''',
     },
     {
         "name": "countries",
-        "description": "BigFast's countries api allows you to get all countries in the world and thier respective states, you can also query for country codes including dial codes and sample phone formats",
+        "description": '''BigFast's countries api provides a solution for developers faced with the problem of finding/working with data relating to
+        countries around the world. We have sourced very import details about countries and we offer you the ability to
+        retrieve all countries in the world along with thier details. You can also query for country codes including dial codes and sample phone formats using this api.''',
     },
     {
         "name": "pages",
-        "description": "BigFast's pages api allows you to manage creation, retrieval, updating, and deletion of pages seamlessly. You can create pages with a specified title and content body",
+        "description": '''BigFast's pages api is used to create pages in your application as the name implies
+        Witht he pages  you get to manage creation, retrieval, updating, 
+        and deletion of pages seamlessly. You can create pages with a specified title and content body. Each page is
+        unique and includes timestamps for reference''',
     },
     {
         "name": "notification",
-        "description": "BigFast's notifications api  allows you to create notifications and manage the notification flow in your application. You can easily make queries like marking a specific notification as read, marking all notifications as read e.t.c.",
+        "description": '''Using and managing a notification feature is key to facilitating user interactions in
+         an application. BigFast's notifications api  saves you from the stress of building a this feature from scratch. You can import
+         the notification api into your project and build on top of it. The api offers also offers support for
+         marking a specific notification as read, marking all notifications as read e.t.c.''',
     },
     {
         "name": "activitieslog",
-        "description": "BigFast's activity log api allows you to record and manage activity logs for an organization. You can log/record acitvies in an organization and easily retireve them later on."
+        "description": '''BigFast's activity log api is useful for organizations/teams that want to track activities in app or
+         plug in a third party service. This api allows you to log/record acitvties
+         in an organization and easily track or retrieve them later on.'''
     },
     {
         "name": "banks",
-        "description": "BigFast's bank api allows you to add and manage bank details for an organization. You can also perform operations like validating a bank detail and retrieving a valid bank detail schema for a country of interest"
+        "description": '''BigFast's bank api is very useful for fintech applications or any application that needs
+        to collect the financial/bank details of it's users.  The api allows you to add and manage bank details of
+        user's in an organization. You can also perform operations like validating a bank detail and
+        retrieving a valid bank detail schema for a country of interest'''
     },
     {
         "name": "comments",
-        "description": "BigFast's comments api allows you easily build a comments architecture for your application. With bigfast's comment api you can manage creation of a comment thread, creation of a comment, replies, updating a comment and deletion of a comment. The comments api also enables upvoting and downvoting a comment"
+        "description": '''BigFast's comments api allows you to build a comments architecture for your application. 
+        With bigfast's comments api you can manage creation of a creation of a comment, managment of comment threads, replies, 
+        updating a comment and deletion of a comment. The api presents a robust comments and
+        also enables upvoting and downvoting a comment'''
     },
     {
         "name": "contactsandcontactus",
-        "description": "BigFast's contact api allows you to create and manage contact directories while the contact us api allows you to build out a contact us architecture. With the contact us endpoints you can implement sending of a contact us message, retrieval of contact us message and carry out other more specific actions."
+        "description": '''This Bigfast api allows managment of contacts and presents a contact us userflow you can
+        import into your application. api allows you to create and
+         manage contact directories while the contact us api allows you to build out a
+          contact us workflow. With the contact us endpoints you can implement sending of a
+           contact us message, retrieval of contact us message and carry out other more specific actions.'''
+
     },
     {
         "name": "countries",
-        "description": "BigFast's countries api exposes a lot of useful functionalities. You can call and get all countries in the world and their respective states. You can also retreive more specific data using the provided."
+        "description": '''BigFast's countries api exposes a lot of useful functionalities.
+         You can call and get all countries in the world and their respective states. 
+          You can also retreive more specific data using the provided. '''
     },
     {
         "name": "creditwallet",
-        "description": "BigFast's credit api allows you to create and retrieve custom credit rates, you can also add and retrieve credit deails for an organization. It also exposes endpoints you can use to verify payments with payment providers."
+        "description": '''BigFast's credit api allows you to create and retrieve custom credit rates, 
+         you can also add and retrieve credit deails for an organization. The api also exposes very important
+         and useful set of endpoints you can use to verify payments
+         with a number of the common third party payment providers used in many financial applications.'''
     },
     {
         "name": "transactionalemails",
-        "description": "BigFast's Transactional Emails api allows you to send emails. We have also made more specific email templates available."
+        "description": '''BigFast's Transactional Emails api is very robust and allows sending of emails. 
+        We have also made more specific email templates available. Each of the api endpoints have been built to include 
+        fields that fit it's purpose and templates you can use depending on the feature you are implementing.'''
     },
     {
         "name": "file",
-        "description": "BigFast's file api allows you upload/store files in our database. When uploading a file, it is stored in a collection which you specify, we call this collection a bucket"
+        "description": '''You can manage files in your application with the BigFast file api. This api allows you upload and store files in our database.
+         When uploading a file, it is stored in a collection which you specify, we call this collection a bucket. You can then easily retrieve
+         these files later on by referencing the bucket name and filename for a specific file'''
     },
     {
         "name": "organization",
-        "description": "BigFast's organization api is very robust, and exposes many essential endpoints you can use to run an organization. You can create and manage an organization, create roles in an organization and mange invites to an organization."
+        "description": '''BigFast's organization api is very robust and is a key feature in large scale applications
+        where you would need to keep track of multiple organizations. Many of Bigfast's api's have a 
+        relationship with the organization feature and keep an organzation_id depending on the currently tracked 
+        organization. The api exposes many essential endpoints you can use to run an organization.
+         You can create and manage an organization, create roles in an organization and mange invites to an organization.'''
     },
     {
         "name": "plan",
-        "description": "BigFast's plan api allows you to create a service plan and retrieve when needed. This is useful for organizations with various service plans for customers"
+        "description": '''BigFast's plan api allows you to create service plans. This is useful for teams and applications that provide
+        services to it's users based on their current service plan. With this api you can setup the credit price,  access type and duration 
+        of each plan and use later on to configure set of features for users based on thier service plan.
+         This is useful for organizations with various service plans for customers'''
     },
     {
         "name": "qrcode",
-        "description": "BigFast's qr code api provides a unique qr code"
+        "description": '''BigFast's qr code api provides a unique qr code that is mapped to some data. This qrcode can then be setup on 
+        the client side and referenced by users.'''
     },
     {
         "name": "settings",
-        "description": "BigFast's settings api provides a schema you can use to setup/bootstrap an organization. You can add an organization settings and recall/reference it wherever. This api also allows you you to create custom settings for your application, basically your setting will have a name and a value which can then be retrieved when needed"
+        "description": '''BigFast's settings api provides a schema you can use to setup and bootstrap an organization.
+         You can add an organization settings and reference it wherever in your application.
+          This api also allows you you to create custom settings for your application. Typically, your setting will have a name and a value
+           which can then be retrieved when needed.'''
     },
     {
         "name": "subscription",
-        "description": "BigFast's subscription api allows you create subscription packeges for an organization, which can then be subscribed to by a user"
+        "description": '''BigFast's subscription api allows you create subscription packages. This is useful for applications where users will
+        need to subscribe to different plans depending on their needs. This api keeps track of the details of the plan and has a relationship
+        with the currently referenced organization.'''
     },
     {
         "name": "tutorials",
-        "description": "BigFast's tutorial is another great api. This api allows you to create and mange tutorials for your application you can specify a category on creation and retrieve later on, based on the category. You can also retrieve a tutorial based on a specified keyword."
+        "description": '''BigFast's tutorial is another great api. This api allows you to create and mange tutorials in your application.
+        This is useful for educational sites of applications offering an educational/tutorials feature.
+         The api is robust and will allow you specify categories on creation and retrieve later on.
+         You can also retrieve a tutorial based on a specified keyword.'''
     },
     {
         "name": "wallet",
-        "description": "BigFast's wallet is another great api. This api allows you to create a wallet for a user in an organization. You can retrieve user wallets based on the organization, the wallet currency e.t.c."
+        "description": '''BigFast's wallet api is another great api. 
+        This api allows you to create wallets for users in an organization. The api alows you to create different types of 
+        wallets based on their currency codes.
+         You can retrieve user wallets by organization, the wallet's currency code e.t.c. You can also retireve all transactions tied
+         to a particuar wallet.'''
     },
     {
         "name": "user",
-        "description": "BigFast's users api allows you and manage users and user related processes in your application."
+        "description": '''BigFast's users api is a very robust and reliable. The users api can be used in any application you will need 
+        to keep track of users. The api offers a broad set of features you can import and use in your application. These features include
+         managing users and user related processes like user creation, user invites, password reset, profile update, user token verification
+         and many more.'''
     },
     {
         "name": "faqandsupport",
-        "description": "BigFast's Faq and Support api allows you to and set up a faq section in your application. This api alows creation and retireval of faqs. We also offer a support ticket workflow, you can incorporate the creation, replying and closing of support tickets in your application."
+        "description": '''BigFast's Freqently asked questions(FAQ) and Support api allows you to and set up a faq section in your application. This api allows creation and retireval of faqs.
+         We also offer a support ticket workflow which you can incorporate into your application. The support feature enables creation,
+          reply and closing of support tickets an application where it has been imported into.'''
     },  
     {
-        "name": "sendsms",
-        "description": "BigFast's SMS API allows you to send an sms with a body of request containing details of the sms action."
+        "name": "sms",
+        "description": '''BigFast's SMS API allows you to send an sms
+         with a body of request containing details of the sms action. '''
     },
     {
-        "name": "receipt",
-        "description": "BigFast's Receipt API allows you to create, send, and retrieve receipt(s) in an organization."
+        "name": "receipts",
+        "description": '''BigFast's Receipt API is another useful api that allows you to create reciepts. The reciepts api is
+        useful for applications that provide services and need to generate receipts after a payment for a service or
+        transaction has been made. You can also configure sending of reciepts to a recepient's email, and retrieving receipt(s) in an organization. 
+        We have also exposed an endpoint that supports downloading of these reciepts'''
     },
 ]
 
@@ -190,7 +254,6 @@ app.include_router(email)
 app.include_router(files, tags=["File"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
-app.include_router(plan, tags=["Plan"])
 app.include_router(tutorial, tags=["Tutorials"])
 app.include_router(banks, tags=["Banks"])
 app.include_router(countries, tags=["Countries"])
