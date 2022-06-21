@@ -6,7 +6,7 @@ import datetime as dt
 
 
 class ContactUs(database.Base):
-    __tablename__ = "contact"
+    __tablename__ = "ContactUs"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     address = Column(String(500), index=True)
     phone = Column(String(255), index=True)
@@ -15,7 +15,7 @@ class ContactUs(database.Base):
     last_updated = Column(DateTime, default=dt.datetime.utcnow)
 
 class ContactRequest(database.Base):
-    __tablename__ = "contact us"
+    __tablename__ = "ContactRequest"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     name = Column(String(255), index=True)
     email = Column(String(255), index=True)
