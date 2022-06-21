@@ -34,7 +34,7 @@ class BankBase(pydantic.BaseModel):
 
 
 class AddBank(BankBase):
-    organisation_id: str
+    organization_id: str
     bank_address: str
     swift_code: Optional[str]
     sort_code: Optional[str]

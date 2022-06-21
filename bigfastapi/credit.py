@@ -16,8 +16,8 @@ from starlette.responses import RedirectResponse
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
-from .models import credit_wallet_models as model, organisation_models, credit_wallet_conversion_models, wallet_models, \
-    wallet_transaction_models, credit_wallet_history_models, store_user_model
+from .models import credit_wallet_models as model, organization_models, credit_wallet_conversion_models, organization_user_model, wallet_models, \
+    wallet_transaction_models, credit_wallet_history_models
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
 from .schemas.wallet_schemas import PaymentProvider
@@ -455,9 +455,9 @@ async def _get_market_rate(currency: str, db: _orm.Session):
 async def _get_organization(organization_id: str, db: _orm.Session,
                             user: users_schemas.User):
     organization = (
-        db.query(organisation_models.Organization)
+        db.query(organization_models.Organization)
             .filter_by(creator=user.id)
-            .filter(organisation_models.Organization.id == organization_id)
+            .filter(organization_models.Organization.id == organization_id)
             .first()
     )
 
@@ -465,8 +465,8 @@ async def _get_organization(organization_id: str, db: _orm.Session,
         is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
         if is_store_member:
             organization = (
-                db.query(organisation_models.Organization)
-                    .filter(organisation_models.Organization.id == organization_id)
+                db.query(organization_models.Organization)
+                    .filter(organization_models.Organization.id == organization_id)
                     .first()
             )
         if (not is_store_member) or organization is None:

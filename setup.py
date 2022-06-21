@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bigfastapi",                     # This is the name of the package
-    version="0.5.7",                        # The initial release version
+    version="0.5.8",                        # This is the updated release version
     author="BigFastAPI Team",                     # Full name of the author
     author_email="support@rijen.tech",
     description="Adding lots of functionality to FastAPI",
@@ -16,7 +16,9 @@ setuptools.setup(
                                                 'bigfastapi.models',
                                                 'bigfastapi.db',  
                                                 'bigfastapi.core',
-                                                'bigfastapi.utils', 
+                                                'bigfastapi.services',
+                                                'bigfastapi.utils',
+                                                'bigfastapi.templates', 
                                                 'bigfastapi.data']),  
 
     classifiers=[
@@ -90,7 +92,7 @@ setuptools.setup(
     keywords='fastapi, bigfastapi, auth',
     package_data={
         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
-        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landingpage/*.*'],
+        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landing-page/*.*'],
         
         # 'bigfastapi': ['data/*.*'],
         # 'bigfastapi': ['templates/email/*.html'],   

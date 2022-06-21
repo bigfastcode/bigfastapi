@@ -10,6 +10,7 @@ class Receipt(BaseModel):
     message: Optional[str]
     subject: Optional[str]
     recipient: Optional[str]
+    is_deleted: Optional[bool]
     file_id: Optional[str]
 
     class Config:
@@ -18,13 +19,24 @@ class Receipt(BaseModel):
 class atrributes(Receipt):
     recipient: List[EmailStr] = []
 
+class DeleteSelectedReceipts(BaseModel):
+    organization_id: str
+    receipt_id_list: list
+
 class SendReceiptResponse(BaseModel):
     message: str
+    data: Receipt
 
-class FetchReceiptsResponse(BaseModel):
+class ReceiptsResponse(BaseModel):
     page: int
     size: int
     total: int
     items: List[Receipt]
     previous_page: Optional[str]
     next_page: Optional[str]
+
+class FetchReceiptsResponse(BaseModel):
+    data: ReceiptsResponse
+
+class SingleReceiptResponse(BaseModel):
+    data: Receipt

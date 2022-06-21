@@ -5,23 +5,24 @@ from uuid import uuid4
 import fastapi as _fastapi
 import sqlalchemy.orm as _orm
 from decouple import config
-
-from fastapi import APIRouter, Depends, BackgroundTasks, FastAPI
+from fastapi import APIRouter, HTTPException
+from fastapi import BackgroundTasks
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
-from bigfastapi.models import organisation_models
+from bigfastapi.models import organization_models
 from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
 from bigfastapi.schemas import roles_schemas
 from .auth_api import is_authenticated
+from .core.helpers import Helpers
 from .files import upload_image
-from .models import credit_wallet_models as credit_wallet_models
-from .models import organisation_models as _models
-from .models import store_user_model, user_models, store_invite_model, role_models, schedule_models
+from .models import credit_wallet_models as credit_wallet_models, organization_invite_model, organization_user_model
+from .models import organization_models as _models
+from .models import user_models, role_models, schedule_models
 from .models import wallet_models as wallet_models
-from .schemas import organisation_schemas as _schemas
+from .schemas import organization_schemas as _schemas
 from .schemas import users_schemas
 from .utils.utils import paginate_data, row_to_dict
 
@@ -32,7 +33,7 @@ app = APIRouter(tags=["Organization"])
 def create_organization(
         organization: _schemas.OrganizationCreate,
         background_tasks: BackgroundTasks,
-        user: str = _fastapi.Depends(is_authenticated),
+        user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
     """intro--> This endpoint allows you to create a new organization. To use this endpoint you need to make a post request to the `/organizations` endpoint with the specified body of request.
@@ -54,15 +55,17 @@ def create_organization(
     reqBody-->credit_balance: This is a value representing the organization's credit balance
     reqBody-->image_full_path: This is full url path to the company's cover image
     reqBody-->add_template: This is a boolean value that determines wether to add already available templates for the organization.
-        
+
     returnDesc--> On sucessful request, it returns
         returnBody--> details of the newly created organization
     """
-    db_org = get_orgnanization_by_name(name=organization.name, db=db)
+    db_org = get_orgnanization_by_name(
+        name=organization.name, creatorId=user.id, db=db)
 
     if db_org:
         raise _fastapi.HTTPException(
-            status_code=400, detail="Organization name already in use")
+            status_code=400, detail=f"{organization.name} already exist in your business collection")
+
     created_org = create_organization(
         user=user, db=db, organization=organization)
 
@@ -72,6 +75,7 @@ def create_organization(
     runWalletCreation(created_org, db)
 
     background_tasks.add_task(defaults_for_org, organization, created_org, db)
+    background_tasks.add_task(send_slack_notification, user.email, organization)
 
     newOrId = created_org.id
     newOrg = created_org
@@ -140,7 +144,7 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
         try:
 
             for temp in defaultTemplates:
-                template_obj = organisation_models.DefaultTemplates(
+                template_obj = organization_models.DefaultTemplates(
                     id=uuid4(
                     ).hex, organization_id=created_org.id, subject=temp["subject"],
                     escalation_level=temp["escalation_level"], email_message=temp["email_message"],
@@ -174,7 +178,7 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
 
         try:
 
-            autoreminder_obj = organisation_models.DefaultAutoReminder(
+            autoreminder_obj = organization_models.DefaultAutoReminder(
                 id=uuid4().hex, organization_id=created_org.id, days_before_debt=3,
                 first_template="escalation_level_1", second_template="escalation_level_3")
 
@@ -185,23 +189,24 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
         except:
             print('could not create auto reminder default')
 
+
 @app.get("/organizations")
 def get_organizations(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
         page_size: int = 15,
         page_number: int = 1,
-):  
+):
     """intro--> This endpoint allows you to retrieve all organizations. To use this endpoint you need to make a get request to the /organizations endpoint 
 
             paramDesc--> On get request, the request url takes two(2) optional query parameters
                 param--> page_size: This is the size per page, this is 10 by default
                 param--> page_number: This is the page of interest, this is 1 by default
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> a list of organizations
-    """ 
+    """
     all_orgs = get_organizations(user, db)
 
     return paginate_data(all_orgs, page_size, page_number)
@@ -212,16 +217,16 @@ async def get_organization(
         organization_id: str,
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
-):  
+):
     """intro--> This endpoint allows you to retrieve details of a particular organizations. To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
 
             paramDesc--> On get request, the request url takes the parameter, organization id
                 param--> organization_id: This is unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> details of the queried organization
-    """ 
+    """
     organization = await get_organization(organization_id, user, db)
     menu = getOrgMenu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
@@ -233,20 +238,20 @@ async def get_organization_users(
         db: _orm.Session = _fastapi.Depends(get_db)
 ):
     """intro--> This endpoint allows you to get all users in an organization. To use this endpoint you need to make a get request to the `/organizations/{organization_id}/users` endpoint.
-    The `organization_id` parameter is used to query the users(invited users included) in an organisation.
+    The `organization_id` parameter is used to query the users(invited users included) in an organization.
 
         paramDesc--> On get request, the request url takes the parameter, organization id
             param--> organization_id: This is unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> list of all users in the queried organization
     """
     # query the store_users table with the organization_id
-    invited_list = db.query(store_user_model.StoreUser).filter(
+    invited_list = db.query(organization_user_model.organizationUser).filter(
         and_(
-            store_user_model.StoreUser.store_id == organization_id,
-            store_user_model.StoreUser.is_deleted == False
+            organization_user_model.organizationUser.store_id == organization_id,
+            organization_user_model.organizationUser.is_deleted == False
         )
     ).all()
 
@@ -254,8 +259,8 @@ async def get_organization_users(
 
     organization = (
         db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
+            .filter(_models.Organization.id == organization_id)
+            .first()
     )
 
     if organization is None:
@@ -264,8 +269,8 @@ async def get_organization_users(
     store_owner_id = organization.creator
     store_owner = (
         db.query(user_models.User)
-        .filter(user_models.User.id == store_owner_id)
-        .first())
+            .filter(user_models.User.id == store_owner_id)
+            .first())
 
     invited_users = []
     if len(invited_list) > 0:
@@ -295,13 +300,13 @@ def delete_organization_user(
         organization_id: str,
         user_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
-):  
+):
     """intro--> This endpoint allows you to delete a particular user from an organization. To use this endpoint you need to make a delete request to the /organizations/{organization_id}/users/{user_id} endpoint 
 
         paramDesc--> On delete request, the request url takes two(2) parameters, organization id and user id
             param--> organization_id: This is unique Id of the organization of interest
             param--> user_id: This is the unique id of the user to be removed from the organization
-        
+
     returnDesc--> On sucessful request, it returns message,
         returnBody--> User with email {email} successfully removed from the store
     """
@@ -312,12 +317,12 @@ def delete_organization_user(
     if user is not None:
         # fetch the store user from the store user table.
         store_user = (
-            db.query(store_user_model.StoreUser)
-            .filter(and_(
-                    store_user_model.StoreUser.user_id == user_id,
-                    store_user_model.StoreUser.store_id == organization_id
-                    ))
-            .first()
+            db.query(organization_user_model.organizationUser)
+                .filter(and_(
+                organization_user_model.organizationUser.user_id == user_id,
+                organization_user_model.organizationUser.store_id == organization_id
+            ))
+                .first()
         )
 
         store_user.is_deleted = True
@@ -340,7 +345,7 @@ def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db))
 
         paramDesc--> On get request, the request url takes the parameter, organization id.
             param-->organization_id: This is the unique id of the organization of interest.
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> list of all available roles in the queried organization
@@ -364,7 +369,7 @@ def add_role(payload: roles_schemas.AddRole,
 
             reqBody--> organization_id: This is a unique Id of the organization of interest
             reqBody--> role_name: This is the name of the new role to be created in the organization
-        
+
     returnDesc--> On sucessful request, it returns:
         returnBody--> details of the newly created organization role.
     """
@@ -374,8 +379,8 @@ def add_role(payload: roles_schemas.AddRole,
     if len(roles) < 1:
         existing_role = (
             db.query(role_models.Role)
-            .filter(role_models.Role.role_name == payload.role_name.lower())
-            .first()
+                .filter(role_models.Role.role_name == payload.role_name.lower())
+                .first()
         )
         if existing_role is None:
             role = role_models.Role(
@@ -398,26 +403,26 @@ def add_role(payload: roles_schemas.AddRole,
 def get_pending_invites(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
-):  
+):
     """intro--> This endpoint allows you to retrieve all pending invites to an organization. To use this endpoint you need to make a get request to the /organizations/invites/{organization_id} endpoint
 
         paramDesc--> On get request, the request url takes the parameter, organization id 
             param--> organization_id: This is the unique Id of the organization of interest
 
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> all pending invites in the queried organization
     """
     pending_invites = (
-        db.query(store_invite_model.StoreInvite)
-        .filter(
-            and_(store_invite_model.StoreInvite.store_id == organization_id,
-                 store_invite_model.StoreInvite.is_deleted == False,
-                 store_invite_model.StoreInvite.is_accepted == False,
-                 store_invite_model.StoreInvite.is_revoked == False
+        db.query(organization_invite_model.organizationInvite)
+            .filter(
+            and_(organization_invite_model.organizationInvite.store_id == organization_id,
+                 organization_invite_model.organizationInvite.is_deleted == False,
+                 organization_invite_model.organizationInvite.is_accepted == False,
+                 organization_invite_model.organizationInvite.is_revoked == False
                  ))
-        .all()
+            .all()
     )
 
     return pending_invites
@@ -450,7 +455,7 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
             reqBody--> credit_balance: This is a value representing the organization's credit balance
             reqBody--> image_full_path: This is full url path to the company's cover image
             reqBody--> add_template: This is a boolean value that determines wether to add already available templates for the organization.
-        
+
     returnDesc--> On successful request, it returns:
 
         returnBody--> details of the updated organization
@@ -458,43 +463,40 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
     return await update_organization(organization_id, organization, user, db)
 
 
-@app.put("/organizations/{organization_id}/update-image")
-async def organization_image_upload(organization_id: str, file: UploadFile = File(...),
-                                    db: _orm.Session = _fastapi.Depends(
-                                        get_db),
-                                    user: users_schemas.User = _fastapi.Depends(
-                                        is_authenticated)
-                                    ):
-    """intro--> This endpoint allows you to update the cover image of an organization. To use this endpoint you need to make a put request to the /organizations/{organization_id}/update-image endpoint with a specified body of request
+@app.patch("/organizations/{organization_id}/update-image")
+async def changeOrganizationImage(
+        organization_id: str, file: UploadFile = File(...),
+        db: _orm.Session = _fastapi.Depends(get_db),
+        user: str = _fastapi.Depends(is_authenticated)):
+    """intro--> This endpoint allows you to upload/change the cover image of an organization.
+        To use this endpoint you need to make a get patch request to the 
+        endpoint, /organizations/{organization_id}/update-image.
 
-        paramDesc--> On put request, the request url takes the parameter, organization id 
-            param--> organization_id: This is the unique Id of the organization of interest
-        
+        requestHeader-->Authorization: Bearer token
+        requestBody-->organization_id: The organization unique id as string 
+        requestBody-->file: The image file to be uploaded
+
     returnDesc--> On sucessful request, it returns:
-
-        returnBody--> details of the updated organization
+        returnBody--> Updated organization object
     """
-    org = db.query(_models.Organization).filter(
-        _models.Organization.id == organization_id).first()
-    # delete existing image
-    # if org.image != "":
-    #     image = org.image
-    #     filename = f"/{org.id}/{image}"
 
-    #     root_location = os.path.abspath("filestorage")
-    #     full_image_path =  root_location + filename
-    #     os.remove(full_image_path)
+    bucketName = 'organzationImages'
+    organization = await _models.fetchOrganization(organization_id, db)
 
-    image = await upload_image(file, db, bucket_name=org.id)
-    org.image = image
-    db.commit()
-    db.refresh(org)
-    image = org.image
+    #  Delete previous organization image if exist
+    test = await _models.deleteBizImageIfExist(organization)
 
-    appBasePath = config('API_URL')
-    imageURL = appBasePath + f'/organizations/{organization_id}/image'
-    setattr(org, 'image_full_path', imageURL)
-    return org
+    uploadedImage = await upload_image(file, db, bucketName)
+    # Update organization image to uploaded image endpoint
+    organization.image = f"/files/image/{bucketName}/{uploadedImage}"
+
+    try:
+        db.commit()
+        db.refresh(organization)
+        menu = getOrgMenu(organization_id, db)
+        return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/organizations/{organization_id}/image")
@@ -503,7 +505,7 @@ async def get_organization_image_upload(organization_id: str, db: _orm.Session =
 
         paramDesc--> On get request, the request url takes the parameter, organization id 
             param--> organization_id: This is the unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
 
         returnBody--> full_image_path property of the organization
@@ -527,19 +529,20 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 
         paramDesc--> On delete request, the request url takes the parameter, organization id 
             param--> organization_id: This is the unique Id of the organization of interest
-        
+
     returnDesc--> On sucessful request, it returns:
-    
+
         returnBody--> "success"
     """
     return await delete_organization(organization_id, user, db)
 
 
 # /////////////////////////////////////////////////////////////////////////////////
-# Organisation Services
+# organization Services
 
-def get_orgnanization_by_name(name: str, db: _orm.Session):
-    return db.query(_models.Organization).filter(_models.Organization.name == name).first()
+def get_orgnanization_by_name(name: str, creatorId: str, db: _orm.Session):
+    return db.query(_models.Organization).filter(_models.Organization.name == name,
+                                                 creatorId == _models.Organization.creator).first()
 
 
 async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.Session):
@@ -564,7 +567,7 @@ def create_organization(user: users_schemas.User, db: _orm.Session, organization
     return newOrganization
 
 
-def runWalletCreation(newOrganization: organisation_models.Organization, db: _orm.Session):
+def runWalletCreation(newOrganization: organization_models.Organization, db: _orm.Session):
     roles = ["Assistant", "Admin", "Owner"]
     for role in roles:
         new_role = role_models.Role(
@@ -586,9 +589,9 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
         creator=user.id).all()
 
     invited_orgs_rep = (
-        db.query(store_user_model.StoreUser)
-        .filter(store_user_model.StoreUser.user_id == user.id)
-        .all()
+        db.query(organization_user_model.organizationUser)
+            .filter(organization_user_model.organizationUser.user_id == user.id)
+            .all()
     )
 
     if len(invited_orgs_rep) < 1:
@@ -598,7 +601,7 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
             imageURL = appBasePath + \
-                f'/organizations/{organization_list[pos].id}/image'
+                       f'/organizations/{organization_list[pos].id}/image'
             setattr(organization_list[pos], 'image_full_path', imageURL)
             organizationCollection.append(organization_list[pos])
 
@@ -609,8 +612,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
     org = []
     for store_id in store_id_list:
         org = org + \
-            db.query(_models.Organization).filter(
-                _models.Organization.id == store_id).all()
+              db.query(_models.Organization).filter(
+                  _models.Organization.id == store_id).all()
 
     org_coll = native_orgs + org
     organizationCollection = []
@@ -626,8 +629,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
+            .filter(_models.Organization.id == organization_id)
+            .first()
     )
 
     if organization is None:
@@ -736,3 +739,8 @@ def create_credit_wallet(organization_id: str, db: _orm.Session):
     db.add(credit)
     db.commit()
     db.refresh(credit)
+
+
+def send_slack_notification(user, organization):
+    message = user + " created a new organization : " + organization.name
+    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)  # sends the message to slack

@@ -1,28 +1,21 @@
 
 import datetime as dt
-from pydoc import describe
-from fastapi import File, UploadFile
 from pydantic import BaseModel 
-from pydantic import Field
-from uuid import UUID
-from typing import List, Optional
+from typing import List, Optional, Any
 from bigfastapi.utils.schema_form import as_form
 
 
 class ProductBase(BaseModel):
     name: str
-    description: str
-    price: float
-    # images: str
+    description: Optional[str] = None
     unique_id: Optional[str] = None
-    quantity: int
 
 class Product(ProductBase):
     id: str
-    discount: str
-    created: dt.datetime
-    business_id: str
-    status: bool
+    date_created: dt.datetime
+    organization_id: str
+    product_image: Optional[List[Any]] = []
+
 
     class Config:
         orm_mode = True
@@ -30,13 +23,11 @@ class Product(ProductBase):
 @as_form
 class ProductCreate(BaseModel):
     name: str
-    description: str
-    price: float
-    # images: str
+    description: Optional[str]= None
     unique_id: Optional[str] = None
-    quantity: int
-    discount: float
-    business_id: str
+    organization_id: str
+    price: Optional[float] = None
+    quantity: Optional[int] = None
 
 class ProductImage(ProductCreate):
     product_image: str
@@ -44,14 +35,12 @@ class ProductImage(ProductCreate):
 class ProductUpdate(ProductBase):
     name: Optional[str] = None
     description: Optional[str]= None
-    price: Optional[float] = None
-    # images: str
-    unique_id: Optional[str] = None
-    quantity: Optional[int] = None
-    discount: Optional[str] = None
+    organization_id: str
 
 class ShowProduct(Product):
     created_by: str
+    last_updated: dt.datetime
+    product_image: Optional[List[Any]] = []
 
     class Config:
         orm_mode = True
@@ -66,3 +55,18 @@ class ProductOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class DeleteProduct(BaseModel):
+    organization_id: str
+
+
+class DeleteSelectedProduct(BaseModel):
+    product_id_list: list
+    organization_id: str
+
+    class Config:
+        orm_mode = True
+
+
+    
+    
