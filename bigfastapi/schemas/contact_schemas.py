@@ -25,7 +25,7 @@ class ContactUSB(pydantic.BaseModel):
     message: str
 
 
-class ContactUS(ContactUSB):
+class ContactRequest(ContactUSB):
     id: str
     date_created: dt.datetime
 
