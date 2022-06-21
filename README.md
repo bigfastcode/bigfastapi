@@ -3,8 +3,7 @@
 BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) that adds a bunch of things that are commonly used in APIs.
 
 ---
-**BigFastAPI Documentation**: <a href="https://bigfastapi.com/docs/" target="_blank">https://bigfastapi.com/docs/</a>,
-      <a href="https://bigfa.st/" target="_blank">https://bigfa.st/</a>
+**BigFastAPI Documentation**: <a href="https://bigfa.st/" target="_blank">https://bigfa.st/</a>,
 
 
 **FastAPI Documentation**: <a href="https://fastapi.tiangolo.com" target="_blank">https://fastapi.tiangolo.com</a>
@@ -73,7 +72,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 6. Run `python main.py`. Check the code to understand how to use the library
 7. **commands for building bigfastapi into a library**: `python setup.py sdist bdist_wheel`
 8. You can install your local version of the library into another project run: `pip install <path to local bigfastapi>\dist\<name of whl file>`
-9. **update on pypi** using `twine upload dist/*` (first install twine using `pip install twine`)
+9. **update on pypi** using `twine upload --repository-url https://upload.pypi.org/legacy/ dist/*` (first install twine using `pip install twine`)
 
 # Documentation
 
