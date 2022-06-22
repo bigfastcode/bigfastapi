@@ -104,7 +104,7 @@ tags_metadata = [
         also enables upvoting and downvoting a comment'''
     },
     {
-        "name": "contactsandcontactus",
+        "name": "contacts and contactUs",
         "description": '''This Bigfast api allows managment of contacts and presents a contact us userflow you can
         import into your application. api allows you to create and
          manage contact directories while the contact us api allows you to build out a
@@ -119,7 +119,7 @@ tags_metadata = [
           You can also retreive more specific data using the provided. '''
     },
     {
-        "name": "creditwallet",
+        "name": "creditwallets",
         "description": '''BigFast's credit api allows you to create and retrieve custom credit rates, 
          you can also add and retrieve credit deails for an organization. The api also exposes very important
          and useful set of endpoints you can use to verify payments
@@ -132,7 +132,7 @@ tags_metadata = [
         fields that fit it's purpose and templates you can use depending on the feature you are implementing.'''
     },
     {
-        "name": "file",
+        "name": "files",
         "description": '''You can manage files in your application with the BigFast file api. This api allows you upload and store files in our database.
          When uploading a file, it is stored in a collection which you specify, we call this collection a bucket. You can then easily retrieve
          these files later on by referencing the bucket name and filename for a specific file'''
@@ -146,16 +146,11 @@ tags_metadata = [
          You can create and manage an organization, create roles in an organization and mange invites to an organization.'''
     },
     {
-        "name": "plan",
+        "name": "plans",
         "description": '''BigFast's plan api allows you to create service plans. This is useful for teams and applications that provide
         services to it's users based on their current service plan. With this api you can setup the credit price,  access type and duration 
         of each plan and use later on to configure set of features for users based on thier service plan.
          This is useful for organizations with various service plans for customers'''
-    },
-    {
-        "name": "qrcode",
-        "description": '''BigFast's qr code api provides a unique qr code that is mapped to some data. This qrcode can then be setup on 
-        the client side and referenced by users.'''
     },
     {
         "name": "settings",
@@ -165,7 +160,7 @@ tags_metadata = [
            which can then be retrieved when needed.'''
     },
     {
-        "name": "subscription",
+        "name": "subscriptions",
         "description": '''BigFast's subscription api allows you create subscription packages. This is useful for applications where users will
         need to subscribe to different plans depending on their needs. This api keeps track of the details of the plan and has a relationship
         with the currently referenced organization.'''
@@ -178,7 +173,7 @@ tags_metadata = [
          You can also retrieve a tutorial based on a specified keyword.'''
     },
     {
-        "name": "wallet",
+        "name": "wallets",
         "description": '''BigFast's wallet api is another great api. 
         This api allows you to create wallets for users in an organization. The api alows you to create different types of 
         wallets based on their currency codes.
@@ -186,14 +181,14 @@ tags_metadata = [
          to a particuar wallet.'''
     },
     {
-        "name": "user",
+        "name": "users",
         "description": '''BigFast's users api is a very robust and reliable. The users api can be used in any application you will need 
         to keep track of users. The api offers a broad set of features you can import and use in your application. These features include
          managing users and user related processes like user creation, user invites, password reset, profile update, user token verification
          and many more.'''
     },
     {
-        "name": "faqandsupport",
+        "name": "faq and support",
         "description": '''BigFast's Freqently asked questions(FAQ) and Support api allows you to and set up a faq section in your application. This api allows creation and retireval of faqs.
          We also offer a support ticket workflow which you can incorporate into your application. The support feature enables creation,
           reply and closing of support tickets an application where it has been imported into.'''
