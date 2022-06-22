@@ -55,7 +55,7 @@
         <div class="hero-left">
            <h1>{{h.body_h1}}</h1>
            <p>{{h.body_paragraph}}</p>               <!-- sign up form on the hero -->
-           <form action="/leads/{{h.landing_page_name}}" method="post">
+           <form action="{{h.LANDING_PAGE_FORM_PATH}}/{{h.landing_page_name}}" method="post">
               <div class="hero-form-grid">
                  <input
                     type="text"
@@ -190,7 +190,7 @@
       <!-- <section class="container form_wrapper"> -->
       <!-- sign up form -->
       <div class="form_cover">
-        <form action="/leads/{{h.landing_page_name}}" method="post">
+        <form action="{{h.LANDING_PAGE_FORM_PATH}}/{{h.landing_page_name}}" method="post">
           <div class="container footer-form-grid">
             <div class="form_row">
               <input
