@@ -34,8 +34,8 @@ class _OrganizationBase(BaseModel):
 class OrganizationUserBase(BaseModel):
     organization_id: Optional[str]
     user_id: Optional[str]
-    role: Optional[str]
-    is_deleted: Optional[str]
+    role_id: Optional[str]
+    is_deleted: Optional[bool] = False
     date_created: Optional[_dt.date]
 
     class Config:
@@ -46,6 +46,7 @@ class InviteBase(BaseModel):
     user_email: Optional[str]
     user_id: Optional[str]
     user_role: Optional[str]
+    invite_code: Optional[str]
     is_accepted: Optional[bool] = False
     is_revoked: Optional[bool] = False
     is_deleted: Optional[bool] = False
@@ -113,7 +114,6 @@ class Invite(InviteBase):
         orm_mode = True
 
 class OrganizationUser(InviteBase):
-    organization_id: str
     user_id: str
 
 class InviteResponse(BaseModel):
@@ -140,7 +140,6 @@ org: dict = dict(
 class SingleInviteResponse(BaseModel):
     invite: Any = dict(id="string", user_email="string", user_id="string", user_role="string", organization=org)
     user: str
-
 class AllInvites(BaseModel):
     data: List[InviteBase]
 
@@ -162,7 +161,7 @@ class DeclinedInviteResponse(InviteBase):
 # ORGANIZATION USER SCHEMAS
 class OrganizationUsersResponse(BaseModel):
     user: User
-    invited: List[InviteBase]
+    invited: List = list(dict(id="string", first_name="string", last_name="string", email="string", user_id="string", role="string", organization_id="string", date_created="string"))
 
 # END ORGANIZATION USER SCHEMAS
 
@@ -174,9 +173,9 @@ class AddRole(Role):
     role_name: str
 class RoleUpdate(OrganizationUserBase):
     email: str
+    role: str
 
 class UpdateRoleResponse(BaseModel):
     message: str
-    data: dict = dict(organization_id="string", user_id="string", role_id="string", is_deleted="string", date_created="string")
-
+    data: OrganizationUserBase
 # END ORGANIZATION ROLE SCHEMAS

@@ -21,15 +21,14 @@ from .auth_api import is_authenticated
 from .core.helpers import Helpers
 from .files import upload_image
 from .models import credit_wallet_models as credit_wallet_models
+from .schemas import organization_schemas as _schemas
 from .schemas.organization_schemas import _OrganizationBase, AddRole, OrganizationUserBase
 from .models.organization_models import OrganizationInvite, OrganizationUser, Role
 from .models import organization_models as _models
 from .models import user_models, schedule_models
 from .models import wallet_models as wallet_models
-from .schemas import organization_schemas as _schemas
 from .schemas import users_schemas
 from .utils.utils import paginate_data, row_to_dict
-from bigfastapi.schemas import organization_schemas
 
 app = APIRouter(tags=["Organization"])
 
@@ -237,7 +236,7 @@ async def get_organization(
     return {"data": {"organization": organization, "menu": menu}}
 
 
-@app.get("/organizations/{organization_id}/users", status_code=200, response_model=organization_schemas.OrganizationUsersResponse)
+@app.get("/organizations/{organization_id}/users", status_code=200, response_model=_schemas.OrganizationUsersResponse)
 async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -287,6 +286,8 @@ async def get_organization_users(
             role = db.query(Role).filter(
                 Role.id == invited["role_id"]).first()
             if (user.id == invited["user_id"]):
+                invited["first_name"] = user.first_name
+                invited["last_name"] = user.last_name
                 invited["email"] = user.email
                 invited["role"] = role.role_name
 
@@ -364,7 +365,7 @@ def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db))
     """
     roles = db.query(Role).filter(
         Role.organization_id == organization_id)
-    roles = list(map(Role.from_orm, roles))
+    roles = list(map(_schemas.Role.from_orm, roles))
 
     return roles
 
@@ -418,11 +419,10 @@ def add_role(payload: AddRole,
 
 
 
-@app.put('/organizations/{organization_id}/accept-invite/{token}', response_model=organization_schemas.AcceptInviteResponse)
+@app.put('/organizations/accept-invite/{invite_code}', response_model=_schemas.AcceptInviteResponse)
 def accept_invite(
-        organization_id: str,
-        payload: organization_schemas.OrganizationUser,
-        token: str,
+        payload: _schemas.OrganizationUser,
+        invite_code: str,
         db: _orm.Session = _fastapi.Depends(get_db)):
     """intro-->This endpoint allows for a user to accept an invite. To use this endpoint you need to make a put request to the /users/accept-invite/{token} where token is a unique value recieved by the user on invite. It also takes a specified body of request
 
@@ -446,53 +446,33 @@ def accept_invite(
         existing_invite = db.query(
             OrganizationInvite).filter(
                 and_(
-                    OrganizationInvite.organization_id == organization_id,
-                    OrganizationInvite.invite_code == token,
+                    OrganizationInvite.invite_code == invite_code,
                     OrganizationInvite.is_deleted == False,
                     OrganizationInvite.is_revoked == False
                 )).first()
 
         if existing_invite is None:
             return JSONResponse({
-                "message": "Invite not found! Try again or ask the inviter to invite you again."
+                "message": "Invite not found. If you think this is shouldn't be, try again or ask the inviter to invite you again."
             }, status_code=404)
 
-        existing_user = db.query(user_models.User).filter(
-            user_models.User.email == existing_invite.user_email).first()
-
-        if existing_user is None:
-            return JSONResponse({
-                "message": "You must log in first"
-            }, status_code=403)
-
-        # check if the invite token exists in the db.
-        invite = (db.query(OrganizationInvite).
-                filter(and_(OrganizationInvite.organization_id == organization_id, OrganizationInvite.invite_code == token))
-                .first())
-
-        if invite is None:
-            return JSONResponse({
-                "message": "Invite not found!"
-            }, status_code=status.HTTP_404_NOT_FOUND)
-
         organization = db.query(organization_models.Organization).filter(
-            organization_models.Organization.id == organization_id).first()
+            organization_models.Organization.id == existing_invite.organization_id).first()
 
         organization_user = OrganizationUser(
             id=uuid4().hex,
-            organization_id=payload.organization_id,
+            organization_id=existing_invite.organization_id,
             user_id=payload.user_id,
-            role_id=invite.role_id
+            role_id=existing_invite.role_id
         )
         db.add(organization_user)
         db.commit()
         db.refresh(organization_user)
 
-        invite.is_deleted = True
-        invite.is_accepted = True
-        db.add(invite)
+        existing_invite.is_deleted = True
+        existing_invite.is_accepted = True
         db.commit()
-        db.refresh(invite)
+        db.refresh(existing_invite)
 
         return { "invited": OrganizationUserBase.from_orm(organization_user), "organization": _OrganizationBase.from_orm(organization) }
 
@@ -504,9 +484,9 @@ def accept_invite(
 
 
 
-@app.post("/organizations/{organization_id}/invite/", status_code=201, response_model=organization_schemas.InviteResponse)
+@app.post("/organizations/{organization_id}/invite-user/", status_code=201, response_model=_schemas.InviteResponse)
 async def invite_user(
-    payload: organization_schemas.UserInvite,
+    payload: _schemas.UserInvite,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
     user: str = _fastapi.Depends(is_authenticated),
@@ -527,7 +507,7 @@ async def invite_user(
     """
     try:
         invite_token = uuid4().hex
-        invite_url = f"{payload.app_url}/accept-invite?code={invite_token}"
+        invite_url = f"{payload.app_url}/accept-invite?invite_token={invite_token}"
         payload.email_details.link = invite_url
         email_info = payload.email_details
 
@@ -573,7 +553,7 @@ async def invite_user(
             , detail=str(ex)) 
 
 
-@app.get('/organizations/invite/{invite_code}', response_model=organization_schemas.SingleInviteResponse)
+@app.get('/organizations/get-invite/{invite_code}', response_model=_schemas.SingleInviteResponse)
 async def get_single_invite(
     invite_code: str,
     db: _orm.Session = _fastapi.Depends(get_db),
@@ -617,7 +597,7 @@ async def get_single_invite(
             return {"invite": existing_invite, "user": user_exists}
         return JSONResponse({
             "message": "Invalid invite code"
-        }, status_code=400)
+        }, status_code=404)
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -626,9 +606,8 @@ async def get_single_invite(
             , detail=str(ex)) 
 
 
-@app.put("/organizations/{organization_id}/decline-invite/{invite_code}", response_model=organization_schemas.DeclinedInviteResponse)
+@app.put("/organizations/decline-invite/{invite_code}", response_model=_schemas.DeclinedInviteResponse)
 def decline_invite(
-    organization_id: str,
     invite_code: str,
     db: _orm.Session = _fastapi.Depends(get_db)):
     """intro--> This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
@@ -645,7 +624,7 @@ def decline_invite(
 
         declined_invite = (
             db.query(OrganizationInvite)
-            .filter(and_(OrganizationInvite.organization_id == organization_id, OrganizationInvite.invite_code == invite_code))
+            .filter(OrganizationInvite.invite_code == invite_code)
             .first()
         )
 
@@ -663,7 +642,7 @@ def decline_invite(
             , detail=str(ex)) 
 
 
-@app.delete("/organizations/{organization_id}/revoke-invite/{invite_code}", response_model=organization_schemas.RevokedInviteResponse)
+@app.delete("/organizations/{organization_id}/revoke-invite/{invite_code}", response_model=_schemas.RevokedInviteResponse)
 def revoke_invite(
     organization_id: str,
     invite_code: str,
@@ -701,7 +680,7 @@ def revoke_invite(
             , detail=str(ex)) 
 
 
-@app.get("/organizations/{organization_id}/invites", status_code=200, response_model=organization_schemas.AllInvites)
+@app.get("/organizations/{organization_id}/invites", status_code=200, response_model=_schemas.AllInvites)
 def get_pending_invites(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -879,7 +858,7 @@ def create_organization(user: users_schemas.User, db: _orm.Session, organization
 def runWalletCreation(newOrganization: organization_models.Organization, db: _orm.Session):
     roles = ["Assistant", "Admin", "Owner"]
     for role in roles:
-        new_role = role_models.Role(
+        new_role = Role(
             id=uuid4().hex,
             organization_id=newOrganization.id.strip(),
             role_name=role.lower()
@@ -916,7 +895,7 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 
         return organizationCollection
 
-    organization_id_list = list(map(lambda x: x.org_id, invited_orgs_rep))
+    organization_id_list = list(map(lambda x: x.organization_id, invited_orgs_rep))
 
     org = []
     for org_id in organization_id_list:

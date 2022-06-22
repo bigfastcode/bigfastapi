@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, status
 import sqlalchemy.orm as orm
 from bigfastapi.db.database import get_db
 from .schemas import users_schemas as _schemas
-from .schemas.organization_schemas import RoleUpdate, UpdateRoleResponse
+from .schemas.organization_schemas import OrganizationUserBase, RoleUpdate, UpdateRoleResponse
 from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
 from .files import deleteFile, isFileExist, upload_image
 from .email import send_email
@@ -194,8 +194,8 @@ def update_user_role(
             db.refresh(existing_store_user)
 
             return {
-                "message": "User role successfully updated",
-                "data": existing_store_user
+                "message": "User role updated successfully",
+                "data": OrganizationUserBase.from_orm(existing_store_user)
             }
         return {"message": "User does not exist"}
 
