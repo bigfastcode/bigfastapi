@@ -91,11 +91,10 @@ setuptools.setup(
     url='https://bigfa.st/',
     keywords='fastapi, bigfastapi, auth',
     package_data={
-        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
-        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landing-page/*.*'],
+#         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
+#         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landing-page/*.*'],
         
-        # 'bigfastapi': ['data/*.*'],
-        # 'bigfastapi': ['templates/email/*.html'],   
+        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landing-page/*.*', 'templates/email/*.*'], 
     },
     # include_package_data=True,
     project_urls={ 
