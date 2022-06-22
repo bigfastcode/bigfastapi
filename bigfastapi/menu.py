@@ -25,7 +25,7 @@ def addMenuItem(newFeature: str = '',
                 user: users_schemas.User = fastapi.Depends(is_authenticated)):
 
     updateResult = menu_model.addFeature(db)
-    return {'message': 'successful', 'result': updateResult, 'who': user}
+    return updateResult
 
 
 add_pagination(app)
