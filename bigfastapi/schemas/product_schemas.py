@@ -14,6 +14,7 @@ class Product(ProductBase):
     id: str
     date_created: dt.datetime
     organization_id: str
+    stock_id: Optional[str] = None
     product_image: Optional[List[Any]] = []
 
 
