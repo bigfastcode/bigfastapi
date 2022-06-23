@@ -1,4 +1,5 @@
 
+from email.policy import default
 from sqlalchemy import ForeignKey, null
 import bigfastapi.db.database as db
 import sqlalchemy.orm as orm
@@ -12,20 +13,25 @@ class LPage(db.Base):
   id = Column(String(255), primary_key=True, index=True)
   user_id = Column(String(255), ForeignKey('users.id'), nullable=False)
   landing_page_name = Column(String(255), index=True, unique=True)
+  title = Column(String(255), default="landing page")
   bucket_name = Column(String(255), index=True, unique=True)
-  company_name = Column(String(255), nullable=False) # company_name 
+  company_name = Column(String(255), nullable=False) 
+  favicon = Column(String(255))
+  shape_one = Column(String(255))
+  shape_two = Column(String(255))
+  shape_three = Column(String(255))
   login_link = Column(String(255))
   signup_link = Column(String(255))
-  company_logo = Column(String(255)) # image url
-  home_link = Column(String(255)) # home link
-  about_link = Column(String(255)) # about link
-  faq_link = Column(String(255)) # faq link
-  contact_us_link = Column(String(255)) # contact us link
-  body_h1 = Column(String(255)) # body title
-  body_paragraph = Column(String(255)) # body content text
-  section_one_image_link = Column(String(255)) # body content logo one
-  body_h3 = Column(String(255)) # body title subtext
-  body_h3_logo_one = Column(String(255)) # body title image
+  company_logo = Column(String(255)) 
+  home_link = Column(String(255))
+  about_link = Column(String(255)) 
+  faq_link = Column(String(255)) 
+  contact_us_link = Column(String(255)) 
+  body_h1 = Column(String(255)) 
+  body_paragraph = Column(String(255)) 
+  section_one_image_link = Column(String(255)) 
+  body_h3 = Column(String(255)) 
+  body_h3_logo_one = Column(String(255)) 
   body_h3_logo_one_name = Column(String(255))
   body_h3_logo_one_paragraph = Column(String(255))
   body_h3_logo_two = Column(String(255))

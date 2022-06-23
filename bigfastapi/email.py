@@ -1,9 +1,10 @@
+from bigfastapi.schemas import receipt_schemas
 from .models import email_models
 from .schemas import email_schema
-from typing import Optional
+from typing import Optional, Union
 from uuid import uuid4
 from datetime import datetime
-from fastapi import APIRouter, BackgroundTasks, Response
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, status
 from bigfastapi.db.database import get_db
 from fastapi import BackgroundTasks
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
@@ -282,8 +283,44 @@ conf = ConnectionConfig(
     MAIL_TLS=False,
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
-    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email")
+    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER,)
 )
+
+async def send_receipt_email(
+    email_details: receipt_schemas.atrributes,
+    background_tasks: BackgroundTasks,
+    template: Optional[str] = "mail_receipt.html",
+    db: orm.Session = fastapi.Depends(get_db),
+    file: Union[UploadFile, None] = None
+):
+    try:
+        if file is not None:
+            message = MessageSchema(
+                subject=email_details.subject,
+                recipients=email_details.recipient,
+                template_body={
+                    "message": email_details.message,
+                },
+                subtype="html",
+                attachments=[file]
+            )
+        else: 
+            message = MessageSchema(
+                subject=email_details.subject,
+                recipients=email_details.recipient,
+                template_body={
+                    "message": email_details.message,
+                },
+                subtype="html",
+            )
+
+        fm = FastMail(conf)
+        background_tasks.add_task(fm.send_message, message, template_name=template)
+    
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 def send_invite_email(
@@ -298,71 +335,78 @@ def send_invite_email(
     return {"message": "Invite email will be sent in the background"}
 
 
-def send_email(email_details: email_schema.Email, background_tasks: BackgroundTasks, template: str, db: orm.Session):
-    date_created = datetime.now()
-    message = MessageSchema(
-        subject=email_details.subject,
-        recipients=email_details.recipient,
-        template_body={
-            "title": email_details.title,
-            "first_name": email_details.first_name,
-            "body": email_details.body,
-            "date_created": date_created,
-            "amount": email_details.amount,
-            "due_date": email_details.due_date,
-            "link": email_details.link,
-            "extra_link": email_details.extra_link,
-            "invoice_id": email_details.invoice_id,
-            "description": email_details.description,
-            "receipt_id": email_details.receipt_id,
-            "promo_product_name": email_details.promo_product_name,
-            "promo_product_description": email_details.promo_product_description,
-            "promo_product_price": email_details.promo_product_price,
-            "product_name": email_details.product_name,
-            "product_description": email_details.product_description,
-            "product_price": email_details.product_price,
-            "extra_product_name": email_details.extra_product_name,
-            "extra_product_description": email_details.extra_product_description,
-            "extra_product_price": email_details.extra_product_price,
-            "sender_address": email_details.sender_address,
-            "sender_city": email_details.sender_city,
-            "sender_state": email_details.sender_state,
-        },
-        subtype="html",
-    )
-    email = email_models.Email(
-        id=uuid4().hex,
-        subject=email_details.subject,
-        recipient=email_details.recipient,
-        title=email_details.title,
-        first_name=email_details.first_name,
-        body=email_details.body,
-        amount=email_details.amount,
-        due_date=email_details.due_date,
-        link=email_details.link,
-        extra_link=email_details.extra_link,
-        invoice_id=email_details.invoice_id,
-        receipt_id=email_details.receipt_id,
-        description=email_details.description,
-        promo_product_name=email_details.promo_product_name,
-        promo_product_description=email_details.promo_product_description,
-        promo_product_price=email_details.promo_product_price,
-        product_name=email_details.product_name,
-        product_description=email_details.product_description,
-        product_price=email_details.product_price,
-        extra_product_name=email_details.extra_product_name,
-        extra_product_description=email_details.extra_product_description,
-        extra_product_price=email_details.extra_product_price,
-        sender_address=email_details.sender_address,
-        sender_city=email_details.sender_city,
-        sender_state=email_details.sender_state,
-        date_created=date_created,
-    )
-    db.add(email)
-    db.commit()
-    db.refresh(email)
-    fm = FastMail(conf)
-    background_tasks.add_task(fm.send_message, message, template_name=template)
+def send_email(
+    email_details: email_schema.Email, background_tasks: BackgroundTasks, template: str, db: orm.Session):
+    try:
+        date_created = datetime.now()
+        message = MessageSchema(
+            subject=email_details.subject,
+            recipients=email_details.recipient,
+            template_body={
+                "title": email_details.title,
+                "first_name": email_details.first_name,
+                "body": email_details.body,
+                "date_created": date_created,
+                "amount": email_details.amount,
+                "due_date": email_details.due_date,
+                "link": email_details.link,
+                "extra_link": email_details.extra_link,
+                "invoice_id": email_details.invoice_id,
+                "description": email_details.description,
+                "receipt_id": email_details.receipt_id,
+                "promo_product_name": email_details.promo_product_name,
+                "promo_product_description": email_details.promo_product_description,
+                "promo_product_price": email_details.promo_product_price,
+                "product_name": email_details.product_name,
+                "product_description": email_details.product_description,
+                "product_price": email_details.product_price,
+                "extra_product_name": email_details.extra_product_name,
+                "extra_product_description": email_details.extra_product_description,
+                "extra_product_price": email_details.extra_product_price,
+                "sender_address": email_details.sender_address,
+                "sender_city": email_details.sender_city,
+                "sender_state": email_details.sender_state,
+            },
+            subtype="html",
+        )
+        email = email_models.Email(
+            id=uuid4().hex,
+            subject=email_details.subject,
+            recipient=email_details.recipient,
+            title=email_details.title,
+            first_name=email_details.first_name,
+            body=email_details.body,
+            amount=email_details.amount,
+            due_date=email_details.due_date,
+            link=email_details.link,
+            extra_link=email_details.extra_link,
+            invoice_id=email_details.invoice_id,
+            receipt_id=email_details.receipt_id,
+            description=email_details.description,
+            promo_product_name=email_details.promo_product_name,
+            promo_product_description=email_details.promo_product_description,
+            promo_product_price=email_details.promo_product_price,
+            product_name=email_details.product_name,
+            product_description=email_details.product_description,
+            product_price=email_details.product_price,
+            extra_product_name=email_details.extra_product_name,
+            extra_product_description=email_details.extra_product_description,
+            extra_product_price=email_details.extra_product_price,
+            sender_address=email_details.sender_address,
+            sender_city=email_details.sender_city,
+            sender_state=email_details.sender_state,
+            date_created=date_created,
+        )
+        db.add(email)
+        db.commit()
+        db.refresh(email)
+        fm = FastMail(conf)
+        background_tasks.add_task(fm.send_message, message, template_name=template)
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 async def send_email_user(email: str, user, template, title: str, path="", code=""):

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{{h.title}}</title>
+    <link rel = "icon" href ="{{h.favicon}}" type="image/x-icon">
+    <link rel="stylesheet" href="{{h.css_file}}" />
+  </head>
+
+  <body>
+    <nav>
+      <div class="container nav_container">
+        <a><img src="{{h.company_logo}}" alt="" class="logo" /></a>
+
+        <!-- <span class="me"> -->
+        <ul class="navlinks" id="navlinks">
+          <li><a href="{{h.home_link}}">home</a></li>
+          <li><a href="#about">about</a></li>
+          <li><a href="#about">faq</a></li>
+          <li><a href="#contact">contact</a></li>
+        </ul>
+
+        <div class="sign-in-up">
+          <li class="sign-in"><a href="#contact">log in</a></li>
+          <button class="btn"><a href="#contact">Sign up</a></button>
+        </div>
+
+        <div class="responsive_menu">
+          <button id="open-menu-btn"><i class="fa fa-bars fa-2x"></i></button>
+
+          <div class="nav_button" id="close-menu-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="36"
+              height="36"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </svg>
+          </div>
+          <!-- <i class="fa fa-xmark fa-2x"></i></div> -->
+        </div>
+      </div>
+
+      <!-- </span> -->
+    </nav>
+
+    <header>
+      <section class="container hero_container" id="hero-section" id="signup">
+        <div class="hero-left">
+           <h1>{{h.body_h1}}</h1>
+           <p>{{h.body_paragraph}}</p>               <!-- sign up form on the hero -->
+           <form action="/leads/{{h.landing_page_name}}" method="post">
+              <div class="hero-form-grid">
+                 <input
+                    type="text"
+                    name="fullname"
+                    id="full-name"
+                    placeholder="Full Name"
+                    required="required"
+                 />
+                 <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder="Email"
+                    required="required"
+                 />
+                 <input
+                    type="tel"
+                    name="phone"
+                    id="phone-number"
+                    placeholder="Phone Number"
+                    required="required"
+                 />
+                 <input
+                 type="text"
+                 name="business_name"
+                 id="business-name"
+                 placeholder="Business Name"
+                 
+              />
+                
+            </div>
+            
+            <button type="submit" value="sign up" class="btn" id="button-grid">
+               Submit
+            </button>
+           </form>
+           
+
+        </div> 
+                       <!-- right side of the hero -->
+        <div class="hero-right">
+          <img src="{{h.section_one_image_link}}" alt="" class="hero-image" />
+        </div>
+        <!-- </div> -->
+      </section>
+    </header>
+
+    <img src="{{h.shape_two}}" class="color_2 align" alt="">
+
+    <!-- second section -->
+    <div class="bg-style">
+      <section class="container">
+        <div class="wrap-heading">
+          <h3>{{h.body_h3}}</h3>
+        </div>
+        <div class="items_wrapper">
+          <div class="single-items">
+            <img src="{{h.body_h3_logo_one}}" alt="#" />
+            <h4>{{h.body_h3_logo_one_name}}</h4>
+            <p>{{h.body_h3_logo_one_paragraph}}</p>
+          </div>
+          <div class="single-items">
+            <img src="{{h.body_h3_logo_two}}" alt="#" />
+            <h4>{{h.body_h3_logo_two_name}}</h4>
+            <p>{{h.body_h3_logo_two_paragraph}}</p>
+          </div>
+          <div class="single-items">
+            <img src="{{h.body_h3_logo_three}}" alt="#" />
+            <h4>{{h.body_h3_logo_three_name}}</h4>
+            <p>{{h.body_h3_logo_three_paragraph}}</p>
+          </div>
+          <div class="single-items">
+            <img src="{{h.body_h3_logo_four}}" alt="#" />
+            <h4>{{h.body_h3_logo_four_name}}</h4>
+            <p>{{h.body_h3_logo_four_paragraph}}</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <img src="{{h.shape_one}}" class="color_3 align" alt=""/>
+
+    <!-- third section -->
+    <section class="started">
+      <div class="container started_wrapper">
+        <div class="section-left">
+          <h3>{{h.section_three_paragraph}}</h3>
+          <p>{{h.section_three_sub_paragraph}}</p>
+          <button class="btn" href="#contact">Get Started</button>
+        </div>
+        <div class="section-right">
+          <img src="{{h.section_three_image}}" alt="img" />
+        </div>
+      </div>
+    </section>
+
+    <!-- fourth section -->
+    <section class="about_container" id="about">
+      <!-- <div class="about_wrapper"> -->
+      <div class="about-section-left">
+        <div class="about-section-left-item">
+          <h2>{{h.footer_h3}}</h2>
+          <p>{{h.footer_h3_paragraph}}</p>
+          <p>{{h.footer_name_employee}}</p>
+          <p>{{h.name_job_description}}</p>
+
+          <div class="style-border">
+            <div class="border2"></div>
+            <div class="border1"></div>
+            <div class="border2"></div>
+          </div>
+        </div>
+      </div>
+      <div class="about-section-right" style="background: url('{{ h.section_four_image }}')">
+        <!-- <img src="{{h.section_four_image}}" alt="#" class="large_screen_img" /> -->
+      </div>
+      <!-- </div> -->
+    </section>
+
+    <!-- fifth section -->
+    <div class="about-bg">
+      <section class="container bottom-section">
+        <div class="bottom_wrapper">
+          <h2>{{h.footer_h2_text}}</h2>
+        </div>
+        <span class="circle"></span>
+      </section>
+    </div>
+
+    <img src="{{h.shape_three}}" class="color_1 align" />
+    <div class="form_bg">
+      <!-- <section class="container form_wrapper"> -->
+      <!-- sign up form -->
+      <div class="form_cover">
+        <form action="/leads/{{h.landing_page_name}}" method="post">
+          <div class="container footer-form-grid">
+            <div class="form_row">
+              <input
+                type="text"
+                name="fullname"
+                id="full-name"
+                placeholder="Full Name"
+                required="required"
+              />
+
+              <input
+                type="email"
+                name="email"
+                id="email"
+                placeholder="Your Email"
+                required="required"
+              />
+              </div>
+              <input
+                type="text"
+                name="business_name"
+                id="businessname"
+                placeholder="Your business Name"
+              />
+
+              <input
+                type="tel"
+                name="phone"
+                id="phone-number"
+                placeholder="Phone Number"
+                class="col-span-2"
+                required="required"
+              />
+
+              <button type="submit" value="submit" class="btn">Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="footer" >
+      <div class="inner-footer">
+    
+    <!--  for company name and description -->
+        <div class="footer-items">
+         <h1>{{h.company_name}} </h1>
+         <p>customerpay.me</p>
+        </div>
+    
+    <!--  for quick links  -->
+        <div class="footer-items">
+          <h3>MENU LINKS</h3>
+          <div class="border1"></div> <!--for the underline -->
+            <ul>
+              <a href="#home"><li>Home</li></a>
+              <a href="#about"><li>About</li></a>
+              <a href="#faq"><li>Faq</li></a>
+              <a href="#contact"><li>Contact</li></a>
+            </ul>
+        </div>
+    
+    <!--  for contact us info -->
+        <div class="footer-items" id="contact">
+          <h5>CONTACT</h5>
+          <div class="border1"></div>
+            <div class="address">
+               <p>{{h.footer_contact_address}}</p>
+               
+               <p>{{h.customer_care_email}}</p>
+            
+            </div> 
+        </div>
+      </div>
+    </div>    <script type="text/javascript" src="{{h.js_file}}"></script>
+    <script
+      type="text/javascript"
+      src="https://use.fontawesome.com/528b542f33.js"
+    ></script>
+  </body>
+</html>

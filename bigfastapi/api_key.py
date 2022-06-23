@@ -247,3 +247,6 @@ async def check_user_exist(body: auth_schemas.APIKey, db: orm.Session):
         else:
             user = await create_user(body, db)
             return user.id
+
+
+

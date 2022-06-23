@@ -9,7 +9,7 @@ from alembic import context
 
 from bigfastapi.models.user_models import Base as UserBase
 from bigfastapi.models.customer_models import Base as CustomerBase
-from bigfastapi.models.organisation_models import Base as OrganizationBase
+from bigfastapi.models.organization_models import Base as OrganizationBase
 from bigfastapi.models.wallet_transaction_models import Base as WalletTransactionBase
 
 from bigfastapi.db.database import DATABASE_URL 

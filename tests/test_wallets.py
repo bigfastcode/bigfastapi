@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bigfastapi.schemas import users_schemas
-from bigfastapi.models import organisation_models
+from bigfastapi.models import organization_models
 from bigfastapi.models import wallet_models
 import bigfastapi.db.database as database
 from decouple import config
@@ -55,11 +55,11 @@ client = TestClient(app)
 @pytest.fixture(scope="module")
 def setUp():
     database.Base.metadata.create_all(bind=engine, tables=[wallet_models.Wallet.__table__,
-                                                           organisation_models.Organization.__table__])
+                                                           organization_models.Organization.__table__])
     app.dependency_overrides[database.get_db] = override_get_db
     app.dependency_overrides[is_authenticated] = override_is_authenticated
 
-    organization = organisation_models.Organization(
+    organization = organization_models.Organization(
         id="9cd87677378946d88dc7903b6710ab79",
         mission="test mission",
         vision="test mission",
@@ -67,7 +67,7 @@ def setUp():
         values="test values"
     )
 
-    organizationInDB = test_db.query(organisation_models.Organization).filter_by(
+    organizationInDB = test_db.query(organization_models.Organization).filter_by(
         id="9cd87677378946d88dc7903b6710ab79").first()
     if organizationInDB is None:
         test_db.add(organization)

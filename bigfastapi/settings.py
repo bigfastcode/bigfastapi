@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
-from .models import organisation_models as _models
+from .models import organization_models as _models
 from .models import settings_models as models
 from .schemas import settings_schemas as schemas
 from .schemas import users_schemas
