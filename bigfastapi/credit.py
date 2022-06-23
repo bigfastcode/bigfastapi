@@ -16,8 +16,7 @@ from starlette.responses import RedirectResponse
 from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
-from .models import credit_wallet_models as model, organization_models, credit_wallet_conversion_models, wallet_models, \
-    wallet_transaction_models, credit_wallet_history_models
+from .models import credit_wallet_models as model, organization_models, wallet_models, credit_wallet_models
 from .schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from .schemas import users_schemas
 from .schemas.wallet_schemas import PaymentProvider
@@ -47,7 +46,7 @@ async def add_rate(
             raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                         detail="Currency " + body.currency_code.upper() + " already has a conversion rate")
 
-        rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
+        rate = credit_wallet_models.CreditWalletConversion(id=uuid4().hex,
                                                                       rate=body.rate,
                                                                       currency_code=body.currency_code.upper())
 
@@ -75,7 +74,7 @@ async def get_rates(
     returnDesc--> On sucessful request, it returns  
         returnBody--> a list of all available credit rates
     """
-    rates = db.query(credit_wallet_conversion_models.CreditWalletConversion)
+    rates = db.query(credit_wallet_models.CreditWalletConversion)
     return paginate(list(rates))
 
 
@@ -93,7 +92,7 @@ async def get_rate(
     returnDesc--> On sucessful request, it returns
         returnBody--> the details of the queried currency
     """
-    rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
+    rate = db.query(credit_wallet_models.CreditWalletConversion).filter_by(
         currency_code=currency).first()
     if rate is None:
         freeCurrencyApiKey = config("FREECURRENCY_API_KEY")
@@ -123,7 +122,7 @@ async def update_rate(
     returnDesc--> On sucessful request, it returns
         returnBody--> the details of the updated rate
     """
-    rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
+    rate = db.query(credit_wallet_models.CreditWalletConversion).filter_by(
         currency_code=currency).first()
     if rate is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -156,7 +155,7 @@ async def verify_stripe_payment(status: str, tx_ref: str, transaction_id: str,
         rootUrl = config('API_URL')
         retryLink = rootUrl + '/credits/callback&tx_ref=' + tx_ref + '&transaction_id=' + transaction_id
         ref = session.client_reference_id
-        wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(id=ref).first()
+        wallet_transaction = db.query(wallet_models.WalletTransaction).filter_by(id=ref).first()
         if wallet_transaction is not None:
             ref = wallet_transaction.transaction_ref
 
@@ -240,7 +239,7 @@ async def verify_flutterwave_payment(
             jsonResponse = verificationRequest.json()
             ref = jsonResponse['data']['tx_ref']
             frontendUrl = jsonResponse['data']['meta']['redirect_url']
-            wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(id=ref).first()
+            wallet_transaction = db.query(wallet_models.WalletTransaction).filter_by(id=ref).first()
             if wallet_transaction is not None:
                 ref = wallet_transaction.transaction_ref
 
@@ -354,7 +353,7 @@ async def add_credit(body: schema.CreditWalletFund,
         rootUrl = config('API_URL')
         # create transaction
         transaction_id = uuid4().hex
-        wallet_transaction = wallet_transaction_models.WalletTransaction(id=transaction_id, wallet_id=wallet.id,
+        wallet_transaction = wallet_models.WalletTransaction(id=transaction_id, wallet_id=wallet.id,
                                                                          currency_code=body.currency,
                                                                          amount=body.amount,
                                                                          transaction_date=_dt.datetime.utcnow(),
@@ -394,8 +393,8 @@ async def get_credit_history(
         returnBody--> details of the credit wallet history of the queried organization
     """
     credit = await _get_credit(organization_id=organization_id, user=user, db=db)
-    history = db.query(credit_wallet_history_models.CreditWalletHistory).filter_by(credit_wallet_id=credit.id).order_by(
-        desc(credit_wallet_history_models.CreditWalletHistory.date))
+    history = db.query(credit_wallet_models.CreditWalletHistory).filter_by(credit_wallet_id=credit.id).order_by(
+        desc(credit_wallet_models.CreditWalletHistory.date))
     return paginate(list(history))
 
 
@@ -411,7 +410,7 @@ async def _update_credit_wallet(organization_id: str, credits_to_add: int, refer
     db.commit()
     db.refresh(credit)
 
-    credit_wallet_history = credit_wallet_history_models.CreditWalletHistory(id=uuid4().hex,
+    credit_wallet_history = credit_wallet_models.CreditWalletHistory(id=uuid4().hex,
                                                                              credit_wallet_id=credit.id,
                                                                              amount=credits_to_add,
                                                                              date=_dt.datetime.utcnow(),
@@ -422,7 +421,7 @@ async def _update_credit_wallet(organization_id: str, credits_to_add: int, refer
 
 
 async def _get_market_rate(currency: str, db: _orm.Session):
-    usd_rate = db.query(credit_wallet_conversion_models.CreditWalletConversion).filter_by(
+    usd_rate = db.query(credit_wallet_models.CreditWalletConversion).filter_by(
         currency_code='USD').first()
     if usd_rate is None:
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -438,7 +437,7 @@ async def _get_market_rate(currency: str, db: _orm.Session):
         # rates['USD'] = 1
         if currency in rates:
             rate = usd_rate.rate * jsonResponse['data'][currency]
-            conversion_rate = credit_wallet_conversion_models.CreditWalletConversion(id=uuid4().hex,
+            conversion_rate = credit_wallet_models.CreditWalletConversion(id=uuid4().hex,
                                                                                      rate=rate,
                                                                                      currency_code=currency)
 
@@ -476,7 +475,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
 
 async def _get_credit_wallet_conversion(currency: str, db: _orm.Session):
     conversion = (
-        db.query(credit_wallet_conversion_models.CreditWalletConversion)
+        db.query(credit_wallet_models.CreditWalletConversion)
             .filter_by(currency_code=currency)
             .first()
     )
