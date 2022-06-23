@@ -1,21 +1,15 @@
-from typing import List
-from bigfastapi import db
 from uuid import uuid4
-from bigfastapi.models import plan_model, user_models
-from bigfastapi.schemas import plan_schema, tutorial_schema, users_schemas
-from bigfastapi.db.database import get_db
+from bigfastapi.models import user_models
+from bigfastapi.schemas import tutorial_schema
 import sqlalchemy.orm as _orm
-from fastapi import HTTPException, status
-import fastapi as _fastapi
+from fastapi import HTTPException
 import bigfastapi.db.database as _database
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, DateTime, Boolean, ARRAY, Text
-from sqlite3 import IntegrityError
 from sqlalchemy import ForeignKey
 import datetime as _dt
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 from operator import or_
+from sqlalchemy.types import String, DateTime
 
 
 class Tutorial(_database.Base):

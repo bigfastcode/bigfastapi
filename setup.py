@@ -5,9 +5,9 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bigfastapi",                     # This is the name of the package
-    version="0.5.7",                        # The initial release version
+    version="0.6.0",                        # This is the updated release version
     author="BigFastAPI Team",                     # Full name of the author
-    author_email="support@rijen.tech",
+    author_email="support@bigfa.st",
     description="Adding lots of functionality to FastAPI",
     long_description=long_description,   
     long_description_content_type="text/markdown",
@@ -88,19 +88,18 @@ setuptools.setup(
                         'fastapi-pagination',
                         'qrcode',
                         'itsdangerous'],                 
-    url='https://bigfastapi.com',
+    url='https://bigfa.st/',
     keywords='fastapi, bigfastapi, auth',
     package_data={
-        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
-        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landing-page/*.*'],
+#         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/email/*.html'],
+#         'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landing-page/*.*'],
         
-        # 'bigfastapi': ['data/*.*'],
-        # 'bigfastapi': ['templates/email/*.html'],   
+        'bigfastapi': ['templates/*.*', 'data/*.*', 'templates/landing-page/*.*', 'templates/email/*.*'], 
     },
     # include_package_data=True,
     project_urls={ 
-        'Bug Reports': 'https://github.com/rijentech/bigfastapi',
-        'Funding': 'https://bigfastapi.com',
-        'Source': 'https://github.com/rijentech/bigfastapi',
+        'Bug Reports': 'https://github.com/bigfastcode/bigfastapi/issues',
+        'Funding': 'https://bigfa.st/',
+        'Source': 'https://github.com/bigfastcode/bigfastapi',
     },
 )

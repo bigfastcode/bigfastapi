@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>{{h.title}}</title>
-    <link rel = "icon" href ="{{h.company_logo}}" type="image/x-icon">
+    <link rel = "icon" href ="{{h.favicon}}" type="image/x-icon">
     <link rel="stylesheet" href="{{h.css_file}}" />
   </head>
 
@@ -18,14 +18,14 @@
         <!-- <span class="me"> -->
         <ul class="navlinks" id="navlinks">
           <li><a href="{{h.home_link}}">home</a></li>
-          <li><a href="{{h.about_link}}">about</a></li>
-          <li><a href="{{h.faq_link}}">faq</a></li>
-          <li><a href="{{h.contact_us_link}}">contact</a></li>
+          <li><a href="#about">about</a></li>
+          <li><a href="#about">faq</a></li>
+          <li><a href="#contact">contact</a></li>
         </ul>
 
         <div class="sign-in-up">
-          <li class="sign-in"><a href="{{h.login_link}}">log in</a></li>
-          <button class="btn"><a href="{{h.signup_link}}">Sign up</a></button>
+          <li class="sign-in"><a href="#contact">log in</a></li>
+          <button class="btn"><a href="#contact">Sign up</a></button>
         </div>
 
         <div class="responsive_menu">
@@ -51,7 +51,7 @@
     </nav>
 
     <header>
-      <section class="container hero_container" id="hero-section">
+      <section class="container hero_container" id="hero-section" id="signup">
         <div class="hero-left">
            <h1>{{h.body_h1}}</h1>
            <p>{{h.body_paragraph}}</p>               <!-- sign up form on the hero -->
@@ -62,18 +62,21 @@
                     name="fullname"
                     id="full-name"
                     placeholder="Full Name"
+                    required="required"
                  />
                  <input
                     type="email"
                     name="email"
                     id="email"
                     placeholder="Email"
+                    required="required"
                  />
                  <input
                     type="tel"
                     name="phone"
                     id="phone-number"
                     placeholder="Phone Number"
+                    required="required"
                  />
                  <input
                  type="text"
@@ -91,7 +94,8 @@
            </form>
            
 
-        </div>                <!-- right side of the hero -->
+        </div> 
+                       <!-- right side of the hero -->
         <div class="hero-right">
           <img src="{{h.section_one_image_link}}" alt="" class="hero-image" />
         </div>
@@ -99,7 +103,7 @@
       </section>
     </header>
 
-    <div class="color_2 align"></div>
+    <img src="{{h.shape_two}}" class="color_2 align" alt="">
 
     <!-- second section -->
     <div class="bg-style">
@@ -132,7 +136,7 @@
       </section>
     </div>
 
-    <div class="color_3 align"></div>
+    <img src="{{h.shape_one}}" class="color_3 align" alt=""/>
 
     <!-- third section -->
     <section class="started">
@@ -140,7 +144,7 @@
         <div class="section-left">
           <h3>{{h.section_three_paragraph}}</h3>
           <p>{{h.section_three_sub_paragraph}}</p>
-          <button class="btn">Get Started</button>
+          <button class="btn" href="#contact">Get Started</button>
         </div>
         <div class="section-right">
           <img src="{{h.section_three_image}}" alt="img" />
@@ -149,7 +153,7 @@
     </section>
 
     <!-- fourth section -->
-    <section class="about_container">
+    <section class="about_container" id="about">
       <!-- <div class="about_wrapper"> -->
       <div class="about-section-left">
         <div class="about-section-left-item">
@@ -157,6 +161,12 @@
           <p>{{h.footer_h3_paragraph}}</p>
           <p>{{h.footer_name_employee}}</p>
           <p>{{h.name_job_description}}</p>
+
+          <div class="style-border">
+            <div class="border2"></div>
+            <div class="border1"></div>
+            <div class="border2"></div>
+          </div>
         </div>
       </div>
       <div class="about-section-right" style="background: url('{{ h.section_four_image }}')">
@@ -175,7 +185,7 @@
       </section>
     </div>
 
-    <div class="color_1 align"></div>
+    <img src="{{h.shape_three}}" class="color_1 align" />
     <div class="form_bg">
       <!-- <section class="container form_wrapper"> -->
       <!-- sign up form -->
@@ -188,6 +198,7 @@
                 name="fullname"
                 id="full-name"
                 placeholder="Full Name"
+                required="required"
               />
 
               <input
@@ -195,6 +206,7 @@
                 name="email"
                 id="email"
                 placeholder="Your Email"
+                required="required"
               />
               </div>
               <input
@@ -210,6 +222,7 @@
                 id="phone-number"
                 placeholder="Phone Number"
                 class="col-span-2"
+                required="required"
               />
 
               <button type="submit" value="submit" class="btn">Submit</button>
@@ -219,34 +232,40 @@
       </div>
     </div>
 
-    <footer>
-      <section class="container footer">
-        <div class="footer-wrapper">
-          <div class="footer_heading">
-            <h3>{{h.company_name}}</h3>
-            <p><a href="{{h.home_link}}">{{h.home_link}}</a></p>
-          </div>
-          <div>
-            <p>menu links</p>
-            <ul class="menu-links">
-              <li><a href="{{h.home_link}}">home</a></li>
-              <li><a href="{{h.about_link}}">about</a></li>
-              <li><a href="{{h.faq_link}}">faq</a></li>
-              <li><a href="{{h.contact_us_link}}">contact</a></li>
-            </ul>
-          </div>
-          <div class="footer_contact">
-            <p>contact</p>
-            <p>{{h.footer_contact_address}}</p>
-            <p>
-              <a href="{{h.customer_care_email}}">{{h.customer_care_email}}</a>
-            </p>
-          </div>
+    <div class="footer" >
+      <div class="inner-footer">
+    
+    <!--  for company name and description -->
+        <div class="footer-items">
+         <h1>{{h.company_name}} </h1>
+         <p>customerpay.me</p>
         </div>
-      </section>
-    </footer>
-
-    <script type="text/javascript" src="{{h.js_file}}"></script>
+    
+    <!--  for quick links  -->
+        <div class="footer-items">
+          <h3>MENU LINKS</h3>
+          <div class="border1"></div> <!--for the underline -->
+            <ul>
+              <a href="#home"><li>Home</li></a>
+              <a href="#about"><li>About</li></a>
+              <a href="#faq"><li>Faq</li></a>
+              <a href="#contact"><li>Contact</li></a>
+            </ul>
+        </div>
+    
+    <!--  for contact us info -->
+        <div class="footer-items" id="contact">
+          <h5>CONTACT</h5>
+          <div class="border1"></div>
+            <div class="address">
+               <p>{{h.footer_contact_address}}</p>
+               
+               <p>{{h.customer_care_email}}</p>
+            
+            </div> 
+        </div>
+      </div>
+    </div>    <script type="text/javascript" src="{{h.js_file}}"></script>
     <script
       type="text/javascript"
       src="https://use.fontawesome.com/528b542f33.js"
