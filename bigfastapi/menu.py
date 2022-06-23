@@ -1,31 +1,36 @@
 import datetime as _dt
+import json
 from uuid import uuid4
 
 import fastapi
 import sqlalchemy.orm as _orm
 from fastapi import APIRouter, HTTPException
-
-from fastapi_pagination import Page, paginate, add_pagination
-from sqlalchemy import desc
-
 from bigfastapi.db.database import get_db
 from bigfastapi.models import menu_model
-from bigfastapi.models.menu_model import addFeature
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
 from .schemas import users_schemas
 
+import pkg_resources
+
 
 app = APIRouter(tags=["Menu"])
 
+DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/menu.json')
+
 
 @app.put('/menu/add-item')
-def addMenuItem(newFeature: str = '',
-                db: _orm.Session = fastapi.Depends(get_db),
+def addMenuItem(newFeature: str = '', db: _orm.Session = fastapi.Depends(get_db),
                 user: users_schemas.User = fastapi.Depends(is_authenticated)):
+    fie = open(DATA_PATH, 'r')
+    t = fie.read()
+    me = json.loads(t)
+    fie.close()
+    return me
 
-    updateResult = menu_model.addFeature(db)
-    return updateResult
-
-
-add_pagination(app)
+    if user.is_superuser:
+        updateResult = menu_model.addFeature(db)
+        return updateResult
+    else:
+        raise HTTPException(
+            status_code=401, detail="You lack the necessary permission")
