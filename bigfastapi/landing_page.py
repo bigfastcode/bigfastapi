@@ -614,7 +614,7 @@ async def delete_landingPage(landingpage_name: str, current_user=Depends(is_auth
                             landingpage_data.content["body_h3_logo_one"], landingpage_data.content["body_h3_logo_two"],
                             landingpage_data.content["body_h3_logo_three"], landingpage_data.content["body_h3_logo_four"], 
                             landingpage_data.content["section_three_image"], landingpage_data.content["section_four_image"],
-                            landingpage_data.content["favicon_image"], landingpage_data.content["shape_one"], 
+                            landingpage_data.content["favicon"], landingpage_data.content["shape_one"], 
                             landingpage_data.content["shape_two"], landingpage_data.content["shape_three"],]
                             
             for i in deleteimage:
