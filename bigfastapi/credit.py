@@ -47,8 +47,8 @@ async def add_rate(
                                         detail="Currency " + body.currency_code.upper() + " already has a conversion rate")
 
         rate = credit_wallet_models.CreditWalletConversion(id=uuid4().hex,
-                                                                      rate=body.rate,
-                                                                      currency_code=body.currency_code.upper())
+                                                           rate=body.rate,
+                                                           currency_code=body.currency_code.upper())
 
         db.add(rate)
         db.commit()
@@ -64,7 +64,7 @@ async def add_rate(
 async def get_rates(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
-):  
+):
     """intro-->This endpoint allows you to retrieve all available credit rates. To use this endpoint you need to make a get request to the /credits/rates endpoint
 
         ParamDesc-->On get request, the request url takes two(2) optional query parameters
@@ -83,7 +83,7 @@ async def get_rate(
         currency: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
-):  
+):
     """intro-->This endpoint allows you to retrieve the credit rate for a particular currency. To use this endpoint you need to make a get request to the /credits/rates/{currency} endpoint
 
         ParamDesc-->On get request, the request url takes the parameter, currency
@@ -215,7 +215,7 @@ async def verify_flutterwave_payment(
         tx_ref: str,
         transaction_id='',
         db: _orm.Session = fastapi.Depends(get_db),
-):  
+):
     """intro-->This endpoint allows you to verify a flutterwave payment. To use this endpoint you need to make a get request to the /credits/callback/flutterwave endpoint
 
         ParamDesc-->On get request, the request url takes three(3) query parameters
@@ -354,10 +354,10 @@ async def add_credit(body: schema.CreditWalletFund,
         # create transaction
         transaction_id = uuid4().hex
         wallet_transaction = wallet_models.WalletTransaction(id=transaction_id, wallet_id=wallet.id,
-                                                                         currency_code=body.currency,
-                                                                         amount=body.amount,
-                                                                         transaction_date=_dt.datetime.utcnow(),
-                                                                         transaction_ref=txRef)
+                                                             currency_code=body.currency,
+                                                             amount=body.amount,
+                                                             transaction_date=_dt.datetime.utcnow(),
+                                                             transaction_ref=txRef)
         db.add(wallet_transaction)
         db.commit()
         db.refresh(wallet_transaction)
@@ -411,10 +411,10 @@ async def _update_credit_wallet(organization_id: str, credits_to_add: int, refer
     db.refresh(credit)
 
     credit_wallet_history = credit_wallet_models.CreditWalletHistory(id=uuid4().hex,
-                                                                             credit_wallet_id=credit.id,
-                                                                             amount=credits_to_add,
-                                                                             date=_dt.datetime.utcnow(),
-                                                                             reference=reference)
+                                                                     credit_wallet_id=credit.id,
+                                                                     amount=credits_to_add,
+                                                                     date=_dt.datetime.utcnow(),
+                                                                     reference=reference)
     db.add(credit_wallet_history)
     db.commit()
     db.refresh(credit_wallet_history)
@@ -438,8 +438,8 @@ async def _get_market_rate(currency: str, db: _orm.Session):
         if currency in rates:
             rate = usd_rate.rate * jsonResponse['data'][currency]
             conversion_rate = credit_wallet_models.CreditWalletConversion(id=uuid4().hex,
-                                                                                     rate=rate,
-                                                                                     currency_code=currency)
+                                                                          rate=rate,
+                                                                          currency_code=currency)
 
             db.add(conversion_rate)
             db.commit()
@@ -472,6 +472,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
             raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not exist")
 
     return organization
+
 
 async def _get_credit_wallet_conversion(currency: str, db: _orm.Session):
     conversion = (
