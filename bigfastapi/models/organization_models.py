@@ -3,7 +3,7 @@ import os
 from sqlalchemy import ForeignKey
 import sqlalchemy.orm as _orm
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, DateTime, Boolean
+from sqlalchemy.types import String, Integer, Text, DateTime, Boolean
 from uuid import uuid4
 
 
@@ -19,22 +19,21 @@ class Organization(Base):
     __tablename__ = "organization"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     user_id = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
+    email = Column(String(255), default="")
+    phone_number = Column(String(50), default="")
+    phone_country_code = Column(String(10))
     mission = Column(Text())
     vision = Column(Text())
     currency = Column(String(5))
     name = Column(String(255), index=True, default="")
     business_type = Column(String(225), default="retail")
-    country_code = Column(String(255), index=True)
+    country_code = Column(String(255))
     county = Column(String(225))
     state = Column(String(255))
     address = Column(String(255))
     tagline = Column(Text())
     image_url = Column(Text(), default="")
     is_deleted = Column(Boolean(), default=False)
-    credit_balance = Column(Integer, default=5000)
-    email = Column(String(255), default="")
-    phone_number = Column(String(255), default="")
-    phone_country_code = Column(String(225))
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
     date_created_db = Column(DateTime, default=_dt.datetime.utcnow)
