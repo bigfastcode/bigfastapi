@@ -12,7 +12,6 @@ from .auth_api import is_authenticated
 from .core.helpers import Helpers
 from .models import organization_models as organization_models, user_models
 from .models import wallet_models as model
-from .models import wallet_transaction_models as wallet_transaction_models
 from .schemas import users_schemas
 from .schemas import wallet_schemas as schema
 
@@ -181,8 +180,8 @@ async def _get_organization_wallet(organization_id: str,
 
 
 async def _get_wallet_transactions(wallet_id: str, db: _orm.Session):
-    wallet_transactions = db.query(wallet_transaction_models.WalletTransaction).filter_by(wallet_id=wallet_id).order_by(
-        desc(wallet_transaction_models.WalletTransaction.transaction_date))
+    wallet_transactions = db.query(model.WalletTransaction).filter_by(wallet_id=wallet_id).order_by(
+        desc(model.WalletTransaction.transaction_date))
 
     return paginate(list(wallet_transactions))
 
@@ -231,7 +230,7 @@ async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, 
     # db.refresh(wallet)
 
     if wallet_transaction_id == '':
-        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
+        wallet_transaction = model.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
                                                                          currency_code=currency, amount=amount,
                                                                          transaction_date=_dt.datetime.utcnow(),
                                                                          transaction_ref=reason, status=True)
@@ -241,7 +240,7 @@ async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, 
 
     else:
         # update a wallet transaction
-        wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(
+        wallet_transaction = db.query(model.WalletTransaction).filter_by(
             id=wallet_transaction_id).first()
         wallet_transaction.status = True
         if reason != '':
@@ -260,7 +259,7 @@ async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, 
         db.commit()
         db.refresh(adminWallet)
 
-        wallet_transaction = wallet_transaction_models.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
+        wallet_transaction = model.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
                                                                          currency_code=currency, amount=amount,
                                                                          transaction_date=_dt.datetime.utcnow(),
                                                                          transaction_ref=reason, status=True)
