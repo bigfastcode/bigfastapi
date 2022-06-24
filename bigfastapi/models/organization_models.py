@@ -1,19 +1,11 @@
-from ast import Str
 import datetime as _dt
-from email.policy import default
-import json
 import os
-from sqlite3 import Timestamp
-import sqlalchemy as _sql
-import sqlalchemy.orm as _orm
-import passlib.hash as _hash
-from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, Text
 from sqlalchemy import ForeignKey
-from uuid import UUID, uuid4
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-from sqlalchemy.sql import func
-from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
+import sqlalchemy.orm as _orm
+from sqlalchemy.schema import Column
+from sqlalchemy.types import String, Integer, DateTime, Boolean
+from uuid import uuid4
+
 
 
 from bigfastapi.db.database import Base
@@ -48,6 +40,42 @@ class Organization(Base):
     date_created_db = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated_db = Column(DateTime, default=_dt.datetime.utcnow)
 
+# Organization Invite
+class OrganizationInvite(Base):
+    __tablename__ = "organization_invites"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    organization_id = Column(String(255), ForeignKey("businesses.id"))
+    user_id = Column(String(255), ForeignKey("users.id"))
+    user_email = Column(String(255), index=True)
+    role_id = Column(String(255), ForeignKey("roles.id"))
+    invite_code = Column(String(255), index=True)
+    is_accepted = Column(Boolean, default=False)
+    is_revoked = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False) 
+    date_created = Column(DateTime, default=_dt.datetime.utcnow)
+    
+    class Config:
+        orm_mode = True
+
+# Organization User
+
+class OrganizationUser(Base):
+    __tablename__ = "organization_users"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    organization_id = Column(String(255), index=True)
+    user_id = Column(String(255), ForeignKey("users.id"))
+    role_id = Column(String(255), ForeignKey("roles.id"))
+    is_deleted = Column(Boolean, default=False) 
+    date_created = Column(DateTime, default=_dt.datetime.utcnow)
+    last_updated = Column(DateTime, default=_dt.datetime.utcnow)
+
+
+# Organization Role
+class Role(Base):
+    __tablename__ = "roles"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    organization_id = Column(String(255), index=True)
+    role_name = Column(String(255), index=True)
 
 
 
