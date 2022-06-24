@@ -45,6 +45,8 @@ class Organization(Base):
     phone_country_code = Column(String(225))
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
+    date_created_db = Column(DateTime, default=_dt.datetime.utcnow)
+    last_updated_db = Column(DateTime, default=_dt.datetime.utcnow)
 
 
 
