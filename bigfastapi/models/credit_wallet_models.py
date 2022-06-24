@@ -15,3 +15,20 @@ class CreditWallet(_database.Base):
     amount = Column(Float, default=0)
     type = Column(String(255), default='bfacredit')
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
+
+
+class CreditWalletHistory(Base):
+    __tablename__ = "credit_wallet_history"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    credit_wallet_id = Column(String(255), ForeignKey("credit_wallets.id"))
+    amount = Column(Float, default=0)
+    date = Column(DateTime, default=_dt.datetime.utcnow)
+    reference = Column(String(255), default='')
+
+
+class CreditWalletConversion(_database.Base):
+    __tablename__ = "credit_wallet_conversions"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    credit_wallet_type = Column(String(255), default='bfacredit')
+    rate = Column(Float, default=0)
+    currency_code = Column(String(4))
