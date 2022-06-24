@@ -24,7 +24,7 @@ from bigfastapi.utils.utils import defaultManu
 
 
 class Organization(Base):
-    __tablename__ = "businesses"
+    __tablename__ = "organization"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     creator = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
     mission = Column(String(255), index=True)
