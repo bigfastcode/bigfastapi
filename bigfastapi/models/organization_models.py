@@ -16,7 +16,7 @@ from bigfastapi.utils.utils import defaultManu
 
 
 class Organization(Base):
-    __tablename__ = "businesses"
+    __tablename__ = "organization"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     creator = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
     mission = Column(String(255), index=True)
@@ -26,6 +26,7 @@ class Organization(Base):
     name = Column(String(255), index=True, default="")
     business_type = Column(String(225), default="retail")
     country = Column(String(255), index=True)
+    county = Column(String(225))
     state = Column(String(255), index=True)
     address = Column(String(255), index=True)
     tagline = Column(String(255), index=True)
@@ -76,27 +77,7 @@ class Role(Base):
     organization_id = Column(String(255), index=True)
     role_name = Column(String(255), index=True)
 
-class DefaultTemplates(Base):
-    __tablename__ = "default_templates"
-    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("businesses.id"))
-    greeting = Column(String(225), index=True)
-    subject = Column(String(255), index=True)
-    escalation_level = Column(Integer, index=True)
-    template_type = Column(String(255), index=True)
-    email_message = Column(String(500), index=True)
-    sms_message = Column(String(500), index=True)
-    is_deleted = Column(Boolean, default=False)
-    date_created = Column(DateTime, default=_dt.datetime.utcnow)
 
-
-class DefaultAutoReminder(Base):
-    __tablename__ = "default_auto_reminder"
-    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), index=True)
-    days_before_debt = Column(Integer, index=True)
-    first_template = Column(String(255), index=True)
-    second_template = Column(String(255), index=True)
 
 
 # --------------------------------------------------------------------------------------------------#

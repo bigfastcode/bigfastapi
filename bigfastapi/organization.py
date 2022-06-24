@@ -26,9 +26,11 @@ from .schemas.organization_schemas import _OrganizationBase, AddRole, Organizati
 from .models.organization_models import OrganizationInvite, OrganizationUser, Role
 from .models import organization_models as _models
 from .models import user_models, schedule_models
+from .models import user_models, role_models
 from .models import wallet_models as wallet_models
 from .schemas import users_schemas
 from .utils.utils import paginate_data, row_to_dict
+
 
 app = APIRouter(tags=["Organization"])
 
@@ -163,22 +165,22 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
         except:
             print("ail To Create Templates")
 
-        try:
-            for schedule in defaultSchedules:
-                schedule_obj = schedule_models.Schedule(
-                    id=uuid4().hex, organization_id=created_org.id,
-                    start_reminder=schedule["start_reminder"],
-                    repeat_every=schedule["repeat_every"],
-                    no_of_days=schedule["no_of_days"],
-                    is_deleted=False,
-                )
+        # try:
+        #     for schedule in defaultSchedules:
+        #         schedule_obj = schedule_models.Schedule(
+        #             id=uuid4().hex, organization_id=created_org.id,
+        #             start_reminder=schedule["start_reminder"],
+        #             repeat_every=schedule["repeat_every"],
+        #             no_of_days=schedule["no_of_days"],
+        #             is_deleted=False,
+        #         )
 
-                db.add(schedule_obj)
-                db.commit()
-                db.refresh(schedule_obj)
+        #         db.add(schedule_obj)
+        #         db.commit()
+        #         db.refresh(schedule_obj)
 
-        except:
-            print("didn't work")
+        # except:
+        #     print("didn't work")
 
         try:
 
