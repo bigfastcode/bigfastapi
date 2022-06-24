@@ -3,6 +3,7 @@
     To use it you need to import it from bigfastapi.utils.schema_form
 """
 
+from typing import Dict
 from pydantic import BaseModel
 from bigfastapi.utils.schema_form import as_form
 
@@ -75,48 +76,11 @@ class landingPagesection_Four_image(landingPagesection_Three_image):
 
 
 class landingPageResponse(BaseModel): 
-    landing_page_name: str
  
-    title: str
-    favicon: str
-    company_name: str 
-    home_link: str
-    about_link: str
-    faq_link: str
-    contact_us_link: str
-    body_h1: str 
-    body_paragraph: str
-    login_link: str 
-    signup_link: str
-    body_h3: str
-    body_h3_logo_one_name: str
-    body_h3_logo_two_name: str
-    body_h3_logo_three_name: str
-    body_h3_logo_four_name: str
-    body_h3_logo_one_paragraph: str
-    body_h3_logo_two_paragraph: str
-    body_h3_logo_three_paragraph: str
-    body_h3_logo_four_paragraph: str
-    section_three_paragraph: str
-    section_three_sub_paragraph: str
-    footer_h3: str
-    footer_h3_paragraph: str
-    footer_name_employee: str
-    name_job_description: str
-    footer_h2_text: str
-    footer_contact_address: str
-    customer_care_email: str
-    company_logo: str
-    section_one_image_link: str
-    body_h3_logo_one: str
-    body_h3_logo_two: str
-    body_h3_logo_three: str
-    body_h3_logo_four: str
-    section_three_image: str
-    section_four_image: str
-    shape_one: str
-    shape_two: str
-    shape_three: str
+    id : str
+    user_id : str
+    landing_page_name : str
+    content : Dict
     class Config:
         orm_mode = True
 
