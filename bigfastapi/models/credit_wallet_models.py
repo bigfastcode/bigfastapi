@@ -17,7 +17,7 @@ class CreditWallet(_database.Base):
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
 
-class CreditWalletHistory(Base):
+class CreditWalletHistory(_database.Base):
     __tablename__ = "credit_wallet_history"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     credit_wallet_id = Column(String(255), ForeignKey("credit_wallets.id"))
