@@ -27,7 +27,7 @@ from bigfastapi.email import app as email
 # Import all the functionality that BFA provides
 from bigfastapi.faq import app as faq
 from bigfastapi.files import app as files
-# from bigfastapi.google_auth import app as social_auth
+from bigfastapi.google_auth import app as social_auth
 from bigfastapi.notification import app as notification
 from bigfastapi.organization import app as organization
 from bigfastapi.pages import app as pages
@@ -42,7 +42,7 @@ from bigfastapi.tutorial import app as tutorial
 from bigfastapi.users import app as accounts_router
 from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
-from bigfastapi.activities_log import app as activitieslog
+from bigfastapi.activity_log import app as activity_log
 from bigfastapi.landing_page import app as landing_page
 
 
@@ -242,7 +242,7 @@ app.add_middleware(
 # routers
 
 app.include_router(authentication, tags=["Auth"])
-# app.include_router(social_auth)
+app.include_router(social_auth)
 app.include_router(accounts_router, tags=["User"])
 app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
@@ -271,7 +271,7 @@ app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(sms)
 # app.include_router(email_marketing, tags=["Email Marketing"])
-app.include_router(activitieslog)
+app.include_router(activity_log)
 app.include_router(api_key)
 app.include_router(landing_page)
 app.include_router(importprogress)
