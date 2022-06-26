@@ -1,7 +1,7 @@
 from typing import List
 from bigfastapi import db
 from uuid import uuid4
-from bigfastapi.models import subscription_model
+from bigfastapi.models import subscription_models
 from bigfastapi.schemas import subscription_schema
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as _orm
@@ -47,12 +47,12 @@ async def subscribe(
 
 
 async def getSubs(org_Id: str, db: _orm.Session):
-    return db.query(subscription_model.Subscription).filter(
-        subscription_model.Subscription.organization_id == org_Id).all()
+    return db.query(subscription_models.Subscription).filter(
+        subscription_models.Subscription.organization_id == org_Id).all()
 
 
 async def createSub(sub: subscription_schema.CreateSubscription, db: _orm.Session):
-    subObject = subscription_model.Subscription(
+    subObject = subscription_models.Subscription(
         id=uuid4().hex, plan=sub.plan, organization_id=sub.organization_id, is_paid=True)
     db.add(subObject)
     db.commit()
