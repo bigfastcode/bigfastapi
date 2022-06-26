@@ -5,10 +5,10 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, DateTime, Float
 
-import bigfastapi.db.database as _database
+import bigfastapi.db.database as database
 
 
-class CreditWallet(_database.Base):
+class CreditWallet(database.Base):
     __tablename__ = "credit_wallets"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255), ForeignKey("businesses.id"))
@@ -17,7 +17,11 @@ class CreditWallet(_database.Base):
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
 
+<<<<<<< HEAD
 class CreditWalletHistory(_database.Base):
+=======
+class CreditWalletHistory(database.Base):
+>>>>>>> dc8984d5652b806f485756f336c1656800219465
     __tablename__ = "credit_wallet_history"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     credit_wallet_id = Column(String(255), ForeignKey("credit_wallets.id"))
@@ -26,7 +30,7 @@ class CreditWalletHistory(_database.Base):
     reference = Column(String(255), default='')
 
 
-class CreditWalletConversion(_database.Base):
+class CreditWalletConversion(database.Base):
     __tablename__ = "credit_wallet_conversions"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     credit_wallet_type = Column(String(255), default='bfacredit')

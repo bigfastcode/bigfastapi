@@ -25,8 +25,8 @@ from .schemas import organization_schemas as _schemas
 from .schemas.organization_schemas import _OrganizationBase, AddRole, OrganizationUserBase
 from .models.organization_models import OrganizationInvite, OrganizationUser, Role
 from .models import organization_models as _models
-from .models import user_models, schedule_models
-from .models import user_models, role_models
+from .models import user_models
+from .models import user_models
 from .models import wallet_models as wallet_models
 from .schemas import users_schemas
 from .utils.utils import paginate_data, row_to_dict
