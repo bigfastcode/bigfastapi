@@ -22,7 +22,7 @@ class Organization(Base):
     mission = Column(String(255), index=True)
     vision = Column(String(255), index=True)
     values = Column(String(255), index=True)
-    currency = Column(String(5), index=True)
+    currency_code = Column(String(5), index=True)
     name = Column(String(255), index=True, default="")
     business_type = Column(String(225), default="retail")
     country = Column(String(255), index=True)
