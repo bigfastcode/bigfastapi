@@ -16,7 +16,7 @@ from sqlalchemy import and_
 from bigfastapi.db.database import get_db
 from bigfastapi.email import send_email
 from bigfastapi.models import organization_models
-from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
+from bigfastapi.models.menu_models import addDefaultMenuList, getOrgMenu
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
 from .files import upload_image
