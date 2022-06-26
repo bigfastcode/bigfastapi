@@ -7,11 +7,11 @@ from bigfastapi.models import user_models as userModel
 import fastapi as _fastapi
 from uuid import uuid4
 from bigfastapi.utils import settings as settings
-from bigfastapi.schemas.activities_log_schemas import ActivitiesLogBase
-from bigfastapi.schemas.activities_log_schemas import ActivitiesLogOutput as ActivitiesSchema
-from bigfastapi.schemas.activities_log_schemas import DeleteActivitiesLogBase
+from bigfastapi.schemas.activity_log_schemas import ActivitiesLogBase
+from bigfastapi.schemas.activity_log_schemas import ActivitiesLogOutput as ActivitiesSchema
+from bigfastapi.schemas.activity_log_schemas import DeleteActivitiesLogBase
 from .auth_api import *
-from bigfastapi.models.activities_log_models import Activitieslog as ActivitiesModel
+from bigfastapi.models.activity_log_models import Activitylog as ActivitiesModel
 from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.models.organization_models import Organization
 from fastapi.responses import JSONResponse
