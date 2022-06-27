@@ -17,9 +17,7 @@ from random import randrange
 
 DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
-def getActiveMenu(businessType):
-    menuList = defaultManu()
-    return menuList[businessType]
+
 
 def generate_short_id(size=9, chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(chars) for _ in range(size))
