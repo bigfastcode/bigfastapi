@@ -17,7 +17,7 @@ from bigfastapi import models
 from bigfastapi.db.database import get_db
 from bigfastapi.auth_api import is_authenticated
 from bigfastapi.core.helpers import Helpers
-from bigfastapi.models import credit_wallet_models as model, organization_models, wallet_models, wallet_transaction_models
+from bigfastapi.models import credit_wallet_models as model, organization_models, wallet_models
 from bigfastapi.schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from bigfastapi.schemas import users_schemas
 from bigfastapi.schemas.wallet_schemas import PaymentProvider
@@ -65,7 +65,7 @@ async def add_rate(
 async def get_rates(
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
-):  
+):
     """intro-->This endpoint allows you to retrieve all available credit rates. To use this endpoint you need to make a get request to the /credits/rates endpoint
 
         ParamDesc-->On get request, the request url takes two(2) optional query parameters
@@ -84,7 +84,7 @@ async def get_rate(
         currency: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
-):  
+):
     """intro-->This endpoint allows you to retrieve the credit rate for a particular currency. To use this endpoint you need to make a get request to the /credits/rates/{currency} endpoint
 
         ParamDesc-->On get request, the request url takes the parameter, currency
@@ -156,7 +156,7 @@ async def verify_stripe_payment(status: str, tx_ref: str, transaction_id: str,
         rootUrl = config('API_URL')
         retryLink = rootUrl + '/credits/callback&tx_ref=' + tx_ref + '&transaction_id=' + transaction_id
         ref = session.client_reference_id
-        wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(id=ref).first()
+        wallet_transaction = db.query(wallet_models.WalletTransaction).filter_by(id=ref).first()
         if wallet_transaction is not None:
             ref = wallet_transaction.transaction_ref
 
@@ -216,7 +216,7 @@ async def verify_flutterwave_payment(
         tx_ref: str,
         transaction_id='',
         db: _orm.Session = fastapi.Depends(get_db),
-):  
+):
     """intro-->This endpoint allows you to verify a flutterwave payment. To use this endpoint you need to make a get request to the /credits/callback/flutterwave endpoint
 
         ParamDesc-->On get request, the request url takes three(3) query parameters
@@ -240,7 +240,7 @@ async def verify_flutterwave_payment(
             jsonResponse = verificationRequest.json()
             ref = jsonResponse['data']['tx_ref']
             frontendUrl = jsonResponse['data']['meta']['redirect_url']
-            wallet_transaction = db.query(wallet_transaction_models.WalletTransaction).filter_by(id=ref).first()
+            wallet_transaction = db.query(wallet_models.WalletTransaction).filter_by(id=ref).first()
             if wallet_transaction is not None:
                 ref = wallet_transaction.transaction_ref
 
@@ -354,11 +354,11 @@ async def add_credit(body: schema.CreditWalletFund,
         rootUrl = config('API_URL')
         # create transaction
         transaction_id = uuid4().hex
-        wallet_transaction = wallet_transaction_models.WalletTransaction(id=transaction_id, wallet_id=wallet.id,
-                                                                         currency_code=body.currency,
-                                                                         amount=body.amount,
-                                                                         transaction_date=_dt.datetime.utcnow(),
-                                                                         transaction_ref=txRef)
+        wallet_transaction = wallet_models.WalletTransaction(id=transaction_id, wallet_id=wallet.id,
+                                                             currency_code=body.currency,
+                                                             amount=body.amount,
+                                                             transaction_date=_dt.datetime.utcnow(),
+                                                             transaction_ref=txRef)
         db.add(wallet_transaction)
         db.commit()
         db.refresh(wallet_transaction)
@@ -473,6 +473,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
             raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization does not exist")
 
     return organization
+
 
 async def _get_credit_wallet_conversion(currency: str, db: _orm.Session):
     conversion = (
