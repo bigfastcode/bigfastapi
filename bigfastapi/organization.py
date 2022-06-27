@@ -16,7 +16,8 @@ from sqlalchemy import and_
 from bigfastapi.db.database import get_db
 from bigfastapi.email import send_email
 from bigfastapi.models import organization_models
-from bigfastapi.models.menu_models import addDefaultMenuList, getOrgMenu
+from bigfastapi.services.menu_service import add_default_menu_list, get_organization_menu
+
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
 from .files import upload_image
@@ -75,20 +76,21 @@ def create_organization(
     created_org = create_organization(
         user=user, db=db, organization=organization)
 
-    assocMenu = addDefaultMenuList(
+    assocMenu = add_default_menu_list(
         created_org.id, created_org.business_type, db)
 
     runWalletCreation(created_org, db)
 
     background_tasks.add_task(defaults_for_org, organization, created_org, db)
-    background_tasks.add_task(send_slack_notification, user.email, organization)
+    background_tasks.add_task(send_slack_notification,
+                              user.email, organization)
 
     newOrId = created_org.id
-    newOrg = created_org
+    new_orgaization = created_org
     newMenList = assocMenu["menu_list"]
-    newMenu = assocMenu
+    new_menu = assocMenu
 
-    return {"data": {"business": newOrg, "menu": newMenu}}
+    return {"data": {"business": new_orgaization, "menu": new_menu}}
 
 
 async def defaults_for_org(organization, created_org, db: _orm.Session):
@@ -224,7 +226,8 @@ async def get_organization(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
-    """intro--> This endpoint allows you to retrieve details of a particular organizations. To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
+    """intro--> This endpoint allows you to retrieve details of a particular organizations. 
+    To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
 
             paramDesc--> On get request, the request url takes the parameter, organization id
                 param--> organization_id: This is unique Id of the organization of interest
@@ -234,7 +237,7 @@ async def get_organization(
         returnBody--> details of the queried organization
     """
     organization = await get_organization(organization_id, user, db)
-    menu = getOrgMenu(organization_id, db)
+    menu = get_organization_menu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
 
 
@@ -264,8 +267,8 @@ async def get_organization_users(
 
     organization = (
         db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
+        .filter(_models.Organization.id == organization_id)
+        .first()
     )
 
     if organization is None:
@@ -274,8 +277,8 @@ async def get_organization_users(
     organization_owner_id = organization.creator
     organization_owner = (
         db.query(user_models.User)
-            .filter(user_models.User.id == organization_owner_id)
-            .first())
+        .filter(user_models.User.id == organization_owner_id)
+        .first())
 
     invited_users = []
     if len(invited_list) > 0:
@@ -326,11 +329,11 @@ def delete_organization_user(
         if user is not None:
             organization_user = (
                 db.query(OrganizationUser)
-                    .filter(and_(
-                    OrganizationUser.user_id == user_id,
-                    OrganizationUser.organization_id == organization_id
-                ))
-                    .first()
+                .filter(and_(
+                        OrganizationUser.user_id == user_id,
+                        OrganizationUser.organization_id == organization_id
+                        ))
+                .first()
             )
 
             organization_user.is_deleted = True
@@ -349,9 +352,8 @@ def delete_organization_user(
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex)) 
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.get("/organizations/{organization_id}/roles")
@@ -396,8 +398,8 @@ def add_role(payload: AddRole,
         if len(roles) < 1:
             existing_role = (
                 db.query(Role)
-                    .filter(Role.role_name == payload.role_name.lower())
-                    .first()
+                .filter(Role.role_name == payload.role_name.lower())
+                .first()
             )
             if existing_role is None:
                 role = Role(
@@ -416,9 +418,8 @@ def add_role(payload: AddRole,
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex)) 
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.put('/organizations/accept-invite/{invite_code}', response_model=_schemas.AcceptInviteResponse)
@@ -443,7 +444,7 @@ def accept_invite(
         returnBody--> An object with a key `invited` containing the new organization user data, and `organization` containing information about the organization
          the user is invited to.
     """
-    try: 
+    try:
 
         existing_invite = db.query(
             OrganizationInvite).filter(
@@ -476,14 +477,13 @@ def accept_invite(
         db.commit()
         db.refresh(existing_invite)
 
-        return { "invited": OrganizationUserBase.from_orm(organization_user), "organization": _OrganizationBase.from_orm(organization) }
+        return {"invited": OrganizationUserBase.from_orm(organization_user), "organization": _OrganizationBase.from_orm(organization)}
 
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex))
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.post("/organizations/{organization_id}/invite-user/", status_code=201, response_model=_schemas.InviteResponse)
@@ -531,7 +531,7 @@ async def invite_user(
             if existing_invite is None:
 
                 send_email(email_details=email_info,
-                        background_tasks=background_tasks, template=template, db=db)
+                           background_tasks=background_tasks, template=template, db=db)
                 invite = OrganizationInvite(
                     id=uuid4().hex,
                     organization_id=payload.organization.get("id"),
@@ -551,8 +551,8 @@ async def invite_user(
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex)) 
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.get('/organizations/get-invite/{invite_code}', response_model=_schemas.SingleInviteResponse)
@@ -604,14 +604,14 @@ async def get_single_invite(
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex)) 
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.put("/organizations/decline-invite/{invite_code}", response_model=_schemas.DeclinedInviteResponse)
 def decline_invite(
-    invite_code: str,
-    db: _orm.Session = _fastapi.Depends(get_db)):
+        invite_code: str,
+        db: _orm.Session = _fastapi.Depends(get_db)):
     """intro--> This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
 
     paramDesc--> On put request, the url takes an invite code
@@ -640,8 +640,8 @@ def decline_invite(
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex)) 
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.delete("/organizations/{organization_id}/revoke-invite/{invite_code}", response_model=_schemas.RevokedInviteResponse)
@@ -678,8 +678,8 @@ def revoke_invite(
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex)) 
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.get("/organizations/{organization_id}/invites", status_code=200, response_model=_schemas.AllInvites)
@@ -700,22 +700,22 @@ def get_pending_invites(
     try:
         pending_invites = (
             db.query(OrganizationInvite)
-                .filter(
+            .filter(
                 and_(OrganizationInvite.organization_id == organization_id,
-                    OrganizationInvite.is_deleted == False,
-                    OrganizationInvite.is_accepted == False,
-                    OrganizationInvite.is_revoked == False
-                    ))
-                .all()
+                     OrganizationInvite.is_deleted == False,
+                     OrganizationInvite.is_accepted == False,
+                     OrganizationInvite.is_revoked == False
+                     ))
+            .all()
         )
 
-        return { "data": pending_invites }
+        return {"data": pending_invites}
 
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)) 
-    
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.put("/organizations/{organization_id}")
@@ -783,7 +783,7 @@ async def changeOrganizationImage(
     try:
         db.commit()
         db.refresh(organization)
-        menu = getOrgMenu(organization_id, db)
+        menu = get_organization_menu(organization_id, db)
         return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -880,8 +880,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 
     invited_orgs_rep = (
         db.query(OrganizationUser)
-            .filter(OrganizationUser.user_id == user.id)
-            .all()
+        .filter(OrganizationUser.user_id == user.id)
+        .all()
     )
 
     if len(invited_orgs_rep) < 1:
@@ -891,19 +891,20 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
             imageURL = appBasePath + \
-                       f'/organizations/{organization_list[pos].id}/image'
+                f'/organizations/{organization_list[pos].id}/image'
             setattr(organization_list[pos], 'image_full_path', imageURL)
             organizationCollection.append(organization_list[pos])
 
         return organizationCollection
 
-    organization_id_list = list(map(lambda x: x.organization_id, invited_orgs_rep))
+    organization_id_list = list(
+        map(lambda x: x.organization_id, invited_orgs_rep))
 
     org = []
     for org_id in organization_id_list:
         org = org + \
-              db.query(_models.Organization).filter(
-                  _models.Organization.id == org_id).all()
+            db.query(_models.Organization).filter(
+                _models.Organization.id == org_id).all()
 
     org_coll = native_orgs + org
     organizationCollection = []
@@ -919,8 +920,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
+        .filter(_models.Organization.id == organization_id)
+        .first()
     )
 
     if organization is None:
@@ -1033,4 +1034,5 @@ def create_credit_wallet(organization_id: str, db: _orm.Session):
 
 def send_slack_notification(user, organization):
     message = user + " created a new organization : " + organization.name
-    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)  # sends the message to slack
+    # sends the message to slack
+    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
