@@ -56,7 +56,7 @@ def path(filetype: str, image_name: str, folder: str, request: Request, ):
 async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), 
                             db: Session = Depends(get_db), 
                             current_user=Depends(is_authenticated),
-                            # company_logo: UploadFile = File(...),
+                            company_logo: UploadFile = File(...),
                             favicon: UploadFile = File(...),
                             section_three_image: UploadFile = File(...),
                             section_four_image: UploadFile = File(...),
