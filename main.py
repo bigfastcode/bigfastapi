@@ -1,8 +1,16 @@
+from bigfastapi.import_progress import app as importprogress
+from bigfastapi.api_key import app as api_key
+from bigfastapi.landing_page import app as landing_page
+from bigfastapi.activity_log import app as activity_log
+from bigfastapi.activity_log import app as activitieslog
+from bigfastapi.schedule import app as schedule
+from bigfastapi.menu import app as menu
 import datetime
 import random
 from uuid import uuid4
 
 import uvicorn
+# from bigfastapi import email_marketing
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
@@ -40,13 +48,7 @@ from bigfastapi.tutorial import app as tutorial
 from bigfastapi.users import app as accounts_router
 from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
-from bigfastapi.menu import app as menu
-from bigfastapi.schedule import app as schedule
-from bigfastapi.activities_log import app as activitieslog
-from bigfastapi.landing_page import app as landing_page
 
-from bigfastapi.api_key import app as api_key
-from bigfastapi.import_progress import app as importprogress
 
 # Create the application
 tags_metadata = [
@@ -243,11 +245,7 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
-# app.include_router(pages, tags=["Pages"])
 
-# app.include_router(products, tags=["Products"])
-# app.include_router(stock, tags=["Stock"])
-# app.include_router(product_prices, tags=["Product Prices"])
 app.include_router(plans, tags=['Plans'])
 app.include_router(email)
 app.include_router(files, tags=["File"])
@@ -267,8 +265,8 @@ app.include_router(pdfs)
 app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(sms)
-app.include_router(schedule)
-app.include_router(activitieslog)
+# app.include_router(email_marketing, tags=["Email Marketing"])
+app.include_router(activity_log)
 app.include_router(api_key)
 app.include_router(landing_page)
 app.include_router(importprogress)

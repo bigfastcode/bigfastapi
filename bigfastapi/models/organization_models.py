@@ -1,19 +1,10 @@
-from ast import Str
 import datetime as _dt
-from email.policy import default
-import json
 import os
-from sqlite3 import Timestamp
-import sqlalchemy as _sql
-import sqlalchemy.orm as _orm
-import passlib.hash as _hash
-from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, Text
 from sqlalchemy import ForeignKey
-from uuid import UUID, uuid4
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-from sqlalchemy.sql import func
-from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
+import sqlalchemy.orm as _orm
+from sqlalchemy.schema import Column
+from sqlalchemy.types import String, Integer, Text, DateTime, Boolean
+from uuid import uuid4
 
 
 from bigfastapi.db.database import Base
@@ -24,51 +15,73 @@ from bigfastapi.utils.utils import defaultManu
 
 
 class Organization(Base):
-    __tablename__ = "businesses"
+    __tablename__ = "organizations"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    creator = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
-    mission = Column(String(255), index=True)
-    vision = Column(String(255), index=True)
-    values = Column(String(255), index=True)
-    currency = Column(String(5), index=True)
+    user_id = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
+    email = Column(String(255), default="")
+    phone_number = Column(String(50), default="")
+    phone_country_code = Column(String(10))
+    mission = Column(Text())
+    vision = Column(Text())
+    currency_code = Column(String(5))
     name = Column(String(255), index=True, default="")
     business_type = Column(String(225), default="retail")
-    country = Column(String(255), index=True)
-    state = Column(String(255), index=True)
-    address = Column(String(255), index=True)
-    tagline = Column(String(255), index=True)
-    image = Column(String(255), default="")
+    # country_code = Column(String(255))
+    # county = Column(String(225))
+    # state = Column(String(255))
+    # address = Column(String(255))
+    tagline = Column(Text())
+    image_url = Column(Text(), default="")
     is_deleted = Column(Boolean(), default=False)
-    current_subscription = Column(String(225), default="")
-    credit_balance = Column(Integer, default=5000)
-    currency_preference = Column(String(255), default="")
-    email = Column(String(255), default="", index=True)
-    phone_number = Column(String(255), default="", index=True)
+    date_created = Column(DateTime, default=_dt.datetime.utcnow)
+    last_updated = Column(DateTime, default=_dt.datetime.utcnow)
+    date_created_db = Column(DateTime, default=_dt.datetime.utcnow)
+    last_updated_db = Column(DateTime, default=_dt.datetime.utcnow)
+
+# Organization Invite
+
+
+class OrganizationInvite(Base):
+    __tablename__ = "organization_invites"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    organization_id = Column(String(255), ForeignKey("organizations.id"))
+    user_id = Column(String(255), ForeignKey("users.id"))
+    user_email = Column(String(255), index=True)
+    role_id = Column(String(255), ForeignKey("roles.id"))
+    invite_code = Column(String(255), index=True)
+    is_accepted = Column(Boolean, default=False)
+    is_revoked = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
+    date_created = Column(DateTime, default=_dt.datetime.utcnow)
+
+    class Config:
+        orm_mode = True
+
+# Organization User
+
+
+class OrganizationUser(Base):
+    __tablename__ = "organization_users"
+    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    organization_id = Column(String(255), index=True)
+    user_id = Column(String(255), ForeignKey("users.id"))
+    role_id = Column(String(255), ForeignKey("roles.id"))
+    is_deleted = Column(Boolean, default=False)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
 
-class DefaultTemplates(Base):
-    __tablename__ = "default_templates"
-    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("businesses.id"))
-    greeting = Column(String(225), index=True)
-    subject = Column(String(255), index=True)
-    escalation_level = Column(Integer, index=True)
-    template_type = Column(String(255), index=True)
-    email_message = Column(String(500), index=True)
-    sms_message = Column(String(500), index=True)
-    is_deleted = Column(Boolean, default=False)
-    date_created = Column(DateTime, default=_dt.datetime.utcnow)
-
-
-class DefaultAutoReminder(Base):
-    __tablename__ = "default_auto_reminder"
+# Organization Role
+class Role(Base):
+    __tablename__ = "roles"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255), index=True)
-    days_before_debt = Column(Integer, index=True)
-    first_template = Column(String(255), index=True)
-    second_template = Column(String(255), index=True)
+    role_name = Column(String(255), index=True)
+
+
+# --------------------------------------------------------------------------------------------------#
+#                                    REPOSITORY AND HELPERS
+# --------------------------------------------------------------------------------------------------#
 
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
