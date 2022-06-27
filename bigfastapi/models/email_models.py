@@ -22,7 +22,7 @@ class EmailStatus(enum.Enum):
 class Email(database.Base):
     __tablename__ = "email"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("organization.id"), nullable=True, index=True)
+    organization_id = Column(String(255), ForeignKey("organizations.id"), nullable=True, index=True)
     title = Column(String(225))
     recipients = Column(JSON, default=[])
     body = Column(String(255), index=True, nullable=False)

@@ -13,10 +13,6 @@ from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 from ..utils.utils import generate_short_id
 from bigfastapi.db import database
 
-
-
-
-
 class PasswordResetCode(database.Base):
     __tablename__ = "password_reset_codes"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
