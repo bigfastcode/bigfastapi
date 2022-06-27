@@ -16,7 +16,7 @@ from sqlalchemy.sql import func
 class Email(database.Base):
     __tablename__ = "email"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("businesses.id"))
+    organization_id = Column(String(255), ForeignKey("organizations.id"))
     title = Column(String(225))
     recipients = Column(JSON, default=[])
     body = Column(String(255), index=True, nullable=False)
