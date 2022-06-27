@@ -11,17 +11,13 @@ import bigfastapi.db.database as database
 class CreditWallet(database.Base):
     __tablename__ = "credit_wallets"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("businesses.id"))
+    organization_id = Column(String(255), ForeignKey("organization.id"))
     amount = Column(Float, default=0)
     type = Column(String(255), default='bfacredit')
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
 
-<<<<<<< HEAD
-class CreditWalletHistory(_database.Base):
-=======
 class CreditWalletHistory(database.Base):
->>>>>>> dc8984d5652b806f485756f336c1656800219465
     __tablename__ = "credit_wallet_history"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     credit_wallet_id = Column(String(255), ForeignKey("credit_wallets.id"))
