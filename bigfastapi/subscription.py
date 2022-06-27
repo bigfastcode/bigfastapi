@@ -1,20 +1,17 @@
-from requests import Session
 from uuid import uuid4
 from bigfastapi.schemas import subscription_schema
 from bigfastapi.models import subscription_models
 from bigfastapi.db.database import get_db
 from sqlalchemy.orm import Session
-import fastapi as _fastapi
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from fastapi.param_functions import Depends
 from fastapi import APIRouter, HTTPException, status
 
 app = APIRouter(tags=["Subscription"])
 
 
 @app.get("/subscriptions/{org_Id}", response_model=subscription_schema.ResponseList)
-async def index_sub_per_org(org_Id: str,  db: Session = _fastapi.Depends(get_db)):
+async def index_sub_per_org(org_Id: str,  db: Session = Depends(get_db)):
     """intro-->This endpoint is used to retrieve a users subscription details to an organization. To use this endpoint you need to make a get request to the /subscriptions/{org_Id} endpoint 
             paramDesc-->On get request the url takes in the parameter, org_id
                 param-->org_id: This is the organization Id of the organization subscribed to
@@ -29,8 +26,8 @@ async def index_sub_per_org(org_Id: str,  db: Session = _fastapi.Depends(get_db)
 
 @app.post('/subscriptions', response_model=subscription_schema.ResponseSingle)
 async def subscribe(
-        subscription: subscription_schema._SubBAse,
-        db: Session = _fastapi.Depends(get_db)
+        subscription: subscription_schema.SubBase,
+        db: Session = Depends(get_db)
 ):
     """intro-->This endpoint is used to process subscription to an organization. To use this endpoint you need to make a post request to the /subscriptions endpoint with a specified body of request 
 

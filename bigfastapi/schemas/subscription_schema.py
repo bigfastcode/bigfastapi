@@ -4,12 +4,12 @@ from uuid import UUID
 from typing import List, Optional
 
 
-class _SubBAse(pydantic.BaseModel):
+class SubBase(pydantic.BaseModel):
     plan: str
     organization_id: str
 
 
-class SubcriptionBase(_SubBAse):
+class SubcriptionBase(SubBase):
     id: str
     date_created: _dt.datetime
 
@@ -30,5 +30,5 @@ class ResponseList(ResponseDefault):
     data: List[SubcriptionBase]
 
 
-class CreateSubscription(_SubBAse):
+class CreateSubscription(SubBase):
     pass
