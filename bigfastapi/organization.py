@@ -13,8 +13,9 @@ from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
 from bigfastapi.models import organization_models
-from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
 from bigfastapi.schemas import roles_schemas
+from bigfastapi.services.menu_service import add_default_menu_list, get_organization_menu
+
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
 from .files import upload_image
@@ -69,20 +70,21 @@ def create_organization(
     created_org = create_organization(
         user=user, db=db, organization=organization)
 
-    assocMenu = addDefaultMenuList(
+    assocMenu = add_default_menu_list(
         created_org.id, created_org.business_type, db)
 
     runWalletCreation(created_org, db)
 
     background_tasks.add_task(defaults_for_org, organization, created_org, db)
-    background_tasks.add_task(send_slack_notification, user.email, organization)
+    background_tasks.add_task(send_slack_notification,
+                              user.email, organization)
 
     newOrId = created_org.id
-    newOrg = created_org
+    new_orgaization = created_org
     newMenList = assocMenu["menu_list"]
-    newMenu = assocMenu
+    new_menu = assocMenu
 
-    return {"data": {"business": newOrg, "menu": newMenu}}
+    return {"data": {"business": new_orgaization, "menu": new_menu}}
 
 
 async def defaults_for_org(organization, created_org, db: _orm.Session):
@@ -218,7 +220,8 @@ async def get_organization(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
-    """intro--> This endpoint allows you to retrieve details of a particular organizations. To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
+    """intro--> This endpoint allows you to retrieve details of a particular organizations. 
+    To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
 
             paramDesc--> On get request, the request url takes the parameter, organization id
                 param--> organization_id: This is unique Id of the organization of interest
@@ -228,7 +231,7 @@ async def get_organization(
         returnBody--> details of the queried organization
     """
     organization = await get_organization(organization_id, user, db)
-    menu = getOrgMenu(organization_id, db)
+    menu = get_organization_menu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
 
 
@@ -259,8 +262,8 @@ async def get_organization_users(
 
     organization = (
         db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
+        .filter(_models.Organization.id == organization_id)
+        .first()
     )
 
     if organization is None:
@@ -269,8 +272,8 @@ async def get_organization_users(
     store_owner_id = organization.creator
     store_owner = (
         db.query(user_models.User)
-            .filter(user_models.User.id == store_owner_id)
-            .first())
+        .filter(user_models.User.id == store_owner_id)
+        .first())
 
     invited_users = []
     if len(invited_list) > 0:
@@ -318,11 +321,11 @@ def delete_organization_user(
         # fetch the store user from the store user table.
         store_user = (
             db.query(organization_user_model.organizationUser)
-                .filter(and_(
-                organization_user_model.organizationUser.user_id == user_id,
-                organization_user_model.organizationUser.store_id == organization_id
-            ))
-                .first()
+            .filter(and_(
+                    organization_user_model.organizationUser.user_id == user_id,
+                    organization_user_model.organizationUser.store_id == organization_id
+                    ))
+            .first()
         )
 
         store_user.is_deleted = True
@@ -379,8 +382,8 @@ def add_role(payload: roles_schemas.AddRole,
     if len(roles) < 1:
         existing_role = (
             db.query(role_models.Role)
-                .filter(role_models.Role.role_name == payload.role_name.lower())
-                .first()
+            .filter(role_models.Role.role_name == payload.role_name.lower())
+            .first()
         )
         if existing_role is None:
             role = role_models.Role(
@@ -416,13 +419,13 @@ def get_pending_invites(
     """
     pending_invites = (
         db.query(organization_invite_model.organizationInvite)
-            .filter(
+        .filter(
             and_(organization_invite_model.organizationInvite.store_id == organization_id,
                  organization_invite_model.organizationInvite.is_deleted == False,
                  organization_invite_model.organizationInvite.is_accepted == False,
                  organization_invite_model.organizationInvite.is_revoked == False
                  ))
-            .all()
+        .all()
     )
 
     return pending_invites
@@ -493,7 +496,7 @@ async def changeOrganizationImage(
     try:
         db.commit()
         db.refresh(organization)
-        menu = getOrgMenu(organization_id, db)
+        menu = get_organization_menu(organization_id, db)
         return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -590,8 +593,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 
     invited_orgs_rep = (
         db.query(organization_user_model.organizationUser)
-            .filter(organization_user_model.organizationUser.user_id == user.id)
-            .all()
+        .filter(organization_user_model.organizationUser.user_id == user.id)
+        .all()
     )
 
     if len(invited_orgs_rep) < 1:
@@ -601,7 +604,7 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
             imageURL = appBasePath + \
-                       f'/organizations/{organization_list[pos].id}/image'
+                f'/organizations/{organization_list[pos].id}/image'
             setattr(organization_list[pos], 'image_full_path', imageURL)
             organizationCollection.append(organization_list[pos])
 
@@ -612,8 +615,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
     org = []
     for store_id in store_id_list:
         org = org + \
-              db.query(_models.Organization).filter(
-                  _models.Organization.id == store_id).all()
+            db.query(_models.Organization).filter(
+                _models.Organization.id == store_id).all()
 
     org_coll = native_orgs + org
     organizationCollection = []
@@ -629,8 +632,8 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
 async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
+        .filter(_models.Organization.id == organization_id)
+        .first()
     )
 
     if organization is None:
@@ -743,4 +746,5 @@ def create_credit_wallet(organization_id: str, db: _orm.Session):
 
 def send_slack_notification(user, organization):
     message = user + " created a new organization : " + organization.name
-    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)  # sends the message to slack
+    # sends the message to slack
+    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)

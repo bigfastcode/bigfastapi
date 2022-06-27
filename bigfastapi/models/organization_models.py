@@ -71,15 +71,6 @@ class DefaultAutoReminder(Base):
     second_template = Column(String(255), index=True)
 
 
-# --------------------------------------------------------------------------------------------------#
-#                                    REPOSITORY AND HELPERS
-# --------------------------------------------------------------------------------------------------#
-
-def getActiveMenu(businessType):
-    menuList = defaultManu()
-    return menuList[businessType]
-
-
 async def fetchOrganization(orgId: str, db: _orm.Session):
     return db.query(Organization).filter(Organization.id == orgId).first()
 
