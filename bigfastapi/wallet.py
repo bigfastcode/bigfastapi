@@ -214,10 +214,10 @@ async def _get_super_admin_wallet(db: _orm.Session, currency: str):
     admin = db.query(user_models.User).filter_by(is_superuser=True).filter_by(is_deleted=False).first()
     organization = db.query(organization_models.Organization).filter_by(creator=admin.id).filter_by(
         is_deleted=False).first()
-    wallet = db.query(model.Wallet).filter_by(organization_id=organization.id).filter_by(
+    wallet = db.query(model.Wallet).filter_by(organization_id=organizations.id).filter_by(
         currency_code=currency).first()
     if wallet is None:
-        wallet = await _create_wallet(organization_id=organization.id, db=db, currency_code=currency)
+        wallet = await _create_wallet(organization_id=organizations.id, db=db, currency_code=currency)
 
     return wallet
 
