@@ -16,7 +16,7 @@ from bigfastapi.utils.utils import defaultManu
 
 
 class Organization(Base):
-    __tablename__ = "organization"
+    __tablename__ = "organizations"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     user_id = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
     email = Column(String(255), default="")
@@ -43,7 +43,7 @@ class Organization(Base):
 class OrganizationInvite(Base):
     __tablename__ = "organization_invites"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("organization.id"))
+    organization_id = Column(String(255), ForeignKey("organizations.id"))
     user_id = Column(String(255), ForeignKey("users.id"))
     user_email = Column(String(255), index=True)
     role_id = Column(String(255), ForeignKey("roles.id"))
