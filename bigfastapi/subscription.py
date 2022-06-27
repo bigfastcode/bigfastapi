@@ -1,7 +1,6 @@
 from typing import List
 from bigfastapi import db
 from uuid import uuid4
-from bigfastapi.models import subscription_models
 from bigfastapi.schemas import subscription_schema
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as _orm

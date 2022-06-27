@@ -24,13 +24,13 @@ class Organization(Base):
     phone_country_code = Column(String(10))
     mission = Column(Text())
     vision = Column(Text())
-    currency = Column(String(5))
+    currency_code = Column(String(5))
     name = Column(String(255), index=True, default="")
     business_type = Column(String(225), default="retail")
-    country_code = Column(String(255))
-    county = Column(String(225))
-    state = Column(String(255))
-    address = Column(String(255))
+    # country_code = Column(String(255))
+    # county = Column(String(225))
+    # state = Column(String(255))
+    # address = Column(String(255))
     tagline = Column(Text())
     image_url = Column(Text(), default="")
     is_deleted = Column(Boolean(), default=False)
@@ -43,7 +43,7 @@ class Organization(Base):
 class OrganizationInvite(Base):
     __tablename__ = "organization_invites"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("organizations.id"))
+    organization_id = Column(String(255), ForeignKey("organization.id"))
     user_id = Column(String(255), ForeignKey("users.id"))
     user_email = Column(String(255), index=True)
     role_id = Column(String(255), ForeignKey("roles.id"))
@@ -83,9 +83,7 @@ class Role(Base):
 #                                    REPOSITORY AND HELPERS
 # --------------------------------------------------------------------------------------------------#
 
-def getActiveMenu(businessType):
-    menuList = defaultManu()
-    return menuList[businessType]
+
 
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
