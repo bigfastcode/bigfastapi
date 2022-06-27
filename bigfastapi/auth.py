@@ -101,6 +101,7 @@ async def create_user(user: auth_schemas.UserCreate, background_tasks: Backgroun
         return {"data": user_created, "access_token": access_token}
 
 
+# ENDPOINT TO CREATE A SUPER ADMIN ACCOUNT
 @app.post("/auth/admin-signup", status_code=200)
 async def create_user(user: auth_schemas.UserCreate,
                       background_tasks: BackgroundTasks,

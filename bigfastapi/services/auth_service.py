@@ -1,7 +1,6 @@
 
 from datetime import datetime, timedelta
 from uuid import uuid4
-
 import fastapi
 import jwt
 from bigfastapi.core.helpers import Helpers
@@ -9,7 +8,6 @@ from bigfastapi.models import auth_models, user_models
 from bigfastapi.schemas import auth_schemas
 import sqlalchemy.orm as orm
 import passlib.hash as _hash
-
 from bigfastapi.utils import settings, utils
 
 
@@ -49,7 +47,6 @@ def create_user(user: auth_schemas.UserCreate, db:  orm.Session, is_su: bool = F
 
 
 def create_access_token(data: dict, db: orm.Session):
-    print("I GOT HERE")
     to_encode = data.copy()
 
     expire = datetime.utcnow() + timedelta(minutes=1440)

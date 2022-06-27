@@ -11,7 +11,6 @@ from bigfastapi.db.database import Base
 from bigfastapi.files import deleteFile, isFileExist
 from bigfastapi.schemas import organization_schemas
 from bigfastapi.schemas.organization_schemas import BusinessSwitch
-from bigfastapi.utils.utils import defaultManu
 
 
 class Organization(Base):

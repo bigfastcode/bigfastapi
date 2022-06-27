@@ -18,7 +18,6 @@ from random import randrange
 DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
-
 def generate_short_id(size=9, chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -160,30 +159,3 @@ def row_to_dict(row):
     for column in row.__table__.columns:
         d[column.name] = str(getattr(row, column.name))
     return d
-
-
-# MENU RELATED DEFAULTS
-
-
-default_more_list = ['reports', 'invoices', 'fees', 'tutorials', 'logs', 'marketting',
-                     'sales', 'suppliers', 'debts', 'receipts', 'products', 'payments']
-
-
-def defaultManu():
-    default_retail = ['dashboard', 'customers',
-                      'debts', 'payments', 'settings', 'more']
-
-    default_edu = ['dashboard', 'students', 'settings', 'more']
-
-    default_hos = ['dashboard', 'reservations',
-                   'customers', 'settings', 'more']
-
-    default_freeLance = ['dashboard', 'clients',
-                         'invoices', 'settings', 'more']
-
-    return {
-        "education": {"menu": default_edu, 'more': default_more_list},
-        "hospitality": {"menu": default_hos, "more": default_more_list},
-        "retail": {"menu": default_retail, 'more': default_more_list},
-        "freelance": {"menu": default_freeLance, "more": default_more_list}
-    }

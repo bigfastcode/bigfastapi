@@ -3,7 +3,6 @@ from bigfastapi.api_key import app as api_key
 from bigfastapi.landing_page import app as landing_page
 from bigfastapi.activity_log import app as activity_log
 from bigfastapi.activity_log import app as activitieslog
-from bigfastapi.schedule import app as schedule
 from bigfastapi.menu import app as menu
 import datetime
 import random
