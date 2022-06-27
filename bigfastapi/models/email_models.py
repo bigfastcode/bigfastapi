@@ -25,7 +25,7 @@ class Email(database.Base):
     organization_id = Column(String(255), ForeignKey("organizations.id"), nullable=True, index=True)
     title = Column(String(225))
     recipients = Column(JSON, default=[])
-    body = Column(String(255), index=True, nullable=False)
+    body = Column(String(255), nullable=False)
     is_scheduled = Column(Boolean, default=False, index=True)
     scheduled_time = Column(DateTime)
     status = Column(Enum(EmailStatus), index=True)
