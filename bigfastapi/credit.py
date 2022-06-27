@@ -17,7 +17,7 @@ from bigfastapi import models
 from bigfastapi.db.database import get_db
 from bigfastapi.auth_api import is_authenticated
 from bigfastapi.core.helpers import Helpers
-from bigfastapi.models import credit_wallet_models as model, organization_models, wallet_models, wallet_transaction_models
+from bigfastapi.models import credit_wallet_models as model, organization_models, wallet_models
 from bigfastapi.schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas
 from bigfastapi.schemas import users_schemas
 from bigfastapi.schemas.wallet_schemas import PaymentProvider

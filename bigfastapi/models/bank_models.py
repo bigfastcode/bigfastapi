@@ -17,7 +17,7 @@ from bigfastapi.db.database import Base
 class BankModels(Base):
     __tablename__ = "banks"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    organization_id = Column(String(255), ForeignKey("businesses.id"))
+    organization_id = Column(String(255), ForeignKey("organization.id"))
     creator_id = Column(String(255))
     account_number = Column(Integer, index=True)
     bank_name = Column(String(255))
