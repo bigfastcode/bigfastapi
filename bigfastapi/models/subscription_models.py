@@ -5,7 +5,6 @@ from sqlite3 import Timestamp
 from tkinter.messagebox import CANCEL
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
-from bigfastapi.models.organization_models import Organization
 # from bigfastapi.models.plan_model import Plan
 from bigfastapi.models.user_models import User
 import passlib.hash as _hash
