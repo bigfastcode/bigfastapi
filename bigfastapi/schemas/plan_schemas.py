@@ -1,4 +1,4 @@
-from tkinter import E
+# from tkinter import E
 from typing import Any, Dict, List, Union
 import pydantic
 from datetime import datetime
