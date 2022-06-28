@@ -1,6 +1,7 @@
 
 
 import json
+from typing import List
 from uuid import uuid4
 from fastapi import HTTPException
 import sqlalchemy.orm as orm
@@ -85,7 +86,7 @@ def modify_menu_more_list(menu_item: str, is_adding: bool, db: orm.Session):
 
 
 # Update all more column in menus table
-def persist_new_menu_more_list(updated_more_list: list[str], db: orm.Session):
+def persist_new_menu_more_list(updated_more_list: List[str], db: orm.Session):
     more_list_as_json = json.dumps(updated_more_list)
     try:
         org_menu = db.query(Menu).update({"more": more_list_as_json})
