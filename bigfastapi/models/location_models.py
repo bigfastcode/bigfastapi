@@ -8,9 +8,7 @@ from sqlalchemy.schema import Column
 class Location(Base):
     __tablename__ = "locations"
 
-    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    rel_id = Column(String(255))
-    model_type = Column(String(255))
+    id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
     country = Column(String(255))
     state = Column(String(255))
     city = Column(String(255))
@@ -20,7 +18,6 @@ class Location(Base):
     street = Column(String(255))
     significant_landmark = Column(String(255))
     driving_instructions = Column(String(255))
-    contact = Column(String(255))
     longitude = Column(String(255))
     latitude = Column(String(255))
     is_deleted = Column(Boolean,  default=False)

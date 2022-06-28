@@ -7,14 +7,12 @@ from sqlalchemy.schema import Column
 
 class ContactInfo(Base):
     __tablename__ = "contact_info"
-    id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
-    # rel_id = Column(String(255), index=True)
-    # model_type = Column(String(255))
+    id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
     contact_data = Column(String(255), nullable=False)
-    contact_tag = Column(String(255))
-    contact_type = Column(String(255), nullable=False)
+    contact_tag = Column(String(50))
+    contact_type = Column(String(50), nullable=False)
     contact_title = Column(String(255))
-    phone_country_code = Column(String(255))
+    phone_country_code = Column(String(10))
     is_primary  = Column(Boolean,  default=False)
     is_deleted = Column(Boolean,  default=False)
     description = Column(String(255), default="")
