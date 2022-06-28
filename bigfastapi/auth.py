@@ -2,7 +2,7 @@ import fastapi
 from fastapi import FastAPI, Request, APIRouter, BackgroundTasks, HTTPException, status
 from fastapi.openapi.models import HTTPBearer
 import fastapi.security as _security
-import passlib.hash as _hash
+import passlib.hash as hash
 
 from .core.helpers import Helpers
 from .models import auth_models, user_models
@@ -170,11 +170,11 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session, is_su: boo
     su_status = True if is_su else False
 
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(user.password),
+        id=uuid4().hex, email=user.email, password_hash=hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
-        is_active=True, is_verified=True, is_superuser=su_status, country_code=user.country_code, is_deleted=False,
-        country=user.country, state=user.state, google_id=user.google_id, google_image=user.google_image,
-        image=user.image, device_id=user.device_id
+        is_active=True, is_verified=True, is_superuser=su_status, phone_country_code=user.country_code, is_deleted=False,
+         google_id=user.google_id, google_image_url=user.google_image,
+        image_url=user.image, device_id=user.device_id
     )
 
     db.add(user_obj)
@@ -191,7 +191,7 @@ async def find_user_email(email, db: orm.Session):
 
 async def find_user_phone(phone_number, country_code, db: orm.Session):
     found_user = db.query(user_models.User).filter(user_models.User.phone_number ==
-                                                   phone_number and user_models.User.country_code == country_code).first()
+                                                   phone_number and user_models.User.phone_country_code == country_code).first()
     return {"user": found_user, "response_user": auth_schemas.UserCreateOut.from_orm(found_user)}
 
 
