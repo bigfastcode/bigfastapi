@@ -18,19 +18,21 @@ from bigfastapi.email import send_email
 from bigfastapi.models import organization_models
 from bigfastapi.services.menu_service import add_default_menu_list, get_organization_menu
 
-from .auth_api import is_authenticated
-from .core.helpers import Helpers
-from .files import upload_image
-from .models import credit_wallet_models as credit_wallet_models
-from .schemas import organization_schemas as _schemas
-from .schemas.organization_schemas import _OrganizationBase, AddRole, OrganizationUserBase
-from .models.organization_models import OrganizationInvite, OrganizationUser, Role
+from bigfastapi.auth_api import is_authenticated
+from bigfastapi.core.helpers import Helpers
+from bigfastapi.files import upload_image
+from bigfastapi.models import credit_wallet_models as credit_wallet_models
+from bigfastapi.schemas import organization_schemas as _schemas
+from bigfastapi.schemas.organization_schemas import _OrganizationBase, AddRole, OrganizationUserBase
+from bigfastapi.models.organization_models import OrganizationInvite, OrganizationUser, Role
 from .models import organization_models as _models
-from .models import user_models
-from .models import user_models
-from .models import wallet_models as wallet_models
-from .schemas import users_schemas
-from .utils.utils import paginate_data, row_to_dict
+from bigfastapi.models import user_models
+from bigfastapi.models import user_models
+from bigfastapi.models import wallet_models as wallet_models
+from bigfastapi.schemas import users_schemas
+from bigfastapi.utils.utils import paginate_data, row_to_dict
+
+from bigfastapi.services import organization_service
 
 
 app = APIRouter(tags=["Organization"])
@@ -66,32 +68,38 @@ def create_organization(
     returnDesc--> On sucessful request, it returns
         returnBody--> details of the newly created organization
     """
-    db_org = get_orgnanization_by_name(
-        name=organization.name, creatorId=user.id, db=db)
+    try:
 
-    if db_org:
-        raise _fastapi.HTTPException(
-            status_code=400, detail=f"{organization.name} already exist in your business collection")
+        db_org = get_organization_by_name(
+            name=organization.name, creator_id=user.id, db=db)
 
-    created_org = create_organization(
-        user=user, db=db, organization=organization)
+        if db_org:
+            raise _fastapi.HTTPException(
+                status_code=400, detail=f"{organization.name} already exist in your business collection")
 
-    assocMenu = add_default_menu_list(
-        created_org.id, created_org.business_type, db)
+        created_org = organization_service.create_organization(
+            user=user, db=db, organization=organization)
 
-    runWalletCreation(created_org, db)
+        assocMenu = add_default_menu_list(
+            created_org.id, created_org.business_type, db)
 
-    background_tasks.add_task(defaults_for_org, organization, created_org, db)
-    background_tasks.add_task(send_slack_notification,
-                              user.email, organization)
+        run_wallet_creation(created_org, db)
 
-    newOrId = created_org.id
-    new_orgaization = created_org
-    newMenList = assocMenu["menu_list"]
-    new_menu = assocMenu
+        background_tasks.add_task(defaults_for_org, organization, created_org, db)
+        background_tasks.add_task(send_slack_notification,
+                                user.email, organization)
 
-    return {"data": {"business": new_orgaization, "menu": new_menu}}
+        newOrId = created_org.id
+        new_organization = created_org
+        newMenList = assocMenu["menu_list"]
+        new_menu = assocMenu
 
+        return {"data": {"business": new_organization, "menu": new_menu}}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 async def defaults_for_org(organization, created_org, db: _orm.Session):
     defaultTemplates = [
@@ -274,7 +282,7 @@ async def get_organization_users(
     if organization is None:
         raise _fastapi.HTTPException(
             status_code=404, detail="Organization does not exist")
-    organization_owner_id = organization.creator
+    organization_owner_id = organization.user_id
     organization_owner = (
         db.query(user_models.User)
         .filter(user_models.User.id == organization_owner_id)
@@ -830,9 +838,9 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 # /////////////////////////////////////////////////////////////////////////////////
 # organization Services
 
-def get_orgnanization_by_name(name: str, creatorId: str, db: _orm.Session):
+def get_organization_by_name(name: str, creator_id: str, db: _orm.Session):
     return db.query(_models.Organization).filter(_models.Organization.name == name,
-                                                 creatorId == _models.Organization.creator).first()
+                                                 _models.Organization.user_id == creator_id).first()
 
 
 async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.Session):
@@ -840,24 +848,9 @@ async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.S
         _models.Organization.id != organization_id).first()
 
 
-def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
-    organization_id = uuid4().hex
-    newOrganization = _models.Organization(id=organization_id, creator=user.id, mission=organization.mission,
-                                           vision=organization.vision, values=organization.values,
-                                           name=organization.name,
-                                           country=organization.country, business_type=organization.business_type,
-                                           state=organization.state, address=organization.address,
-                                           tagline=organization.tagline, image=organization.image, is_deleted=False,
-                                           current_subscription=organization.current_subscription,
-                                           currency_preference=organization.currency_preference)
-
-    db.add(newOrganization)
-    db.commit()
-    db.refresh(newOrganization)
-    return newOrganization
 
 
-def runWalletCreation(newOrganization: organization_models.Organization, db: _orm.Session):
+def run_wallet_creation(newOrganization: organization_models.Organization, db: _orm.Session):
     roles = ["Assistant", "Admin", "Owner"]
     for role in roles:
         new_role = Role(
@@ -870,13 +863,13 @@ def runWalletCreation(newOrganization: organization_models.Organization, db: _or
         db.refresh(new_role)
 
     create_wallet(organization_id=newOrganization.id,
-                  currency=newOrganization.currency_preference, db=db)
+                  currency=newOrganization.currency_code, db=db)
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
 def get_organizations(user: users_schemas.User, db: _orm.Session):
     native_orgs = db.query(_models.Organization).filter_by(
-        creator=user.id).all()
+        user_id=user.id).all()
 
     invited_orgs_rep = (
         db.query(OrganizationUser)
@@ -917,7 +910,7 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
     return organizationCollection
 
 
-async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
+async def organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
         .filter(_models.Organization.id == organization_id)
@@ -936,14 +929,14 @@ async def _organization_selector(organization_id: str, user: users_schemas.User,
 
 
 async def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
-    organization = await _organization_selector(
+    organization = await organization_selector(
         organization_id=organization_id, user=user, db=db)
 
     return organization
 
 
 async def delete_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
-    organization = await _organization_selector(organization_id, user, db)
+    organization = await organization_selector(organization_id, user, db)
 
     db.delete(organization)
     db.commit()
@@ -951,7 +944,7 @@ async def delete_organization(organization_id: str, user: users_schemas.User, db
 
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate, user: users_schemas.User,
                               db: _orm.Session):
-    organization_db = await _organization_selector(organization_id, user, db)
+    organization_db = await organization_selector(organization_id, user, db)
     currencyUpdated = False
     if organization.mission != "":
         organization_db.mission = organization.mission
@@ -1000,7 +993,7 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
         create_wallet(organization_id=organization_id,
                       currency=organization.currency_preference, db=db)
 
-    menu = getOrgMenu(organization_id, db)
+    menu = get_organization_menu(organization_id, db)
 
     return {"data": {"organization": organization_db, "menu": menu}}
 

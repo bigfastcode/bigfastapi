@@ -12,7 +12,7 @@ from bigfastapi.models.menu_models import Menu
 
 
 MENU_JSON_PATH = pkg_resources.resource_filename(
-    'bigfastapi', 'data\menu.json')
+    'bigfastapi', 'data/menu.json')
 
 
 #  ADD Default menu setting per organization
