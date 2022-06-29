@@ -22,7 +22,7 @@ class LandingPage(db.Base):
                         server_default=func.now(), onupdate=func.now())
 
 
-class OtherInfo(db.Base):
+class LandingPageOtherInfo(db.Base):
   __tablename__ = "landing_info"
   id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
   landing_page_id = Column(String(255), ForeignKey("landing_page.id"))
