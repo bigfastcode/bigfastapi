@@ -7,12 +7,10 @@ from sqlalchemy.types import String, Integer, Text, DateTime, Boolean
 from uuid import uuid4
 
 
-
 from bigfastapi.db.database import Base
 from bigfastapi.files import deleteFile, isFileExist
 from bigfastapi.schemas import organization_schemas
 from bigfastapi.schemas.organization_schemas import BusinessSwitch
-from bigfastapi.utils.utils import defaultManu
 
 
 class Organization(Base):
@@ -40,6 +38,8 @@ class Organization(Base):
     last_updated_db = Column(DateTime, default=_dt.datetime.utcnow)
 
 # Organization Invite
+
+
 class OrganizationInvite(Base):
     __tablename__ = "organization_invites"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
@@ -50,13 +50,14 @@ class OrganizationInvite(Base):
     invite_code = Column(String(255), index=True)
     is_accepted = Column(Boolean, default=False)
     is_revoked = Column(Boolean, default=False)
-    is_deleted = Column(Boolean, default=False) 
+    is_deleted = Column(Boolean, default=False)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
-    
+
     class Config:
         orm_mode = True
 
 # Organization User
+
 
 class OrganizationUser(Base):
     __tablename__ = "organization_users"
@@ -64,7 +65,7 @@ class OrganizationUser(Base):
     organization_id = Column(String(255), index=True)
     user_id = Column(String(255), ForeignKey("users.id"))
     role_id = Column(String(255), ForeignKey("roles.id"))
-    is_deleted = Column(Boolean, default=False) 
+    is_deleted = Column(Boolean, default=False)
     date_created = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
 
@@ -77,13 +78,9 @@ class Role(Base):
     role_name = Column(String(255), index=True)
 
 
-
-
 # --------------------------------------------------------------------------------------------------#
 #                                    REPOSITORY AND HELPERS
 # --------------------------------------------------------------------------------------------------#
-
-
 
 
 async def fetchOrganization(orgId: str, db: _orm.Session):
