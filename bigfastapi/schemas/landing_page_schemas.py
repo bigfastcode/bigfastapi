@@ -5,6 +5,7 @@
 
 from typing import Dict
 from pydantic import BaseModel
+from fastapi import UploadFile, File
 from bigfastapi.utils.schema_form import as_form
 
 @as_form
@@ -47,7 +48,7 @@ class landingPageCreate(BaseModel):
     
 
 class landingPagecompanylogo(landingPageCreate):
-    company_logo: str
+    company_logo: UploadFile = File(...)
     favicon: str
 
 class landingPagesection_One_image_link(landingPagecompanylogo):
