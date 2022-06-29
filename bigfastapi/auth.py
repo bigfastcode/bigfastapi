@@ -69,11 +69,11 @@ async def create_user(user: auth_schemas.UserCreate, background_tasks: Backgroun
     if user.phone_number == None and user.phone_country_code:
         raise fastapi.HTTPException(
             status_code=403, detail="you must add a phone number when you add a country code")
-    if user.country:
-        check_country = utils.find_country(user.country)
-        if check_country is None:
-            raise fastapi.HTTPException(
-                status_code=403, detail="this country is invalid")
+    # if user.country:
+    #     check_country = utils.find_country(user.country)
+    #     if check_country is None:
+    #         raise fastapi.HTTPException(
+    #             status_code=403, detail="this country is invalid")
 
     if user.email or (user.email and user.phone_number):
         user_email = await find_user_email(user.email, db)
@@ -170,11 +170,11 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session, is_su: boo
     su_status = True if is_su else False
 
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, password=hash.sha256_crypt.hash(user.password_hash),
+        id=uuid4().hex, email=user.email, password=hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified=True, is_superuser=su_status, phone_country_code=user.phone_country_code, is_deleted=False,
-         google_id=user.google_id, google_image_url=user.google_image,
-        image_url=user.image, device_id=user.device_id
+        google_id=user.google_id, google_image_url=user.google_image_url,
+        image_url=user.image_url, device_id=user.device_id
     )
 
     db.add(user_obj)
