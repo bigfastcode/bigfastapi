@@ -42,4 +42,4 @@ class User(Base):
     last_updated_db = Column(DateTime, default=datetime.datetime.utcnow)
 
     def verify_password(self, password: str):
-        return _hash.sha256_crypt.verify(password, self.password)
+        return _hash.sha256_crypt.verify(password, self.password_hash)

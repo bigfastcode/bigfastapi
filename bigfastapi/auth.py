@@ -56,15 +56,15 @@ async def create_user(user: auth_schemas.UserCreate, background_tasks: Backgroun
     if user.email == None and user.phone_number == None:
         raise fastapi.HTTPException(
             status_code=403, detail="you must use a either phone_number or email to sign up")
-    if user.phone_number and user.country_code == None:
+    if user.phone_number and user.phone_country_code == None:
         raise fastapi.HTTPException(
             status_code=403, detail="you must add a country code when you add a phone number")
-    if user.phone_number and user.country_code:
+    if user.phone_number and user.phone_country_code:
         check_contry_code = utils.dialcode(user.country_code)
         if check_contry_code is None:
             raise fastapi.HTTPException(
                 status_code=403, detail="this country code is invalid")
-    if user.phone_number == None and user.country_code:
+    if user.phone_number == None and user.phone_country_code:
         raise fastapi.HTTPException(
             status_code=403, detail="you must add a phone number when you add a country code")
     if user.country:
@@ -149,7 +149,7 @@ async def login(user: auth_schemas.UserLogin, background_tasks: BackgroundTasks,
 
 async def create_user(user: auth_schemas.UserCreate, db: orm.Session):
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(user.password),
+        id=uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(user.password_hash),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified=True, country_code=user.country_code, is_deleted=False,
         country=user.country, state=user.state, google_id=user.google_id, google_image=user.google_image,

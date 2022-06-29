@@ -9,7 +9,7 @@ from bigfastapi.db.database import Base
 
 
 class Activitylog(Base):
-    __tablename__ = "activity_log"
+    __tablename__ = "activity_logs"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255))
     user_id = Column(String(255))
