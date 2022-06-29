@@ -73,7 +73,7 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
                             shape_three: UploadFile = File(...),):
 
     # checks if user is a superuser
-    if current_user.is_superuser is not True:
+    if  current_user.is_superuser != True:
         raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
 
     # generates bucket name
@@ -572,7 +572,7 @@ async def delete_landingPage(landingpage_name: str, current_user=Depends(is_auth
                        getdicvalue(landingpage_data.id,db=db, key= "shape_two"),
                        getdicvalue(landingpage_data.id,db=db, key= "shape_three"),]
 
-        other = db.query(landing_page_models.OtherInfo).filter(landing_page_models.OtherInfo.landing_page_id == landingpage_data.id).delete()
+        other = db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.landing_page_id == landingpage_data.id).delete()
 
 
         for i in deleteimage:
@@ -595,7 +595,7 @@ async def delete_landingPage(landingpage_name: str, current_user=Depends(is_auth
 
 # returns value of a key
 def getdicvalue(landing_id: str, key:str, db:Session = Depends(get_db)):
-  other_info = db.query(landing_page_models.OtherInfo).filter(landing_page_models.OtherInfo.landing_page_id == landing_id, landing_page_models.OtherInfo.key == key).first()
+  other_info = db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.landing_page_id == landing_id, landing_page_models.LandingPageOtherInfo.key == key).first()
   return str(other_info.value)
 
 # Function to retrieve landing page images

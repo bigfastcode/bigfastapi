@@ -1,20 +1,11 @@
-import json
 from uuid import uuid4
-from typing import Dict, List
+from typing import Dict
 from sqlalchemy.orm import Session
 from bigfastapi.auth_api import is_authenticated
 from bigfastapi.db.database import get_db
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from bigfastapi.schemas import landing_page_schemas
-import os
-from fastapi.responses import FileResponse
-from bigfastapi.utils.settings import LANDING_PAGE_FOLDER, LANDING_PAGE_FORM_PATH
-from bigfastapi.files import upload_image, deleteFile, isFileExist
-from starlette.requests import Request
-import pkg_resources
+
 from bigfastapi.models import landing_page_models
-from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File, Request
+from fastapi import  Depends, status, HTTPException
 
 
 async def create_landing_page(landing_page_name: str, bucket_name:str, db: Session=Depends(get_db), current_user = Depends(is_authenticated)):
@@ -48,7 +39,7 @@ async def add_other_info(landing_page_instance: str, data:Dict, db: Session = De
 
   data = data.items()
   for other_info in data:
-      other_info_instance = landing_page_models.OtherInfo(
+      other_info_instance = landing_page_models.LandingPageOtherInfo(
         id=uuid4().hex,
         landing_page_id = landing_page_instance.id,
         key = other_info[0],
