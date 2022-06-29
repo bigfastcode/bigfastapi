@@ -878,7 +878,6 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
     )
 
     if len(invited_orgs_rep) < 1:
-        # continue to last stage
         organization_list = native_orgs
         organizationCollection = []
         for pos in range(len(organization_list)):
