@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bigfastapi",                     # This is the name of the package
-    version="0.6.0",                        # This is the updated release version
+    version="0.6.1",                        # This is the updated release version
     author="BigFastAPI Team",                     # Full name of the author
     author_email="support@bigfa.st",
     description="Adding lots of functionality to FastAPI",
