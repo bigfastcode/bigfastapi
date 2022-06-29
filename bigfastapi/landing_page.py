@@ -53,7 +53,9 @@ def path(filetype: str, image_name: str, folder: str, request: Request, ):
 
 # Endpoint to create landing page
 @app.post("/landing-page/create", status_code=201, response_model=landing_page_schemas.landingPageResponse)
-async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user=Depends(is_authenticated),
+async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), 
+                            db: Session = Depends(get_db), 
+                            current_user=Depends(is_authenticated),
                             company_logo: UploadFile = File(...),
                             favicon: UploadFile = File(...),
                             section_three_image: UploadFile = File(...),
@@ -66,46 +68,6 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
                             shape_one: UploadFile = File(...),
                             shape_two: UploadFile = File(...),
                             shape_three: UploadFile = File(...),):
-    """
-    This endpoint is used to create a landing page
-    It takes in the following parameters:
-        landing_page_name: This is the name of the landing page and will be used to view the landing page html
-        company_name: This is the name of the company
-        Home_link: This is the link to the home page. This will be used to view the landing page html
-        About_link: This is the link to the about page. This will be used to view the about page html
-        Contact_link: This is the link to the contact page. This will be used to view the contact page html
-        company_logo: This is the logo of the company. This will be used to to place  the company logo in the landing page html
-        section_Three_image: This is the image of the section three. This will be used to to place  the section three image in the landing page html
-        Section_Four_image: This is the image of the section four. This will be used to to place  the section four image in the landing page html
-        section_One_image_link: This is the link to the section one image. This will be used to to place  the section one image in the landing page html
-        Body_H3_logo_One: This is the image of the body h3 logo one. This will be used to to place  the body h3 logo one in the landing page html
-        body_h3_logo_two: This is the image of the body h3 logo two. This will be used to to place  the body h3 logo two in the landing page html
-        Body_H3_logo_Three: This is the image of the body h3 logo three. This will be used to to place  the body h3 logo three in the landing page html
-        Body_H3_logo_Four: This is the image of the body h3 logo four. This will be used to to place  the body h3 logo four in the landing page html
-        body_h1: This is the body h1 text. This will be used to to place  the body h1 text in the landing page html
-        body_paragraph: This is the body paragraph text. This will be used to to place  the body paragraph text in the landing page html
-        Body_H3: This is the body h3 text. This will be used to to place  the body h3 text in the landing page html
-        body_h3_logo_one_name: This is the name of the body h3 logo one. This will be used to to place  the body h3 logo one name in the landing page html
-        Body_H3_logo_One_paragraph: This is the body h3 logo one paragraph text. This will be used to to place  the body h3 logo one paragraph text in the landing page html
-        body_h3_logo_two_name: This is the name of the body h3 logo two. This will be used to to place  the body h3 logo two name in the landing page html
-        body_h3_logo_two_paragraph: This is the body h3 logo two paragraph text. This will be used to to place  the body h3 logo two paragraph text in the landing page html
-        body_h3_logo_three_name: This is the name of the body h3 logo three. This will be used to to place  the body h3 logo three name in the landing page html
-        Body_H3_logo_Three_paragraph: This is the body h3 logo three paragraph text. This will be used to to place  the body h3 logo three paragraph text in the landing page html
-        Body_H3_logo_Four_name: This is the name of the body h3 logo four. This will be used to to place  the body h3 logo four name in the landing page html
-        Body_H3_logo_Four_paragraph: This is the body h3 logo four paragraph text. This will be used to to place  the body h3 logo four paragraph text in the landing page html
-        section_Three_paragraph: This is the section three paragraph text. This will be used to to place  the section three paragraph text in the landing page html
-        section_Three_sub_paragraph: This is the section three sub paragraph text. This will be used to to place  the section three sub paragraph text in the landing page html
-        Footer_H3: This is the footer h3 text. This will be used to to place  the footer h3 text in the landing page html
-        Footer_H3_paragraph: This is the footer h3 paragraph text. This will be used to to place  the footer h3 paragraph text in the landing page html
-        Footer_name_employee: This is the footer name employee text. This will be used to to place  the footer name employee text in the landing page html
-        Name_job_description: This is the name job description text. This will be used to to place  the name job description text in the landing page html
-        Footer_H2_text: This is the footer h2 text. This will be used to to place  the footer h2 text in the landing page html
-        Footer_contact_address: This is the footer contact address text. This will be used to to place  the footer contact address text in the landing page html
-        customer_care_email: This is the customer care email text. This will be used to to place  the customer care email text in the landing page html
-        faq_link: This is the faq link text. This will be used to to place  the faq link text in the landing page html
-        login_link: This is the login link text. This will be used to to place  the login link text in the landing page html
-        signup_link: This is the signup link text. This will be used to to place  the signup link text in the landing page html
-    """
 
     # checks if user is a superuser
     if current_user.is_superuser is not True:
@@ -637,6 +599,8 @@ async def delete_landingPage(landingpage_name: str, current_user=Depends(is_auth
     else:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={
                             'error': "You are not authorized to perform this action."})
+
+
 
 
 # Function to retrieve landing page images
