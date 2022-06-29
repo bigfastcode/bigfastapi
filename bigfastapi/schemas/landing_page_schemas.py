@@ -3,9 +3,7 @@
     To use it you need to import it from bigfastapi.utils.schema_form
 """
 
-from typing import Dict, List
 from pydantic import BaseModel
-from fastapi import UploadFile, File
 from bigfastapi.utils.schema_form import as_form
 
 @as_form
