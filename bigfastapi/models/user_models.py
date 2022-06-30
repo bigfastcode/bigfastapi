@@ -1,14 +1,9 @@
 
 import datetime as datetime
-from sqlite3 import Timestamp
-import sqlalchemy as _sql
-import sqlalchemy.orm as _orm
 import passlib.hash as _hash
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Enum, DateTime, Boolean, ARRAY, Text
-from sqlalchemy import ForeignKey
-from uuid import UUID, uuid4
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.types import String, DateTime, Boolean, Text
+from uuid import uuid4
 from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 from bigfastapi.db.database import Base

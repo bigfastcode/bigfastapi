@@ -1,25 +1,18 @@
 import fastapi
-from fastapi import FastAPI, Request, APIRouter, BackgroundTasks, HTTPException, status
-from fastapi.openapi.models import HTTPBearer
-import fastapi.security as _security
+from fastapi import  APIRouter, BackgroundTasks
 import passlib.hash as hash
 
 from .core.helpers import Helpers
-from .models import auth_models, user_models
-from .schemas import auth_schemas, users_schemas
+from .models import  user_models
+from .schemas import auth_schemas
 from passlib.context import CryptContext
 from bigfastapi.utils import settings, utils
-from bigfastapi.db import database as _database
 from fastapi.security import OAuth2PasswordBearer
 from uuid import uuid4
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .auth_api import create_access_token
 # from authlib.integrations.starlette_client import OAuth, OAuthError
-from starlette.config import Config
-from starlette.responses import RedirectResponse
-from sqlalchemy.exc import SQLAlchemyError
-
 from bigfastapi.services import auth_service
 
 
@@ -170,7 +163,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session, is_su: boo
     su_status = True if is_su else False
 
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, password=hash.sha256_crypt.hash(user.password),
+        id=uuid4().hex, email=user.email, password_hash=hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified=True, is_superuser=su_status, phone_country_code=user.phone_country_code, is_deleted=False,
         google_id=user.google_id, google_image_url=user.google_image_url,
