@@ -456,7 +456,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
                             user: users_schemas.User):
     organization = (
         db.query(organization_models.Organization)
-            .filter_by(creator=user.id)
+            .filter_by(user_id=user.id)
             .filter(organization_models.Organization.id == organization_id)
             .first()
     )

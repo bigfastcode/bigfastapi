@@ -34,13 +34,13 @@ class UserCreate(_UserBase):
     first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[str]
-    country_code: Optional[str]
-    image: Optional[str]
+    phone_country_code: Optional[str]
+    image_url: Optional[str]
     device_id: Optional[str]
-    country: Optional[str]
-    state: Optional[str]
+    # country: Optional[str]
+    # state: Optional[str]
     google_id: Optional[str]
-    google_image: Optional[str]
+    google_image_url: Optional[str]
 
     class Config:
         orm_mode = True
@@ -55,13 +55,13 @@ class UserCreateOut(_UserBase):
     is_superuser: Optional[bool]
     is_verified: Optional[bool]
     phone_number: Optional[str]
-    country_code: Optional[str]
-    image: Optional[str]
+    phone_country_code: Optional[str]
+    image_url: Optional[str]
     device_id: Optional[str]
-    country: Optional[str]
-    state: Optional[str]
+    # country: Optional[str]
+    # state: Optional[str]
     google_id: Optional[str]
-    google_image: Optional[str]
+    google_image_url: Optional[str]
 
     class Config:
         orm_mode = True
@@ -69,7 +69,7 @@ class UserCreateOut(_UserBase):
 
 class UserLogin(_UserBase):
     phone_number: Optional[str]
-    country_code: Optional[str]
+    phone_country_code: Optional[str]
     password: str
 
 
@@ -90,14 +90,14 @@ class User(_UserBase):
     is_active: bool
     is_verified: bool
     is_superuser: bool
-    country_code: Optional[str]
-    image: Optional[str]
+    phone_country_code: Optional[str]
+    image_url: Optional[str]
     is_deleted: bool
     device_id: Optional[str]
-    country: Optional[str]
-    state: Optional[str]
+    # country: Optional[str]
+    # state: Optional[str]
     google_id: Optional[str]
-    google_image: Optional[str]
+    google_image_url: Optional[str]
     date_created: dt.datetime
     last_updated: dt.datetime
 
@@ -109,7 +109,7 @@ class APIKey(_UserBase):
     app_name: str
     email: Optional[str]
     phone_number: Optional[str]
-    country_code: Optional[str]
+    phone_country_code: Optional[str]
     user_id: Optional[str]
     first_name: Optional[str]
     last_name: Optional[str]
