@@ -170,7 +170,7 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session, is_su: boo
     su_status = True if is_su else False
 
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, password=hash.sha256_crypt.hash(user.password),
+        id=uuid4().hex, email=user.email, password_hash=hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified=True, is_superuser=su_status, phone_country_code=user.phone_country_code, is_deleted=False,
         google_id=user.google_id, google_image_url=user.google_image_url,
