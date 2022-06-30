@@ -9,7 +9,7 @@ class Helpers:
     async def is_organization_member(user_id: str, organization_id: str, db: _orm.Session):
         organization = (
             db.query(Organization)
-                .filter_by(creator=user_id)
+                .filter_by(user_id=user_id)
                 .filter(Organization.id == organization_id)
                 .first()
         )

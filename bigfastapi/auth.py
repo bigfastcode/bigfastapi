@@ -58,22 +58,22 @@ async def create_user(user: auth_schemas.UserCreate, background_tasks: Backgroun
     if user.email == None and user.phone_number == None:
         raise fastapi.HTTPException(
             status_code=403, detail="you must use a either phone_number or email to sign up")
-    if user.phone_number and user.country_code == None:
+    if user.phone_number and user.phone_country_code == None:
         raise fastapi.HTTPException(
             status_code=403, detail="you must add a country code when you add a phone number")
-    if user.phone_number and user.country_code:
-        check_contry_code = utils.dialcode(user.country_code)
+    if user.phone_number and user.phone_country_code:
+        check_contry_code = utils.dialcode(user.phone_country_code)
         if check_contry_code is None:
             raise fastapi.HTTPException(
                 status_code=403, detail="this country code is invalid")
-    if user.phone_number == None and user.country_code:
+    if user.phone_number == None and user.phone_country_code:
         raise fastapi.HTTPException(
             status_code=403, detail="you must add a phone number when you add a country code")
-    if user.country:
-        check_country = utils.find_country(user.country)
-        if check_country is None:
-            raise fastapi.HTTPException(
-                status_code=403, detail="this country is invalid")
+    # if user.country:
+    #     check_country = utils.find_country(user.country)
+    #     if check_country is None:
+    #         raise fastapi.HTTPException(
+    #             status_code=403, detail="this country is invalid")
 
     if user.email or (user.email and user.phone_number):
         user_email = await find_user_email(user.email, db)
@@ -81,7 +81,7 @@ async def create_user(user: auth_schemas.UserCreate, background_tasks: Backgroun
             raise fastapi.HTTPException(
                 status_code=403, detail="Email already exist")
         if(user.phone_number):
-            user_phone = await find_user_phone(user.phone_number, user.country_code, db)
+            user_phone = await find_user_phone(user.phone_number, user.phone_country_code, db)
             if user_phone["user"] != None:
                 raise fastapi.HTTPException(
                     status_code=403, detail="Phone_Number already exist")
@@ -91,7 +91,7 @@ async def create_user(user: auth_schemas.UserCreate, background_tasks: Backgroun
         return {"data": user_created, "access_token": access_token}
 
     if user.phone_number:
-        user_phone = await find_user_phone(user.phone_number, user.country_code, db)
+        user_phone = await find_user_phone(user.phone_number, user.phone_country_code, db)
         if user_phone["user"] != None:
             raise fastapi.HTTPException(
                 status_code=403, detail="Phone_Number already exist")
@@ -149,10 +149,10 @@ async def login(user: auth_schemas.UserLogin, background_tasks: BackgroundTasks,
         return {"data": userinfo["response_user"], "access_token": access_token}
 
     if user.phone_number:
-        if user.country_code == None:
+        if user.phone_country_code == None:
             raise fastapi.HTTPException(
                 status_code=403, detail="you must add country_code when using phone_number to login")
-        userinfo = await find_user_phone(user.phone_number, user.country_code, db)
+        userinfo = await find_user_phone(user.phone_number, user.phone_country_code, db)
         if userinfo["user"] is None:
             raise fastapi.HTTPException(
                 status_code=403, detail="Invalid Credentials")
@@ -170,11 +170,11 @@ async def create_user(user: auth_schemas.UserCreate, db: orm.Session, is_su: boo
     su_status = True if is_su else False
 
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, password_hash=hash.sha256_crypt.hash(user.password),
+        id=uuid4().hex, email=user.email, password=hash.sha256_crypt.hash(user.password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
-        is_active=True, is_verified=True, is_superuser=su_status, phone_country_code=user.country_code, is_deleted=False,
-         google_id=user.google_id, google_image_url=user.google_image,
-        image_url=user.image, device_id=user.device_id
+        is_active=True, is_verified=True, is_superuser=su_status, phone_country_code=user.phone_country_code, is_deleted=False,
+        google_id=user.google_id, google_image_url=user.google_image_url,
+        image_url=user.image_url, device_id=user.device_id
     )
 
     db.add(user_obj)
@@ -189,9 +189,9 @@ async def find_user_email(email, db: orm.Session):
     return {"user": found_user, "response_user": auth_schemas.UserCreateOut.from_orm(found_user)}
 
 
-async def find_user_phone(phone_number, country_code, db: orm.Session):
+async def find_user_phone(phone_number, phone_country_code, db: orm.Session):
     found_user = db.query(user_models.User).filter(user_models.User.phone_number ==
-                                                   phone_number and user_models.User.phone_country_code == country_code).first()
+                                                   phone_number and user_models.User.phone_country_code == phone_country_code).first()
     return {"user": found_user, "response_user": auth_schemas.UserCreateOut.from_orm(found_user)}
 
 

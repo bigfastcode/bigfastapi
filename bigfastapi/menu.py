@@ -45,7 +45,7 @@ def remove_menu_item(payload: MenuRequest, db: _orm.Session = fastapi.Depends(ge
 
 @app.put('/menu/populate')
 def runpopuate(key_word: str = '', db: _orm.Session = fastapi.Depends(get_db)):
-    if key_word is not "1802":
+    if key_word != "1802":
         raise HTTPException(status_code=401, detail="Permission Denied")
     result = menu_service.popo(db)
     return result

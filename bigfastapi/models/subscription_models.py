@@ -1,8 +1,6 @@
 
 import datetime as _dt
 from operator import index
-from sqlite3 import Timestamp
-# from tkinter.messagebox import CANCEL
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
 # from bigfastapi.models.plan_model import Plan
@@ -13,9 +11,6 @@ from sqlalchemy.types import String, Integer, DateTime, Boolean, ARRAY, Text
 from enum import Enum
 from sqlalchemy import ForeignKey
 from uuid import UUID, uuid4
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-from sqlalchemy.sql import func
-from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 import bigfastapi.db.database as _database
 
 
