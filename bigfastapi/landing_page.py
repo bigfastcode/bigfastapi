@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from bigfastapi.models import landing_page_models
 from bigfastapi.schemas import landing_page_schemas
 from bigfastapi.files import upload_image, deleteFile, isFileExist
-from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File, Request
+from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File, Request, BackgroundTasks
 from bigfastapi.utils.settings import LANDING_PAGE_FOLDER, LANDING_PAGE_FORM_PATH
 from starlette.requests import Request
 from bigfastapi.services import landing_page_services
@@ -56,7 +56,7 @@ def path(filetype: str, image_name: str, folder: str, request: Request, ):
 
 # Endpoint to create landing page
 @app.post("/landing-page/create", status_code=201, )
-async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), 
+async def createlandingpage(background_tasks: BackgroundTasks, request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), 
                             db: Session = Depends(get_db), 
                             current_user=Depends(is_authenticated),
                             company_logo: UploadFile = File(...),
@@ -194,7 +194,10 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
         "shape_two" : shape_two,
         "shape_three" : shape_three,
         }
-    return await landing_page_services.add_other_info(landing_page_instance=d, data=other_info, db=db)
+    background_tasks.add_task(landing_page_services.add_other_info,landing_page_instance=d, data=other_info, db=db)
+    return {"success":"Landing page created"}
+
+
 
 
 

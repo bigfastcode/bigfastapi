@@ -27,7 +27,7 @@ class LandingPageOtherInfo(db.Base):
   id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
   landing_page_id = Column(String(255), ForeignKey("landing_page.id"))
   key = Column(String(255), index=True, default="")
-  value = Column(String(255), index=True, default="")
+  value = Column(String(255), default="")
   landing_page_data = relationship("LandingPage", back_populates="other_info")
   date_created = Column(DateTime, server_default=func.now())
   last_updated = Column(DateTime, nullable=False,
