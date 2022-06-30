@@ -20,6 +20,10 @@ class Helpers:
             return False
         return True
 
+    async def get_org_currency(organization_id: str, db: _orm.Session):
+        organisation = db.query(Organization).filter(Organization.id == organization_id).first()
+        return organisation.currency_code
+
     # Sends a notification to slack.
     # NOTE: DO NOT CALL THIS METHOD IN THE SAME THREAD AS YOUR REQUEST. USE A BACKGROUND TASK
     @staticmethod   
