@@ -1,8 +1,15 @@
+from bigfastapi.import_progress import app as importprogress
+from bigfastapi.api_key import app as api_key
+from bigfastapi.landing_page import app as landing_page
+from bigfastapi.activity_log import app as activity_log
+from bigfastapi.activity_log import app as activitieslog
+from bigfastapi.menu import app as menu
 import datetime
 import random
 from uuid import uuid4
 
 import uvicorn
+# from bigfastapi import email_marketing
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
@@ -14,9 +21,9 @@ from bigfastapi.auth import app as authentication
 from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.banks import router as banks
 from bigfastapi.blog import app as blog
-from bigfastapi.products import app as products
-from bigfastapi.stock import app as stock
-from bigfastapi.product_prices import app as product_prices
+# from bigfastapi.products import app as products
+# from bigfastapi.stock import app as stock
+# from bigfastapi.product_prices import app as product_prices
 from bigfastapi.comments import app as comments
 from bigfastapi.contact import app as contact
 from bigfastapi.countries import app as countries
@@ -40,12 +47,7 @@ from bigfastapi.tutorial import app as tutorial
 from bigfastapi.users import app as accounts_router
 from bigfastapi.utils import settings as env_var
 from bigfastapi.wallet import app as wallet
-from bigfastapi.schedule import app as schedule
-from bigfastapi.activities_log import app as activitieslog
-from bigfastapi.landing_page import app as landing_page
 
-from bigfastapi.api_key import app as api_key
-from bigfastapi.import_progress import app as importprogress
 
 # Create the application
 tags_metadata = [
@@ -192,7 +194,7 @@ tags_metadata = [
         "description": '''BigFast's Freqently asked questions(FAQ) and Support api allows you to and set up a faq section in your application. This api allows creation and retireval of faqs.
          We also offer a support ticket workflow which you can incorporate into your application. The support feature enables creation,
           reply and closing of support tickets an application where it has been imported into.'''
-    },  
+    },
     {
         "name": "sms",
         "description": '''BigFast's SMS API allows you to send an sms
@@ -210,10 +212,11 @@ tags_metadata = [
 app = FastAPI(openapi_tags=tags_metadata)
 app.add_middleware(SessionMiddleware, secret_key=env_var.JWT_SECRET)
 RABBITMQ_USERNAME = config('RABBITMQ_USERNAME')
-RABBITMQ_PASSWORD =config('RABBITMQ_PASSWORD')
-RABBITMQ_HOST_PORT =config('RABBITMQ_HOST_PORT')
+RABBITMQ_PASSWORD = config('RABBITMQ_PASSWORD')
+RABBITMQ_HOST_PORT = config('RABBITMQ_HOST_PORT')
 
-celery = Celery('tasks', broker=f'amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST_PORT}')
+celery = Celery(
+    'tasks', broker=f'amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST_PORT}')
 
 celery.conf.imports = [
     ''
@@ -241,12 +244,11 @@ app.include_router(countries, tags=["Countries"])
 app.include_router(faq)
 app.include_router(contact)
 app.include_router(blog, tags=["Blog"])
-app.include_router(products, tags=["Products"])
-app.include_router(stock, tags=["Stock"])
-app.include_router(product_prices, tags=["Product Prices"])
+
 app.include_router(plans, tags=['Plans'])
 app.include_router(email)
 app.include_router(files, tags=["File"])
+app.include_router(menu, tags=["Menu"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
 app.include_router(tutorial, tags=["Tutorials"])
@@ -262,8 +264,8 @@ app.include_router(pdfs)
 app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(sms)
-app.include_router(schedule)
-app.include_router(activitieslog)
+# app.include_router(email_marketing, tags=["Email Marketing"])
+app.include_router(activity_log)
 app.include_router(api_key)
 app.include_router(landing_page)
 app.include_router(importprogress)

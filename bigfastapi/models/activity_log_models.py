@@ -8,8 +8,8 @@ from sqlalchemy.types import String, DateTime, Float, Boolean
 from bigfastapi.db.database import Base
 
 
-class Activitieslog(Base):
-    __tablename__ = "activities_log"
+class Activitylog(Base):
+    __tablename__ = "activity_logs"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255))
     user_id = Column(String(255))
@@ -19,3 +19,5 @@ class Activitieslog(Base):
     action = Column(String(255), default='')
     created_at = Column(DateTime, default=_dt.datetime.now())
     is_deleted = Column(Boolean, default=False)
+
+

@@ -9,6 +9,7 @@ REDIRECT_URL = config("REDIRECT_URL")
 MAIL_USERNAME = config('MAIL_USERNAME')
 MAIL_PASSWORD = config('MAIL_PASSWORD')
 MAIL_FROM = config('MAIL_FROM')
+DB_PORT = config('DB_PORT')
 # DB_URL = config('DB_URL')
 # DB_TYPE = config('DB_TYPE')
 API_REDIRECT_URL = config('API_REDIRECT_URL')
@@ -21,20 +22,15 @@ BASE_URL = config("BASE_URL")
 # PASSWORD_RESET_TEMPLATE = config('PASSWORD_RESET_TEMPLATE')
 FILES_BASE_FOLDER = config('FILES_BASE_FOLDER')
 LANDING_PAGE_FORM_PATH = config('LANDING_PAGE_FORM_PATH')
-LANDING_PAGE_FOLDER = pkg_resources.resource_filename("bigfastapi","/templates/landing-page/")
-LANDING_PAGE_CSS = pkg_resources.resource_filename("bigfastapi","/templates/")
-LANDING_PAGE_JS = pkg_resources.resource_filename("bigfastapi","/templates/")
+LANDING_PAGE_FOLDER = config("LANDING_PAGE_FOLDER")
 
 # EMAIL_VERIFICATION_TEMPLATE="email/welcome_email.html"
 # PASSWORD_RESET_TEMPLATE="email/password_reset.html"
 
 # If the templates folder is not valid, then we use the bigfastapi templates folder
-if os.path.exists(TEMPLATE_FOLDER) != False:
+if os.path.exists(TEMPLATE_FOLDER) == False:
     TEMPLATE_FOLDER = pkg_resources.resource_filename(
-        'bigfastapi', '/templates/email/')
-else:
-    TEMPLATE_FOLDER = pkg_resources.resource_filename(
-        'bigfastapi', '/templates/email/')
+        'bigfastapi', 'templates/')
 
 # EMAIL_VERIFICATION_TEMPLATE = os.path.join(TEMPLATE_FOLDER, "email", "welcome_email.html")
 # PASSWORD_RESET_TEMPLATE = os.path.join(TEMPLATE_FOLDER,"email", "password_reset.html")

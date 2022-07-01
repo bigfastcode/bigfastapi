@@ -1,30 +1,39 @@
 import datetime as _dt
 import os
+from typing import Optional
 from uuid import uuid4
 
 import fastapi as _fastapi
+from fastapi.responses import JSONResponse
 import sqlalchemy.orm as _orm
 from decouple import config
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from fastapi import BackgroundTasks
 from fastapi import UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
+from bigfastapi.email import send_email
 from bigfastapi.models import organization_models
-from bigfastapi.models.menu_model import addDefaultMenuList, getOrgMenu
-from bigfastapi.schemas import roles_schemas
-from .auth_api import is_authenticated
-from .core.helpers import Helpers
-from .files import upload_image
-from .models import credit_wallet_models as credit_wallet_models, organization_invite_model, organization_user_model
+from bigfastapi.services.menu_service import add_default_menu_list, get_organization_menu
+
+from bigfastapi.auth_api import is_authenticated
+from bigfastapi.core.helpers import Helpers
+from bigfastapi.files import upload_image
+from bigfastapi.models import credit_wallet_models as credit_wallet_models
+from bigfastapi.schemas import organization_schemas as _schemas
+from bigfastapi.schemas.organization_schemas import _OrganizationBase, AddRole, OrganizationUserBase
+from bigfastapi.models.organization_models import OrganizationInvite, OrganizationUser, Role
 from .models import organization_models as _models
-from .models import user_models, role_models, schedule_models
-from .models import wallet_models as wallet_models
-from .schemas import organization_schemas as _schemas
-from .schemas import users_schemas
-from .utils.utils import paginate_data, row_to_dict
+from bigfastapi.models import user_models
+from bigfastapi.models import user_models
+from bigfastapi.models import wallet_models as wallet_models
+from bigfastapi.schemas import users_schemas
+from bigfastapi.utils.utils import paginate_data, row_to_dict
+
+from bigfastapi.services import organization_service
+
 
 app = APIRouter(tags=["Organization"])
 
@@ -59,31 +68,38 @@ def create_organization(
     returnDesc--> On sucessful request, it returns
         returnBody--> details of the newly created organization
     """
-    db_org = get_orgnanization_by_name(
-        name=organization.name, creatorId=user.id, db=db)
+    try:
 
-    if db_org:
-        raise _fastapi.HTTPException(
-            status_code=400, detail=f"{organization.name} already exist in your business collection")
+        db_org = get_organization_by_name(
+            name=organization.name, creator_id=user.id, db=db)
 
-    created_org = create_organization(
-        user=user, db=db, organization=organization)
+        if db_org:
+            raise _fastapi.HTTPException(
+                status_code=400, detail=f"{organization.name} already exist in your business collection")
 
-    assocMenu = addDefaultMenuList(
-        created_org.id, created_org.business_type, db)
+        created_org = organization_service.create_organization(
+            user=user, db=db, organization=organization)
 
-    runWalletCreation(created_org, db)
+        assocMenu = add_default_menu_list(
+            created_org.id, created_org.business_type, db)
 
-    background_tasks.add_task(defaults_for_org, organization, created_org, db)
-    background_tasks.add_task(send_slack_notification, user.email, organization)
+        run_wallet_creation(created_org, db)
 
-    newOrId = created_org.id
-    newOrg = created_org
-    newMenList = assocMenu["menu_list"]
-    newMenu = assocMenu
+        background_tasks.add_task(defaults_for_org, organization, created_org, db)
+        background_tasks.add_task(send_slack_notification,
+                                user.email, organization)
 
-    return {"data": {"business": newOrg, "menu": newMenu}}
+        newOrId = created_org.id
+        new_organization = created_org
+        newMenList = assocMenu["menu_list"]
+        new_menu = assocMenu
 
+        return {"data": {"business": new_organization, "menu": new_menu}}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 async def defaults_for_org(organization, created_org, db: _orm.Session):
     defaultTemplates = [
@@ -159,22 +175,22 @@ async def defaults_for_org(organization, created_org, db: _orm.Session):
         except:
             print("ail To Create Templates")
 
-        try:
-            for schedule in defaultSchedules:
-                schedule_obj = schedule_models.Schedule(
-                    id=uuid4().hex, organization_id=created_org.id,
-                    start_reminder=schedule["start_reminder"],
-                    repeat_every=schedule["repeat_every"],
-                    no_of_days=schedule["no_of_days"],
-                    is_deleted=False,
-                )
+        # try:
+        #     for schedule in defaultSchedules:
+        #         schedule_obj = schedule_models.Schedule(
+        #             id=uuid4().hex, organization_id=created_org.id,
+        #             start_reminder=schedule["start_reminder"],
+        #             repeat_every=schedule["repeat_every"],
+        #             no_of_days=schedule["no_of_days"],
+        #             is_deleted=False,
+        #         )
 
-                db.add(schedule_obj)
-                db.commit()
-                db.refresh(schedule_obj)
+        #         db.add(schedule_obj)
+        #         db.commit()
+        #         db.refresh(schedule_obj)
 
-        except:
-            print("didn't work")
+        # except:
+        #     print("didn't work")
 
         try:
 
@@ -218,7 +234,8 @@ async def get_organization(
         user: users_schemas.User = _fastapi.Depends(is_authenticated),
         db: _orm.Session = _fastapi.Depends(get_db),
 ):
-    """intro--> This endpoint allows you to retrieve details of a particular organizations. To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
+    """intro--> This endpoint allows you to retrieve details of a particular organizations. 
+    To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint 
 
             paramDesc--> On get request, the request url takes the parameter, organization id
                 param--> organization_id: This is unique Id of the organization of interest
@@ -228,11 +245,11 @@ async def get_organization(
         returnBody--> details of the queried organization
     """
     organization = await get_organization(organization_id, user, db)
-    menu = getOrgMenu(organization_id, db)
+    menu = get_organization_menu(organization_id, db)
     return {"data": {"organization": organization, "menu": menu}}
 
 
-@app.get("/organizations/{organization_id}/users", status_code=200)
+@app.get("/organizations/{organization_id}/users", status_code=200, response_model=_schemas.OrganizationUsersResponse)
 async def get_organization_users(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -247,11 +264,10 @@ async def get_organization_users(
 
         returnBody--> list of all users in the queried organization
     """
-    # query the store_users table with the organization_id
-    invited_list = db.query(organization_user_model.organizationUser).filter(
+    invited_list = db.query(OrganizationUser).filter(
         and_(
-            organization_user_model.organizationUser.store_id == organization_id,
-            organization_user_model.organizationUser.is_deleted == False
+            OrganizationUser.organization_id == organization_id,
+            OrganizationUser.is_deleted == False
         )
     ).all()
 
@@ -259,18 +275,18 @@ async def get_organization_users(
 
     organization = (
         db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
+        .filter(_models.Organization.id == organization_id)
+        .first()
     )
 
     if organization is None:
         raise _fastapi.HTTPException(
             status_code=404, detail="Organization does not exist")
-    store_owner_id = organization.creator
-    store_owner = (
+    organization_owner_id = organization.user_id
+    organization_owner = (
         db.query(user_models.User)
-            .filter(user_models.User.id == store_owner_id)
-            .first())
+        .filter(user_models.User.id == organization_owner_id)
+        .first())
 
     invited_users = []
     if len(invited_list) > 0:
@@ -280,16 +296,18 @@ async def get_organization_users(
                     user_models.User.id == invited["user_id"],
                     user_models.User.is_deleted == False
                 )).first()
-            role = db.query(role_models.Role).filter(
-                role_models.Role.id == invited["role_id"]).first()
+            role = db.query(Role).filter(
+                Role.id == invited["role_id"]).first()
             if (user.id == invited["user_id"]):
+                invited["first_name"] = user.first_name
+                invited["last_name"] = user.last_name
                 invited["email"] = user.email
                 invited["role"] = role.role_name
 
             invited_users.append(invited)
 
     users = {
-        "user": store_owner,
+        "user": organization_owner,
         "invited": invited_users
     }
     return users
@@ -308,35 +326,42 @@ def delete_organization_user(
             param--> user_id: This is the unique id of the user to be removed from the organization
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> User with email {email} successfully removed from the store
+        returnBody--> User with email {email} successfully removed from the organization
     """
-    # fetch the organization user from the user table
-    user = db.query(user_models.User).filter(
-        user_models.User.id == user_id).first()
+    try:
 
-    if user is not None:
-        # fetch the store user from the store user table.
-        store_user = (
-            db.query(organization_user_model.organizationUser)
+        # fetch the organization user from the user table
+        user = db.query(user_models.User).filter(
+            user_models.User.id == user_id).first()
+
+        if user is not None:
+            organization_user = (
+                db.query(OrganizationUser)
                 .filter(and_(
-                organization_user_model.organizationUser.user_id == user_id,
-                organization_user_model.organizationUser.store_id == organization_id
-            ))
+                        OrganizationUser.user_id == user_id,
+                        OrganizationUser.organization_id == organization_id
+                        ))
                 .first()
-        )
+            )
 
-        store_user.is_deleted = True
-        user.is_deleted = True
-        db.add(store_user)
-        db.commit()
-        db.refresh(store_user)
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+            organization_user.is_deleted = True
+            user.is_deleted = True
+            db.add(organization_user)
+            db.commit()
+            db.refresh(organization_user)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
 
-        return {"message": f"User with email {user.email} successfully removed from the store"}
+            return {"message": f"User with email {user.email} successfully removed from the organization"}
 
-    return {"message": "User does not exist"}
+        return {"message": "User does not exist"}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.get("/organizations/{organization_id}/roles")
@@ -350,15 +375,15 @@ def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db))
 
         returnBody--> list of all available roles in the queried organization
     """
-    roles = db.query(role_models.Role).filter(
-        role_models.Role.organization_id == organization_id)
-    roles = list(map(roles_schemas.Role.from_orm, roles))
+    roles = db.query(Role).filter(
+        Role.organization_id == organization_id)
+    roles = list(map(_schemas.Role.from_orm, roles))
 
     return roles
 
 
 @app.post("/organizations/{organization_id}/roles")
-def add_role(payload: roles_schemas.AddRole,
+def add_role(payload: AddRole,
              organization_id: str,
              db: _orm.Session = _fastapi.Depends(get_db)
              ):
@@ -373,33 +398,299 @@ def add_role(payload: roles_schemas.AddRole,
     returnDesc--> On sucessful request, it returns:
         returnBody--> details of the newly created organization role.
     """
-    roles = db.query(role_models.Role).filter(
-        role_models.Role.organization_id == organization_id
-    ).all()
-    if len(roles) < 1:
-        existing_role = (
-            db.query(role_models.Role)
-                .filter(role_models.Role.role_name == payload.role_name.lower())
+    try:
+
+        roles = db.query(Role).filter(
+            Role.organization_id == organization_id
+        ).all()
+        if len(roles) < 1:
+            existing_role = (
+                db.query(Role)
+                .filter(Role.role_name == payload.role_name.lower())
                 .first()
-        )
-        if existing_role is None:
-            role = role_models.Role(
-                id=uuid4().hex,
-                organization_id=organization_id.strip(),
-                role_name=payload.role_name.lower()
             )
+            if existing_role is None:
+                role = Role(
+                    id=uuid4().hex,
+                    organization_id=organization_id.strip(),
+                    role_name=payload.role_name.lower()
+                )
 
-            db.add(role)
-            db.commit()
-            db.refresh(role)
+                db.add(role)
+                db.commit()
+                db.refresh(role)
 
-            return role
+                return role
+            return {"message": "role already exist"}
+        return
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
-        return {"message": "role already exist"}
-    return
+
+@app.put('/organizations/accept-invite/{invite_code}', response_model=_schemas.AcceptInviteResponse)
+def accept_invite(
+        payload: _schemas.OrganizationUser,
+        invite_code: str,
+        db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro-->This endpoint allows for a user to accept an invite. To use this endpoint you need to make a put request to the /users/accept-invite/{token} where token is a unique value recieved by the user on invite. It also takes a specified body of request
+
+    paramDesc-->On put request this enpoint takes the query parameter "token" 
+        param-->token: This is a unique token recieved by the user on invite
+        reqBody-->user_email: This is the email address of the user 
+        reqBody-->user_id: This is the unique user id
+        reqBody-->user_role: This specifies the role of the user in the organization  
+        reqBody-->is_accepted: This is the the acceptance state of the invite  
+        reqBody-->is_revoked: This is the revoke state of the user  
+        reqBody-->is_deleted: This specifies if the invite is deleted/expired  
+        reqBody-->organization_id: This is a unique id of the registered organization
+
+    returnDesc--> On sucessful request, it returns:
+
+        returnBody--> An object with a key `invited` containing the new organization user data, and `organization` containing information about the organization
+         the user is invited to.
+    """
+    try:
+
+        existing_invite = db.query(
+            OrganizationInvite).filter(
+                and_(
+                    OrganizationInvite.invite_code == invite_code,
+                    OrganizationInvite.is_deleted == False,
+                    OrganizationInvite.is_revoked == False
+                )).first()
+
+        if existing_invite is None:
+            return JSONResponse({
+                "message": "Invite not found. If you think this is shouldn't be, try again or ask the inviter to invite you again."
+            }, status_code=404)
+
+        organization = db.query(organization_models.Organization).filter(
+            organization_models.Organization.id == existing_invite.organization_id).first()
+
+        organization_user = OrganizationUser(
+            id=uuid4().hex,
+            organization_id=existing_invite.organization_id,
+            user_id=payload.user_id,
+            role_id=existing_invite.role_id
+        )
+        db.add(organization_user)
+        db.commit()
+        db.refresh(organization_user)
+
+        existing_invite.is_deleted = True
+        existing_invite.is_accepted = True
+        db.commit()
+        db.refresh(existing_invite)
+
+        return {"invited": OrganizationUserBase.from_orm(organization_user), "organization": _OrganizationBase.from_orm(organization)}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
-@app.get("/organizations/invites/{organization_id}")
+@app.post("/organizations/{organization_id}/invite-user/", status_code=201, response_model=_schemas.InviteResponse)
+async def invite_user(
+    payload: _schemas.UserInvite,
+    background_tasks: BackgroundTasks,
+    template: Optional[str] = "invite_email.html",
+    user: str = _fastapi.Depends(is_authenticated),
+    db: _orm.Session = _fastapi.Depends(get_db)
+):
+    """intro--> This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with the specified body of request 
+
+        reqBody--> user_email: This is the email address of the user to be invited.
+        reqBody--> user_id: This is the unique user id of the logged in user
+        reqBody--> user_role: This specifies the role of the user to be invited in the organization   
+        reqBody--> organization: This specifies the information of the registered organization
+        reqBody--> app_url: This is the url to be navigated to on invite accept, usually the url of the application.
+        reqBody--> email_details: This is the key content of the invite email to be sent.
+
+    'returnDesc'--> On sucessful request, it returns:
+
+        returnBody-->  An object with a key `message`.
+    """
+    try:
+        invite_token = uuid4().hex
+        invite_url = f"{payload.app_url}/accept-invite?invite_token={invite_token}"
+        payload.email_details.link = invite_url
+        email_info = payload.email_details
+
+        role = (
+            db.query(Role)
+            .filter(Role.role_name == payload.user_role.lower())
+            .first()
+        )
+
+        # make sure you can't send invite to yourself
+        if (user.email != payload.user_email):
+            existing_invite = (
+                db.query(OrganizationInvite)
+                .filter(
+                    and_(
+                        OrganizationInvite.user_email == payload.user_email,
+                        OrganizationInvite.is_deleted == False
+                    )).first())
+            if existing_invite is None:
+
+                send_email(email_details=email_info,
+                           background_tasks=background_tasks, template=template, db=db)
+                invite = OrganizationInvite(
+                    id=uuid4().hex,
+                    organization_id=payload.organization.get("id"),
+                    user_id=payload.user_id,
+                    user_email=payload.user_email,
+                    role_id=role.id,
+                    invite_code=invite_token
+                )
+                db.add(invite)
+                db.commit()
+                db.refresh(invite)
+
+                return {"message": "Organization invite email will be sent in the background."}
+            return {"message": "invite already sent"}
+        return {"message": "Enter an email you're not logged in with."}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
+
+
+@app.get('/organizations/get-invite/{invite_code}', response_model=_schemas.SingleInviteResponse)
+async def get_single_invite(
+    invite_code: str,
+    db: _orm.Session = _fastapi.Depends(get_db),
+):
+    """intro--> This endpoint is used to get an invite link for a single user. To use this endpoint you need to make a get request to the /users/invite/{invite_code} endpoint
+
+    paramDesc--> On get request, the url takes an invite code
+        param--> invite_code: This is a unique code needed to get an invite link
+
+
+    returnDesc--> On sucessful request, it returns
+        returnBody--> An object with a key `invite` containing the invite data and a key `user` containing an empty string `''`
+        indicating the user is not a member of another organization in the application or `exists` indicating that the invited user is a member of another organization in the application.
+    """
+    try:
+
+        # user invite code to query the invite table
+        existing_invite = db.query(
+            OrganizationInvite).filter(
+                and_(
+                    OrganizationInvite.invite_code == invite_code,
+                    OrganizationInvite.is_deleted == False,
+                    OrganizationInvite.is_revoked == False
+                )).first()
+        if (existing_invite):
+            existing_user = db.query(user_models.User).filter(
+                user_models.User.email == existing_invite.user_email).first()
+
+            organization = db.query(organization_models.Organization).filter(
+                organization_models.Organization.id == existing_invite.organization_id).first()
+
+            setattr(existing_invite, 'organization', organization)
+            user_exists = ''
+            if(existing_user is not None):
+                user_exists = 'exists'
+            if not existing_invite:
+                return JSONResponse({
+                    "message": "Invite not found! Try again or ask the inviter to invite you again."
+                }, status_code=404)
+
+            return {"invite": existing_invite, "user": user_exists}
+        return JSONResponse({
+            "message": "Invalid invite code"
+        }, status_code=404)
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
+
+
+@app.put("/organizations/decline-invite/{invite_code}", response_model=_schemas.DeclinedInviteResponse)
+def decline_invite(
+        invite_code: str,
+        db: _orm.Session = _fastapi.Depends(get_db)):
+    """intro--> This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
+
+    paramDesc--> On put request, the url takes an invite code
+        param-->invite_code: This is a unique code linked to invite
+
+
+    returnDesc--> On sucessful request, it returns message:
+
+        returnBody--> an object contain the invite data with the `is_deleted` field set to True
+    """
+    try:
+
+        declined_invite = (
+            db.query(OrganizationInvite)
+            .filter(OrganizationInvite.invite_code == invite_code)
+            .first()
+        )
+
+        declined_invite.is_deleted = True
+        db.add(declined_invite)
+        db.commit()
+        db.refresh(declined_invite)
+
+        return declined_invite
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
+
+
+@app.delete("/organizations/{organization_id}/revoke-invite/{invite_code}", response_model=_schemas.RevokedInviteResponse)
+def revoke_invite(
+    organization_id: str,
+    invite_code: str,
+    db: _orm.Session = _fastapi.Depends(get_db)
+):
+    """intro-->This endpoint is used to revoke the invitation of a previously invited user. To use this endpoint you need to make a delete request to the /users/revoke-invite/{invite_code} endpoint
+
+    paramDesc-->On delete request, the url takes an invite code
+        param-->invite_code: This is a unique code linked to invite
+
+
+    returnDesc--> On successful request, it returns message,
+        returnBody--> an object contain the invite data with the `is_deleted` and `is_revoked` field set to True
+    """
+    try:
+
+        revoked_invite = (
+            db.query(OrganizationInvite)
+            .filter(and_(OrganizationInvite.organization_id == organization_id, OrganizationInvite.invite_code == invite_code))
+            .first()
+        )
+
+        revoked_invite.is_revoked = True
+        revoked_invite.is_deleted = True
+        db.add(revoked_invite)
+        db.commit()
+        db.refresh(revoked_invite)
+
+        return revoked_invite
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
+
+
+@app.get("/organizations/{organization_id}/invites", status_code=200, response_model=_schemas.AllInvites)
 def get_pending_invites(
         organization_id: str,
         db: _orm.Session = _fastapi.Depends(get_db)
@@ -414,18 +705,25 @@ def get_pending_invites(
 
         returnBody--> all pending invites in the queried organization
     """
-    pending_invites = (
-        db.query(organization_invite_model.organizationInvite)
+    try:
+        pending_invites = (
+            db.query(OrganizationInvite)
             .filter(
-            and_(organization_invite_model.organizationInvite.store_id == organization_id,
-                 organization_invite_model.organizationInvite.is_deleted == False,
-                 organization_invite_model.organizationInvite.is_accepted == False,
-                 organization_invite_model.organizationInvite.is_revoked == False
-                 ))
+                and_(OrganizationInvite.organization_id == organization_id,
+                     OrganizationInvite.is_deleted == False,
+                     OrganizationInvite.is_accepted == False,
+                     OrganizationInvite.is_revoked == False
+                     ))
             .all()
-    )
+        )
 
-    return pending_invites
+        return {"data": pending_invites}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
 
 
 @app.put("/organizations/{organization_id}")
@@ -493,7 +791,7 @@ async def changeOrganizationImage(
     try:
         db.commit()
         db.refresh(organization)
-        menu = getOrgMenu(organization_id, db)
+        menu = get_organization_menu(organization_id, db)
         return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -540,9 +838,9 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 # /////////////////////////////////////////////////////////////////////////////////
 # organization Services
 
-def get_orgnanization_by_name(name: str, creatorId: str, db: _orm.Session):
+def get_organization_by_name(name: str, creator_id: str, db: _orm.Session):
     return db.query(_models.Organization).filter(_models.Organization.name == name,
-                                                 creatorId == _models.Organization.creator).first()
+                                                 _models.Organization.user_id == creator_id).first()
 
 
 async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.Session):
@@ -550,27 +848,12 @@ async def fetch_organization_by_name(name: str, organization_id: str, db: _orm.S
         _models.Organization.id != organization_id).first()
 
 
-def create_organization(user: users_schemas.User, db: _orm.Session, organization: _schemas.OrganizationCreate):
-    organization_id = uuid4().hex
-    newOrganization = _models.Organization(id=organization_id, creator=user.id, mission=organization.mission,
-                                           vision=organization.vision, values=organization.values,
-                                           name=organization.name,
-                                           country=organization.country, business_type=organization.business_type,
-                                           state=organization.state, address=organization.address,
-                                           tagline=organization.tagline, image=organization.image, is_deleted=False,
-                                           current_subscription=organization.current_subscription,
-                                           currency_preference=organization.currency_preference)
-
-    db.add(newOrganization)
-    db.commit()
-    db.refresh(newOrganization)
-    return newOrganization
 
 
-def runWalletCreation(newOrganization: organization_models.Organization, db: _orm.Session):
+def run_wallet_creation(newOrganization: organization_models.Organization, db: _orm.Session):
     roles = ["Assistant", "Admin", "Owner"]
     for role in roles:
-        new_role = role_models.Role(
+        new_role = Role(
             id=uuid4().hex,
             organization_id=newOrganization.id.strip(),
             role_name=role.lower()
@@ -580,40 +863,40 @@ def runWalletCreation(newOrganization: organization_models.Organization, db: _or
         db.refresh(new_role)
 
     create_wallet(organization_id=newOrganization.id,
-                  currency=newOrganization.currency_preference, db=db)
+                  currency=newOrganization.currency_code, db=db)
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
 def get_organizations(user: users_schemas.User, db: _orm.Session):
     native_orgs = db.query(_models.Organization).filter_by(
-        creator=user.id).all()
+        user_id=user.id).all()
 
     invited_orgs_rep = (
-        db.query(organization_user_model.organizationUser)
-            .filter(organization_user_model.organizationUser.user_id == user.id)
-            .all()
+        db.query(OrganizationUser)
+        .filter(OrganizationUser.user_id == user.id)
+        .all()
     )
 
     if len(invited_orgs_rep) < 1:
-        # continue to last stage
         organization_list = native_orgs
         organizationCollection = []
         for pos in range(len(organization_list)):
             appBasePath = config('API_URL')
             imageURL = appBasePath + \
-                       f'/organizations/{organization_list[pos].id}/image'
+                f'/organizations/{organization_list[pos].id}/image'
             setattr(organization_list[pos], 'image_full_path', imageURL)
             organizationCollection.append(organization_list[pos])
 
         return organizationCollection
 
-    store_id_list = list(map(lambda x: x.store_id, invited_orgs_rep))
+    organization_id_list = list(
+        map(lambda x: x.organization_id, invited_orgs_rep))
 
     org = []
-    for store_id in store_id_list:
+    for org_id in organization_id_list:
         org = org + \
-              db.query(_models.Organization).filter(
-                  _models.Organization.id == store_id).all()
+            db.query(_models.Organization).filter(
+                _models.Organization.id == org_id).all()
 
     org_coll = native_orgs + org
     organizationCollection = []
@@ -626,11 +909,11 @@ def get_organizations(user: users_schemas.User, db: _orm.Session):
     return organizationCollection
 
 
-async def _organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
+async def organization_selector(organization_id: str, user: users_schemas.User, db: _orm.Session):
     organization = (
         db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
+        .filter(_models.Organization.id == organization_id)
+        .first()
     )
 
     if organization is None:
@@ -645,14 +928,14 @@ async def _organization_selector(organization_id: str, user: users_schemas.User,
 
 
 async def get_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
-    organization = await _organization_selector(
+    organization = await organization_selector(
         organization_id=organization_id, user=user, db=db)
 
     return organization
 
 
 async def delete_organization(organization_id: str, user: users_schemas.User, db: _orm.Session):
-    organization = await _organization_selector(organization_id, user, db)
+    organization = await organization_selector(organization_id, user, db)
 
     db.delete(organization)
     db.commit()
@@ -660,7 +943,7 @@ async def delete_organization(organization_id: str, user: users_schemas.User, db
 
 async def update_organization(organization_id: str, organization: _schemas.OrganizationUpdate, user: users_schemas.User,
                               db: _orm.Session):
-    organization_db = await _organization_selector(organization_id, user, db)
+    organization_db = await organization_selector(organization_id, user, db)
     currencyUpdated = False
     if organization.mission != "":
         organization_db.mission = organization.mission
@@ -709,7 +992,7 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
         create_wallet(organization_id=organization_id,
                       currency=organization.currency_preference, db=db)
 
-    menu = getOrgMenu(organization_id, db)
+    menu = get_organization_menu(organization_id, db)
 
     return {"data": {"organization": organization_db, "menu": menu}}
 
@@ -743,4 +1026,5 @@ def create_credit_wallet(organization_id: str, db: _orm.Session):
 
 def send_slack_notification(user, organization):
     message = user + " created a new organization : " + organization.name
-    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)  # sends the message to slack
+    # sends the message to slack
+    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)

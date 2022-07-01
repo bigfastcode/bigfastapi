@@ -3,7 +3,6 @@
     To use it you need to import it from bigfastapi.utils.schema_form
 """
 
-from typing import Dict
 from pydantic import BaseModel
 from bigfastapi.utils.schema_form import as_form
 
@@ -40,37 +39,6 @@ class landingPageCreate(BaseModel):
     footer_h2_text: str
     footer_contact_address: str
     customer_care_email: str
-
-
-
-
-    
-
-class landingPagecompanylogo(landingPageCreate):
-    company_logo: str
-    favicon: str
-
-class landingPagesection_One_image_link(landingPagecompanylogo):
-    section_one_image_link: str
-
-class landingPageBody_H3_logo_One(landingPagesection_One_image_link):
-    body_h3_logo_one: str
-
-class landingPageBody_H3_logo_Two(landingPageBody_H3_logo_One):
-    body_h3_logo_two: str
-
-class landingPageBody_H3_logo_Three(landingPageBody_H3_logo_Two):
-    body_h3_logo_three: str
-
-class landingPageBody_H3_logo_Four(landingPageBody_H3_logo_Three):
-    body_h3_logo_four: str
-
-class landingPagesection_Three_image(landingPageBody_H3_logo_Four):
-    section_three_image: str
-
-class landingPagesection_Four_image(landingPagesection_Three_image):
-    section_four_image: str
-
     class Config:
         orm_mode = True
 
@@ -80,7 +48,6 @@ class landingPageResponse(BaseModel):
     id : str
     user_id : str
     landing_page_name : str
-    content : Dict
     class Config:
         orm_mode = True
 

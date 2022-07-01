@@ -8,12 +8,15 @@ from fastapi.templating import Jinja2Templates
 from bigfastapi.models import landing_page_models
 from bigfastapi.schemas import landing_page_schemas
 from bigfastapi.files import upload_image, deleteFile, isFileExist
-from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File, Request
-import os
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File, Request, BackgroundTasks
 from bigfastapi.utils.settings import LANDING_PAGE_FOLDER, LANDING_PAGE_FORM_PATH
 from starlette.requests import Request
+from bigfastapi.services import landing_page_services
+from bigfastapi.schemas import landing_page_schemas
+import os
+from fastapi.responses import FileResponse
 import pkg_resources
+
 
 app = APIRouter(tags=["Landing Page"])
 
@@ -52,8 +55,10 @@ def path(filetype: str, image_name: str, folder: str, request: Request, ):
 
 
 # Endpoint to create landing page
-@app.post("/landing-page/create", status_code=201, response_model=landing_page_schemas.landingPageResponse)
-async def createlandingpage(request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), db: Session = Depends(get_db), current_user=Depends(is_authenticated),
+@app.post("/landing-page/create", status_code=201, )
+async def createlandingpage(background_tasks: BackgroundTasks, request: landing_page_schemas.landingPageCreate = Depends(landing_page_schemas.landingPageCreate.as_form), 
+                            db: Session = Depends(get_db), 
+                            current_user=Depends(is_authenticated),
                             company_logo: UploadFile = File(...),
                             favicon: UploadFile = File(...),
                             section_three_image: UploadFile = File(...),
@@ -66,58 +71,18 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
                             shape_one: UploadFile = File(...),
                             shape_two: UploadFile = File(...),
                             shape_three: UploadFile = File(...),):
-    """
-    This endpoint is used to create a landing page
-    It takes in the following parameters:
-        landing_page_name: This is the name of the landing page and will be used to view the landing page html
-        company_name: This is the name of the company
-        Home_link: This is the link to the home page. This will be used to view the landing page html
-        About_link: This is the link to the about page. This will be used to view the about page html
-        Contact_link: This is the link to the contact page. This will be used to view the contact page html
-        company_logo: This is the logo of the company. This will be used to to place  the company logo in the landing page html
-        section_Three_image: This is the image of the section three. This will be used to to place  the section three image in the landing page html
-        Section_Four_image: This is the image of the section four. This will be used to to place  the section four image in the landing page html
-        section_One_image_link: This is the link to the section one image. This will be used to to place  the section one image in the landing page html
-        Body_H3_logo_One: This is the image of the body h3 logo one. This will be used to to place  the body h3 logo one in the landing page html
-        body_h3_logo_two: This is the image of the body h3 logo two. This will be used to to place  the body h3 logo two in the landing page html
-        Body_H3_logo_Three: This is the image of the body h3 logo three. This will be used to to place  the body h3 logo three in the landing page html
-        Body_H3_logo_Four: This is the image of the body h3 logo four. This will be used to to place  the body h3 logo four in the landing page html
-        body_h1: This is the body h1 text. This will be used to to place  the body h1 text in the landing page html
-        body_paragraph: This is the body paragraph text. This will be used to to place  the body paragraph text in the landing page html
-        Body_H3: This is the body h3 text. This will be used to to place  the body h3 text in the landing page html
-        body_h3_logo_one_name: This is the name of the body h3 logo one. This will be used to to place  the body h3 logo one name in the landing page html
-        Body_H3_logo_One_paragraph: This is the body h3 logo one paragraph text. This will be used to to place  the body h3 logo one paragraph text in the landing page html
-        body_h3_logo_two_name: This is the name of the body h3 logo two. This will be used to to place  the body h3 logo two name in the landing page html
-        body_h3_logo_two_paragraph: This is the body h3 logo two paragraph text. This will be used to to place  the body h3 logo two paragraph text in the landing page html
-        body_h3_logo_three_name: This is the name of the body h3 logo three. This will be used to to place  the body h3 logo three name in the landing page html
-        Body_H3_logo_Three_paragraph: This is the body h3 logo three paragraph text. This will be used to to place  the body h3 logo three paragraph text in the landing page html
-        Body_H3_logo_Four_name: This is the name of the body h3 logo four. This will be used to to place  the body h3 logo four name in the landing page html
-        Body_H3_logo_Four_paragraph: This is the body h3 logo four paragraph text. This will be used to to place  the body h3 logo four paragraph text in the landing page html
-        section_Three_paragraph: This is the section three paragraph text. This will be used to to place  the section three paragraph text in the landing page html
-        section_Three_sub_paragraph: This is the section three sub paragraph text. This will be used to to place  the section three sub paragraph text in the landing page html
-        Footer_H3: This is the footer h3 text. This will be used to to place  the footer h3 text in the landing page html
-        Footer_H3_paragraph: This is the footer h3 paragraph text. This will be used to to place  the footer h3 paragraph text in the landing page html
-        Footer_name_employee: This is the footer name employee text. This will be used to to place  the footer name employee text in the landing page html
-        Name_job_description: This is the name job description text. This will be used to to place  the name job description text in the landing page html
-        Footer_H2_text: This is the footer h2 text. This will be used to to place  the footer h2 text in the landing page html
-        Footer_contact_address: This is the footer contact address text. This will be used to to place  the footer contact address text in the landing page html
-        customer_care_email: This is the customer care email text. This will be used to to place  the customer care email text in the landing page html
-        faq_link: This is the faq link text. This will be used to to place  the faq link text in the landing page html
-        login_link: This is the login link text. This will be used to to place  the login link text in the landing page html
-        signup_link: This is the signup link text. This will be used to to place  the signup link text in the landing page html
-    """
 
     # checks if user is a superuser
-    if current_user.is_superuser is not True:
+    if  current_user.is_superuser != True:
         raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
 
     # generates bucket name
     bucket_name = uuid4().hex
 
     # check if landing pAGE name already exist
-    if db.query(landing_page_models.LPage).filter(landing_page_models.LPage.landing_page_name == request.landing_page_name).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="landing_page_name already exist")
+    if db.query(landing_page_models.LandingPage).filter(landing_page_models.LandingPage.landing_page_name == request.landing_page_name).first():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="landing_page_name already exist")
+
 
     # check if all form fields are filled
     if request.landing_page_name == "" or request.company_name == "" or request.body_h1 == "" or request.body_paragraph == "" or request.body_h3 == "" or request.body_h3_logo_one_name == "" or request.body_h3_logo_one_paragraph == "" or request.body_h3_logo_two_name == "" or request.body_h3_logo_two_paragraph == "" or request.body_h3_logo_three_name == "" or request.body_h3_logo_three_paragraph == "" or request.body_h3_logo_four_name == "" or request.body_h3_logo_four_paragraph == "" or request.section_three_paragraph == "" or request.section_three_sub_paragraph == "" or request.footer_h3 == "" or request.footer_h3_paragraph == "" or request.footer_name_employee == "" or request.name_job_description == "" or request.footer_contact_address == "" or request.home_link == "" or request.about_link == "" or request.faq_link == "" or request.contact_us_link == "" or request.login_link == "" or request.signup_link == "" or request.footer_h2_text == "" or request.customer_care_email == "" or request.home_link == "" or request.about_link == "" or request.faq_link == "":
@@ -183,70 +148,56 @@ async def createlandingpage(request: landing_page_schemas.landingPageCreate = De
 
 
     # map schema to landing page model
-    landingpage_data = landing_page_models.LPage(
-        id = uuid4().hex,
-        user_id=current_user.id,
-        landing_page_name=request.landing_page_name,
-        content = {
-            "bucket_name": bucket_name,
-            "body_h1":request.body_h1,
-            "body_paragraph":request.body_paragraph,
-            "body_h3":request.body_h3,
-            "body_h3_logo_one":body_h3_logo_one,
-            "body_h3_logo_one_name":request.body_h3_logo_one_name,
-            "body_h3_logo_one_paragraph":request.body_h3_logo_one_paragraph,
-            "body_h3_logo_two":body_h3_logo_two,
-            "body_h3_logo_two_name":request.body_h3_logo_two_name,
-            "body_h3_logo_two_paragraph":request.body_h3_logo_two_paragraph,
-            "body_h3_logo_three":body_h3_logo_three,
-            "body_h3_logo_three_name":request.body_h3_logo_three_name,
-            "body_h3_logo_three_paragraph":request.body_h3_logo_three_paragraph,
-            "body_h3_logo_four":body_h3_logo_four,
-            "body_h3_logo_four_name":request.body_h3_logo_four_name,
-            "body_h3_logo_four_paragraph":request.body_h3_logo_four_paragraph,
-            "section_one_image_link":section_one_image_link,
-            "section_three_paragraph":request.section_three_paragraph,
-            "section_three_sub_paragraph":request.section_three_sub_paragraph,
-            "section_three_image":section_three_image,
-            "footer_h3":request.footer_h3,
-            "footer_h3_paragraph":request.footer_h3_paragraph,
-            "footer_name_employee":request.footer_name_employee,
-            "name_job_description":request.name_job_description,
-            "footer_h2_text":request.footer_h2_text,
-            "footer_contact_address":request.footer_contact_address,
-            "customer_care_email":request.customer_care_email,
-            "home_link":request.home_link,
-            "about_link":request.about_link,
-            "faq_link":request.faq_link,
-            "contact_us_link":request.contact_us_link,
-            "section_four_image":section_four_image,
-            "company_name":request.company_name,
-            "company_logo":company_logo,
-            "login_link":request.login_link,
-            "signup_link":request.signup_link,
-            "title" : request.title,
-            "favicon" : favicon,
-            "shape_one" : shape_one,
-            "shape_two" : shape_two,
-            "shape_three" : shape_three,
-            }
-        )
+    d = await landing_page_services.create_landing_page(landing_page_name=request.landing_page_name, bucket_name=bucket_name, db=db, current_user=current_user.id)
+    if not d:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="could not be saved")
+    other_info = {
 
-    # Attempt to save the new landing page and return the result to the client.
-    try:
-        # try to save data to database
-        db.add(landingpage_data)
-        db.commit()
-        db.refresh(landingpage_data)
-        # return query of landing page id from the database
-        return landingpage_data
+        "body_h1":request.body_h1,
+        "body_paragraph":request.body_paragraph,
+        "body_h3":request.body_h3,
+        "body_h3_logo_one":body_h3_logo_one,
+        "body_h3_logo_one_name":request.body_h3_logo_one_name,
+        "body_h3_logo_one_paragraph":request.body_h3_logo_one_paragraph,
+        "body_h3_logo_two":body_h3_logo_two,
+        "body_h3_logo_two_name":request.body_h3_logo_two_name,
+        "body_h3_logo_two_paragraph":request.body_h3_logo_two_paragraph,
+        "body_h3_logo_three":body_h3_logo_three,
+        "body_h3_logo_three_name":request.body_h3_logo_three_name,
+        "body_h3_logo_three_paragraph":request.body_h3_logo_three_paragraph,
+        "body_h3_logo_four":body_h3_logo_four,
+        "body_h3_logo_four_name":request.body_h3_logo_four_name,
+        "body_h3_logo_four_paragraph":request.body_h3_logo_four_paragraph,
+        "section_one_image_link":section_one_image_link,
+        "section_three_paragraph":request.section_three_paragraph,
+        "section_three_sub_paragraph":request.section_three_sub_paragraph,
+        "section_three_image":section_three_image,
+        "footer_h3":request.footer_h3,
+        "footer_h3_paragraph":request.footer_h3_paragraph,
+        "footer_name_employee":request.footer_name_employee,
+        "name_job_description":request.name_job_description,
+        "footer_h2_text":request.footer_h2_text,
+        "footer_contact_address":request.footer_contact_address,
+        "customer_care_email":request.customer_care_email,
+        "home_link":request.home_link,
+        "about_link":request.about_link,
+        "faq_link":request.faq_link,
+        "contact_us_link":request.contact_us_link,
+        "section_four_image":section_four_image,
+        "company_name":request.company_name,
+        "company_logo":company_logo,
+        "login_link":request.login_link,
+        "signup_link":request.signup_link,
+        "title" : request.title,
+        "favicon" : favicon,
+        "shape_one" : shape_one,
+        "shape_two" : shape_two,
+        "shape_three" : shape_three,
+        }
+    background_tasks.add_task(landing_page_services.add_other_info,landing_page_instance=d, data=other_info, db=db)
+    return {"success":"Landing page created"}
 
-    #  Throw an error if the data cannot be saved
-    except Exception as e:
-        # if there is an error, return the error message
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Error saving data")
+
 
 
 
@@ -262,7 +213,7 @@ async def get_all_landing_pages(request: Request, db: Session = Depends(get_db),
 
     # attempt to get all landing pages from the database
     try:
-        landingpages = db.query(landing_page_models.LPage).all()
+        landingpages = db.query(landing_page_models.LandingPage).all()
         css_path = getUrlFullPath(request, "css") + "/landing-page/styles.css"
         h = {
             "css_path": css_path,
@@ -286,9 +237,9 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
     This endpoint will return a single landing page in html
     """
     # query the database using the landing page name
-    landingpage_data = db.query(landing_page_models.LPage).filter(
-        landing_page_models.LPage.landing_page_name == landingpage_name).first()
-    
+    landingpage_data = db.query(landing_page_models.LandingPage).filter(
+        landing_page_models.LandingPage.landing_page_name == landingpage_name).first()
+ 
     # check if the data is returned and return the data
     image_path = getUrlFullPath(request, "image")
     css_path = getUrlFullPath(request, "css") + "/landing-page/styles.css"
@@ -298,50 +249,50 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
     if not landingpage_data:
         raise HTTPException(status_code=404, detail="Landing page not found")        
     h = {
-        "login_link": landingpage_data.content["login_link"],
+        "body_h1": getdicvalue(landingpage_data.id,db=db, key= "body_h1"),
+        "body_paragraph":getdicvalue(landingpage_data.id,db=db, key="body_paragraph"),
+        "body_h3": getdicvalue(landingpage_data.id,db=db, key= "body_h3"),
+        "body_h3_logo_one": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one"),
+        "body_h3_logo_one_name": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one_name"),
+        "body_h3_logo_one_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one_paragraph"),
+        "body_h3_logo_two": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_two"),
+        "body_h3_logo_two_name": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_two_name"),
+        "body_h3_logo_two_paragraph": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_two_paragraph"),
+        "body_h3_logo_three": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three"),
+        "body_h3_logo_three_name": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_three_name"),
+        "body_h3_logo_three_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three_paragraph"),
+        "body_h3_logo_four": image_path + getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_four"),
+        "body_h3_logo_four_name": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_four_name"),
+        "body_h3_logo_four_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_four_paragraph"),
+        "section_one_image_link": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_one_image_link"),
+        "section_three_paragraph": getdicvalue(landingpage_data.id,db=db, key= "section_three_paragraph"),
+        "section_three_sub_paragraph": getdicvalue(landingpage_data.id,db=db, key= "section_three_sub_paragraph"),
+        "section_three_image": image_path + getdicvalue(landingpage_data.id,db=db, key="section_three_image"),
+        "footer_h3": getdicvalue(landingpage_data.id,db=db, key= "footer_h3"),
+        "footer_h3_paragraph": getdicvalue(landingpage_data.id,db=db, key= "footer_h3_paragraph"),
+        "footer_name_employee": getdicvalue(landingpage_data.id,db=db, key= "footer_name_employee"),
+        "name_job_description": getdicvalue(landingpage_data.id,db=db, key= "name_job_description"),
+        "footer_h2_text": getdicvalue(landingpage_data.id,db=db, key= "footer_h2_text"),
+        "footer_contact_address": getdicvalue(landingpage_data.id,db=db, key= "footer_contact_address"),
+        "customer_care_email": getdicvalue(landingpage_data.id,db=db, key= "customer_care_email"),
+        "home_link": getdicvalue(landingpage_data.id,db=db, key= "home_link"),
+        "about_link": getdicvalue(landingpage_data.id,db=db, key= "about_link"),
+        "faq_link": getdicvalue(landingpage_data.id,db=db, key= "faq_link"),
+        "contact_us_link": getdicvalue(landingpage_data.id,db=db, key= "contact_us_link"),
+        "section_four_image": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_four_image"),
+        "company_name": getdicvalue(landingpage_data.id,db=db, key= "company_name"),
+        "company_logo": image_path + getdicvalue(landingpage_data.id,db=db, key= "company_logo"),
+        "login_link": getdicvalue(landingpage_data.id,db=db, key= "login_link"),
+        "signup_link": getdicvalue(landingpage_data.id,db=db, key= "signup_link"),
+        "title": getdicvalue(landingpage_data.id,db=db, key= "title"),
+        "favicon": image_path + getdicvalue(landingpage_data.id,db=db, key= "favicon"),
+        "shape_one": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_one"),
+        "shape_two": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_two"),
+        "shape_three": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_three"),
         "landing_page_name": landingpage_data.landing_page_name,
-        "body_h1": landingpage_data.content["body_h1"],
-        "body_paragraph": landingpage_data.content["body_paragraph"],
-        "body_h3": landingpage_data.content["body_h3"],
-        "body_h3_logo_one": image_path + landingpage_data.content["body_h3_logo_one"],
-        "body_h3_logo_one_name": landingpage_data.content["body_h3_logo_one_name"],
-        "body_h3_logo_one_paragraph": landingpage_data.content["body_h3_logo_one_paragraph"],
-        "body_h3_logo_two": image_path + landingpage_data.content["body_h3_logo_two"],
-        "body_h3_logo_two_name": landingpage_data.content["body_h3_logo_two_name"],
-        "body_h3_logo_two_paragraph": landingpage_data.content["body_h3_logo_two_paragraph"],
-        "body_h3_logo_three": image_path + landingpage_data.content["body_h3_logo_three"],
-        "body_h3_logo_three_name": landingpage_data.content["body_h3_logo_three_name"],
-        "body_h3_logo_three_paragraph": landingpage_data.content["body_h3_logo_three_paragraph"],
-        "body_h3_logo_four": image_path + landingpage_data.content["body_h3_logo_four"],
-        "body_h3_logo_four_name": landingpage_data.content["body_h3_logo_four_name"],
-        "body_h3_logo_four_paragraph": landingpage_data.content["body_h3_logo_four_paragraph"],
-        "section_one_image_link": image_path + landingpage_data.content["section_one_image_link"],
-        "section_three_paragraph": landingpage_data.content["section_three_paragraph"],
-        "section_three_sub_paragraph": landingpage_data.content["section_three_sub_paragraph"],
-        "section_three_image": image_path + landingpage_data.content["section_three_image"],
-        "footer_h3": landingpage_data.content["footer_h3"],
-        "footer_h3_paragraph": landingpage_data.content["footer_h3_paragraph"],
-        "footer_name_employee": landingpage_data.content["footer_name_employee"],
-        "name_job_description": landingpage_data.content["name_job_description"],
-        "footer_h2_text": landingpage_data.content["footer_h2_text"],
-        "footer_contact_address": landingpage_data.content["footer_contact_address"],
-        "customer_care_email": landingpage_data.content["customer_care_email"],
-        "home_link": landingpage_data.content["home_link"],
-        "about_link": landingpage_data.content["about_link"],
-        "faq_link": landingpage_data.content["faq_link"],
-        "contact_us_link": landingpage_data.content["contact_us_link"],
-        "section_four_image": image_path + landingpage_data.content["section_four_image"],
-        "company_name": landingpage_data.content["company_name"],
-        "company_logo": image_path + landingpage_data.content["company_logo"],
         "css_file": css_path,
         "js_file": js_path,
-        "signup_link": landingpage_data.content["signup_link"],
-        "title": landingpage_data.content["title"],
-        "favicon": image_path + landingpage_data.content["favicon"],
-        "shape_one": image_path + landingpage_data.content["shape_one"],
-        "shape_two": image_path + landingpage_data.content["shape_two"],
-        "shape_three": image_path + landingpage_data.content["shape_three"],
-        "LANDING_PAGE_FORM_PATH": LANDING_PAGE_FORM_PATH
+        "LANDING_PAGE_FORM_PATH": LANDING_PAGE_FORM_PATH,
     }
     return templates.TemplateResponse("landingpage.html", {"request": request, "h": h})
 
@@ -361,8 +312,8 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
     if current_user.is_superuser:
 
         # query the database using the landing page name
-        update_landing_page_data = db.query(landing_page_models.LPage).filter(
-            landing_page_models.LPage.landing_page_name == landingpage_name).first()
+        update_landing_page_data = db.query(landing_page_models.LandingPage).filter(
+            landing_page_models.LandingPage.landing_page_name == landingpage_name).first()
 
         # check if update landing page does not exist, throw an error
         if update_landing_page_data == None:
@@ -375,210 +326,210 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Landing page name cannot be changed")
 
         #  check if landing page company name is not the same, update the landing page company name
-        if update_landing_page_data.content["company_name"] != request.company_name:
-            update_landing_page_data.content["company_name"] = request.company_name
+        if update_landing_page_data.other_info["company_name"] != request.company_name:
+            update_landing_page_data.other_info["company_name"] = request.company_name
 
         # check if landing page body H1 is not the same, update the landing page body H1
-        if update_landing_page_data.content["body_h1"] != request.body_h1:
-            update_landing_page_data.content["body_h1"] = request.body_h1
+        if update_landing_page_data.other_info["body_h1"] != request.body_h1:
+            update_landing_page_data.other_info["body_h1"] = request.body_h1
 
         # check if landing page body paragraph is not the same, update the landing page body paragraph
-        if update_landing_page_data.content["body_paragraph"] != request.body_paragraph:
-            update_landing_page_data.content["body_paragraph"] = request.body_paragraph
+        if update_landing_page_data.other_info["body_paragraph"] != request.body_paragraph:
+            update_landing_page_data.other_info["body_paragraph"] = request.body_paragraph
 
         # check if landing page body H3 logo one name is not the same, update the landing page body H3 logo one name
-        if update_landing_page_data.content["body_h3"] != request.body_h3:
-            update_landing_page_data.content["body_h3"] = request.body_h3
+        if update_landing_page_data.other_info["body_h3"] != request.body_h3:
+            update_landing_page_data.other_info["body_h3"] = request.body_h3
 
         # check if landing page body h3 logo one name is not the same, update the landing page body h3 logo one name
-        if update_landing_page_data.content["body_h3_logo_one_name"] != request.body_h3_logo_one_name:
-            update_landing_page_data.content["body_h3_logo_one_name"] = request.body_h3_logo_one_name
+        if update_landing_page_data.other_info["body_h3_logo_one_name"] != request.body_h3_logo_one_name:
+            update_landing_page_data.other_info["body_h3_logo_one_name"] = request.body_h3_logo_one_name
 
         # check if landing page body h3 logo one paragraph is not the same, update the landing page body h3 logo one paragraph
-        if update_landing_page_data.content["body_h3_logo_one_paragraph"] != request.body_h3_logo_one_paragraph:
-            update_landing_page_data.content["body_h3_logo_one_paragraph"] = request.body_h3_logo_one_paragraph
+        if update_landing_page_data.other_info["body_h3_logo_one_paragraph"] != request.body_h3_logo_one_paragraph:
+            update_landing_page_data.other_info["body_h3_logo_one_paragraph"] = request.body_h3_logo_one_paragraph
 
         # check if landing page body h3 logo two name is not the same, update the landing page body h3 logo two name
-        if update_landing_page_data.content["body_h3_logo_two_name"] != request.body_h3_logo_two_name:
-            update_landing_page_data.content["body_h3_logo_two_name"] = request.body_h3_logo_two_name
+        if update_landing_page_data.other_info["body_h3_logo_two_name"] != request.body_h3_logo_two_name:
+            update_landing_page_data.other_info["body_h3_logo_two_name"] = request.body_h3_logo_two_name
 
         # check if landing page body h3 logo two paragraph is not the same, update the landing page body h3 two paragraph
-        if update_landing_page_data.content["body_h3_logo_two_paragraph"] != request.body_h3_logo_two_paragraph:
-            update_landing_page_data.content["body_h3_logo_two_paragraph"] = request.body_h3_logo_two_paragraph
+        if update_landing_page_data.other_info["body_h3_logo_two_paragraph"] != request.body_h3_logo_two_paragraph:
+            update_landing_page_data.other_info["body_h3_logo_two_paragraph"] = request.body_h3_logo_two_paragraph
 
         # chcek if landing page body h3 logo three name is not the same, update the landing page body h3 logo three name
-        if update_landing_page_data.content["body_h3_logo_three_name"] != request.body_h3_logo_three_name:
-            update_landing_page_data.content["body_h3_logo_three_name"] = request.body_h3_logo_three_name
+        if update_landing_page_data.other_info["body_h3_logo_three_name"] != request.body_h3_logo_three_name:
+            update_landing_page_data.other_info["body_h3_logo_three_name"] = request.body_h3_logo_three_name
 
         # check if landing page body h3 logo three paragraph is not the same, update the landing page body h3 logo three paragraph
-        if update_landing_page_data.content["body_h3_logo_three_paragraph"] != request.body_h3_logo_three_paragraph:
-            update_landing_page_data.content["body_h3_logo_three_paragraph"] = request.body_h3_logo_three_paragraph
+        if update_landing_page_data.other_info["body_h3_logo_three_paragraph"] != request.body_h3_logo_three_paragraph:
+            update_landing_page_data.other_info["body_h3_logo_three_paragraph"] = request.body_h3_logo_three_paragraph
 
         # check if landing page body h3 logo four name is not the same, update the landing page body h3 logo four name
-        if update_landing_page_data.content["body_h3_logo_four_name"] != request.body_h3_logo_four_name:
-            update_landing_page_data.content["body_h3_logo_four_name"] = request.body_h3_logo_four_name
+        if update_landing_page_data.other_info["body_h3_logo_four_name"] != request.body_h3_logo_four_name:
+            update_landing_page_data.other_info["body_h3_logo_four_name"] = request.body_h3_logo_four_name
 
         # check if landing page body h3 logo four paragraph is not the same, update the landing page body h3 logo four paragraph
-        if update_landing_page_data.content["body_h3_logo_four_paragraph"] != request.body_h3_logo_four_paragraph:
-            update_landing_page_data.content["body_h3_logo_four_paragraph"] = request.body_h3_logo_four_paragraph
+        if update_landing_page_data.other_info["body_h3_logo_four_paragraph"] != request.body_h3_logo_four_paragraph:
+            update_landing_page_data.other_info["body_h3_logo_four_paragraph"] = request.body_h3_logo_four_paragraph
 
         # check if landing page section three paragraph is not the same, update the landing page section three paragraph
-        if update_landing_page_data.content["section_three_paragraph"] != request.section_three_paragraph:
-            update_landing_page_data.content["section_three_paragraph"] = request.section_three_paragraph
+        if update_landing_page_data.other_info["section_three_paragraph"] != request.section_three_paragraph:
+            update_landing_page_data.other_info["section_three_paragraph"] = request.section_three_paragraph
 
         # check if landing page section three sub paragraph is not the same, update the landing page section three sub paragraph
-        if update_landing_page_data.content["section_three_sub_paragraph"] != request.section_three_sub_paragraph:
-            update_landing_page_data.content["section_three_sub_paragraph"] = request.section_three_sub_paragraph
+        if update_landing_page_data.other_info["section_three_sub_paragraph"] != request.section_three_sub_paragraph:
+            update_landing_page_data.other_info["section_three_sub_paragraph"] = request.section_three_sub_paragraph
 
         # check if landing page footer h3 is not the same, update the landing page footer h3
-        if update_landing_page_data.content["footer_h3"] != request.footer_h3:
-            update_landing_page_data.content["footer_h3"] = request.footer_h3
+        if update_landing_page_data.other_info["footer_h3"] != request.footer_h3:
+            update_landing_page_data.other_info["footer_h3"] = request.footer_h3
 
         # check if landing page footer paragraph is not the same, update the landing page footer paragraph
-        if update_landing_page_data.content["footer_h3_paragraph"] != request.footer_h3_paragraph:
-            update_landing_page_data.content["footer_h3_paragraph"] = request.footer_h3_paragraph
+        if update_landing_page_data.other_info["footer_h3_paragraph"] != request.footer_h3_paragraph:
+            update_landing_page_data.other_info["footer_h3_paragraph"] = request.footer_h3_paragraph
 
         # check if landing page footer name employee is not the same, update the landing page footer name employee
-        if update_landing_page_data.content["footer_name_employee"] != request.footer_name_employee:
-            update_landing_page_data.content["footer_name_employee"] = request.footer_name_employee
+        if update_landing_page_data.other_info["footer_name_employee"] != request.footer_name_employee:
+            update_landing_page_data.other_info["footer_name_employee"] = request.footer_name_employee
 
         # check if landing page positon of emplaoyee is not the same, update the landing page positon of emplaoyee
-        if update_landing_page_data.content["name_job_description"] != request.name_job_description:
-            update_landing_page_data.content["name_job_description"] = request.name_job_description
+        if update_landing_page_data.other_info["name_job_description"] != request.name_job_description:
+            update_landing_page_data.other_info["name_job_description"] = request.name_job_description
 
         # check if landing page footer h2 text is not the same, update the landing page footer h2 text
-        if update_landing_page_data.content["footer_h2_text"] != request.footer_h2_text:
-            update_landing_page_data.content["footer_h2_text"] = request.footer_h2_text
+        if update_landing_page_data.other_info["footer_h2_text"] != request.footer_h2_text:
+            update_landing_page_data.other_info["footer_h2_text"] = request.footer_h2_text
 
         # check if login link is not the same, update the login link
-        if update_landing_page_data.content["login_link"] != request.login_link:
-            update_landing_page_data.content["login_link"] = request.login_link
+        if update_landing_page_data.other_info["login_link"] != request.login_link:
+            update_landing_page_data.other_info["login_link"] = request.login_link
 
         # check if signup link is not the same, update the signup link
-        if update_landing_page_data.content["signup_link"] != request.signup_link:
-            update_landing_page_data.content["signup_link"] = request.signup_link
+        if update_landing_page_data.other_info["signup_link"] != request.signup_link:
+            update_landing_page_data.other_info["signup_link"] = request.signup_link
 
         # check if home link is not the same, update the home link
-        if update_landing_page_data.content["home_link"] != request.home_link:
-            update_landing_page_data.content["home_link"] = request.home_link
+        if update_landing_page_data.other_info["home_link"] != request.home_link:
+            update_landing_page_data.other_info["home_link"] = request.home_link
 
         # check if about link is not the same, update the about link
-        if update_landing_page_data.content["about_link"] != request.about_link:
-            update_landing_page_data.content["about_link"] = request.about_link
+        if update_landing_page_data.other_info["about_link"] != request.about_link:
+            update_landing_page_data.other_info["about_link"] = request.about_link
 
         # check if faq link is not the same, update the faq link
-        if update_landing_page_data.content["faq_link"] != request.faq_link:
-            update_landing_page_data.content["faq_link"] = request.faq_link
+        if update_landing_page_data.other_info["faq_link"] != request.faq_link:
+            update_landing_page_data.other_info["faq_link"] = request.faq_link
 
         # check if contact link is not the same, update the contact link
-        if update_landing_page_data.content["contact_us_link"] != request.contact_us_link:
-            update_landing_page_data.content["contact_us_link"] = request.contact_us_link
+        if update_landing_page_data.other_info["contact_us_link"] != request.contact_us_link:
+            update_landing_page_data.other_info["contact_us_link"] = request.contact_us_link
 
         # check if contact address is not the same, update the contact address
-        if update_landing_page_data.content["footer_contact_address"] != request.footer_contact_address:
-            update_landing_page_data.content["footer_contact_address"] = request.footer_contact_address
+        if update_landing_page_data.other_info["footer_contact_address"] != request.footer_contact_address:
+            update_landing_page_data.other_info["footer_contact_address"] = request.footer_contact_address
 
         #  check if customer care mail is not the same, update the customer care mail
-        if update_landing_page_data.content["customer_care_email"] != request.customer_care_email:
-            update_landing_page_data.content["customer_care_email"] = request.customer_care_email
+        if update_landing_page_data.other_info["customer_care_email"] != request.customer_care_email:
+            update_landing_page_data.other_info["customer_care_email"] = request.customer_care_email
         
-        if update_landing_page_data.content["title"]!= request.title:
-            update_landing_page_data.content["title"] = request.title
+        if update_landing_page_data.other_info["title"]!= request.title:
+            update_landing_page_data.other_info["title"] = request.title
 
         if isFileExist(favicon) != True:
-            favicon1 =update_landing_page_data.content["favicon"]
+            favicon1 =update_landing_page_data.other_info["favicon"]
             if deleteFile(favicon1):
-                favicon = await upload_image(favicon, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["favicon"] = "/" + update_landing_page_data.content["bucket_name"] + "/" + favicon
+                favicon = await upload_image(favicon, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["favicon"] = "/" + update_landing_page_data.other_info["bucket_name"] + "/" + favicon
         
         if isFileExist(shape_one) != True:
-            shape_one1 =update_landing_page_data.content["shape_one"]
+            shape_one1 =update_landing_page_data.other_info["shape_one"]
             if deleteFile(shape_one1):
-                shape_one = await upload_image(shape_one, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["shape_one"] = "/" + update_landing_page_data.content["bucket_name"] + "/" + shape_one
+                shape_one = await upload_image(shape_one, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["shape_one"] = "/" + update_landing_page_data.other_info["bucket_name"] + "/" + shape_one
         
         if isFileExist(shape_two) != True:
-            shape_two1 =update_landing_page_data.content["shape_two"]
+            shape_two1 =update_landing_page_data.other_info["shape_two"]
             if deleteFile(shape_two1):
-                shape_two = await upload_image(shape_two, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["shape_two"] = "/" + update_landing_page_data.content["bucket_name"] + "/" + shape_two
+                shape_two = await upload_image(shape_two, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["shape_two"] = "/" + update_landing_page_data.other_info["bucket_name"] + "/" + shape_two
         
         if isFileExist(shape_three) != True:
-            shape_three1 =update_landing_page_data.content["shape_three"]
+            shape_three1 =update_landing_page_data.other_info["shape_three"]
             if deleteFile(shape_three1):
-                shape_three = await upload_image(shape_three, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["shape_three"] = "/" + update_landing_page_data.content["bucket_name"] + "/" + shape_three
+                shape_three = await upload_image(shape_three, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["shape_three"] = "/" + update_landing_page_data.other_info["bucket_name"] + "/" + shape_three
 
         # check company logo is uploaded, update the company logo
         if isFileExist(company_logo) != True:
-            company_logo1 = update_landing_page_data.content["company_logo"]
+            company_logo1 = update_landing_page_data.other_info["company_logo"]
             if deleteFile(company_logo1):
-                company_logo = await upload_image(company_logo, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["company_logo"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + company_logo
+                company_logo = await upload_image(company_logo, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["company_logo"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + company_logo
 
         # check if section one image is uploaded, update the section one image
         if isFileExist(section_one_image_link) != True:
-            section_one_image_link1 = update_landing_page_data.content["section_one_image_link"]
+            section_one_image_link1 = update_landing_page_data.other_info["section_one_image_link"]
             if deleteFile(section_one_image_link1):
                 section_one_image_link = section_one_image_link
-                section_one_image_link = await upload_image(section_one_image_link, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["section_one_image_link"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + section_one_image_link
+                section_one_image_link = await upload_image(section_one_image_link, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["section_one_image_link"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + section_one_image_link
 
         # check if body h3 logo one image is uploaded, update the body h3 logo one image
         if isFileExist(body_h3_logo_one) != True:
-            body_h3_logo_one1 = update_landing_page_data.content["body_h3_logo_one"]
+            body_h3_logo_one1 = update_landing_page_data.other_info["body_h3_logo_one"]
             if deleteFile(body_h3_logo_one1):
                 body_h3_logo_one = body_h3_logo_one
-                body_h3_logo_one = await upload_image(body_h3_logo_one, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["body_h3_logo_one"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + body_h3_logo_one
+                body_h3_logo_one = await upload_image(body_h3_logo_one, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["body_h3_logo_one"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + body_h3_logo_one
 
         # check if body h3 logo two image is uploaded, update the body h3 logo two image
         if isFileExist(body_h3_logo_two) != True:
-            body_h3_logo_two1 = update_landing_page_data.content["body_h3_logo_two"]
+            body_h3_logo_two1 = update_landing_page_data.other_info["body_h3_logo_two"]
             if deleteFile(body_h3_logo_two1):
                 body_h3_logo_two = body_h3_logo_two
-                body_h3_logo_two = await upload_image(body_h3_logo_two, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["body_h3_logo_two"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + body_h3_logo_two
+                body_h3_logo_two = await upload_image(body_h3_logo_two, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["body_h3_logo_two"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + body_h3_logo_two
 
         # check if body h3 logo three image is uploaded, update the body h3 logo three image
         if isFileExist(body_h3_logo_three) != True:
-            body_h3_logo_three1 = update_landing_page_data.content["body_h3_logo_three"]
+            body_h3_logo_three1 = update_landing_page_data.other_info["body_h3_logo_three"]
             if deleteFile(body_h3_logo_three1):
                 body_h3_logo_three = body_h3_logo_three
-                body_h3_logo_three = await upload_image(body_h3_logo_three, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["body_h3_logo_three"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + body_h3_logo_three
+                body_h3_logo_three = await upload_image(body_h3_logo_three, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["body_h3_logo_three"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + body_h3_logo_three
 
         # check if body h3 logo four image is uploaded, update the body h3 logo four image
         if isFileExist(body_h3_logo_four) != True:
-            body_h3_logo_four1 = update_landing_page_data.content["body_h3_logo_four"]
+            body_h3_logo_four1 = update_landing_page_data.other_info["body_h3_logo_four"]
             if deleteFile(body_h3_logo_four1):
                 body_h3_logo_four = body_h3_logo_four
-                body_h3_logo_four = await upload_image(body_h3_logo_four, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["body_h3_logo_four"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + body_h3_logo_four
+                body_h3_logo_four = await upload_image(body_h3_logo_four, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["body_h3_logo_four"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + body_h3_logo_four
 
         # check if section three image is uploaded, update the section three image
         if isFileExist(section_three_image) != True:
-            section_three_image1 = update_landing_page_data.content["section_three_image"]
+            section_three_image1 = update_landing_page_data.other_info["section_three_image"]
             if deleteFile(section_three_image1):
                 section_three_image = section_three_image
-                section_three_image = await upload_image(section_three_image, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["section_three_image"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + section_three_image
+                section_three_image = await upload_image(section_three_image, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["section_three_image"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + section_three_image
 
         # check if section four image is uploaded, update the section four image
         if isFileExist(section_four_image) != True:
-            section_four_image1 = update_landing_page_data.content["section_four_image"]
+            section_four_image1 = update_landing_page_data.other_info["section_four_image"]
             if deleteFile(section_four_image1):
                 section_four_image = section_four_image
-                section_four_image = await upload_image(section_four_image, db=db, bucket_name=update_landing_page_data.content["bucket_name"])
-                update_landing_page_data.content["section_four_image"] = "/" + \
-                    update_landing_page_data.content["bucket_name"] + "/" + section_four_image
+                section_four_image = await upload_image(section_four_image, db=db, bucket_name=update_landing_page_data.other_info["bucket_name"])
+                update_landing_page_data.other_info["section_four_image"] = "/" + \
+                    update_landing_page_data.other_info["bucket_name"] + "/" + section_four_image
 
         # attempt to update the landing page data
         try:
@@ -595,49 +546,60 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
 
 
 # Endpoint to delete landing page data
-@app.delete("/landing-page/{landingpage_name}", status_code=200, tags=["landingPage"])
+@app.delete("/landing-page/{landingpage_name}", status_code=200)
 async def delete_landingPage(landingpage_name: str, current_user=Depends(is_authenticated), db: Session = Depends(get_db)):
     """
     This endpoint is used to delete landing page data from the database and all images associated with the landing page data
     """
     # check if user is a super user
-    if current_user.is_superuser:
-        # query for the landing page data
-        landingpage_data = db.query(landing_page_models.LPage).filter(
-            landing_page_models.LPage.landing_page_name == landingpage_name).first()
+    if current_user.is_superuser != True:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={'error': "You are not authorized to perform this action."})
+    # query for the landing page data
+    landingpage_data = db.query(landing_page_models.LandingPage).filter(
+        landing_page_models.LandingPage.landing_page_name == landingpage_name).first()
 
-        # check if landing page data is found
-        if landingpage_data:
+    # check if landing page data is found
+    if landingpage_data:
 
-            # delete the images from the bucket
-            deleteimage = [landingpage_data.content["company_logo"], landingpage_data.content["section_one_image_link"], 
-                            landingpage_data.content["body_h3_logo_one"], landingpage_data.content["body_h3_logo_two"],
-                            landingpage_data.content["body_h3_logo_three"], landingpage_data.content["body_h3_logo_four"], 
-                            landingpage_data.content["section_three_image"], landingpage_data.content["section_four_image"],
-                            landingpage_data.content["favicon"], landingpage_data.content["shape_one"], 
-                            landingpage_data.content["shape_two"], landingpage_data.content["shape_three"],]
-                            
-            for i in deleteimage:
-                if deleteFile(i):
-                    pass
-                else:
-                    pass
+        # delete the images from the bucket
+        deleteimage = [getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one"), 
+                       getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_two"),
+                       getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three"),
+                       getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_four"),
+                       getdicvalue(landingpage_data.id,db=db, key= "section_one_image_link"),
+                       getdicvalue(landingpage_data.id,db=db, key="section_three_image"),
+                       getdicvalue(landingpage_data.id,db=db, key= "section_four_image"),
+                       getdicvalue(landingpage_data.id,db=db, key= "company_logo"),
+                       getdicvalue(landingpage_data.id,db=db, key= "favicon"),
+                       getdicvalue(landingpage_data.id,db=db, key= "shape_one"),
+                       getdicvalue(landingpage_data.id,db=db, key= "shape_two"),
+                       getdicvalue(landingpage_data.id,db=db, key= "shape_three"),]
 
-            # delete the landing page data
-            db.delete(landingpage_data)
-            db.commit()
-            return {"message": "Data deleted successfully."}
+        other = db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.landing_page_id == landingpage_data.id).delete()
 
-        # landing page data not found
-        else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={
-                                'error': "Data could not be found. Please try again."})
 
-    # user is not a super user
+        for i in deleteimage:
+            if deleteFile(i):
+                pass
+            else:
+                pass
+
+        # delete the landing page data
+        db.delete(landingpage_data)
+        db.commit()
+        return {"message": "Data deleted successfully."}
+
+    # landing page data not found
     else:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={
-                            'error': "You are not authorized to perform this action."})
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={
+                            'error': "Data could not be found. Please try again."})
 
+
+
+# returns value of a key
+def getdicvalue(landing_id: str, key:str, db:Session = Depends(get_db)):
+  other_info = db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.landing_page_id == landing_id, landing_page_models.LandingPageOtherInfo.key == key).first()
+  return str(other_info.value)
 
 # Function to retrieve landing page images
 def image_fullpath(filetype, imagepath):
@@ -675,4 +637,11 @@ def getUrlFullPath(request: Request, filetype: str):
         else:
             image_path = hostname + f"/files/{filetype}"
         return image_path
+
+
+
+
+
+
+
 
