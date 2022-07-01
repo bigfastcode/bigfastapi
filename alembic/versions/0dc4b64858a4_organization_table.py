@@ -14,12 +14,3 @@ revision = '0dc4b64858a4'
 down_revision = '3c9840d744bc'
 branch_labels = None
 depends_on = None
-
-
-def upgrade():
-    op.rename_column('businesses', '')
-    pass
-
-
-def downgrade():
-    pass

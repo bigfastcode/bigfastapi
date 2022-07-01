@@ -83,13 +83,13 @@ class User(_UserBase):
     is_verified: bool
     is_superuser: bool
     country_code: Optional[str]
-    image: Optional[str] 
+    image_url: Optional[str] 
     is_deleted: bool
     device_id: Optional[str] 
     country: Optional[str]
     state: Optional[str]
     google_id: Optional[str]
-    google_image: Optional[str] 
+    google_image_url: Optional[str] 
     date_created: dt.datetime
     last_updated: dt.datetime 
 
