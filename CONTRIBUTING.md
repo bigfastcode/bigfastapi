@@ -190,9 +190,9 @@ All controllers are created inside the `/bigfastapi` folder. The logic inside th
 Importing a model or a schema file should be done following the correction option below:
 
 ```
-import receipt_models from models - CORRECT OPTION
+from bigfastapi.models import models - CORRECT APPROACH
 
-from .models import receipt_models - WRONG OPTION
+from .models import receipt_models - WRONG APPROACH
 
 ```
 
