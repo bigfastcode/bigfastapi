@@ -16,16 +16,13 @@ class _OrganizationBase(BaseModel):
     country: str
     state: str
     address: str
-    currency_preference: str
+    currency_code: str
     phone_number: str = None
     email: str = None
     tagline: Optional[str]
-    image: Optional[str]
-    values: Optional[str]
+    image_url: Optional[str]
     business_type: str = "retail"
-    credit_balance: Optional[int]
-    image_full_path: str = None
-    add_template: Optional[bool]
+    add_template: Optional[bool] = False
 
     class Config:
         orm_mode = True
