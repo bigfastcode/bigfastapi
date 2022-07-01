@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 from fastapi import APIRouter, Depends
-from bigfastapi.models.file_import_models import FileImports, FailedImports
+from bigfastapi.models.file_import_models import FileImports
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 
