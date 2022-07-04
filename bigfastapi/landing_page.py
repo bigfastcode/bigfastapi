@@ -608,8 +608,7 @@ def image_fullpath(filetype, imagepath):
         root_location = os.path.abspath("filestorage")
         image_location = os.path.join(root_location, imagepath)
     else:
-        root_location1 = pkg_resources.resource_filename(
-            "bigfastapi", "/templates/")
+        root_location1 = os.path.abspath("templates/")
         image_location = os.path.join(root_location1, imagepath)
     return FileResponse(image_location)
 
