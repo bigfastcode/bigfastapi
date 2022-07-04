@@ -221,8 +221,8 @@ async def get_all_landing_pages(request: Request, db: Session = Depends(get_db),
             "landing_page": landingpages
         }
 
-        return landingpages
-        # return templates.TemplateResponse("alllandingpage.html", {"request": request, "h": h})
+        # return landingpages
+        return templates.TemplateResponse("alllandingpage.html", {"request": request, "h": h})
 
     # return error if landing pages cannot be fetched
     except Exception as e:
