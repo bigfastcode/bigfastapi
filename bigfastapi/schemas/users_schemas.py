@@ -79,7 +79,7 @@ class User(_UserBase):
     first_name: Optional[str]
     last_name: Optional[str]
     phone_number: Optional[str]
-    is_active: bool
+    is_active: Optional[bool]
     is_verified: bool
     is_superuser: bool
     country_code: Optional[str]
