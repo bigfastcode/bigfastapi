@@ -1,4 +1,4 @@
-from bigfastapi.import_progress import app as importprogress
+from bigfastapi.file_import import app as importprogress
 from bigfastapi.api_key import app as api_key
 from bigfastapi.landing_page import app as landing_page
 from bigfastapi.activity_log import app as activity_log
