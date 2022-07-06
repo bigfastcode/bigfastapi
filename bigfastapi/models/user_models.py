@@ -1,5 +1,6 @@
 
 import datetime as datetime
+from email.policy import default
 import passlib.hash as _hash
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, DateTime, Boolean, Text
@@ -28,7 +29,7 @@ class User(Base):
     google_id = Column(String(255))
     google_image_url = Column(Text())
     is_deleted = Column(Boolean, index = True, default=False)
-    is_active = Column(Boolean)
+    is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
     date_created = Column(DateTime, default=datetime.datetime.utcnow)
