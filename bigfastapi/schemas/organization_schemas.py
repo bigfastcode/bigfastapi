@@ -13,7 +13,7 @@ class _OrganizationBase(BaseModel):
     mission: Optional[str]
     vision: Optional[str]
     name: str
-    country: str
+    country_code: str
     state: str
     address: str
     currency_code: str
