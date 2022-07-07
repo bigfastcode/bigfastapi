@@ -37,8 +37,8 @@ def create_organization(user: users_schemas.User, db: orm.Session, organization:
     newOrganization = _models.Organization(id=organization_id, user_id=user.id, mission=organization.mission,
                                            vision=organization.vision, name=organization.name,
                                            business_type=organization.business_type,
-                                           tagline=organization.tagline, image_url=organization.image, is_deleted=False,
-                                           currency_code=organization.currency_preference)
+                                           tagline=organization.tagline, image_url=organization.image_url, is_deleted=False,
+                                           currency_code=organization.currency_code)
 
     db.add(newOrganization)
     db.commit()

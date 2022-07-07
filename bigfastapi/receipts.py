@@ -169,7 +169,7 @@ async def get_receipts(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                 detail=messages.INVALID_ORGANIZATION)
 
-        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organizations.id, db=db)
+        is_valid_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization.id, db=db)
         if is_valid_member == False:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=messages.NOT_ORGANIZATION_MEMBER)
 
