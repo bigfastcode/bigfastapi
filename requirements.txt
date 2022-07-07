@@ -1,5 +1,5 @@
 wheel
-uvicorn       
+uvicorn
 aioredis
 aiosmtplib
 anyio
@@ -64,3 +64,9 @@ gunicorn
 celery
 getmac
 Pillow
+flake8
+black
+isort
+autoflake
+pre-commit
+pyupgrade

@@ -1,4 +1,5 @@
 import datetime as _dt
+from locale import currency
 from uuid import uuid4
 
 import fastapi
@@ -222,6 +223,26 @@ async def _get_super_admin_wallet(db: _orm.Session, currency: str):
     return wallet
 
 
+async def create_wallet_transaction(wallet, amount: float, db: _orm.Session, currency: str, reason=''):
+    wallet_transaction = model.WalletTransaction(id=uuid4().hex, wallet_id=wallet.id,
+                                                            currency_code=currency, amount=amount,
+                                                            transaction_date=_dt.datetime.utcnow(),
+                                                            transaction_ref=reason, status=True  )
+
+    db.add(wallet_transaction)
+    db.commit()
+    db.refresh(wallet_transaction)
+
+    wallet.balance += amount
+    wallet.last_updated = _dt.datetime.utcnow()
+    db.commit()
+    db.refresh(wallet)
+
+
+
+
+
+
 async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, wallet_transaction_id='', reason=''):
     # update the wallet
     # wallet.balance += amount
@@ -248,26 +269,29 @@ async def update_wallet(wallet, amount: float, db: _orm.Session, currency: str, 
         db.commit()
         db.refresh(wallet_transaction)
 
-    if amount < 0:
-        amount = -amount
-        # transfer money to admin wallet
+    # if amount < 0:
+    #     amount = -amount
+    #     # transfer money to admin wallet
 
-        adminWallet = await _get_super_admin_wallet(db=db, currency=currency)
-        # update admin wallet
-        adminWallet.balance += amount
-        adminWallet.last_updated = _dt.datetime.utcnow()
-        db.commit()
-        db.refresh(adminWallet)
+    #     adminWallet = await _get_super_admin_wallet(db=db, currency=currency)
+    #     # update admin wallet
+    #     adminWallet.balance += amount
+    #     adminWallet.last_updated = _dt.datetime.utcnow()
+    #     db.commit()
+    #     db.refresh(adminWallet)
 
-        wallet_transaction = model.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
-                                                                         currency_code=currency, amount=amount,
-                                                                         transaction_date=_dt.datetime.utcnow(),
-                                                                         transaction_ref=reason, status=True)
-        db.add(wallet_transaction)
-        db.commit()
-        db.refresh(wallet_transaction)
+    #     wallet_transaction = model.WalletTransaction(id=uuid4().hex, wallet_id=adminWallet.id,
+    #                                                                      currency_code=currency, amount=amount,
+    #                                                                      transaction_date=_dt.datetime.utcnow(),
+    #                                                                      transaction_ref=reason, status=True)
+    #     db.add(wallet_transaction)
+    #     db.commit()
+    #     db.refresh(wallet_transaction)
 
     return wallet
+
+
+
 
 
 add_pagination(app)

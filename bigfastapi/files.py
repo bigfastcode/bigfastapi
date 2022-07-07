@@ -1,4 +1,3 @@
-from logging import raiseExceptions
 import fastapi, os
 
 from .models import file_models as model
@@ -55,11 +54,11 @@ def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends
     
 
 @app.post("/upload-file/{bucket_name}/", response_model=schema.File)
-async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(...), db: orm.Session = fastapi.Depends(get_db)):
+async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(...),file_rename:bool =False, db: orm.Session = fastapi.Depends(get_db)):
     """intro-->This endpoint allows you to upload a file to a bucket/storage. To use this endpoint you need to make a post request to the /upload-file/{bucket_name}/ endpoint 
             paramDesc-->On post request the url takes the query parameter bucket_name
                 param-->bucket_name: This is the name of the bucket you want to save the file to, You can request a list of files in a single folder if you nee to iterate.
-                reqBody-->file_name: This is the name of the file to be uploaded
+                param-->file_rename: This is a boolean value that if set to true renames the hex values
     returnDesc--> On successful request, it returns 
         returnBody--> details of the file just created
     """
@@ -84,6 +83,9 @@ async def upload_file(bucket_name: str, file: fastapi.UploadFile = fastapi.File(
         os.makedirs(os.path.join(base_folder, bucket_name))
     except:
        pass
+    if file_rename == True:
+        file_type = file.filename.split(".")[-1]
+        file.filename= str(uuid4().hex + "." + file_type)
 
     full_write_path = os.path.realpath(os.path.join(base_folder, bucket_name, file.filename))
     
@@ -195,7 +197,7 @@ async def isFileExist(filePath: str):
      basePath = os.path.abspath("filestorage")
      fullPath =  basePath + filePath
      return os.path.exists(fullPath)
-    
+
  
 async def deleteFile(filePath: str):
     """Delete a file from directory
