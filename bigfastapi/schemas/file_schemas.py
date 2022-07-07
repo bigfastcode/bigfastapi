@@ -8,6 +8,7 @@ class File(BaseModel):
     filename: str
     bucketname: str
     filesize: int
+    file_rename:Optional[bool]
     date_created: Optional[datetime.datetime]
     last_updated: Optional[datetime.datetime]
 
