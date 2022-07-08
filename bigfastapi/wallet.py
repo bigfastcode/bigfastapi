@@ -71,6 +71,27 @@ async def get_organization_wallets(
     return await _get_organization_wallets(organization_id=organization_id, user=user, db=db)
 
 
+
+@app.get("/wallet-balance/{organization_id}")
+async def get_organization_wallet(
+        organization_id: str,
+        user: users_schemas.User = fastapi.Depends(is_authenticated),
+        db: _orm.Session = fastapi.Depends(get_db),
+):  
+    """intro-->This endpoint allows you to retrieve all the wallets in an organization. To use this endpoint you need to make a get request to the /wallets/{organization_id} endpoint
+            
+            paramDesc-->On get request, the request url takes the  parameter organization id and two(2) optional query parameters 
+                param-->organization_id: This is unique id of the organization of interest
+                param-->page: This is the page of interest, this is 1 by default
+                param-->size: This is the size per page, this is 10 by default
+
+            
+    returnDesc--> On sucessful request, it returns a
+        returnBody--> list of queried wallets
+    """
+    return await get_org_wallet(organization_id=organization_id, user=user, db=db)
+
+
 @app.get("/wallets/{organization_id}/{currency}", response_model=schema.Wallet)
 async def get_organization_wallet(
         organization_id: str,
@@ -121,7 +142,7 @@ async def _get_organization(organization_id: str, db: _orm.Session,
                             user: users_schemas.User = fastapi.Depends(is_authenticated)):
     organization = (
         db.query(organization_models.Organization)
-            .filter_by(creator=user.id)
+            .filter_by(user_id=user.id)
             .filter(organization_models.Organization.id == organization_id)
             .first()
     )
@@ -174,11 +195,24 @@ async def _get_organization_wallet(organization_id: str,
         raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="Organization does not have a " + currency + " wallet")
 
+    # wallet_balance = await _get_wallet_balance(wallet_id=wallet.id, db=db)
+    # wallet.balance = wallet_balance
+
+    return wallet
+
+
+async def get_org_wallet(organization_id: str, user, db: _orm.Session):
+    # verify if the organization exists under the user's account
+    await _get_organization(organization_id=organization_id, db=db, user=user)
+    wallet = db.query(model.Wallet).filter_by(organization_id=organization_id).first()
+    if wallet is None:
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="Organization does not have a wallet")
+
     wallet_balance = await _get_wallet_balance(wallet_id=wallet.id, db=db)
     wallet.balance = wallet_balance
 
     return wallet
-
 
 async def _get_wallet_transactions(wallet_id: str, db: _orm.Session):
     wallet_transactions = db.query(model.WalletTransaction).filter_by(wallet_id=wallet_id).order_by(
