@@ -7,11 +7,12 @@ import sqlalchemy.orm as orm
 
 FILE_BUCKET_NAME = 'imports'
 
-def save_import_progress(file_name, current_line, total_line, model_name, organization_id: str, 
+
+def save_import_progress(user_id:str,file_name, current_line, total_line, model_name, organization_id: str, 
     db: orm.Session = Depends(get_db)):
     file_import = FileImports(
         id=uuid4().hex, file_name=file_name, current_line=current_line, total_line=total_line,
-        model_name=model_name, organization_id=organization_id
+        model_name=model_name, organization_id=organization_id, user_id=user_id
     )
     db.add(file_import)
     db.commit()
@@ -44,7 +45,7 @@ async def log_import_error(line, error, import_id: str,
     db.add(failedImport)
     db.commit()
     db.refresh(failedImport)
-
+    #  return failedImport and line +1
     return failedImport
 
 # async def deleteImportError(organization_id: str, model: str, 
@@ -59,3 +60,5 @@ def isEmpty(imports):
     if len(imports) != 0:
         return True
     return False
+
+#  rename and save fi

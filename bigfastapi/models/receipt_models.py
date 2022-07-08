@@ -1,10 +1,11 @@
 import datetime as _dt
-from sqlalchemy.schema import Column
-from sqlalchemy.types import String, DateTime, Text, BOOLEAN
-from sqlalchemy import ForeignKey
 from uuid import uuid4
-import bigfastapi.db.database as _database
 
+from sqlalchemy import ForeignKey
+from sqlalchemy.schema import Column
+from sqlalchemy.types import BOOLEAN, DateTime, String, Text
+
+import bigfastapi.db.database as _database
 
 
 class Receipt(_database.Base):
@@ -16,6 +17,8 @@ class Receipt(_database.Base):
     subject = Column(String(255), index=True)
     recipient = Column(String(255), index=True)
     file_id = Column(String(255), ForeignKey("files.id"), default=None)
-    is_deleted = Column(BOOLEAN, index = True, default=False)
-    date_created = Column(DateTime, default=_dt.datetime.utcnow)
-    last_updated = Column(DateTime, default=_dt.datetime.utcnow)
+    is_deleted = Column(BOOLEAN, index=True, default=False)
+    date_created = Column(DateTime, default=_dt.datetime.now())
+    last_updated = Column(DateTime, default=_dt.datetime.now())
+    date_created_db = Column(DateTime, default=_dt.datetime.now())
+    last_updated_db = Column(DateTime, default=_dt.datetime.now())
