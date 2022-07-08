@@ -92,10 +92,9 @@ async def get_organization_wallet(
     return await get_org_wallet(organization_id=organization_id, user=user, db=db)
 
 
-@app.get("/wallets/{organization_id}/{currency}", response_model=schema.Wallet)
-async def get_organization_wallet(
+@app.get("/wallet-transactions/{organization_id}")
+async def get_organization_wallet_transactions(
         organization_id: str,
-        currency: str,
         user: users_schemas.User = fastapi.Depends(is_authenticated),
         db: _orm.Session = fastapi.Depends(get_db),
 ):
@@ -109,7 +108,7 @@ async def get_organization_wallet(
     returnDesc--> On sucessful request, it returns 
         returnBody--> details of the queried organization's wallet
     """
-    return await _get_organization_wallet(organization_id=organization_id, currency=currency, user=user, db=db)
+    return await get_org_wallet_transactions(organization_id=organization_id, user=user, db=db)
 
 
 @app.get("/wallets/{organization_id}/{currency}/transactions", response_model=Page[schema.WalletTransaction])
@@ -199,6 +198,23 @@ async def _get_organization_wallet(organization_id: str,
     # wallet.balance = wallet_balance
 
     return wallet
+
+
+async def get_org_wallet_transactions(organization_id: str,
+                                   user: users_schemas.User,
+                                   db: _orm.Session):
+    # verify if the organization exists under the user's account
+
+    await _get_organization(organization_id=organization_id, db=db, user=user)
+    wallet = db.query(model.Wallet).filter_by(organization_id=organization_id).first()
+    if wallet is None:
+        raise fastapi.HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                    detail="Organization does not have a wallet")
+    wallet_trnx = db.query(model.WalletTransaction).filter_by(wallet_id=wallet.id).all()
+    # wallet_balance = await _get_wallet_balance(wallet_id=wallet.id, db=db)
+    # wallet.balance = wallet_balance
+
+    return wallet_trnx
 
 
 async def get_org_wallet(organization_id: str, user, db: _orm.Session):
