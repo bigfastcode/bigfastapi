@@ -5,7 +5,6 @@ from uuid import uuid4
 from typing import Any
 
 from bigfastapi.models.file_import_models import FileImports, FailedFileImports
-from pyparsing import line
 import sqlalchemy.orm as orm
 from bigfastapi.utils.settings import FILES_BASE_FOLDER
 
@@ -87,14 +86,14 @@ def read_file_to_list(file:Any, line_processed: int = 1, file_for:str="Debt", fi
     line_no =int(line_processed)
     if line_no == 0:
         line_no = 1
-    counter = itertools.count(line_processed)
+    counter = itertools.count(line_no)
     
     if file_for == "Debt":
-        list_file_content=[dict(x, **{"line":next(counter)}) for x in file_length[line_processed:MAX_ROWS + 1]]
+        list_file_content=[dict(x, **{"line":next(counter)}) for x in file_length[int(line_processed):MAX_ROWS + 1]]
         print(list_file_content)
 
     elif file_for == "customers":
-        list_file_content = [dict(x, **{"line":next(counter), "other_info":[{"key":i, "value":x[i]} for i in x.keys() if x not in fields]}) for x in file_length[line:MAX_ROWS +1]]
+        list_file_content = [dict(x, **{"line":next(counter), "other_info":[{"key":i, "value":x[i]} for i in x.keys() if x not in fields]}) for x in file_length[int(line_processed):MAX_ROWS +1]]
         print(list_file_content)
     
     return list_file_content
