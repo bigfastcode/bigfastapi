@@ -24,19 +24,11 @@ def create_import_start_point(user_id:str,file_name, current_line, total_line, m
 
 async def update_import_current_line(id:str, current_line:str,
     db: orm.Session):
-
-    data =db.query(FileImports).filter(FileImports.id == id)
-        # update({'current_line': current_line})
-    if  data.total_line == current_line:
-            data.id=id
-            data.current_line= current_line
-            data.is_deleted=True
-    else:
-        data.id=id,
-        data.current_line= current_line
-    
+    db.query(FileImports).filter(FileImports.id == id).\
+        update({'current_line': current_line})
     db.commit()
     return
+
 
 # async def deleteImportProgess(organization_id: str, model:str, 
 #     db: orm.Session):
