@@ -26,6 +26,7 @@ async def update_import_current_line(id:str, current_line:str,
     db: orm.Session):
     db.query(FileImports).filter(FileImports.id == id).\
         update({'current_line': current_line})
+        
     db.commit()
     return
 
