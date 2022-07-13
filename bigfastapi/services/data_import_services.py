@@ -3,8 +3,7 @@ import csv
 import itertools
 from uuid import uuid4
 from typing import Any
-
-from bigfastapi.models.file_import_models import FileImports, FailedFileImports
+from bigfastapi.models.data_import_models import FileImports, FailedFileImports
 import sqlalchemy.orm as orm
 from bigfastapi.utils.settings import FILES_BASE_FOLDER
 
@@ -27,8 +26,10 @@ async def update_import_current_line(id:str, current_line:str,
     db: orm.Session):
     db.query(FileImports).filter(FileImports.id == id).\
         update({'current_line': current_line})
+        
     db.commit()
     return
+
 
 # async def deleteImportProgess(organization_id: str, model:str, 
 #     db: orm.Session):
@@ -73,7 +74,6 @@ This is to convert file to list  starting from the last line processed
 def read_file_to_list(file:Any, line_processed: int = 1, file_for:str="Debt", field=None, is_length:bool=False):
 
     file_length = list(csv.DictReader(file))
-    # print("reader_file length",file_length)
 
 
     if is_length ==True:
@@ -90,11 +90,11 @@ def read_file_to_list(file:Any, line_processed: int = 1, file_for:str="Debt", fi
     
     if file_for == "Debt":
         list_file_content=[dict(x, **{"line":next(counter)}) for x in file_length[int(line_processed):MAX_ROWS + 1]]
-        print(list_file_content)
 
     elif file_for == "customers":
-        list_file_content = [dict(x, **{"line":next(counter), "other_info":[{"key":i, "value":x[i]} for i in x.keys() if x not in fields]}) for x in file_length[int(line_processed):MAX_ROWS +1]]
-        print(list_file_content)
+        list_file_content = [dict(x, **{"line":next(counter), "other_info":
+                            [{"key":i, "value":x[i]} for i in x.keys() if x not in fields]}) 
+                            for x in file_length[int(line_processed):MAX_ROWS +1]]
     
     return list_file_content
 
