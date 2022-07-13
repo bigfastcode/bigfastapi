@@ -1,5 +1,4 @@
 from datetime import datetime
-from email.policy import default
 from sqlalchemy import ForeignKey
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, DateTime, Boolean

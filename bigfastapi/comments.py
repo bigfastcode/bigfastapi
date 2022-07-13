@@ -194,7 +194,7 @@ def db_vote_for_comments(comment_id: int, model_type:str, action: str, db: _orm.
     elif action == "downvote": comment_obj.downvote()
     db.commit()
     db.refresh(comment_obj)
-    return comment_m,obj
+    return comment_obj
 
 def db_retrieve_comment_by_id(object_id: int, model_type:str, db: _orm.Session):
     """Retrieves a Comment by ID
@@ -301,7 +301,7 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     db.commit()
     db.refresh(obj)
     
-    return comments_schemas.Comment.from_orm(obj)
+    return obj
 
 def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_type:str):
     """Edit a Comment Object

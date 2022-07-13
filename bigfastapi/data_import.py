@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 from fastapi import APIRouter, Depends
-from bigfastapi.models.file_import_models import FileImports
+from bigfastapi.models.data_import_models import FileImports
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 
@@ -18,8 +18,7 @@ async def importDetails(model: str, organization_id: str,
         return {}
 
     return {
-        'error_message' : file_import.error_message,
+        # 'error_message' : file_import.error_message,
         'current_line' : file_import.current_line,
-        'status': file_import.status,
         'total_line' : file_import.total_line
     }
