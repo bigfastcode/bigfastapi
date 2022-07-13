@@ -16,7 +16,6 @@ from sqlalchemy import and_
 from bigfastapi.db.database import get_db
 from bigfastapi.email import send_email
 from bigfastapi.models import organization_models
-from bigfastapi.services.menu_service import add_default_menu_list, get_organization_menu
 
 from bigfastapi.auth_api import is_authenticated
 from bigfastapi.core.helpers import Helpers
@@ -37,6 +36,18 @@ from bigfastapi.services import organization_service
 
 app = APIRouter(tags=["Organization"])
 
+#placeholder menu. will be removed as soon as the dynamic menu flow is completed
+DEFAULT_MENU = {"active_menu": ["dashboard", "students", "settings", "more"], 
+    "hospitality": ["dashboard", "reservations", "customers", "settings", "more"], 
+    "retail": ["dashboard", "customers", "debts", "payments", "settings", "more"],
+    "freelance": ["dashboard", "clients", "invoices", "settings", "more"], 
+    "more": ["reports", "invoices", "fees", "tutorials", "logs", "marketting",
+    "sales", "suppliers", "debts", "receipts", "products", "payments"]}
+
+MENU = {"active": {"menu": ["dashboard", "customers", "debts", "payments", "settings", "more"],
+     "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]},
+"menu_list":{"education": {"menu": ["dashboard", "student", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "hospitality": {"menu": ["dashboard", "reservations", "customers", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "retail": {"menu": ["dashboard", "customers", "debts", "payments", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "freelance": {"menu": ["dashboard", "clients", "settings", "more"], 
+"more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}}}
 
 @app.post("/organizations")
 def create_organization(
@@ -80,8 +91,8 @@ def create_organization(
         created_org = organization_service.create_organization(
             user=user, db=db, organization=organization)
 
-        assocMenu = add_default_menu_list(
-            created_org.id, created_org.business_type, db)
+        # assocMenu = add_default_menu_list(
+        #     created_org.id, created_org.business_type, db)
 
         run_wallet_creation(created_org, db)
 
@@ -91,10 +102,10 @@ def create_organization(
 
         newOrId = created_org.id
         new_organization = created_org
-        newMenList = assocMenu["menu_list"]
-        new_menu = assocMenu
+        # newMenList = assocMenu["menu_list"]
+        # new_menu = assocMenu
 
-        return {"data": {"business": new_organization, "menu": new_menu}}
+        return {"data": {"business": new_organization, "menu": DEFAULT_MENU}}
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -245,8 +256,8 @@ async def get_organization(
         returnBody--> details of the queried organization
     """
     organization = await get_organization(organization_id, user, db)
-    menu = get_organization_menu(organization_id, db)
-    return {"data": {"organization": organization, "menu": menu}}
+    # menu = get_organization_menu(organization_id, db)
+    return {"data": {"organization": organization}} #, "menu":MENU
 
 
 @app.get("/organizations/{organization_id}/users", status_code=200, response_model=_schemas.OrganizationUsersResponse)
@@ -791,8 +802,8 @@ async def changeOrganizationImage(
     try:
         db.commit()
         db.refresh(organization)
-        menu = get_organization_menu(organization_id, db)
-        return {"message": "Successful", "data": {"organization": organization, "menu": menu}}
+        # menu = get_organization_menu(organization_id, db)
+        return {"message": "Successful", "data": {"organization": organization,  "menu": DEFAULT_MENU}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -990,11 +1001,11 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
     # create a new wallet if the currency is changed
     if currencyUpdated:
         create_wallet(organization_id=organization_id,
-                      currency=organization.currency_preference, db=db)
+                      currency=organization.currency_code, db=db)
 
-    menu = get_organization_menu(organization_id, db)
+    # menu = get_organization_menu(organization_id, db)
 
-    return {"data": {"organization": organization_db, "menu": menu}}
+    return {"data": {"organization": organization_db,  "menu": DEFAULT_MENU}}
 
 
 def create_wallet(organization_id: str, currency: str, db: _orm.Session):
