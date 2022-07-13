@@ -37,14 +37,18 @@ from bigfastapi.services import organization_service
 app = APIRouter(tags=["Organization"])
 
 #placeholder menu. will be removed as soon as the dynamic menu flow is completed
-DEFAULT_MENU = {"education": ["dashboard", "students", "settings", "more"], 
+DEFAULT_MENU = {"active_menu": ["dashboard", "students", "settings", "more"], 
     "hospitality": ["dashboard", "reservations", "customers", "settings", "more"], 
     "retail": ["dashboard", "customers", "debts", "payments", "settings", "more"],
     "freelance": ["dashboard", "clients", "invoices", "settings", "more"], 
     "more": ["reports", "invoices", "fees", "tutorials", "logs", "marketting",
     "sales", "suppliers", "debts", "receipts", "products", "payments"]}
 
-    
+MENU = {"active": {"menu": ["dashboard", "customers", "debts", "payments", "settings", "more"],
+     "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]},
+"menu_list":{"education": {"menu": ["dashboard", "student", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "hospitality": {"menu": ["dashboard", "reservations", "customers", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "retail": {"menu": ["dashboard", "customers", "debts", "payments", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "freelance": {"menu": ["dashboard", "clients", "settings", "more"], 
+"more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}}}
+
 @app.post("/organizations")
 def create_organization(
         organization: _schemas.OrganizationCreate,
@@ -253,7 +257,7 @@ async def get_organization(
     """
     organization = await get_organization(organization_id, user, db)
     # menu = get_organization_menu(organization_id, db)
-    return {"data": {"organization": organization, "menu": DEFAULT_MENU}}
+    return {"data": {"organization": organization}} #, "menu":MENU
 
 
 @app.get("/organizations/{organization_id}/users", status_code=200, response_model=_schemas.OrganizationUsersResponse)

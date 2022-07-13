@@ -11,7 +11,7 @@ app = APIRouter(tags=["import_progress"],)
 async def importDetails(model: str, organization_id: str, 
     db: orm.Session = Depends(get_db)):
     file_import = db.query(FileImports).\
-        filter(FileImports.model == model).\
+        filter(FileImports.model_name == model).\
         filter(FileImports.organization_id == organization_id).\
         filter(FileImports.is_deleted == False).first()
     if file_import == None:
