@@ -3,7 +3,6 @@ from bigfastapi.api_key import app as api_key
 from bigfastapi.landing_page import app as landing_page
 from bigfastapi.activity_log import app as activity_log
 from bigfastapi.activity_log import app as activitieslog
-from bigfastapi.menu import app as menu
 import datetime
 import random
 from uuid import uuid4
@@ -248,7 +247,6 @@ app.include_router(blog, tags=["Blog"])
 app.include_router(plans, tags=['Plans'])
 app.include_router(email)
 app.include_router(files, tags=["File"])
-app.include_router(menu, tags=["Menu"])
 app.include_router(comments, tags=["Comments"])
 app.include_router(sub, tags=["Subscription"])
 app.include_router(tutorial, tags=["Tutorials"])
