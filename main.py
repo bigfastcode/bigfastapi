@@ -1,4 +1,3 @@
-from bigfastapi.file_import import app as importprogress
 from bigfastapi.api_key import app as api_key
 from bigfastapi.landing_page import app as landing_page
 from bigfastapi.activity_log import app as activity_log
@@ -266,7 +265,6 @@ app.include_router(sms)
 app.include_router(activity_log)
 app.include_router(api_key)
 app.include_router(landing_page)
-app.include_router(importprogress)
 
 
 
