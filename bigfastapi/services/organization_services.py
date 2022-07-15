@@ -84,7 +84,7 @@ def create_organization_service(user: users_schemas.User, db: orm.Session, organ
 
 
 
-    return {"org": new_organization, "location": organization_location, "contact": organization_contact}
+    return new_organization
 
 
 def get_organization_by_name(name: str, creator_id: str, db: orm.Session):
