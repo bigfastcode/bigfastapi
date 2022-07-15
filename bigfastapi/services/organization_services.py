@@ -49,16 +49,30 @@ MENU = {
 
 def create_organization(user: users_schemas.User, db: orm.Session, organization: Schemas.OrganizationCreate):
     organization_id = uuid4().hex
-    newOrganization = Models.Organization(id=organization_id, user_id=user.id, mission=organization.mission,
+    new_organization = Models.Organization(id=organization_id, user_id=user.id, mission=organization.mission,
                                            vision=organization.vision, name=organization.name,
                                            business_type=organization.business_type,
                                            tagline=organization.tagline, image_url=organization.image_url, is_deleted=False,
                                            currency_code=organization.currency_code)
+    
+    location_id = uuid4().hex
+    organization_location = Models.OrganizationLocation(id=location_id, country=organization.location.country_code, state=organization.location.state,
+                                                        county=organization.location.county, zip_code=organization.location.zip_code, full_address=organization.location.full_address, 
+                                                        street=organization.location.street, significant_landmark=organization.location.significant_landmark, 
+                                                        driving_instruction=organization.location.driving_instruction, longitude=organization.location.longitude,
+                                                        latitude=organization.location.latitude, location_id=location_id, organization_id=organization_id)
 
-    db.add(newOrganization)
+    contact_info_id= uuid4().hex
+    organization_contact = Models.OrganizationContactInfo(id=contact_info_id, contact_data=organization.contact_infos.contact_data, contact_tag=organization.contact_infos.contact_tag,
+                                                        contact_type=organization.contact_infos.contact_type, contact_title=organization.contact_infos.contact.title,
+                                                        phone_country_code=organization.contact_infos.phone_country_code, description=organization.contact_infos.description)
+  
+
+    db.add_all([new_organization, organization_location, organization_contact])
     db.commit()
-    db.refresh(newOrganization)
-    return newOrganization
+    db.refresh([new_organization, organization_location, organization_contact])
+    return new_organization
+
 
 
 def get_organization_by_name(name: str, creator_id: str, db: orm.Session):

@@ -52,7 +52,7 @@ def create_organization(
     reqBody-->country: This is the organization's country of operation
     reqBody-->state: This is the organization's state of operation
     reqBody-->address: This is a descriptive address of where the organization is located
-    reqBody-->currency_preference: This is the currency of preference of the organization
+    reqBody-->currency_code: This is the currency of preference of the organization
     reqBody-->phone_number: This is the phone contact detail of the organization
     reqBody-->email This is the email contact address of the organization
     reqBody-->current_subscription: This is the current subscription plan of the organization
@@ -60,14 +60,15 @@ def create_organization(
     reqBody-->image: This is a link to cover image for the organization
     reqBody-->values: This describes the values of the organization
     reqBody-->business_type: This is the type of business the organization runs
-    reqBody-->credit_balance: This is a value representing the organization's credit balance
     reqBody-->image_full_path: This is full url path to the company's cover image
-    reqBody-->add_template: This is a boolean value that determines wether to add already available templates for the organization.
+ 
 
     returnDesc--> On sucessful request, it returns
         returnBody--> details of the newly created organization
     """
     try:
+
+        return organization
 
         db_org = get_organization_by_name(
             name=organization.name, creator_id=user.id, db=db)
