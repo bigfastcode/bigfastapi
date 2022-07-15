@@ -88,12 +88,12 @@ def create_organization(
         background_tasks.add_task(send_slack_notification,
                                 user.email, organization)
 
-        newOrId = created_org.id
-        new_organization = created_org
+        # newOrId = created_org.id
+        # new_organization = created_org
         # newMenList = assocMenu["menu_list"]
         # new_menu = assocMenu
 
-        return {"data": {"business": new_organization, "menu": DEFAULT_MENU}}
+        return {"data": {"business": created_org.org, "business_location": created_org.location, "business_contacts": created_org.contact, "menu": DEFAULT_MENU}}
 
     except Exception as ex:
         if type(ex) == HTTPException:
