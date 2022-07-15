@@ -68,7 +68,7 @@ def create_organization(
     """
     try:
 
-        return organization
+   
 
         db_org = get_organization_by_name(
             name=organization.name, creator_id=user.id, db=db)
@@ -77,7 +77,7 @@ def create_organization(
             raise _fastapi.HTTPException(
                 status_code=400, detail=f"{organization.name} already exist in your business collection")
 
-        created_org = create_organization(
+        created_org = create_organization_service(
             user=user, db=db, organization=organization)
 
         # assocMenu = add_default_menu_list(
