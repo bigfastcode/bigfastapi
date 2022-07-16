@@ -36,19 +36,6 @@ from bigfastapi.services import organization_service
 
 app = APIRouter(tags=["Organization"])
 
-#placeholder menu. will be removed as soon as the dynamic menu flow is completed
-DEFAULT_MENU = {"active_menu": ["dashboard", "students", "settings", "more"], 
-    "hospitality": ["dashboard", "reservations", "customers", "settings", "more"], 
-    "retail": ["dashboard", "customers", "debts", "payments", "settings", "more"],
-    "freelance": ["dashboard", "clients", "invoices", "settings", "more"], 
-    "more": ["reports", "invoices", "fees", "tutorials", "logs", "marketting",
-    "sales", "suppliers", "debts", "receipts", "products", "payments"]}
-
-MENU = {"active": {"menu": ["dashboard", "customers", "debts", "payments", "settings", "more"],
-     "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]},
-"menu_list":{"education": {"menu": ["dashboard", "student", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "hospitality": {"menu": ["dashboard", "reservations", "customers", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "retail": {"menu": ["dashboard", "customers", "debts", "payments", "settings", "more"], "more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}, "freelance": {"menu": ["dashboard", "clients", "settings", "more"], 
-"more": ["reports", "invoice", "fees", "tutorials", "sales", "debts", "receipts", "products", "payments"]}}}
-
 @app.post("/organizations")
 def create_organization(
         organization: _schemas.OrganizationCreate,
@@ -91,21 +78,15 @@ def create_organization(
         created_org = organization_service.create_organization(
             user=user, db=db, organization=organization)
 
-        # assocMenu = add_default_menu_list(
-        #     created_org.id, created_org.business_type, db)
 
         run_wallet_creation(created_org, db)
 
         background_tasks.add_task(defaults_for_org, organization, created_org, db)
         background_tasks.add_task(send_slack_notification,
                                 user.email, organization)
-
-        newOrId = created_org.id
-        new_organization = created_org
-        # newMenList = assocMenu["menu_list"]
-        # new_menu = assocMenu
-
-        return {"data": {"business": new_organization, "menu": DEFAULT_MENU}}
+        new_org = created_org
+        print(new_org.id)
+        return {"data": {"new_business_id": new_org.id, "business": new_org}}
 
     except Exception as ex:
         if type(ex) == HTTPException:
