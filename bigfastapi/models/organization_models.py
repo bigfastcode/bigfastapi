@@ -5,6 +5,9 @@ import sqlalchemy.orm as _orm
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Integer, Text, DateTime, Boolean
 from uuid import uuid4
+from bigfastapi.models.location_models import Location
+from bigfastapi.models.contact_info_models import ContactInfo
+
 
 
 from bigfastapi.db.database import Base
@@ -17,9 +20,9 @@ class Organization(Base):
     __tablename__ = "organizations"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     user_id = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
-    email = Column(String(255), default="")
-    phone_number = Column(String(50), default="")
-    phone_country_code = Column(String(10))
+    # email = Column(String(255), default="")
+    # phone_number = Column(String(50), default="")
+    # phone_country_code = Column(String(10))
     mission = Column(Text())
     vision = Column(Text())
     currency_code = Column(String(5))
@@ -76,6 +79,29 @@ class Role(Base):
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255), index=True)
     role_name = Column(String(255), index=True)
+
+
+
+class OrganizationLocation(Location):
+    __tablename__ = "organization_location"
+    association_id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
+    location_id = Column(String(50), ForeignKey("locations.id"), index=True, nullable=False)
+    organization_id =Column(String(50), ForeignKey("organizations.id"), index=True, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'organization_location',
+    }
+
+
+class OrganizationContactInfo(ContactInfo):
+    __tablename__ = "organization_contact_info"
+    association_id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
+    contact_info_id = Column(String(50), ForeignKey("contact_info.id"), index=True, nullable=False)
+    organization_id =Column(String(255), ForeignKey("organizations.id"), index=True, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'organization_contact_info',
+    }
 
 
 # --------------------------------------------------------------------------------------------------#
