@@ -114,7 +114,7 @@ async def create_user(user: auth_schemas.APIKey, db: orm.Session):
     user_obj = user_models.User(
         id=uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
-        is_active=True, is_verified=True, country_code=user.country_code, is_deleted=False,
+        is_active=True, is_verified=True, phone_country_code=user.phone_country_code, is_deleted=False,
         country=None, state=None, google_id=None, google_image=None,
         image=None, device_id=None
     )
@@ -161,9 +161,9 @@ async def find_user(db: orm.Session, email: str = "", phone_number: str = "", co
     if email != "":
         return db.query(user_models.User).filter(user_models.User.email == email).first()
     if phone_number != "" and country_code != "":
-        return db.query(user_models.User).filter(and_(user_models.User.phone_number == phone_number, user_models.User.country_code == country_code)).first()
+        return db.query(user_models.User).filter(and_(user_models.User.phone_number == phone_number, user_models.User.phone_country_code == country_code)).first()
     if phone_number != "" and country_code != "" and email != "":
-        return db.query(user_models.User).filter(and_(user_models.User.phone_number == phone_number, user_models.User.country_code == country_code, user_models.User.email == email)).first()
+        return db.query(user_models.User).filter(and_(user_models.User.phone_number == phone_number, user_models.User.phone_country_code == country_code, user_models.User.email == email)).first()
 
 
 async def check_if_eligible_to_create_apikey(ip: str, body: auth_schemas.APIKey, db: orm.Session):
@@ -179,8 +179,8 @@ async def check_if_eligible_to_create_apikey(ip: str, body: auth_schemas.APIKey,
             raise fastapi.HTTPException(
                 status_code=403, detail="You already have an API key")
 
-    if body.phone_number != None and body.country_code != None:
-        user = await find_user(db, body.phone_number, body.country_code)
+    if body.phone_number != None and body.phone_country_code != None:
+        user = await find_user(db, body.phone_number, body.phone_country_code)
         if not user:
             return "Eligible"
         check_user = db.query(auth_models.APIKeys).filter(and_
@@ -191,8 +191,8 @@ async def check_if_eligible_to_create_apikey(ip: str, body: auth_schemas.APIKey,
             raise fastapi.HTTPException(
                 status_code=403, detail="You already have an API key")
 
-    if body.phone_number != None and body.country_code != None and body.email != None:
-        user = await find_user(db, body.email, body.phone_number, body.country_code)
+    if body.phone_number != None and body.phone_country_code != None and body.email != None:
+        user = await find_user(db, body.email, body.phone_number, body.phone_country_code)
         if not user:
             return "Eligible"
         check_user = db.query(auth_models.APIKeys).filter(and_
@@ -217,15 +217,15 @@ async def check_user_exist(body: auth_schemas.APIKey, db: orm.Session):
         if body.email == None and body.phone_number == None:
             raise fastapi.HTTPException(
                 status_code=403, detail="you must use a either phone_number or email to get API key")
-        if body.phone_number and body.country_code == None:
+        if body.phone_number and body.phone_country_code == None:
             raise fastapi.HTTPException(
                 status_code=403, detail="you must add a country code when you add a phone number")
-        if body.phone_number and body.country_code:
-            check_contry_code = utils.dialcode(body.country_code)
+        if body.phone_number and body.phone_country_code:
+            check_contry_code = utils.dialcode(body.phone_country_code)
             if check_contry_code is None:
                 raise fastapi.HTTPException(
                     status_code=403, detail="this country code is invalid")
-        if body.phone_number == None and body.country_code:
+        if body.phone_number == None and body.phone_country_code:
             raise fastapi.HTTPException(
                 status_code=403, detail="you must add a phone number when you add a country code")
 
@@ -239,7 +239,7 @@ async def check_user_exist(body: auth_schemas.APIKey, db: orm.Session):
 
         if body.phone_number != None:
             user_exist = db.query(user_models.User).filter(
-                and_(user_models.User.phone_number == body.phone_number, user_models.User.country_code == body.country_code)).first()
+                and_(user_models.User.phone_number == body.phone_number, user_models.User.phone_country_code == body.phone_country_code)).first()
 
         if user_exist != None:
             print(user_exist.id)
