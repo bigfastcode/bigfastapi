@@ -429,7 +429,7 @@ async def invite_user(
     organization_id: str,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
+    # user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db),
 ):
     """intro--> This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with the specified body of request
