@@ -106,7 +106,7 @@ class User(_UserBase):
 
 
 class APIKey(_UserBase):
-    app_name: str
+    app_name: Optional[str]
     email: Optional[str]
     phone_number: Optional[str]
     phone_country_code: Optional[str]
