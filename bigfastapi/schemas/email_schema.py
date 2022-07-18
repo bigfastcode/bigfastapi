@@ -1,5 +1,6 @@
-from pydantic import EmailStr, BaseModel
-from typing import Optional, List
+from typing import List, Optional
+
+from pydantic import BaseModel, EmailStr
 
 
 class Email(BaseModel):
@@ -28,4 +29,3 @@ class Email(BaseModel):
     sender_address: str
     sender_city: str
     sender_state: str
-
