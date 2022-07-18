@@ -420,7 +420,7 @@ def accept_invite(
 
 
 @app.post(
-    "/organizations/{organization_id}/invite-user/",
+    "/organizations/{organization_id}/invite-user",
     status_code=201,
     response_model=_schemas.InviteResponse,
 )
