@@ -255,7 +255,7 @@ def delete_organization_user(
 
 
 @app.get("/organizations/{organization_id}/roles")
-def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)):
+def get_roles(organization_id: str, user: users_schemas.User, db: _orm.Session = _fastapi.Depends(get_db)):
     """intro--> This endpoint allows you to retrieve all available roles in an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/roles endpoint 
 
         paramDesc--> On get request, the request url takes the parameter, organization id.
@@ -275,6 +275,7 @@ def get_roles(organization_id: str, db: _orm.Session = _fastapi.Depends(get_db))
 @app.post("/organizations/{organization_id}/roles")
 def add_role(payload: AddRole,
              organization_id: str,
+             user: users_schemas.User,
              db: _orm.Session = _fastapi.Depends(get_db)
              ):
     """intro--> This endpoint allows you to create roles in an organization. To use this endpoint you need to make a post request to the /organizations/{organization_id}/roles endpoint with a specified body of request
@@ -387,9 +388,10 @@ def accept_invite(
 @app.post("/organizations/{organization_id}/invite-user/", status_code=201, response_model=_schemas.InviteResponse)
 async def invite_user(
     payload: _schemas.UserInvite,
+    organization_id: str,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
-    user: str = _fastapi.Depends(is_authenticated),
+    user: users_schemas.User = _fastapi.Depends(is_authenticated),
     db: _orm.Session = _fastapi.Depends(get_db)
 ):
     """intro--> This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with the specified body of request 
@@ -410,6 +412,7 @@ async def invite_user(
         invite_url = f"{payload.app_url}/accept-invite?invite_token={invite_token}"
         payload.email_details.link = invite_url
         email_info = payload.email_details
+        email_info.organization_id = organization_id
 
         role = (
             db.query(Role)

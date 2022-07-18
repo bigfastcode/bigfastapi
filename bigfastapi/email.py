@@ -283,7 +283,7 @@ conf = ConnectionConfig(
     MAIL_TLS=False,
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
-    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER,)
+    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email")
 )
 
 async def send_receipt_email(
@@ -341,7 +341,7 @@ def send_email(
         date_created = datetime.now()
         message = MessageSchema(
             subject=email_details.subject,
-            recipients=email_details.recipient,
+            recipients=email_details.recipients,
             template_body={
                 "title": email_details.title,
                 "first_name": email_details.first_name,
@@ -351,9 +351,7 @@ def send_email(
                 "due_date": email_details.due_date,
                 "link": email_details.link,
                 "extra_link": email_details.extra_link,
-                "invoice_id": email_details.invoice_id,
                 "description": email_details.description,
-                "receipt_id": email_details.receipt_id,
                 "promo_product_name": email_details.promo_product_name,
                 "promo_product_description": email_details.promo_product_description,
                 "promo_product_price": email_details.promo_product_price,
@@ -371,30 +369,11 @@ def send_email(
         )
         email = email_models.Email(
             id=uuid4().hex,
-            subject=email_details.subject,
-            recipient=email_details.recipient,
+            organization_id=email_details.organization_id,
+            recipients=email_details.recipients,
             title=email_details.title,
-            first_name=email_details.first_name,
             body=email_details.body,
-            amount=email_details.amount,
-            due_date=email_details.due_date,
-            link=email_details.link,
-            extra_link=email_details.extra_link,
-            invoice_id=email_details.invoice_id,
-            receipt_id=email_details.receipt_id,
-            description=email_details.description,
-            promo_product_name=email_details.promo_product_name,
-            promo_product_description=email_details.promo_product_description,
-            promo_product_price=email_details.promo_product_price,
-            product_name=email_details.product_name,
-            product_description=email_details.product_description,
-            product_price=email_details.product_price,
-            extra_product_name=email_details.extra_product_name,
-            extra_product_description=email_details.extra_product_description,
-            extra_product_price=email_details.extra_product_price,
-            sender_address=email_details.sender_address,
-            sender_city=email_details.sender_city,
-            sender_state=email_details.sender_state,
+            email_purpose=email_details.subject,
             date_created=date_created,
         )
         db.add(email)

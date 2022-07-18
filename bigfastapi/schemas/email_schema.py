@@ -4,7 +4,8 @@ from typing import Optional, List
 
 class Email(BaseModel):
     subject: str
-    recipient: List[EmailStr]
+    recipients: List[EmailStr]
+    organization_id: Optional[str]
     title: str
     first_name: str
     body: Optional[str] = None
