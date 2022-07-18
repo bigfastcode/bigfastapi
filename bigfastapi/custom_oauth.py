@@ -172,8 +172,13 @@ class OAuth2PasswordBearer(OAuth2):
         print('test test')
         authorization: str = request.headers.get("Authorization")
         # print("get auth: " + str(authorization))
-        api_key: str = request.headers.get("API_KEY")
-        app_id: str = request.headers.get("APP_ID")
+        # api_key: str = request.headers.get("API_KEY")
+        # app_id: str = request.headers.get("APP_ID")
+
+        api_key: str = request.query_params.get("Apikey")
+        app_id: str = request.query_params.get("Appid")
+
+        
         scheme, param = get_authorization_scheme_param(authorization)
 
         print('starting...')
@@ -182,9 +187,7 @@ class OAuth2PasswordBearer(OAuth2):
         print(app_id)
 
         if api_key and app_id and not authorization:
-            print('test test ')
-
-      
+            print('test test ')      
             return {"API_KEY": api_key, "APP_ID": app_id}
 
         if authorization and not api_key and not app_id:
