@@ -1,20 +1,21 @@
-from bigfastapi.schemas import receipt_schemas
-from .models import email_models
-from .schemas import email_schema
-from typing import Optional, Union
-from uuid import uuid4
+import os
+import time
 from datetime import datetime
-from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, status
-from bigfastapi.db.database import get_db
-from fastapi import BackgroundTasks
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from pydantic import BaseModel
+from typing import List, Optional, Union
+from uuid import uuid4
+
 import fastapi
 import sqlalchemy.orm as orm
+from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile, status
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
+from pydantic import BaseModel
+
+from bigfastapi.db.database import get_db
+from bigfastapi.schemas import receipt_schemas
 from bigfastapi.utils import settings
-import time
-import os
-from typing import Dict, List, Optional, Set
+
+from .models import email_models
+from .schemas import email_schema
 
 app = APIRouter(tags=["Transactional Emails 📧"])
 
@@ -25,10 +26,11 @@ class ResponseModel(BaseModel):
 
 @app.post("/email/send", response_model=ResponseModel)
 def send_email(
-        email_details: email_schema.Email,
-        background_tasks: BackgroundTasks,
-        template: Optional[str] = "base_email.html",
-        db: orm.Session = fastapi.Depends(get_db)):
+    email_details: email_schema.Email,
+    background_tasks: BackgroundTasks,
+    template: Optional[str] = "base_email.html",
+    db: orm.Session = fastapi.Depends(get_db),
+):
     """intro-->This endpoint is used to send an email. To use this endpoint you need to make a post request to the /email/send endpoint with a specified body of request
 
         reqBody-->subject: This is the subject of the email
@@ -41,11 +43,15 @@ def send_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Email will be sent in the background" 
+        returnBody--> "Email will be sent in the background"
     """
 
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
 
     return {"message": "Email will be sent in the background"}
 
@@ -55,7 +61,7 @@ def send_notification_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "notification_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used to send a notification email. To use this endpoint you need to make a post request to the /email/send/notification endpoint with a specified body of request
 
@@ -69,11 +75,15 @@ def send_notification_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Notification Email will be sent in the background" 
+        returnBody--> "Notification Email will be sent in the background"
     """
 
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Notification Email will be sent in the background"}
 
 
@@ -82,8 +92,7 @@ def send_invoice_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invoice_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
-
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used to send an invoice email. To use this endpoint you need to make a post request to the /email/send/invoice endpoint with a specified body of request
 
@@ -97,10 +106,14 @@ def send_invoice_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Invoice Email will be sent in the background" 
+        returnBody--> "Invoice Email will be sent in the background"
     """
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Invoice Email will be sent in the background"}
 
 
@@ -109,7 +122,7 @@ def send_receipt_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "receipt_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used to send a receipt email. To use this endpoint you need to make a post request to the /email/send/receipt endpoint with a specified body of request
 
@@ -123,10 +136,14 @@ def send_receipt_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Receipt Email will be sent in the background" 
+        returnBody--> "Receipt Email will be sent in the background"
     """
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Receipt Email will be sent in the background"}
 
 
@@ -135,7 +152,7 @@ def send_welcome_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "welcome.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used to send a welcome email. To use this endpoint you need to make a post request to the /email/send/welcome endpoint with a specified body of request
 
@@ -149,10 +166,14 @@ def send_welcome_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Welcome Email will be sent in the background" 
+        returnBody--> "Welcome Email will be sent in the background"
     """
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Welcome Email will be sent in the background"}
 
 
@@ -161,7 +182,7 @@ def send_verification_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "verification_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used to send a Verification email. To use this endpoint you need to make a post request to the /email/send/verification endpoint with a specified body of request
 
@@ -175,11 +196,15 @@ def send_verification_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Verification Email will be sent in the background" 
+        returnBody--> "Verification Email will be sent in the background"
     """
 
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Verification Email will be sent in the background"}
 
 
@@ -188,7 +213,7 @@ def send_reset_password_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "reset_password_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used to send a reset password email. To use this endpoint you need to make a post request to the /email/send/reset-password endpoint with a specified body of request
 
@@ -202,11 +227,15 @@ def send_reset_password_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Reset Password Email will be sent in the background" 
+        returnBody--> "Reset Password Email will be sent in the background"
     """
 
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Reset Password Email will be sent in the background"}
 
 
@@ -215,7 +244,7 @@ def send_marketing_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "marketing_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used to send a marketing email. To use this endpoint you need to make a post request to the /email/send/marketing-email endpoint with a specified body of request
 
@@ -229,11 +258,15 @@ def send_marketing_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Marketing Email will be sent in the background" 
+        returnBody--> "Marketing Email will be sent in the background"
     """
 
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Marketing Email will be sent in the background"}
 
 
@@ -243,7 +276,7 @@ def schedule_marketing_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "marketing_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
     """intro-->This endpoint is used for scheduling a marketing email to be sent at a particular time. To use this endpoint you need to make a post request to the /email/send/marketing-email/schedule endpoint with a specified body of request
 
@@ -257,22 +290,28 @@ def schedule_marketing_email(
         reqBody-->body: This is the body of the email
 
     returnDesc--> On sucessful request, it returns message,
-        returnBody--> "Scheduled Marketing Email will be sent in the background" 
+        returnBody--> "Scheduled Marketing Email will be sent in the background"
     """
 
     if schedule_at <= datetime.now():
         raise fastapi.HTTPException(
-            status_code=404, detail="The scheduled date/time can't be less than or equal to the current date/time")
+            status_code=404,
+            detail="The scheduled date/time can't be less than or equal to the current date/time",
+        )
 
     scheduled_time = schedule_at - datetime.now()
     scheduled_time_in_secs = int(round(scheduled_time.total_seconds()))
     time.sleep(scheduled_time_in_secs)
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Scheduled Marketing Email will be sent in the background"}
 
 
-#=================================== EMAIL SERVICES =================================#
+# =================================== EMAIL SERVICES =================================#
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
     MAIL_PASSWORD=settings.MAIL_PASSWORD,
@@ -283,15 +322,16 @@ conf = ConnectionConfig(
     MAIL_TLS=False,
     MAIL_SSL=True,
     USE_CREDENTIALS=True,
-    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER,)
+    TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email"),
 )
+
 
 async def send_receipt_email(
     email_details: receipt_schemas.atrributes,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "mail_receipt.html",
     db: orm.Session = fastapi.Depends(get_db),
-    file: Union[UploadFile, None] = None
+    file: Union[UploadFile, None] = None,
 ):
     try:
         if file is not None:
@@ -302,9 +342,9 @@ async def send_receipt_email(
                     "message": email_details.message,
                 },
                 subtype="html",
-                attachments=[file]
+                attachments=[file],
             )
-        else: 
+        else:
             message = MessageSchema(
                 subject=email_details.subject,
                 recipients=email_details.recipient,
@@ -316,32 +356,42 @@ async def send_receipt_email(
 
         fm = FastMail(conf)
         background_tasks.add_task(fm.send_message, message, template_name=template)
-    
+
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
 
 
 def send_invite_email(
     email_details: email_schema.Email,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
 ):
 
-    send_email(email_details=email_details,
-               background_tasks=background_tasks, template=template, db=db)
+    send_email(
+        email_details=email_details,
+        background_tasks=background_tasks,
+        template=template,
+        db=db,
+    )
     return {"message": "Invite email will be sent in the background"}
 
 
 def send_email(
-    email_details: email_schema.Email, background_tasks: BackgroundTasks, template: str, db: orm.Session):
+    email_details: email_schema.Email,
+    background_tasks: BackgroundTasks,
+    template: str,
+    db: orm.Session,
+):
     try:
         date_created = datetime.now()
         message = MessageSchema(
             subject=email_details.subject,
-            recipients=email_details.recipient,
+            recipients=email_details.recipients,
             template_body={
                 "title": email_details.title,
                 "first_name": email_details.first_name,
@@ -351,9 +401,7 @@ def send_email(
                 "due_date": email_details.due_date,
                 "link": email_details.link,
                 "extra_link": email_details.extra_link,
-                "invoice_id": email_details.invoice_id,
                 "description": email_details.description,
-                "receipt_id": email_details.receipt_id,
                 "promo_product_name": email_details.promo_product_name,
                 "promo_product_description": email_details.promo_product_description,
                 "promo_product_price": email_details.promo_product_price,
@@ -371,30 +419,11 @@ def send_email(
         )
         email = email_models.Email(
             id=uuid4().hex,
-            subject=email_details.subject,
-            recipient=email_details.recipient,
+            organization_id=email_details.organization_id,
+            recipients=email_details.recipients,
             title=email_details.title,
-            first_name=email_details.first_name,
             body=email_details.body,
-            amount=email_details.amount,
-            due_date=email_details.due_date,
-            link=email_details.link,
-            extra_link=email_details.extra_link,
-            invoice_id=email_details.invoice_id,
-            receipt_id=email_details.receipt_id,
-            description=email_details.description,
-            promo_product_name=email_details.promo_product_name,
-            promo_product_description=email_details.promo_product_description,
-            promo_product_price=email_details.promo_product_price,
-            product_name=email_details.product_name,
-            product_description=email_details.product_description,
-            product_price=email_details.product_price,
-            extra_product_name=email_details.extra_product_name,
-            extra_product_description=email_details.extra_product_description,
-            extra_product_price=email_details.extra_product_price,
-            sender_address=email_details.sender_address,
-            sender_city=email_details.sender_city,
-            sender_state=email_details.sender_state,
+            email_purpose=email_details.subject,
             date_created=date_created,
         )
         db.add(email)
@@ -406,7 +435,9 @@ def send_email(
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
 
 
 async def send_email_user(email: str, user, template, title: str, path="", code=""):
@@ -414,11 +445,7 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         message = MessageSchema(
             subject=title,
             recipients=[email],
-            template_body={
-                "title": title,
-                "first_name": user.first_name,
-                "code": code
-            },
+            template_body={"title": title, "first_name": user.first_name, "code": code},
             subtype="html",
         )
         fm = FastMail(conf)
@@ -428,12 +455,7 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         message = MessageSchema(
             subject=title,
             recipients=[email],
-            template_body={
-                "title": title,
-                "first_name": user.first_name,
-                "path": path
-
-            },
+            template_body={"title": title, "first_name": user.first_name, "path": path},
             subtype="html",
         )
         fm = FastMail(conf)
@@ -441,7 +463,19 @@ async def send_email_user(email: str, user, template, title: str, path="", code=
         return await fm.send_message(message, template)
 
 
-async def send_email_debts(email: str, user, template, title: str, amount=int, due_date="", description="", date="", invoice_id=str, email_message="", business_name=""):
+async def send_email_debts(
+    email: str,
+    user,
+    template,
+    title: str,
+    amount=int,
+    due_date="",
+    description="",
+    date="",
+    invoice_id=str,
+    email_message="",
+    business_name="",
+):
 
     message = MessageSchema(
         subject=title,
@@ -455,7 +489,7 @@ async def send_email_debts(email: str, user, template, title: str, amount=int, d
             "date": date,
             "invoice_id": invoice_id,
             "email_message": email_message,
-            "business_name": business_name
+            "business_name": business_name,
         },
         subtype="html",
     )
@@ -464,7 +498,20 @@ async def send_email_debts(email: str, user, template, title: str, amount=int, d
     return await fm.send_message(message, template)
 
 
-async def auto_send_email_debts(email: str, first_name: str, template, title: str, amount=int, due_date="", payment_link="", description="", date="", invoice_id=str, email_message="", business_name=""):
+async def auto_send_email_debts(
+    email: str,
+    first_name: str,
+    template,
+    title: str,
+    amount=int,
+    due_date="",
+    payment_link="",
+    description="",
+    date="",
+    invoice_id=str,
+    email_message="",
+    business_name="",
+):
 
     message = MessageSchema(
         subject=title,
@@ -479,7 +526,7 @@ async def auto_send_email_debts(email: str, first_name: str, template, title: st
             "invoice_id": invoice_id,
             "email_message": email_message,
             "business_name": business_name,
-            "payment_link": payment_link
+            "payment_link": payment_link,
         },
         subtype="html",
     )
@@ -488,7 +535,15 @@ async def auto_send_email_debts(email: str, first_name: str, template, title: st
     return await fm.send_message(message, template)
 
 
-async def engagement_email(email: List[str], first_name: str, template, title: str, body: str, sender: str, preheader=""):
+async def engagement_email(
+    email: List[str],
+    first_name: str,
+    template,
+    title: str,
+    body: str,
+    sender: str,
+    preheader="",
+):
     message = MessageSchema(
         subject=title,
         recipients=email,
@@ -497,8 +552,7 @@ async def engagement_email(email: List[str], first_name: str, template, title: s
             "body": body,
             "sender": sender,
             "first_name": first_name,
-            "preheader": preheader
-
+            "preheader": preheader,
         },
         subtype="html",
     )
