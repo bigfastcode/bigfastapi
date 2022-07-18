@@ -97,8 +97,6 @@ async def fetch_organization_by_name(name: str, organization_id: str, db: orm.Se
         Models.Organization.id != organization_id).first()
 
 
-
-
 def run_wallet_creation(newOrganization: Models.Organization, db: orm.Session):
     roles = ["Assistant", "Admin", "Owner"]
     for role in roles:
@@ -116,7 +114,7 @@ def run_wallet_creation(newOrganization: Models.Organization, db: orm.Session):
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
-def get_organizations(user: users_schemas.User, db: orm.Session):
+def get_organizations_service(user: users_schemas.User, db: orm.Session):
     native_orgs = db.query(Models.Organization).filter_by(
         user_id=user.id).all()
 
