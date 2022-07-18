@@ -45,8 +45,7 @@ MENU = {
     }
 
 
-
-def create_organization_service(user: users_schemas.User, db: orm.Session, organization: Schemas.OrganizationCreate):
+def create_organization(user: users_schemas.User, db: orm.Session, organization: Schemas.OrganizationCreate, contact_infos=[], location=[]):
     organization_id = uuid4().hex
     new_organization = Models.Organization(id=organization_id, user_id=user.id, mission=organization.mission,
                                            vision=organization.vision, name=organization.name,
@@ -72,7 +71,6 @@ def create_organization_service(user: users_schemas.User, db: orm.Session, organ
 
     for contact_info in organization.contact_infos:
         contact_info_id= uuid4().hex
-        
         organization_contact = Models.OrganizationContactInfo(id=contact_info_id, contact_data=contact_info.contact_data, contact_tag=contact_info.contact_tag,
                                                             contact_type=contact_info.contact_type, contact_title=contact_info.contact_title,
                                                             phone_country_code=contact_info.phone_country_code, description=contact_info.description, association_id=uuid4().hex,
@@ -84,6 +82,7 @@ def create_organization_service(user: users_schemas.User, db: orm.Session, organ
 
 
 
+    # return {"org": new_organization, "location": organization_location, "contact": organization_contact}
     return new_organization
 
 
@@ -114,7 +113,7 @@ def run_wallet_creation(newOrganization: Models.Organization, db: orm.Session):
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
-def get_organizations_service(user: users_schemas.User, db: orm.Session):
+def get_organizations(user: users_schemas.User, db: orm.Session):
     native_orgs = db.query(Models.Organization).filter_by(
         user_id=user.id).all()
 

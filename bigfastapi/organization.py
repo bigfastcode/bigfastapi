@@ -31,11 +31,10 @@ from bigfastapi.models import wallet_models as wallet_models
 from bigfastapi.schemas import users_schemas
 from bigfastapi.utils.utils import paginate_data, row_to_dict
 
-from bigfastapi.services.organization_services import *
+from bigfastapi.services import organization_services
 
 
 app = APIRouter(tags=["Organization"])
-
 
 @app.post("/organizations")
 def create_organization(
@@ -70,30 +69,24 @@ def create_organization(
 
    
 
-        db_org = get_organization_by_name(
+        db_org = organization_services.get_organization_by_name(
             name=organization.name, creator_id=user.id, db=db)
 
         if db_org:
             raise _fastapi.HTTPException(
                 status_code=400, detail=f"{organization.name} already exist in your business collection")
 
-        created_org = create_organization_service(
+        created_org = organization_services.create_organization(
             user=user, db=db, organization=organization)
 
-        # assocMenu = add_default_menu_list(
-        #     created_org.id, created_org.business_type, db)
 
-        run_wallet_creation(created_org, db)
+        organization_services.run_wallet_creation(created_org, db)
 
-        background_tasks.add_task(send_slack_notification,
+        background_tasks.add_task(organization_services.send_slack_notification,
                                 user.email, organization)
-
-        newOrId = created_org.id
-        new_organization = created_org
-        # newMenList = assocMenu["menu_list"]
-        # new_menu = assocMenu
-
-        return {"data": {"business": new_organization, "menu": DEFAULT_MENU}}
+        new_org = created_org
+        print(new_org.id)
+        return {"data": {"new_business_id": new_org.id, "business": new_org}}
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -120,7 +113,7 @@ def get_organizations(
 
         returnBody--> a list of organizations
     """
-    all_orgs = get_organizations(user, db)
+    all_orgs = organization_services.get_organizations(user, db)
 
     return paginate_data(all_orgs, page_size, page_number)
 
@@ -141,7 +134,7 @@ async def get_organization(
 
         returnBody--> details of the queried organization
     """
-    organization = await get_organization(organization_id, user, db)
+    organization = await organization_services.get_organization(organization_id, user, db)
     # menu = get_organization_menu(organization_id, db)
     return {"data": {"organization": organization}} #, "menu":MENU
 
@@ -655,7 +648,7 @@ async def update_organization(organization_id: str, organization: _schemas.Organ
 
         returnBody--> details of the updated organization
     """
-    return await update_organization(organization_id, organization, user, db)
+    return await organization_services.update_organization(organization_id, organization, user, db)
 
 
 @app.patch("/organizations/{organization_id}/update-image")
@@ -729,7 +722,7 @@ async def delete_organization(organization_id: str, user: users_schemas.User = _
 
         returnBody--> "success"
     """
-    return await delete_organization(organization_id, user, db)
+    return await organization_services.delete_organization(organization_id, user, db)
 
 
 # /////////////////////////////////////////////////////////////////////////////////

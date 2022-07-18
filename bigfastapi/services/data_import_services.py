@@ -107,5 +107,15 @@ def retrieve_file(import_filename, bucket_name):
 
 
 
+def total_csv_rows(field):
+
+    countrdr = csv.DictReader(field)
+    totalrows = 0
+
+    for row in countrdr:
+
+        totalrows += 1
+
+    return totalrows
 
 
