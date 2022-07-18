@@ -270,7 +270,6 @@ def delete_organization_user(
 @app.get("/organizations/{organization_id}/roles")
 def get_roles(
     organization_id: str,
-    user: users_schemas.User,
     db: _orm.Session = _fastapi.Depends(get_db),
 ):
     """intro--> This endpoint allows you to retrieve all available roles in an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/roles endpoint
@@ -292,7 +291,6 @@ def get_roles(
 def add_role(
     payload: AddRole,
     organization_id: str,
-    user: users_schemas.User,
     db: _orm.Session = _fastapi.Depends(get_db),
 ):
     """intro--> This endpoint allows you to create roles in an organization. To use this endpoint you need to make a post request to the /organizations/{organization_id}/roles endpoint with a specified body of request
