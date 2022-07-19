@@ -135,46 +135,49 @@ def create_organization(
     db.commit()
     db.refresh(new_organization)
 
-    for location in organization.location:
-        location_id = uuid4().hex
-        organization_location = Models.OrganizationLocation(
-            id=location_id,
-            country=location.country,
-            state=location.state,
-            county=location.county,
-            zip_code=location.zip_code,
-            full_address=location.full_address,
-            street=location.street,
-            significant_landmark=location.significant_landmark,
-            driving_instructions=location.driving_instructions,
-            longitude=location.longitude,
-            latitude=location.latitude,
-            association_id=uuid4().hex,
-            location_id=location_id,
-            organization_id=organization_id,
-        )
-        db.add(organization_location)
-        db.commit()
-        db.refresh(organization_location)
+    if organization.location != None:
+        for location in organization.location:
+            location_id = uuid4().hex
+            organization_location = Models.OrganizationLocation(
+                id=location_id,
+                country=location.country,
+                state=location.state,
+                county=location.county,
+                zip_code=location.zip_code,
+                full_address=location.full_address,
+                street=location.street,
+                significant_landmark=location.significant_landmark,
+                driving_instructions=location.driving_instructions,
+                longitude=location.longitude,
+                latitude=location.latitude,
+                association_id=uuid4().hex,
+                location_id=location_id,
+                organization_id=organization_id,
+            )
+            db.add(organization_location)
+            db.commit()
+            db.refresh(organization_location)
 
-    for contact_info in organization.contact_infos:
-        contact_info_id = uuid4().hex
-        organization_contact = Models.OrganizationContactInfo(
-            id=contact_info_id,
-            contact_data=contact_info.contact_data,
-            contact_tag=contact_info.contact_tag,
-            contact_type=contact_info.contact_type,
-            contact_title=contact_info.contact_title,
-            phone_country_code=contact_info.phone_country_code,
-            description=contact_info.description,
-            association_id=uuid4().hex,
-            contact_info_id=contact_info_id,
-            organization_id=organization_id,
-        )
+        
+    if organization.contact_infos != None:
+        for contact_info in organization.contact_infos:
+            contact_info_id = uuid4().hex
+            organization_contact = Models.OrganizationContactInfo(
+                id=contact_info_id,
+                contact_data=contact_info.contact_data,
+                contact_tag=contact_info.contact_tag,
+                contact_type=contact_info.contact_type,
+                contact_title=contact_info.contact_title,
+                phone_country_code=contact_info.phone_country_code,
+                description=contact_info.description,
+                association_id=uuid4().hex,
+                contact_info_id=contact_info_id,
+                organization_id=organization_id,
+            )
 
-        db.add(organization_contact)
-        db.commit()
-        db.refresh(organization_contact)
+            db.add(organization_contact)
+            db.commit()
+            db.refresh(organization_contact)
 
     # return {"org": new_organization, "location": organization_location, "contact": organization_contact}
     return new_organization
