@@ -1,10 +1,12 @@
-from pydantic import EmailStr, BaseModel
-from typing import Optional, List
+from typing import List, Optional
+
+from pydantic import BaseModel, EmailStr
 
 
 class Email(BaseModel):
     subject: str
-    recipient: List[EmailStr]
+    recipients: List[EmailStr]
+    organization_id: Optional[str]
     title: str
     first_name: str
     body: Optional[str] = None
@@ -27,4 +29,3 @@ class Email(BaseModel):
     sender_address: str
     sender_city: str
     sender_state: str
-

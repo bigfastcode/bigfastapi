@@ -6,26 +6,29 @@ from typing import Any, List, Optional
 
 from .email_schema import Email
 from .users_schemas import User
-
+from enum import Enum
+from .contact_info_schema import ContactInfo
+from .location_schema import Location
 
 class _OrganizationBase(BaseModel):
     id: Optional[str]
     mission: Optional[str]
     vision: Optional[str]
-    name: str
-    country_code: str
-    state: str
-    address: str
     currency_code: str
-    phone_number: str = None
-    email: str = None
+    name: str
     tagline: Optional[str]
     image_url: Optional[str]
     business_type: str = "retail"
-    add_template: Optional[bool] = False
 
+    # contact info
+    contact_infos: Optional[List[ContactInfo]]  
+    # location
+    location: Optional[List[Location]]
+    
     class Config:
         orm_mode = True
+
+
 
 class OrganizationUserBase(BaseModel):
     organization_id: Optional[str]
@@ -70,7 +73,6 @@ class OrganizationUpdate(_OrganizationBase):
 class Organization(_OrganizationBase):
     id: str
     creator: str
-
     date_created: _dt.datetime
     last_updated: _dt.datetime
 

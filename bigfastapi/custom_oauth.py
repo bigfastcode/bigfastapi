@@ -170,10 +170,17 @@ class OAuth2PasswordBearer(OAuth2):
 
     async def __call__(self, request: Request) -> Optional[str]:
         authorization: str = request.headers.get("Authorization")
-        # print("get auth: " + str(authorization))
-        api_key: str = request.headers.get("API_KEY")
-        app_id: str = request.headers.get("APP_ID")
+        api_key: str = request.query_params.get("Apikey")
+        app_id: str = request.query_params.get("Appid")
+
+        
         scheme, param = get_authorization_scheme_param(authorization)
+
+        if api_key and app_id and not authorization:  
+            return {"API_KEY": api_key, "APP_ID": app_id}
+
+        if authorization and not api_key and not app_id:
+            return param
 
         if not authorization:
             if not api_key or not app_id:
@@ -186,11 +193,9 @@ class OAuth2PasswordBearer(OAuth2):
                 else:
                     return None
         # print(scheme)
-        if authorization and not api_key and not app_id:
-            return param
+        
 
-        if api_key and app_id and not authorization:
-            return {"API_KEY": api_key, "APP_ID": app_id}
+       
 
 
 class OAuth2AuthorizationCodeBearer(OAuth2):

@@ -106,7 +106,7 @@ class User(_UserBase):
 
 
 class APIKey(_UserBase):
-    app_name: str
+    app_name: Optional[str]
     email: Optional[str]
     phone_number: Optional[str]
     phone_country_code: Optional[str]
@@ -118,3 +118,8 @@ class APIKey(_UserBase):
 class APIKEYCheck(_pydantic.BaseModel):
     app_id: str
     api_key: str
+
+
+class APIKeyReset(_UserBase):
+    code: str
+    
