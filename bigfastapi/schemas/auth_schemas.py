@@ -118,3 +118,8 @@ class APIKey(_UserBase):
 class APIKEYCheck(_pydantic.BaseModel):
     app_id: str
     api_key: str
+
+
+class APIKeyReset(_UserBase):
+    code: str
+    

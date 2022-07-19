@@ -6,6 +6,7 @@ import passlib.hash as _hash
 from datetime import datetime
 from .models import auth_models, user_models
 from .schemas import auth_schemas
+from .schemas import users_schemas
 from .utils import utils
 from passlib.context import CryptContext
 from bigfastapi.utils import settings
@@ -46,7 +47,7 @@ async def generate(body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(
         #     app_id = ip_exist["app_id"]
 
         user_id = user
-        resp = await save_apikey_to_db(key, app_id, user_id, ip, body, db)
+        resp = await save_apikey_to_db(key, app_id, user_id, ip, db, body)
 
         return {"message": "success", "API_KEY": key, "APP_ID": resp.app_id}
 
@@ -55,6 +56,86 @@ async def generate(body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(
 async def get_api_key(body: auth_schemas.APIKEYCheck, db: orm.Session = fastapi.Depends(get_db)):
     user = check_api_key(body.app_id, body.api_key, db)
     return {"user": auth_schemas.UserCreateOut.from_orm(user)}
+
+
+
+@app.post("/recover-apikey")
+async def recover_apikey(body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(get_db)):
+    user = await find_user(db=db, email=body.email, phone_number=body.phone_number, country_code=body.phone_country_code)
+
+    if not user:
+        raise fastapi.HTTPException(
+                status_code=403, detail="Invalid Credentials")
+
+    code=""
+    if body.email != None:
+        code = await send_recover_apikey_email(email=body.email, user=user)
+
+    code_obj = auth_models.PasswordResetCode(
+            id=uuid4().hex, user_id=user.id, code=code)
+    
+    db.add(code_obj)
+    db.commit()
+    db.refresh(code_obj)
+
+    return f"Reset Code Sent To ${body.email}"
+
+
+@app.post("/reset-apikey")
+async def reset_apikey(user: auth_schemas.APIKeyReset, db: orm.Session = fastapi.Depends(get_db)):
+  
+    code_exist = db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.code == user.code).first()
+    if code_exist is None:
+        raise fastapi.HTTPException(status_code=403, detail="invalid code")
+    
+    return await resetapikey(code_exist, db)
+
+
+async def resetapikey(user, db: orm.Session):
+    print(user.user_id)
+    find_user = db.query(user_models.User).filter(user_models.User.id == user.user_id).first()
+    print(find_user.id)
+    apikey = generate_api_key()
+    appid = generate_app_id()
+    ip=get_IP()
+
+
+    db.query(auth_models.PasswordResetCode).filter(
+        auth_models.PasswordResetCode.user_id == find_user.id).delete()
+    
+    db.commit()
+
+    db.query(auth_models.APIKeys).filter(
+        auth_models.APIKeys.user_id == find_user.id).delete()
+
+    db.commit()
+
+    apikey_obj = auth_models.APIKeys(
+        id=uuid4().hex,
+        user_id=find_user.id,
+        app_name="",
+        app_id=appid,
+        is_enabled=True,
+        key=_hash.sha256_crypt.hash(apikey),
+        ipAddr=ip
+    )
+
+    db.add(apikey_obj)
+    db.commit()
+    db.refresh(apikey_obj)
+
+    return {"message": "APIkey Reset Successful", "APIKEY": apikey, "APPID": appid }
+
+
+async def send_recover_apikey_email(
+    email: str, user
+):
+    S = 7
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=S))
+    await send_email_user(email, user, template='password_reset.html', title="APIKey Reset", code=code)
+    return code
+ 
+
 
 
 def check_api_key(app_id: str, api_key: str, db: orm.Session):
@@ -80,13 +161,16 @@ def check_api_key(app_id: str, api_key: str, db: orm.Session):
             status_code=403, detail="Invalid Credentials")
 
 
-async def save_apikey_to_db(key, app_id, user_id, ip, body: auth_schemas.APIKey, db: orm.Session):
-    client_id = body.user_id if body.user_id != None else user_id
-    print("client: " + client_id)
+async def save_apikey_to_db(key, app_id, user_id, ip, db: orm.Session,  body: auth_schemas.APIKey = ""):
+    client_id = ""
+    app_name=""
+    if body != "":
+        app_name=body.app_name
+        client_id = body.user_id if body.user_id != None else user_id
     apikey_obj = auth_models.APIKeys(
         id=uuid4().hex,
         user_id=client_id,
-        app_name=body.app_name,
+        app_name=app_name,
         app_id=app_id,
         is_enabled=True,
         key=_hash.sha256_crypt.hash(key),
