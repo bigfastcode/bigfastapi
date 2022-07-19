@@ -75,11 +75,9 @@ def is_authenticated(token: str = fastapi.Depends(oauth2_scheme), db: orm.Sessio
         return user
 
     if type(token) == dict:
-        print('api keys....')
         app_id = token["APP_ID"]
         api_key = token["API_KEY"]
         user = check_api_key(app_id, api_key, db)
-        print(user)
         return user
 
 

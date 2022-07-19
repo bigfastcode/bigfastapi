@@ -37,18 +37,18 @@ async def generate(body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(
         user = await check_user_exist(body, db)
         key = generate_api_key()
         app_id = ""
-        ip_exist = await has_ip_addr_saved(ip, db)
-        if ip_exist["success"] == False:
-            print('old id')
-            app_id = generate_app_id()
-        else:
-            print("existing IP")
-            app_id = ip_exist["app_id"]
+        # ip_exist = await has_ip_addr_saved(ip, db)
+        # if ip_exist["success"] == False:
+        #     print('old id')
+        #     app_id = generate_app_id()
+        # else:
+        #     print("existing IP")
+        #     app_id = ip_exist["app_id"]
 
         user_id = user
         resp = await save_apikey_to_db(key, app_id, user_id, ip, body, db)
 
-        return {"message": "success", "API_KEY": key, "APP_ID": resp.app_id, "Mac_Address": ip}
+        return {"message": "success", "API_KEY": key, "APP_ID": resp.app_id}
 
 
 @app.post("/get-apikey")
@@ -63,12 +63,11 @@ def check_api_key(app_id: str, api_key: str, db: orm.Session):
         auth_models.APIKeys.app_id == app_id).first()
 
     if app != None:
-        if app.ipAddr != ip:
-            raise fastapi.HTTPException(
-                status_code=403, detail="Invalid IP Address")
+        # if app.ipAddr != ip:
+        #     raise fastapi.HTTPException(
+        #         status_code=403, detail="Invalid IP Address")
 
         veri = app.verify_apikey(api_key)
-        print(veri)
         if not veri:
             raise fastapi.HTTPException(
                 status_code=403, detail="Invalid Credentials")
@@ -76,9 +75,7 @@ def check_api_key(app_id: str, api_key: str, db: orm.Session):
         user = db.query(user_models.User).filter(
             user_models.User.id == app.user_id).first()
         return user
-
     else:
-
         raise fastapi.HTTPException(
             status_code=403, detail="Invalid Credentials")
 
@@ -112,7 +109,7 @@ async def create_user(user: auth_schemas.APIKey, db: orm.Session):
 
     password = generate_app_id()
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, password=_hash.sha256_crypt.hash(password),
+        id=uuid4().hex, email=user.email, hashed_password=_hash.sha256_crypt.hash(password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified=True, phone_country_code=user.phone_country_code, is_deleted=False,
         country=None, state=None, google_id=None, google_image=None,
@@ -169,34 +166,42 @@ async def find_user(db: orm.Session, email: str = "", phone_number: str = "", co
 async def check_if_eligible_to_create_apikey(ip: str, body: auth_schemas.APIKey, db: orm.Session):
     if body.email != None:
         user = await find_user(db, body.email)
+
         if not user:
             return "Eligible"
-        check_user = db.query(auth_models.APIKeys).filter(and_
-                                                          (auth_models.APIKeys.ipAddr == ip, auth_models.APIKeys.user_id == user.id)).first()
+
+        check_user = db.query(auth_models.APIKeys).filter(auth_models.APIKeys.user_id == user.id).first()
+
         if not check_user:
             return "Eligible"
         else:
             raise fastapi.HTTPException(
                 status_code=403, detail="You already have an API key")
+
 
     if body.phone_number != None and body.phone_country_code != None:
         user = await find_user(db, body.phone_number, body.phone_country_code)
+
         if not user:
             return "Eligible"
-        check_user = db.query(auth_models.APIKeys).filter(and_
-                                                          (auth_models.APIKeys.ipAddr == ip, auth_models.APIKeys.user_id == user.id)).first()
+
+        check_user = db.query(auth_models.APIKeys).filter(auth_models.APIKeys.user_id == user.id).first()
+
         if not check_user:
             return "Eligible"
         else:
             raise fastapi.HTTPException(
                 status_code=403, detail="You already have an API key")
 
+
     if body.phone_number != None and body.phone_country_code != None and body.email != None:
         user = await find_user(db, body.email, body.phone_number, body.phone_country_code)
+
         if not user:
             return "Eligible"
-        check_user = db.query(auth_models.APIKeys).filter(and_
-                                                          (auth_models.APIKeys.ipAddr == ip, auth_models.APIKeys.user_id == user.id)).first()
+
+        check_user = db.query(auth_models.APIKeys).filter(auth_models.APIKeys.user_id == user.id).first()
+
         if not check_user:
             return "Eligible"
         else:

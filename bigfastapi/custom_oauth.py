@@ -169,25 +169,14 @@ class OAuth2PasswordBearer(OAuth2):
         )
 
     async def __call__(self, request: Request) -> Optional[str]:
-        print('test test')
         authorization: str = request.headers.get("Authorization")
-        # print("get auth: " + str(authorization))
-        # api_key: str = request.headers.get("API_KEY")
-        # app_id: str = request.headers.get("APP_ID")
-
         api_key: str = request.query_params.get("Apikey")
         app_id: str = request.query_params.get("Appid")
 
         
         scheme, param = get_authorization_scheme_param(authorization)
 
-        print('starting...')
-
-        print(api_key)
-        print(app_id)
-
-        if api_key and app_id and not authorization:
-            print('test test ')      
+        if api_key and app_id and not authorization:  
             return {"API_KEY": api_key, "APP_ID": app_id}
 
         if authorization and not api_key and not app_id:
@@ -198,7 +187,7 @@ class OAuth2PasswordBearer(OAuth2):
                 if self.auto_error:
                     raise HTTPException(
                         status_code=HTTP_401_UNAUTHORIZED,
-                        detail="Not authenticated Debugging",
+                        detail="Not authenticated",
                         headers={"WWW-Authenticate": "Bearer"},
                     )
                 else:
