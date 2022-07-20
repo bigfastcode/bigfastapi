@@ -136,6 +136,7 @@ async def get_organization(
     """
 
     is_org_member = Helpers.is_organization_member(user.id, organization_id, db)
+    return is_org_member
 
     if is_org_member is True:
         organization = await organization_services.get_organization(
