@@ -27,6 +27,7 @@ from bigfastapi.schemas.organization_schemas import (
 )
 from bigfastapi.services import organization_services
 from bigfastapi.utils.utils import paginate_data, row_to_dict
+from bigfastapi.core.helpers import Helpers
 
 from .models import organization_models as _models
 
@@ -133,11 +134,22 @@ async def get_organization(
 
         returnBody--> details of the queried organization
     """
-    organization = await organization_services.get_organization(
-        organization_id, user, db
-    )
-    # menu = get_organization_menu(organization_id, db)
-    return {"data": {"organization": organization}}  # , "menu":MENU
+
+    is_org_member = Helpers.is_organization_member(user.id, organization_id, db)
+
+    if is_org_member is True:
+        organization = await organization_services.get_organization(
+            organization_id, user, db
+        )
+        # menu = get_organization_menu(organization_id, db)
+        return {"data": {"organization": organization}}  # , "menu":MENU
+    
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
+
 
 
 @app.get(

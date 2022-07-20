@@ -37,7 +37,7 @@ async def generate(body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(
     if find_user == "Eligible":
         user = await check_user_exist(body, db)
         key = generate_api_key()
-        app_id = ""
+        app_id = generate_app_id()
         # ip_exist = await has_ip_addr_saved(ip, db)
         # if ip_exist["success"] == False:
         #     print('old id')
