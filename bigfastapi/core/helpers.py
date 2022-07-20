@@ -14,9 +14,6 @@ class Helpers:
                 .first()
         )
 
-        
-        
-
         store_user = db.query(OrganizationUser).filter_by(organization_id=organization_id).filter_by(
             user_id=user_id).first()
         if store_user == None and organization == None:

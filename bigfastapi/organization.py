@@ -135,20 +135,20 @@ async def get_organization(
         returnBody--> details of the queried organization
     """
 
-    is_org_member = Helpers.is_organization_member(user.id, organization_id, db)
-    return is_org_member
+    # is_org_member = Helpers.is_organization_member(user.id, organization_id, db)
+    # return is_org_member
 
-    if is_org_member is True:
-        organization = await organization_services.get_organization(
-            organization_id, user, db
-        )
-        # menu = get_organization_menu(organization_id, db)
-        return {"data": {"organization": organization}}  # , "menu":MENU
+    # if is_org_member is True:
+    organization = await organization_services.get_organization(
+        organization_id, user, db
+    )
+    # menu = get_organization_menu(organization_id, db)
+    return {"data": {"organization": organization}}  # , "menu":MENU
     
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND
-        )
+    # else:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND
+    #     )
 
 
 
