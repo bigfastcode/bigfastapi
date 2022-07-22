@@ -337,7 +337,7 @@ async def send_receipt_email(
         if file is not None:
             message = MessageSchema(
                 subject=email_details.subject,
-                recipients=email_details.recipient,
+                recipients=email_details.recipients,
                 template_body={
                     "message": email_details.message,
                 },
@@ -347,7 +347,7 @@ async def send_receipt_email(
         else:
             message = MessageSchema(
                 subject=email_details.subject,
-                recipients=email_details.recipient,
+                recipients=email_details.recipients,
                 template_body={
                     "message": email_details.message,
                 },
