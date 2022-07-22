@@ -85,7 +85,7 @@ async def send_receipt(
         receipt = Receipt(
             id=uuid4().hex,
             sender_email=payload.sender_email,
-            recipient=payload.recipient[0],
+            recipient=payload.recipients[0],
             subject=payload.subject,
             message=payload.message,
             organization_id=payload.organization_id,
