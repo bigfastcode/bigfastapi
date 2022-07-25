@@ -304,9 +304,9 @@ async def updatePassword(
 
 async def deleteIfFileExistPrior(user: _schemas.User):
     # check if user object contains image endpoint
-    if user.image is not None and len(user.image) > 17 and 'profileImages/' in user.image:
+    if user.image_url is not None and len(user.image_url) > 17 and 'profileImages/' in user.image_url:
         # construct the image path from endpoint
-        splitPath = user.image.split('profileImages/', 1)
+        splitPath = user.image_url.split('profileImages/', 1)
         imagePath = f"\profileImages\{splitPath[1]}"
         fullStoragePath = os.path.abspath("filestorage") + imagePath
 
@@ -328,7 +328,7 @@ def constructImageEndpoint(Uploadedimage: str, bucketName: str):
 async def updateUserImage(userId: str, db: orm.Session, imageEndpoint: str):
     user = db.query(user_models.User).filter(
         user_models.User.id == userId).first()
-    user.image = imageEndpoint
+    user.image_url = imageEndpoint
     try:
         db.commit()
         db.refresh(user)
@@ -358,7 +358,7 @@ async def user_update(user_update: _schemas.UserUpdate, user: _schemas.User, db:
     db.commit()
     db.refresh(user)
 
-    return _schemas.User.fromorm(user)
+    return _schemas.User.from_orm(user)
 
 
 async def activate(user_activate: _schemas.UserActivate, user: _schemas.User, db: orm.Session):
@@ -367,7 +367,7 @@ async def activate(user_activate: _schemas.UserActivate, user: _schemas.User, db
     db.commit()
     db.refresh(user)
 
-    return _schemas.User.fromorm(user)
+    return _schemas.User.from_orm(user)
 
 
 async def deactivate(user_activate: _schemas.UserActivate, user: _schemas.User, db: orm.Session):
@@ -375,7 +375,7 @@ async def deactivate(user_activate: _schemas.UserActivate, user: _schemas.User, 
     user_activate.is_active = False
     db.commit()
     db.refresh(user)
-    return _schemas.User.fromorm(user)
+    return _schemas.User.from_orm(user)
 
 
 async def resetpassword(user: _schemas.UserResetPassword, id: str, db: orm.Session):
