@@ -8,6 +8,7 @@ from sqlalchemy import orm
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.models import credit_wallet_models as credit_wallet_models
 from bigfastapi.models import organization_models as Models
+from bigfastapi.models import location_models, contact_info_models, organization_models
 from bigfastapi.models import wallet_models as wallet_models
 from bigfastapi.schemas import organization_schemas as Schemas
 from bigfastapi.schemas import users_schemas
@@ -318,17 +319,18 @@ async def update_organization(
     db: orm.Session,
 ):
     organization_db = await organization_selector(organization_id, user, db)
+    org_location_db = db.query(Models.OrganizationLocation, location_models.Location).filter(Models.OrganizationLocation.organization_id == organization_id).first()
+    org_contact_info_db = db.query(Models.OrganizationContactInfo, contact_info_models.ContactInfo).filter(Models.OrganizationContactInfo.organization_id == organization_id).all()
+
+
     currencyUpdated = False
-    if organization.mission != "":
+    if organization.mission != None:
         organization_db.mission = organization.mission
 
-    if organization.vision != "":
+    if organization.vision != None:
         organization_db.vision = organization.vision
 
-    if organization.values != "":
-        organization_db.values = organization.values
-
-    if organization.name != "":
+    if organization.name != None:
         db_org = await fetch_organization_by_name(
             name=organization.name, organization_id=organization_id, db=db
         )
@@ -340,23 +342,39 @@ async def update_organization(
         else:
             organization_db.name = organization.name
 
-    organization_db.email = organization.email
+
+    # contact infos 
+    if organization.contact_infos:
+        if len(organization.contact_infos) != 0 and len(organization.contact_infos) == 1:
+            if organization.contact_infos[0] != None:
+                org_contact_info_db[0][0].contact_data = organization.contact_infos[0].contact_data
+                org_contact_info_db[0][0].contact_type = organization.contact_infos[0].contact_type
+
+        if  len(organization.contact_infos) != 0 and len(organization.contact_infos) == 2:
+            if organization.contact_infos[0] != None:
+                org_contact_info_db[0][0].contact_data = organization.contact_infos[0].contact_data
+                org_contact_info_db[0][0].contact_type = organization.contact_infos[0].contact_type
+            
+            if organization.contact_infos[1] != None:
+                org_contact_info_db[0][1].contact_data = organization.contact_infos[1].contact_data
+                org_contact_info_db[0][1].phone_country_code = organization.contact_infos[1].phone_country_code
+                org_contact_info_db[0][1].contact_type = organization.contact_infos[1].contact_type
+
+
+    # location 
+    if organization.location:
+        if organization.location[0].country != None:
+            org_location_db[0].country = organization.location[0].country
+        if organization.location[0].state != None:
+            org_location_db[0].state = organization.location[0].state
+        if organization.location[0].full_address != None:
+            org_location_db[0].full_address = organization.location[0].full_address
+
 
     organization_db.tagline = organization.tagline
 
-    organization_db.phone_number = organization.phone_number
-
-    if organization.country != "":
-        organization_db.country = organization.country
-
-    if organization.state != "":
-        organization_db.state = organization.state
-
-    if organization.address != "":
-        organization_db.address = organization.address
-
-    if organization.currency_preference != "":
-        organization_db.currency_preference = organization.currency_preference
+    if organization.currency_code != None:
+        organization_db.currency_code = organization.currency_code
         currencyUpdated = True
 
     organization_db.last_updated = _dt.datetime.utcnow()
@@ -365,7 +383,7 @@ async def update_organization(
     db.refresh(organization_db)
 
     # create a new wallet if the currency is changed
-    if currencyUpdated:
+    if currencyUpdated == True:
         create_wallet(
             organization_id=organization_id, currency=organization.currency_code, db=db
         )
@@ -373,7 +391,6 @@ async def update_organization(
     # menu = get_organization_menu(organization_id, db)
 
     return {"data": {"organization": organization_db, "menu": DEFAULT_MENU}}
-
 
 def create_wallet(organization_id: str, currency: str, db: orm.Session):
     currency = currency.upper()

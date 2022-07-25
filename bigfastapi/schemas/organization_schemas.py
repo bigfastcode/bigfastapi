@@ -14,11 +14,8 @@ class _OrganizationBase(BaseModel):
     id: Optional[str]
     mission: Optional[str]
     vision: Optional[str]
-    currency_code: str
-    name: str
     tagline: Optional[str]
     image_url: Optional[str]
-    business_type: str = "retail"
 
     # contact info
     contact_infos: Optional[List[ContactInfo]]  
@@ -65,9 +62,15 @@ class Role(BaseModel):
 # ORGANIZATION SCHEMAS
 
 class OrganizationCreate(_OrganizationBase):
+    currency_code: str
+    name: str
+    business_type: str = "retail"
     pass
 
 class OrganizationUpdate(_OrganizationBase):
+    currency_code: Optional[str]
+    name: Optional[str]
+    business_type: Optional[str] = "retail"
     pass
 
 class Organization(_OrganizationBase):
