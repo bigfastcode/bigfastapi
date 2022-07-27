@@ -17,7 +17,7 @@ class Receipt(BaseModel):
         orm_mode = True
 
 class atrributes(Receipt):
-    recipient: List[EmailStr] = []
+    recipients: List[EmailStr] = []
 
 class DeleteSelectedReceipts(BaseModel):
     organization_id: str
