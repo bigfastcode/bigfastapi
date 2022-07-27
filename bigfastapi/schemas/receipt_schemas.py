@@ -9,6 +9,7 @@ class Receipt(BaseModel):
     sender_email: Optional[str]
     message: Optional[str]
     subject: Optional[str]
+    data: Optional[dict]
     recipient: Optional[str]
     is_deleted: Optional[bool]
     file_id: Optional[str]
@@ -16,7 +17,7 @@ class Receipt(BaseModel):
     class Config:
         orm_mode = True
 
-class atrributes(Receipt):
+class attributes(Receipt):
     recipients: List[EmailStr] = []
 
 class DeleteSelectedReceipts(BaseModel):
