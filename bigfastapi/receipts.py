@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import uuid4
 
 import sqlalchemy.orm as orm
+from bigfastapi.utils.utils import convert_template_to_html
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import HTTPException
@@ -28,7 +29,7 @@ app = APIRouter(tags=["Receipts"])
     "/receipts", status_code=201, response_model=receipt_schemas.SendReceiptResponse
 )
 async def send_receipt(
-    payload: receipt_schemas.atrributes,
+    payload: receipt_schemas.attributes,
     background_tasks: BackgroundTasks,
     create_file: bool = False,
     db: orm.Session = Depends(get_db),
@@ -81,27 +82,33 @@ async def send_receipt(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=messages.NOT_ORGANIZATION_MEMBER,
             )
+        
+        html_string = convert_template_to_html(
+                template_dir=payload.data.get("custom_template_dir"),
+                template_file=payload.data.get("template_file"),
+                template_data=payload.data
+            )
 
         receipt = Receipt(
             id=uuid4().hex,
             sender_email=payload.sender_email,
             recipient=payload.recipients[0],
             subject=payload.subject,
-            message=payload.message,
+            message=html_string,
             organization_id=payload.organization_id,
         )
 
         if create_file == True:
             pdf_name = (payload.subject) + str(uuid4().hex) + ".pdf"
 
-            schema = {"htmlString": payload.message, "pdfName": pdf_name}
+            schema = {"htmlString": html_string, "pdfName": pdf_name}
             file = receipts_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
             receipt.file_id = file.id
 
             await send_receipt_email(
                 payload,
                 background_tasks=background_tasks,
-                template="mail_receipt.html",
+                template=payload.data.get("template_file", "mail_receipt.html"),
                 db=db,
                 file="./filestorage/pdfs/" + pdf_name,
             )
@@ -109,7 +116,7 @@ async def send_receipt(
         await send_receipt_email(
             payload,
             background_tasks=background_tasks,
-            template="mail_receipt.html",
+            template=payload.data.get("template_file", "mail_receipt.html"),
             db=db,
         )
 

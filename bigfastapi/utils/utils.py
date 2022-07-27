@@ -1,4 +1,6 @@
 import json
+import os
+from jinja2 import Template
 import random
 import re
 
@@ -159,3 +161,14 @@ def row_to_dict(row):
     for column in row.__table__.columns:
         d[column.name] = str(getattr(row, column.name))
     return d
+
+
+def convert_template_to_html(template_dir, template_file, template_data):
+    """Substitute template variables and return html formatted"""
+    file_path = os.path.join(template_dir, template_file)
+    
+    with open(file_path, "r") as f:
+        html_text = f.read()
+        html_text = Template(html_text).render(template_data)
+    
+    return html_text

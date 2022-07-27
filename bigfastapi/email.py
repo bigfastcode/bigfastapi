@@ -327,7 +327,7 @@ conf = ConnectionConfig(
 
 
 async def send_receipt_email(
-    email_details: receipt_schemas.atrributes,
+    email_details: receipt_schemas.attributes,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "mail_receipt.html",
     db: orm.Session = fastapi.Depends(get_db),
@@ -338,9 +338,7 @@ async def send_receipt_email(
             message = MessageSchema(
                 subject=email_details.subject,
                 recipients=email_details.recipients,
-                template_body={
-                    "message": email_details.message,
-                },
+                template_body=email_details.data,
                 subtype="html",
                 attachments=[file],
             )
@@ -348,10 +346,13 @@ async def send_receipt_email(
             message = MessageSchema(
                 subject=email_details.subject,
                 recipients=email_details.recipients,
-                template_body={
-                    "message": email_details.message,
-                },
+                template_body=email_details.data,
                 subtype="html",
+            )
+        
+        if email_details.data.get("custom_template_dir"):
+            conf.TEMPLATE_FOLDER = email_details.data.get(
+                "custom_template_dir", conf.TEMPLATE_FOLDER
             )
 
         fm = FastMail(conf)
