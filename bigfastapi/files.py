@@ -14,7 +14,9 @@ from datetime import datetime
 # Import the Router
 app = fastapi.APIRouter()
 
-@app.get("/files/{bucket_name}/", response_model=List[schema.File])
+@app.get("/files/{bucket_name}/", 
+# response_model=List[schema.File]
+)
 def get_all_files(
     bucket_name:str,
     db: orm.Session = fastapi.Depends(get_db)
