@@ -13,7 +13,7 @@ from bigfastapi.db.database import get_db
 from .auth_api import is_authenticated
 from .core import messages
 from .core.helpers import Helpers
-from .email import send_receipt_email
+from .services import email_services
 from .models import organization_models
 from .models.organization_models import Organization
 from .models.receipt_models import Receipt
@@ -98,7 +98,7 @@ async def send_receipt(
             file = receipts_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
             receipt.file_id = file.id
 
-            await send_receipt_email(
+            await email_services.send_email(
                 payload,
                 background_tasks=background_tasks,
                 template="mail_receipt.html",
@@ -106,7 +106,7 @@ async def send_receipt(
                 file="./filestorage/pdfs/" + pdf_name,
             )
 
-        await send_receipt_email(
+        await email_services.send_email(
             payload,
             background_tasks=background_tasks,
             template="mail_receipt.html",

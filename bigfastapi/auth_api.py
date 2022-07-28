@@ -15,7 +15,7 @@ import random
 from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
-from .email import send_email_user
+from .services import email_services
 from bigfastapi.api_key import check_api_key
 # from .users import get_user
 
@@ -290,7 +290,7 @@ async def send_code_password_reset_email(
     if user:
         code = await create_forgot_pasword_code(user, codelength)
         print(code)
-        await send_email_user(email, user, template='password_reset.html', title="Password Reset", code=code)
+        await email_services.send_email(email, user, template='password_reset.html', title="Password Reset", code=code)
         return code
     else:
         raise fastapi.HTTPException(
@@ -303,7 +303,7 @@ async def resend_code_verification_mail(
     user = await get_user(db, email=email)
     if user:
         code = await create_verification_code(user, codelength)
-        await send_email_user(email, user, template=settings.EMAIL_VERIFICATION_TEMPLATE, title="Account Verify", code=code)
+        await email_services.send_email(email, user, template=settings.EMAIL_VERIFICATION_TEMPLATE, title="Account Verify", code=code)
         return code
     else:
         raise fastapi.HTTPException(
@@ -317,7 +317,7 @@ async def send_token_password_reset_email(
     if user:
         token = await create_passwordreset_token(user)
         path = "{}/?token={}".format(redirect_url, token["token"])
-        await send_email_user(email, user, template=settings.PASSWORD_RESET_TEMPLATE, title="Change Your Password", path=path)
+        await email_services.send_email(email, user, template=settings.PASSWORD_RESET_TEMPLATE, title="Change Your Password", path=path)
         return {"token": token}
     else:
         raise fastapi.HTTPException(
@@ -331,7 +331,7 @@ async def resend_token_verification_mail(
     if user:
         token = await create_verification_token(user)
         path = "{}/?token={}".format(redirect_url, token["token"])
-        await send_email_user(email, user, template=settings.EMAIL_VERIFICATION_TEMPLATE, title="Verify Your Account", path=path)
+        await email_services.send_email(email, user, template=settings.EMAIL_VERIFICATION_TEMPLATE, title="Verify Your Account", path=path)
         return {"token": token}
     else:
         raise fastapi.HTTPException(

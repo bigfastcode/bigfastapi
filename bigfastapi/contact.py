@@ -5,7 +5,7 @@ from fastapi import APIRouter, status, HTTPException, BackgroundTasks
 from typing import List
 import fastapi
 from fastapi_mail import FastMail, MessageSchema
-from .email import conf
+from .services import email_services
 import sqlalchemy.orm as orm
 from fastapi.responses import JSONResponse
 from .auth_api import is_authenticated
@@ -16,7 +16,7 @@ from .models import contact_model
 from bigfastapi.db.database import get_db
 
 app = APIRouter(tags=["Contacts and Contact Us"])
-fm = FastMail(conf)
+fm = FastMail(email_services.conf)
 
 
 @app.post("/contact")

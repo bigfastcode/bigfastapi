@@ -17,7 +17,7 @@ import random
 from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
-from .email import send_email_user
+from .services import email_services
 from sqlalchemy import and_, or_, not_, desc
 import datetime
 import socket
@@ -132,7 +132,7 @@ async def send_recover_apikey_email(
 ):
     S = 7
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=S))
-    await send_email_user(email, user, template='password_reset.html', title="APIKey Reset", code=code)
+    await email_services.send_email(email, user, template='password_reset.html', title="APIKey Reset", code=code)
     return code
  
 
