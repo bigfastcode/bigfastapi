@@ -14,6 +14,7 @@ class File(db.Base):
     filename = Column(String(255), index=True)
     bucketname = Column(String(255), index=True)
     filesize = Column(Integer, index=True)
+    # file_link = Column(String(255))
     date_created = Column(DateTime, default=datetime.datetime.utcnow)
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
 
