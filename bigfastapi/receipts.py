@@ -39,18 +39,6 @@ async def send_receipt(
     """
     An endpoint to send receipts.
 
-    Note: The message field in the payload should be HTML formatted.
-
-    Intro -
-
-        This endpoint allows you to create an send a new receipt.
-
-        reqBody-organization_id: This is the id of the organization sending the receipt.
-        reqBody-sender_email: This is the email of the sender, usually a store user.
-        reqBody-message: This is the message to be sent to the receipt recipient.
-        reqBody-subject: This is the subject of the mail to be sent to the recipient
-        reqBody-recipient: This is the list of emails to be the recipient of the receipt.
-
     ReturnDesc-
 
         On sucessful request, it returns
@@ -84,8 +72,8 @@ async def send_receipt(
             )
         
         html_string = convert_template_to_html(
-                template_dir=payload.data.get("custom_template_dir"),
-                template_file=payload.data.get("template_file"),
+                template_dir=payload.custom_template_dir,
+                template_file=payload.template,
                 template_data=payload.data
             )
 
@@ -106,19 +94,25 @@ async def send_receipt(
             receipt.file_id = file.id
 
             await email_services.send_email(
-                payload,
+                title=payload.subject,
+                recipients=payload.recipients,
+                template=payload.template if payload.template else "mail_receipt.html",
+                template_body=payload.data,
+                custom_template_dir=payload.custom_template_dir,
                 background_tasks=background_tasks,
-                template=payload.data.get("template_file", "mail_receipt.html"),
                 db=db,
                 file="./filestorage/pdfs/" + pdf_name,
             )
-
-        await email_services.send_email(
-            payload,
-            background_tasks=background_tasks,
-            template=payload.data.get("template_file", "mail_receipt.html"),
-            db=db,
-        )
+        else:
+            await email_services.send_email(
+                title=payload.subject,
+                recipients=payload.recipients,
+                template=payload.template if payload.template else "mail_receipt.html",
+                template_body=payload.data,
+                custom_template_dir=payload.custom_template_dir,
+                background_tasks=background_tasks,
+                db=db,
+            )
 
         db.add(receipt)
         db.commit()

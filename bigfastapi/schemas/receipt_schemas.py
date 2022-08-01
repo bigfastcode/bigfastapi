@@ -7,6 +7,8 @@ class Receipt(BaseModel):
     id: Optional[str]
     organization_id: Optional[str]
     sender_email: Optional[str]
+    template: Optional[str]
+    custom_template_dir: Optional[str]
     message: Optional[str]
     subject: Optional[str]
     data: Optional[dict]

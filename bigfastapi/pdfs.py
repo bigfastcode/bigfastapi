@@ -17,38 +17,58 @@ app = APIRouter()
 
 def convert_to_pdf(body: pdfSchema.Format, db: orm.Session = fastapi.Depends(get_db)):
 
-    if pdfkit.from_string(body.htmlString, body.pdfName):
-        bucketname = 'pdfs' #bucketname
-        filename = body.pdfName
-        pdfDir = './'+filename
+    pdf = None
+    if body.htmlString !=None:
+        pdf = pdf_converter(file_name=body.pdfName, db=db, string=body.htmlString)
 
-        # get file size
-        filestat = os.stat(pdfDir)
-        filesize = filestat.st_size
+    elif body.FilePath !=None:
+        pdf = pdf_converter(file_name=body.pdfName, db=db, filepath=body.FilePath)
 
-        # Create the base folder
-        base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
-        try:
-            os.makedirs(base_folder)
-        except:
-            pass
+    elif body.url != None:
+        pdf = pdf_converter(file_name=body.pdfName, db=db, url=body.url)
+    
+    return pdf
 
-        bucket_path = os.path.realpath(os.path.join(base_folder, bucketname))
 
-        # Make sure bucket name exists
-        try:
-            os.makedirs(os.path.join(base_folder, bucketname))
-        except:
-            pass
+def pdf_converter( file_name:str,db:orm.Session,url:str=None, filepath:str=None, string:str=None):
 
-        # move file
-        shutil.move(pdfDir, bucket_path)
+    if string != None:
+        pdfkit.from_string(string, file_name)
+    if filepath != None:
+        pdfkit.from_file(filepath, file_name)
+    if url != None:
+        pdfkit.from_url(url, file_name)
 
-        #save to db
-        file = file_model.File(id = uuid4().hex, filename=filename , bucketname=bucketname, filesize=filesize)
-        db.add(file)
-        db.commit()
-        db.refresh(file)
+    bucketname = 'pdfs' #bucketname
+    filename = file_name
+    pdfDir = './'+filename
 
-        #response message
-        return file_schema.File.from_orm(file)
+    # get file size
+    filestat = os.stat(pdfDir)
+    filesize = filestat.st_size
+
+    # Create the base folder
+    base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
+    try:
+        os.makedirs(base_folder)
+    except:
+        pass
+
+    bucket_path = os.path.realpath(os.path.join(base_folder, bucketname))
+
+    # Make sure bucket name exists
+    try:
+        os.makedirs(os.path.join(base_folder, bucketname))
+    except:
+        pass
+
+    # move file
+    shutil.move(pdfDir, bucket_path)
+
+    #save to db
+    file = file_model.File(id = uuid4().hex, filename=filename , bucketname=bucketname, filesize=filesize)
+    db.add(file)
+    db.commit()
+    db.refresh(file)
+
+    return file

@@ -38,14 +38,14 @@ async def send_email(
     email_details: dict = {}, 
     recipients: list = [], 
     template_body: dict = {}, 
-    custom_template: str = "",
+    custom_template_dir: str = "",
     file: Union[UploadFile, None] = None, 
     db: orm.Session = fastapi.Depends(get_db)
     ):
     try:
 
-        if custom_template != "":
-            conf.TEMPLATE_FOLDER = custom_template
+        if custom_template_dir != "":
+            conf.TEMPLATE_FOLDER = custom_template_dir
         
         if file is not None:
                message = MessageSchema(
