@@ -72,6 +72,8 @@ def is_authenticated(token: str = fastapi.Depends(oauth2_scheme), db: orm.Sessio
         token = verify_access_token(token, credentials_exception, db)
         user = db.query(user_models.User).filter(
             user_models.User.id == token.id).first()
+  
+
         return user
 
     if type(token) == dict:
