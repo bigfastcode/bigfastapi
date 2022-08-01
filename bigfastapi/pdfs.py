@@ -17,15 +17,17 @@ app = APIRouter()
 
 def convert_to_pdf(body: pdfSchema.Format, db: orm.Session = fastapi.Depends(get_db)):
 
-    print(body.dict())
+    pdf = None
     if body.htmlString !=None:
-        pdf_converter(file_name=body.pdfName, db=db, string=body.htmlString)
+        pdf = pdf_converter(file_name=body.pdfName, db=db, string=body.htmlString)
 
     elif body.FilePath !=None:
-        pdf_converter(file_name=body.pdfName, db=db, filepath=body.FilePath)
+        pdf = pdf_converter(file_name=body.pdfName, db=db, filepath=body.FilePath)
 
     elif body.url != None:
-        pdf_converter(file_name=body.pdfName, db=db, url=body.url)
+        pdf = pdf_converter(file_name=body.pdfName, db=db, url=body.url)
+    
+    return pdf
 
 
 def pdf_converter( file_name:str,db:orm.Session,url:str=None, filepath:str=None, string:str=None):
@@ -65,7 +67,8 @@ def pdf_converter( file_name:str,db:orm.Session,url:str=None, filepath:str=None,
 
     #save to db
     file = file_model.File(id = uuid4().hex, filename=filename , bucketname=bucketname, filesize=filesize)
-    print(file)
     db.add(file)
     db.commit()
     db.refresh(file)
+
+    return file

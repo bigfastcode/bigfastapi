@@ -103,16 +103,16 @@ async def send_receipt(
                 db=db,
                 file="./filestorage/pdfs/" + pdf_name,
             )
-
-        await email_services.send_email(
-            title=payload.subject,
-            recipients=payload.recipients,
-            template=payload.template if payload.template else "mail_receipt.html",
-            template_body=payload.data,
-            custom_template_dir=payload.custom_template_dir,
-            background_tasks=background_tasks,
-            db=db,
-        )
+        else:
+            await email_services.send_email(
+                title=payload.subject,
+                recipients=payload.recipients,
+                template=payload.template if payload.template else "mail_receipt.html",
+                template_body=payload.data,
+                custom_template_dir=payload.custom_template_dir,
+                background_tasks=background_tasks,
+                db=db,
+            )
 
         db.add(receipt)
         db.commit()
