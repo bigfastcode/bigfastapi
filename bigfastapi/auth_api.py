@@ -65,6 +65,7 @@ def verify_access_token(token: str, credentials_exception, db: orm.Session):
 
 
 def is_authenticated(token: str = fastapi.Depends(oauth2_scheme), db: orm.Session = fastapi.Depends(get_db)):
+    print("--wedding--")
     credentials_exception = fastapi.HTTPException(status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
                                                   detail=f"Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
@@ -72,6 +73,8 @@ def is_authenticated(token: str = fastapi.Depends(oauth2_scheme), db: orm.Sessio
         token = verify_access_token(token, credentials_exception, db)
         user = db.query(user_models.User).filter(
             user_models.User.id == token.id).first()
+        print('--heree--')
+        print(user)
         return user
 
     if type(token) == dict:
