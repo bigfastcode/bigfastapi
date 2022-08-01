@@ -30,16 +30,19 @@ def convert_to_pdf(body: pdfSchema.Format, db: orm.Session = fastapi.Depends(get
     return pdf
 
 
-def pdf_converter( file_name:str,db:orm.Session,url:str=None, filepath:str=None, string:str=None):
+def pdf_converter( file_name:str,db:orm.Session,url:str=None, filepath:str=None, string:str=None, options=None):
 
     if string != None:
-        pdfkit.from_string(string, file_name)
-    if filepath != None:
-        pdfkit.from_file(filepath, file_name)
-    if url != None:
-        pdfkit.from_url(url, file_name)
+        pdfkit.from_string(string, file_name, options)
 
-    bucketname = 'pdfs' #bucketname
+    if filepath != None:
+        pdfkit.from_file(filepath, file_name, options)
+
+    if url != None:
+        pdfkit.from_url(url, file_name, options)
+
+    #bucketname
+    bucketname = 'pdfs' 
     filename = file_name
     pdfDir = './'+filename
 
@@ -49,6 +52,7 @@ def pdf_converter( file_name:str,db:orm.Session,url:str=None, filepath:str=None,
 
     # Create the base folder
     base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
+
     try:
         os.makedirs(base_folder)
     except:
@@ -70,5 +74,4 @@ def pdf_converter( file_name:str,db:orm.Session,url:str=None, filepath:str=None,
     db.add(file)
     db.commit()
     db.refresh(file)
-
     return file
