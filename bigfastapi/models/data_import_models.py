@@ -5,6 +5,7 @@ from sqlalchemy.types import String, DateTime, Boolean
 from uuid import uuid4
 from bigfastapi.db.database import Base
 from sqlalchemy import JSON
+from models.file_models import File
 
 class FileImports(Base):
     __tablename__ = "imports"
@@ -37,6 +38,9 @@ class FileExports(Base):
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255), index=True)
     biz_partner_id = Column(String(255), ForeignKey("biz_partners.id"), index=True)
+    business_name = Column(String(255),)
+    file_name = Column(String(255), unique=True)
+    file_id = Column(String(255), ForeignKey(File.id))
     user_id = Column(String(255))
     report_type = Column(String(255))
     settings = Column(JSON())
