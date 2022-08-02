@@ -40,7 +40,7 @@ class FileExports(Base):
     biz_partner_id = Column(String(255), ForeignKey("biz_partners.id"), index=True)
     business_name = Column(String(255),)
     file_name = Column(String(255), unique=True)
-    file_id = Column(String(255), ForeignKey(File.id))
+    file_id = Column(String(255), ForeignKey("files.id"))
     user_id = Column(String(255))
     report_type = Column(String(255))
     settings = Column(JSON())
