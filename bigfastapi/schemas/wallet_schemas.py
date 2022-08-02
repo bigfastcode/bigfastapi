@@ -1,11 +1,10 @@
 import datetime as _dt
 from enum import Enum
 from typing import Optional
+from pydantic import BaseModel
 
-import pydantic as _pydantic
 
-
-class WalletTransaction(_pydantic.BaseModel):
+class WalletTransaction(BaseModel):
     amount: float
     transaction_ref: str
     transaction_date: _dt.datetime
@@ -18,7 +17,7 @@ class WalletTransaction(_pydantic.BaseModel):
         orm_mode = True
 
 
-class WalletCreate(_pydantic.BaseModel):
+class WalletCreate(BaseModel):
     organization_id: str
     currency_code: str
     user_id: Optional[str]
@@ -33,7 +32,7 @@ class Wallet(WalletCreate):
         orm_mode = True
 
 
-class WalletUpdate(_pydantic.BaseModel):
+class WalletUpdate(BaseModel):
     amount: float
     currency_code: str
     redirect_url: str
