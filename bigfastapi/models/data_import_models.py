@@ -5,7 +5,7 @@ from sqlalchemy.types import String, DateTime, Boolean
 from uuid import uuid4
 from bigfastapi.db.database import Base
 from sqlalchemy import JSON
-from models.file_models import File
+
 
 class FileImports(Base):
     __tablename__ = "imports"
