@@ -108,9 +108,9 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
 
     if datetime_constraint:
         banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id, 
-                                                        bank_models.BankModels.last_updated > datetime_constraint).filter_by(bank_models.BankModels.is_deleted==False)
+                                                        bank_models.BankModels.last_updated > datetime_constraint).filter(bank_models.BankModels.is_deleted==False).all()
     else:
-        banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id,bank_models.BankModels.is_deleted==False)
+        banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id,bank_models.BankModels.is_deleted==False).all()
 
     banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
     return paginate(banks_list)
