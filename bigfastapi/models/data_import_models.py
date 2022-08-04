@@ -45,7 +45,7 @@ class FileExports(Base):
     user_id = Column(String(255))
     report_type = Column(String(255))
     settings = Column(JSON())
-    in_progress = Column(Boolean, default=False)
+    in_progress = Column(Boolean, default=False) 
     is_deleted= Column(Boolean, default=False)
     date_created = Column(DateTime, default=datetime.now())
     last_updated = Column(DateTime, default=datetime.now())
