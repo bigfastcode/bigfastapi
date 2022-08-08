@@ -117,6 +117,6 @@ def get_file(bucket_name: str, file_id: str, db: orm.Session = Depends(get_db)):
         if os.path.realpath(settings.FILES_BASE_FOLDER) != common_path:
             raise HTTPException(status_code=403, detail="File reading from unallowed path")
 
-        return FileResponse(local_file_path)
+        return FileResponse(local_file_path, media_type='application/octet-stream',filename=existing_file.filename)
     else:
         raise HTTPException(status_code=404, detail="File not found")

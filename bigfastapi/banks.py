@@ -84,7 +84,7 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
             response_model=Page[bank_schemas.BankResponse])
 async def get_organization_bank_accounts(organization_id: str, user: users_schemas.User = Depends(is_authenticated),
                                          db: orm.Session = Depends(get_db), page_size: int = 15,
-                                         page_number: int = 1, ):
+                                         page_number: int = 1, datetime_constraint = None):
     """intro-->This endpoint allows you retrieve all available bank details in the database. To use this endpoint you need to make a get request to the /banks/organizations/{organization_id} endpoint
 
     paramDesc-->On get request, the request url takes the query parameter organization id and four(4) other optional query parameters
@@ -106,7 +106,12 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                     detail="You are not allowed to access this resource")
 
-    banks = db.query(bank_models.BankModels).filter_by(organization_id=organization_id).filter_by(is_deleted=False)
+    if datetime_constraint:
+        banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id, 
+                                                        bank_models.BankModels.last_updated > datetime_constraint).filter(bank_models.BankModels.is_deleted==False).all()
+    else:
+        banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id,bank_models.BankModels.is_deleted==False).all()
+
     banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
     return paginate(banks_list)
 
