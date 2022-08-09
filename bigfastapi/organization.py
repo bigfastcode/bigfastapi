@@ -25,10 +25,10 @@ from bigfastapi.schemas.organization_schemas import (
     OrganizationUserBase,
     _OrganizationBase,
 )
-from bigfastapi.services import organization_services
+from bigfastapi.services import organization_services, email_services
 from bigfastapi.utils.utils import paginate_data, row_to_dict
 from bigfastapi.core.helpers import Helpers
-
+# from bigfastapi.services import email_services
 from .models import organization_models as _models
 
 app = APIRouter(tags=["Organization"])
@@ -483,9 +483,10 @@ async def invite_user(
             )
             if existing_invite is None:
 
-                send_email(
-                    email_details=email_info,
+                await email_services.send_email(
+                    template_body=email_info,
                     background_tasks=background_tasks,
+                    recipients=[payload.user_email],
                     template=template,
                     db=db,
                 )

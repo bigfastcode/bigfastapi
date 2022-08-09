@@ -36,6 +36,9 @@ class BankModels(Base):
     is_preferred = Column(Boolean(), default=False)
     is_deleted = Column(Boolean(), default=False)
     date_created = Column(DateTime(timezone=True), server_default=func.now())
+    last_updated = Column(DateTime(timezone=True), server_default=func.now())
+    date_created_db = Column(DateTime(timezone=True), server_default=func.now())
+    last_updated_db = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # ===========================database query service===================================================
