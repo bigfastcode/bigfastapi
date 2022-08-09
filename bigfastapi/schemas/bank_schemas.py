@@ -48,7 +48,7 @@ class AddBank(BankBase):
 class BankResponse(AddBank):
     id: str
     creator_id: str
-    last_updated: date.datetime
+    last_updated: Optional[date.datetime]
 
     class Config:
         orm_mode = True
