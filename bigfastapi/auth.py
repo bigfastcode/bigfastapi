@@ -371,7 +371,8 @@ async def refresh_token(
 
         print("refresh passed", user.id, valid_refresh_token)
 
-    return {"user": user, "access_token": access_token, "expires_in": 3600}
+    # Access token expires in 15 mins,
+    return {"user": user, "access_token": access_token, "expires_in": 900}
 
 
 async def create_user(
