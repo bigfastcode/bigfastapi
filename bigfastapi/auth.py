@@ -105,7 +105,7 @@ async def create_user(
                 key="access_token",
                 value=access_token,
                 max_age="172800",
-                secure=True,
+                # secure=True,
                 httponly=True,
                 samesite=None,
             )
@@ -140,7 +140,7 @@ async def create_user(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                # secure=True,
                 httponly=True,
                 samesite="strict",
             )
@@ -181,7 +181,7 @@ async def create_admin_user(
             key="refresh_token",
             value=refresh_token,
             max_age="172800",
-            secure=True,
+            # secure=True,
             httponly=True,
             samesite="strict",
         )
@@ -243,7 +243,7 @@ async def login(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                # secure=True,
                 httponly=True,
                 samesite="strict",
             )
@@ -284,7 +284,7 @@ async def login(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                # secure=True,
                 httponly=True,
                 samesite="strict",
             )
@@ -326,7 +326,7 @@ async def refresh_access_token(
                 key="refresh_token",
                 value=None,
                 max_age="172800",
-                secure=True,
+                # secure=True,
                 httponly=True,
                 samesite="strict",
             )
@@ -355,7 +355,7 @@ async def refresh_access_token(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                # secure=True,
                 httponly=True,
                 samesite="strict",
             )
