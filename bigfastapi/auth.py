@@ -1,8 +1,6 @@
 from typing import Union
-from uuid import uuid4
 
 import fastapi
-import passlib.hash as hash
 import sqlalchemy.orm as orm
 from fastapi import APIRouter, BackgroundTasks, Cookie, Response
 from fastapi.security import OAuth2PasswordBearer
@@ -10,7 +8,6 @@ from passlib.context import CryptContext
 
 from bigfastapi.db.database import get_db
 
-# from authlib.integrations.starlette_client import OAuth, OAuthError
 from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
 from bigfastapi.utils.settings import PYTHON_ENV
@@ -57,12 +54,12 @@ async def create_user(
         returnBody--> "success".
     """
 
-    if user.email == None and user.phone_number == None:
+    if user.email is None and user.phone_number is None:
         raise fastapi.HTTPException(
             status_code=403,
             detail="you must use a either phone_number or email to sign up",
         )
-    if user.phone_number and user.phone_country_code == None:
+    if user.phone_number and user.phone_country_code is None:
         raise fastapi.HTTPException(
             status_code=403,
             detail="you must add a country code when you add a phone number",
@@ -73,7 +70,7 @@ async def create_user(
             raise fastapi.HTTPException(
                 status_code=403, detail="this country code is invalid"
             )
-    if user.phone_number == None and user.phone_country_code:
+    if user.phone_number is None and user.phone_country_code:
         raise fastapi.HTTPException(
             status_code=403,
             detail="you must add a phone number when you add a country code",
@@ -86,13 +83,13 @@ async def create_user(
 
     if user.email or (user.email and user.phone_number):
         user_email = await find_user_email(user.email, db)
-        if user_email["user"] != None:
+        if user_email["user"] is not None:
             raise fastapi.HTTPException(status_code=403, detail="Email already exist")
         if user.phone_number:
             user_phone = await find_user_phone(
                 user.phone_number, user.phone_country_code, db
             )
-            if user_phone["user"] != None:
+            if user_phone["user"] is not None:
                 raise fastapi.HTTPException(
                     status_code=403, detail="Phone_Number already exist"
                 )
@@ -122,7 +119,7 @@ async def create_user(
         user_phone = await find_user_phone(
             user.phone_number, user.phone_country_code, db
         )
-        if user_phone["user"] != None:
+        if user_phone["user"] is not None:
             raise fastapi.HTTPException(
                 status_code=403, detail="Phone_Number already exist"
             )
@@ -160,7 +157,7 @@ async def create_user(
 
 # ENDPOINT TO CREATE A SUPER ADMIN ACCOUNT
 @app.post("/auth/admin-signup", status_code=200)
-async def create_user(
+async def create_admin_user(
     response: Response,
     user: auth_schemas.UserCreate,
     background_tasks: BackgroundTasks,
@@ -169,14 +166,14 @@ async def create_user(
 
     created_user = auth_service.create_user(user, db, True)
     access_token = auth_service.create_access_token(
-        data={"user_id": create_user.id}, db=db
+        data={"user_id": created_user.id}, db=db
     )
 
     refresh_token = await create_refresh_token(
         data={"user_id": created_user["user"].id}, db=db
     )
 
-    background_tasks.add_task(send_slack_notification, create_user)
+    background_tasks.add_task(send_slack_notification, created_user)
 
     if PYTHON_ENV == "production":
         response.set_cookie(
@@ -196,7 +193,7 @@ async def create_user(
         samesite="strict",
     )
 
-    return {"data": create_user, "access_token": access_token}
+    return {"data": created_user, "access_token": access_token}
 
 
 @app.post("/auth/login", status_code=200)
@@ -219,7 +216,7 @@ async def login(
         returnBody--> "success".
     """
 
-    if user.email == None and user.phone_number == None:
+    if user.email is None and user.phone_number is None:
         raise fastapi.HTTPException(
             status_code=403,
             detail="you must use a either phone_number or email to login",
@@ -261,7 +258,7 @@ async def login(
         return {"data": userinfo["response_user"], "access_token": access_token}
 
     if user.phone_number:
-        if user.phone_country_code == None:
+        if user.phone_country_code is None:
             raise fastapi.HTTPException(
                 status_code=403,
                 detail="you must add country_code when using phone_number to login",
@@ -302,8 +299,9 @@ async def login(
         return {"data": userinfo["response_user"], "access_token": access_token}
 
 
+# change to refresh-access-token
 @app.get("/auth/refresh-token", status_code=200)
-async def refresh_token(
+async def refresh_access_token(
     response: Response,
     refresh_token: Union[str, None] = Cookie(default=None),
     db: orm.Session = fastapi.Depends(get_db),
@@ -311,7 +309,7 @@ async def refresh_token(
 
     credentials_exception = fastapi.HTTPException(
         status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
-        detail=f"Could not validate credentials",
+        detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     # check if refresh token is valid
@@ -373,35 +371,6 @@ async def refresh_token(
 
     # Access token expires in 15 mins,
     return {"user": user, "access_token": access_token, "expires_in": 900}
-
-
-async def create_user(
-    user: auth_schemas.UserCreate, db: orm.Session, is_su: bool = False
-):
-    su_status = True if is_su else False
-
-    user_obj = user_models.User(
-        id=uuid4().hex,
-        email=user.email,
-        password_hash=hash.sha256_crypt.hash(user.password),
-        first_name=user.first_name,
-        last_name=user.last_name,
-        phone_number=user.phone_number,
-        is_active=True,
-        is_verified=True,
-        is_superuser=su_status,
-        phone_country_code=user.phone_country_code,
-        is_deleted=False,
-        google_id=user.google_id,
-        google_image_url=user.google_image_url,
-        image_url=user.image_url,
-        device_id=user.device_id,
-    )
-
-    db.add(user_obj)
-    db.commit()
-    db.refresh(user_obj)
-    return auth_schemas.UserCreateOut.from_orm(user_obj)
 
 
 async def find_user_email(email, db: orm.Session):
