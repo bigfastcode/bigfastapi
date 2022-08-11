@@ -3,7 +3,7 @@ from typing import Union
 import fastapi
 import sqlalchemy.orm as orm
 from decouple import config
-from fastapi import APIRouter, BackgroundTasks, Cookie, Response
+from fastapi import APIRouter, BackgroundTasks, Cookie, Response, Request
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
@@ -29,6 +29,7 @@ PYTHON_ENV = config("PYTHON_ENV")
 
 @app.post("/auth/signup", status_code=201)
 async def create_user(
+    request: Request,
     response: Response,
     user: auth_schemas.UserCreate,
     background_tasks: BackgroundTasks,
@@ -140,6 +141,7 @@ async def create_user(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
+                domain=request.headers.get('origin'),
                 # secure=True,
                 httponly=True,
                 samesite="strict",
@@ -148,10 +150,12 @@ async def create_user(
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
+            domain=request.headers.get('origin'),
             max_age="172800",
             httponly=True,
             samesite="strict",
         )
+
 
         return {"data": user_created, "access_token": access_token}
 
@@ -159,6 +163,7 @@ async def create_user(
 # ENDPOINT TO CREATE A SUPER ADMIN ACCOUNT
 @app.post("/auth/admin-signup", status_code=200)
 async def create_admin_user(
+    request: Request,
     response: Response,
     user: auth_schemas.UserCreate,
     background_tasks: BackgroundTasks,
@@ -178,27 +183,30 @@ async def create_admin_user(
 
     if PYTHON_ENV == "production":
         response.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                max_age="172800",
+                domain=request.headers.get('origin'),
+                # secure=True,
+                httponly=True,
+                samesite="strict",
+            )
+
+        response.set_cookie(
             key="refresh_token",
             value=refresh_token,
+            domain=request.headers.get('origin'),
             max_age="172800",
-            # secure=True,
             httponly=True,
             samesite="strict",
         )
-
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        max_age="172800",
-        httponly=True,
-        samesite="strict",
-    )
 
     return {"data": created_user, "access_token": access_token}
 
 
 @app.post("/auth/login", status_code=200)
 async def login(
+    request: Request,
     response: Response,
     user: auth_schemas.UserLogin,
     background_tasks: BackgroundTasks,
@@ -238,11 +246,13 @@ async def login(
 
         background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
+        print(request.headers.get('origin'))
         if PYTHON_ENV == "production":
             response.set_cookie(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
+                domain=request.headers.get('origin'),
                 # secure=True,
                 httponly=True,
                 samesite="strict",
@@ -251,6 +261,7 @@ async def login(
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
+            domain=request.headers.get('origin'),
             max_age="172800",
             httponly=True,
             samesite="strict",
@@ -284,6 +295,7 @@ async def login(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
+                domain=request.headers.get('origin'),
                 # secure=True,
                 httponly=True,
                 samesite="strict",
@@ -292,6 +304,7 @@ async def login(
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
+            domain=request.headers.get('origin'),
             max_age="172800",
             httponly=True,
             samesite="strict",
@@ -303,6 +316,7 @@ async def login(
 # change to refresh-access-token
 @app.get("/auth/refresh-token", status_code=200)
 async def refresh_access_token(
+    request: Request,
     response: Response,
     refresh_token: Union[str, None] = Cookie(default=None),
     db: orm.Session = fastapi.Depends(get_db),
@@ -326,13 +340,16 @@ async def refresh_access_token(
                 key="refresh_token",
                 value=None,
                 max_age="172800",
+                domain=request.headers.get('origin'),
                 # secure=True,
                 httponly=True,
                 samesite="strict",
             )
+
         response.set_cookie(
             key="refresh_token",
             value=None,
+            domain=request.headers.get('origin'),
             max_age="172800",
             httponly=True,
             samesite="strict",
@@ -355,6 +372,7 @@ async def refresh_access_token(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
+                domain=request.headers.get('origin'),
                 # secure=True,
                 httponly=True,
                 samesite="strict",
@@ -363,6 +381,7 @@ async def refresh_access_token(
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
+            domain=request.headers.get('origin'),
             max_age="172800",
             httponly=True,
             samesite="strict",
