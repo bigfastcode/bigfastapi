@@ -99,20 +99,20 @@ async def create_user(
         access_token = await create_access_token(
             data={"user_id": user_created.id}, db=db
         )
+        refresh_token = await create_refresh_token(
+            data={"user_id": user_created.id}, db=db
+        )
+
         background_tasks.add_task(send_slack_notification, user_created)
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="access_token",
-                value=access_token,
-                max_age="172800",
-                # secure=True,
-                httponly=True,
-                samesite=None,
-            )
-        else:
-            response.set_cookie(
-                key="access_token", value=access_token, max_age="172800", samesite=None
+        
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            max_age="172800",
+            # secure=True if PYTHON_ENV == "production" else False
+            httponly=True,
+            samesite=None,
             )
 
         return {"data": user_created, "access_token": access_token}
@@ -136,26 +136,15 @@ async def create_user(
 
         background_tasks.add_task(send_slack_notification, user_created)
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                domain=request.headers.get('origin'),
-                # secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
-            domain=request.headers.get('origin'),
             max_age="172800",
+            domain=request.headers.get('origin'),
+            # secure=True if PYTHON_ENV == "production" else False
             httponly=True,
             samesite="strict",
         )
-
 
         return {"data": user_created, "access_token": access_token}
 
@@ -181,22 +170,12 @@ async def create_admin_user(
 
     background_tasks.add_task(send_slack_notification, created_user)
 
-    if PYTHON_ENV == "production":
-        response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                domain=request.headers.get('origin'),
-                # secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
-        response.set_cookie(
+    response.set_cookie(
             key="refresh_token",
             value=refresh_token,
-            domain=request.headers.get('origin'),
             max_age="172800",
+            domain=request.headers.get('origin'),
+            # secure=True if PYTHON_ENV == "production" else False
             httponly=True,
             samesite="strict",
         )
@@ -247,22 +226,13 @@ async def login(
         background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
         print(request.headers.get('origin'))
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                domain=request.headers.get('origin'),
-                # secure=True,
-                httponly=True,
-                samesite="strict",
-            )
 
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
-            domain=request.headers.get('origin'),
             max_age="172800",
+            domain=request.headers.get('origin'),
+            # secure=True if PYTHON_ENV == "production" else False
             httponly=True,
             samesite="strict",
         )
@@ -290,22 +260,12 @@ async def login(
 
         background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                domain=request.headers.get('origin'),
-                # secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
-            domain=request.headers.get('origin'),
             max_age="172800",
+            domain=request.headers.get('origin'),
+            # secure=True if PYTHON_ENV == "production" else False
             httponly=True,
             samesite="strict",
         )
@@ -335,22 +295,12 @@ async def refresh_access_token(
     valid_refresh_token = verify_refresh_token(refresh_token, credentials_exception, db)
 
     if valid_refresh_token.email is None:
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=None,
-                max_age="172800",
-                domain=request.headers.get('origin'),
-                # secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=None,
-            domain=request.headers.get('origin'),
             max_age="172800",
+            domain=request.headers.get('origin'),
+            # secure=True if PYTHON_ENV == "production" else False
             httponly=True,
             samesite="strict",
         )
@@ -367,22 +317,12 @@ async def refresh_access_token(
             {"user_id": valid_refresh_token.id}, db
         )
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                domain=request.headers.get('origin'),
-                # secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
-            domain=request.headers.get('origin'),
             max_age="172800",
+            domain=request.headers.get('origin'),
+            # secure=True if PYTHON_ENV == "production" else False
             httponly=True,
             samesite="strict",
         )
