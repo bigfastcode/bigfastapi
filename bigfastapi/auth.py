@@ -2,15 +2,14 @@ from typing import Union
 
 import fastapi
 import sqlalchemy.orm as orm
+from decouple import config
 from fastapi import APIRouter, BackgroundTasks, Cookie, Response
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
 from bigfastapi.db.database import get_db
-
 from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
-from bigfastapi.utils.settings import PYTHON_ENV
 
 from .auth_api import create_access_token, create_refresh_token, verify_refresh_token
 from .core.helpers import Helpers
@@ -24,6 +23,8 @@ JWT_SECRET = settings.JWT_SECRET
 ALGORITHM = "HS256"
 
 app = APIRouter(tags=["Auth"])
+
+PYTHON_ENV = config("PYTHON_ENV")
 
 
 @app.post("/auth/signup", status_code=201)
