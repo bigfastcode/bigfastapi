@@ -85,3 +85,21 @@ class SendSMS():
             }
         )
         return req
+
+
+    def sync_send_sms_reminder(
+        username: str, passkey: str, sender: str, recipient: str, body: str
+    ):
+
+        req = requests.put(
+            SendSMS.providers.get("nuobject"),
+            params={
+                "user": username,
+                "pass": passkey,
+                "from": sender,
+                "to": recipient,
+                "msg": body
+            }
+        )
+        return req
+

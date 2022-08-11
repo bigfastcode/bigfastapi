@@ -7,7 +7,7 @@ from sqlalchemy.types import String, Integer, Text, DateTime, Boolean
 from uuid import uuid4
 from bigfastapi.models.location_models import Location
 from bigfastapi.models.contact_info_models import ContactInfo
-
+from sqlalchemy.orm import relationship
 
 
 from bigfastapi.db.database import Base
@@ -39,6 +39,9 @@ class Organization(Base):
     last_updated = Column(DateTime, default=_dt.datetime.utcnow)
     date_created_db = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated_db = Column(DateTime, default=_dt.datetime.utcnow)
+
+    org_contact_infos = relationship("OrganizationContactInfo", backref="organizations", lazy="selectin")
+    org_locations = relationship("OrganizationLocation", backref="organizations", lazy="selectin")
 
 # Organization Invite
 
