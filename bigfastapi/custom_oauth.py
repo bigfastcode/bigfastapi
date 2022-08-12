@@ -176,22 +176,18 @@ class OAuth2PasswordBearer(OAuth2):
         
         scheme, param = get_authorization_scheme_param(authorization)
 
-        if api_key and app_id and not authorization:  
+        if api_key and app_id:  
             return {"API_KEY": api_key, "APP_ID": app_id}
 
-        if authorization and not api_key and not app_id:
+        elif authorization:
             return param
 
-        if not authorization:
-            if not api_key or not app_id:
-                if self.auto_error:
-                    raise HTTPException(
-                        status_code=HTTP_401_UNAUTHORIZED,
-                        detail="Not authenticated",
-                        headers={"WWW-Authenticate": "Bearer"},
-                    )
-                else:
-                    return None
+        else:
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         # print(scheme)
         
 
