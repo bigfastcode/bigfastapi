@@ -140,7 +140,7 @@ async def create_user(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                secure=False,
                 httponly=True,
                 samesite="strict",
             )
@@ -247,7 +247,7 @@ async def login(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                secure=False,
                 httponly=True,
                 samesite="strict",
             )
@@ -289,7 +289,7 @@ async def login(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                secure=False,
                 httponly=True,
                 samesite="strict",
             )
@@ -334,7 +334,7 @@ async def refresh_access_token(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                secure=False,
                 httponly=True,
                 samesite="strict",
             )
@@ -365,7 +365,7 @@ async def refresh_access_token(
                 key="refresh_token",
                 value=refresh_token,
                 max_age="172800",
-                secure=True,
+                secure=False,
                 httponly=True,
                 samesite="strict",
             )
