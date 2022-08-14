@@ -1,8 +1,8 @@
 import os
 import csv
-import itertools
+
 from uuid import uuid4
-from typing import Any
+
 from bigfastapi.models.data_import_models import FileImports, FailedFileImports
 import sqlalchemy.orm as orm
 from bigfastapi.utils.settings import FILES_BASE_FOLDER
@@ -10,7 +10,7 @@ from bigfastapi.utils.settings import FILES_BASE_FOLDER
 MAX_ROWS = 100
 
 
-def create_import_start_point(user_id:str,file_name, current_line, total_line, model_name, organization_id: str, 
+async def create_import_start_point(user_id:str,file_name, current_line, total_line, model_name, organization_id: str, 
     db: orm.Session):
     file_import = FileImports(
         id=uuid4().hex, file_name=file_name, current_line=current_line, total_line=total_line,
