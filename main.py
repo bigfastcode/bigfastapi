@@ -16,7 +16,7 @@ from celery import Celery
 from decouple import config
 
 from bigfastapi.auth import app as authentication
-from bigfastapi.auth_api import app as jwt_services
+# from bigfastapi.auth_api import app as jwt_services
 from bigfastapi.banks import router as banks
 from bigfastapi.blog import app as blog
 # from bigfastapi.products import app as products
@@ -258,7 +258,7 @@ app.include_router(wallet, tags=["Wallet"])
 app.include_router(credit, tags=["CreditWallet"])
 app.include_router(notification, tags=["Notification"])
 app.include_router(pdfs)
-app.include_router(jwt_services)
+# app.include_router(jwt_services)
 app.include_router(receipts)
 app.include_router(sms)
 # app.include_router(email_marketing, tags=["Email Marketing"])
