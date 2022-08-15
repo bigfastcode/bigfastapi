@@ -7,7 +7,7 @@ import fastapi
 import jwt as JWT
 import passlib.hash as _hash
 import sqlalchemy.orm as orm
-from fastapi import APIRouter, Cookie
+from fastapi import Cookie
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -24,8 +24,6 @@ from .schemas import auth_schemas, users_schemas
 from .services import email_services
 
 # from .users import get_user
-
-app = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

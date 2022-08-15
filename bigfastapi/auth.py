@@ -11,7 +11,6 @@ from bigfastapi.db.database import get_db
 from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
 
-from .auth_api import create_access_token, create_refresh_token, verify_refresh_token
 from .core.helpers import Helpers
 from .models import user_models
 from .schemas import auth_schemas
@@ -29,7 +28,6 @@ PYTHON_ENV = config("PYTHON_ENV")
 
 @app.post("/auth/signup", status_code=201)
 async def create_user(
-    request: Request,
     response: Response,
     user: auth_schemas.UserCreate,
     background_tasks: BackgroundTasks,
@@ -86,20 +84,22 @@ async def create_user(
     if user.email or (user.email and user.phone_number):
         user_email = await find_user_email(user.email, db)
         if user_email["user"] is not None:
-            raise fastapi.HTTPException(status_code=403, detail="Email already exist")
+            raise fastapi.HTTPException(
+                status_code=403, detail="This email already exist"
+            )
         if user.phone_number:
             user_phone = await find_user_phone(
                 user.phone_number, user.phone_country_code, db
             )
             if user_phone["user"] is not None:
                 raise fastapi.HTTPException(
-                    status_code=403, detail="Phone_Number already exist"
+                    status_code=403, detail="This phone number already exist"
                 )
-        user_created = await create_user(user, db=db)
-        access_token = await create_access_token(
+        user_created = await auth_service.create_user(user, db=db)
+        access_token = await auth_service.create_access_token(
             data={"user_id": user_created.id}, db=db
         )
-        refresh_token = await create_refresh_token(
+        refresh_token = await auth_service.create_refresh_token(
             data={"user_id": user_created.id}, db=db
         )
 
@@ -125,11 +125,11 @@ async def create_user(
                 status_code=403, detail="Phone_Number already exist"
             )
         user_created = await create_user(user, db=db)
-        access_token = await create_access_token(
+        access_token = await auth_service.create_access_token(
             data={"user_id": user_created.id}, db=db
         )
 
-        refresh_token = await create_refresh_token(
+        refresh_token = await auth_service.create_refresh_token(
             data={"user_id": user_created.id}, db=db
         )
 
@@ -160,7 +160,6 @@ async def create_user(
 # ENDPOINT TO CREATE A SUPER ADMIN ACCOUNT
 @app.post("/auth/admin-signup", status_code=200)
 async def create_admin_user(
-    request: Request,
     response: Response,
     user: auth_schemas.UserCreate,
     background_tasks: BackgroundTasks,
@@ -172,7 +171,7 @@ async def create_admin_user(
         data={"user_id": created_user.id}, db=db
     )
 
-    refresh_token = await create_refresh_token(
+    refresh_token = await auth_service.create_refresh_token(
         data={"user_id": created_user["user"].id}, db=db
     )
 
@@ -202,7 +201,6 @@ async def create_admin_user(
 
 @app.post("/auth/login", status_code=200)
 async def login(
-    request: Request,
     response: Response,
     user: auth_schemas.UserLogin,
     background_tasks: BackgroundTasks,
@@ -233,10 +231,10 @@ async def login(
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
-        access_token = await create_access_token(
+        access_token = await auth_service.create_access_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
-        refresh_token = await create_refresh_token(
+        refresh_token = await auth_service.create_refresh_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
@@ -275,10 +273,10 @@ async def login(
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
-        access_token = await create_access_token(
+        access_token = await auth_service.create_access_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
-        refresh_token = await create_refresh_token(
+        refresh_token = await auth_service.create_refresh_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
@@ -325,7 +323,9 @@ async def refresh_access_token(
     if refresh_token is None:
         return {"message": "Log in to authenticate user"}
 
-    valid_refresh_token = verify_refresh_token(refresh_token, credentials_exception, db)
+    valid_refresh_token = auth_service.verify_refresh_token(
+        refresh_token, credentials_exception, db
+    )
 
     print(refresh_token)
     if valid_refresh_token.email is None:
@@ -356,7 +356,7 @@ async def refresh_access_token(
             .first()
         )
 
-        access_token = await create_access_token(
+        access_token = await auth_service.create_access_token(
             {"user_id": valid_refresh_token.id}, db
         )
 
