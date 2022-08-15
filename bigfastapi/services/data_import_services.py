@@ -10,7 +10,7 @@ from bigfastapi.utils.settings import FILES_BASE_FOLDER
 MAX_ROWS = 100
 
 
-async def create_import_start_point(user_id:str,file_name, current_line, total_line, model_name, organization_id: str, 
+def create_import_start_point(user_id:str,file_name, current_line, total_line, model_name, organization_id: str, 
     db: orm.Session):
     file_import = FileImports(
         id=uuid4().hex, file_name=file_name, current_line=current_line, total_line=total_line,
