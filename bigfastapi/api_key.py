@@ -134,9 +134,12 @@ async def send_recover_apikey_email(
     S = 7
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=S))
     template_body={
-        "code": code
+        "body": f"Your APIKey reset code is {code}",
+        "preheader": "APIKey Reset",
+        "sender": "CPME",     
+        "title": "APIKEY RESET"   
     }
-    await email_services.send_email(background_tasks, recipients=[email], title="APIKey Reset", template='password_reset.html',  template_body=template_body)
+    await email_services.send_email(background_tasks, recipients=[email], template='base_email.html', title="APIKey Reset",  template_body=template_body)
     return code
  
 
