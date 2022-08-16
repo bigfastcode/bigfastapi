@@ -1,3 +1,4 @@
+from turtle import back
 from getmac import get_mac_address as gma
 import fastapi
 from fastapi import Request, APIRouter, BackgroundTasks
@@ -60,7 +61,7 @@ async def get_api_key(body: auth_schemas.APIKEYCheck, db: orm.Session = fastapi.
 
 
 @app.post("/recover-apikey")
-async def recover_apikey(body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(get_db)):
+async def recover_apikey(background_tasks: BackgroundTasks, body: auth_schemas.APIKey, db: orm.Session = fastapi.Depends(get_db)):
     user = await find_user(db=db, email=body.email, phone_number=body.phone_number, country_code=body.phone_country_code)
 
     if not user:
@@ -69,7 +70,7 @@ async def recover_apikey(body: auth_schemas.APIKey, db: orm.Session = fastapi.De
 
     code=""
     if body.email != None:
-        code = await send_recover_apikey_email(email=body.email, user=user)
+        code = await send_recover_apikey_email(email=body.email, user=user, background_tasks=background_tasks)
 
     code_obj = auth_models.PasswordResetCode(
             id=uuid4().hex, user_id=user.id, code=code)
@@ -128,11 +129,14 @@ async def resetapikey(user, db: orm.Session):
 
 
 async def send_recover_apikey_email(
-    email: str, user
+    email: str, user, background_tasks: BackgroundTasks
 ):
     S = 7
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=S))
-    await email_services.send_email(email, user, template='password_reset.html', title="APIKey Reset", code=code)
+    template_body={
+        "code": code
+    }
+    await email_services.send_email(background_tasks, recipients=[email], title="APIKey Reset", template='password_reset.html',  template_body=template_body)
     return code
  
 
