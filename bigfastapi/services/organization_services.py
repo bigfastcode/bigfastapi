@@ -6,9 +6,10 @@ from decouple import config
 from sqlalchemy import orm
 
 from bigfastapi.core.helpers import Helpers
+from bigfastapi.models import contact_info_models
 from bigfastapi.models import credit_wallet_models as credit_wallet_models
+from bigfastapi.models import location_models
 from bigfastapi.models import organization_models as Models
-from bigfastapi.models import location_models, contact_info_models, organization_models
 from bigfastapi.models import wallet_models as wallet_models
 from bigfastapi.schemas import organization_schemas as Schemas
 from bigfastapi.schemas import users_schemas
@@ -159,7 +160,6 @@ def create_organization(
             db.commit()
             db.refresh(organization_location)
 
-        
     if organization.contact_infos != None:
         for contact_info in organization.contact_infos:
             contact_info_id = uuid4().hex
@@ -180,7 +180,6 @@ def create_organization(
             db.commit()
             db.refresh(organization_contact)
 
-    # return {"org": new_organization, "location": organization_location, "contact": organization_contact}
     return new_organization
 
 
@@ -319,9 +318,16 @@ async def update_organization(
     db: orm.Session,
 ):
     organization_db = await organization_selector(organization_id, user, db)
-    org_location_db = db.query(Models.OrganizationLocation, location_models.Location).filter(Models.OrganizationLocation.organization_id == organization_id).first()
-    org_contact_info_db = db.query(Models.OrganizationContactInfo, contact_info_models.ContactInfo).filter(Models.OrganizationContactInfo.organization_id == organization_id).all()
-
+    org_location_db = (
+        db.query(Models.OrganizationLocation, location_models.Location)
+        .filter(Models.OrganizationLocation.organization_id == organization_id)
+        .first()
+    )
+    org_contact_info_db = (
+        db.query(Models.OrganizationContactInfo, contact_info_models.ContactInfo)
+        .filter(Models.OrganizationContactInfo.organization_id == organization_id)
+        .all()
+    )
 
     currencyUpdated = False
     if organization.mission != None:
@@ -342,26 +348,44 @@ async def update_organization(
         else:
             organization_db.name = organization.name
 
-
-    # contact infos 
+    # contact infos
     if organization.contact_infos:
-        if len(organization.contact_infos) != 0 and len(organization.contact_infos) == 1:
+        if (
+            len(organization.contact_infos) != 0
+            and len(organization.contact_infos) == 1
+        ):
             if organization.contact_infos[0] != None:
-                org_contact_info_db[0][0].contact_data = organization.contact_infos[0].contact_data
-                org_contact_info_db[0][0].contact_type = organization.contact_infos[0].contact_type
+                org_contact_info_db[0][0].contact_data = organization.contact_infos[
+                    0
+                ].contact_data
+                org_contact_info_db[0][0].contact_type = organization.contact_infos[
+                    0
+                ].contact_type
 
-        if  len(organization.contact_infos) != 0 and len(organization.contact_infos) == 2:
+        if (
+            len(organization.contact_infos) != 0
+            and len(organization.contact_infos) == 2
+        ):
             if organization.contact_infos[0] != None:
-                org_contact_info_db[0][0].contact_data = organization.contact_infos[0].contact_data
-                org_contact_info_db[0][0].contact_type = organization.contact_infos[0].contact_type
-            
+                org_contact_info_db[0][0].contact_data = organization.contact_infos[
+                    0
+                ].contact_data
+                org_contact_info_db[0][0].contact_type = organization.contact_infos[
+                    0
+                ].contact_type
+
             if organization.contact_infos[1] != None:
-                org_contact_info_db[0][1].contact_data = organization.contact_infos[1].contact_data
-                org_contact_info_db[0][1].phone_country_code = organization.contact_infos[1].phone_country_code
-                org_contact_info_db[0][1].contact_type = organization.contact_infos[1].contact_type
+                org_contact_info_db[0][1].contact_data = organization.contact_infos[
+                    1
+                ].contact_data
+                org_contact_info_db[0][
+                    1
+                ].phone_country_code = organization.contact_infos[1].phone_country_code
+                org_contact_info_db[0][1].contact_type = organization.contact_infos[
+                    1
+                ].contact_type
 
-
-    # location 
+    # location
     if organization.location:
         if organization.location[0].country != None:
             org_location_db[0].country = organization.location[0].country
@@ -369,7 +393,6 @@ async def update_organization(
             org_location_db[0].state = organization.location[0].state
         if organization.location[0].full_address != None:
             org_location_db[0].full_address = organization.location[0].full_address
-
 
     organization_db.tagline = organization.tagline
 
@@ -391,6 +414,7 @@ async def update_organization(
     # menu = get_organization_menu(organization_id, db)
 
     return {"data": {"organization": organization_db, "menu": DEFAULT_MENU}}
+
 
 def create_wallet(organization_id: str, currency: str, db: orm.Session):
     currency = currency.upper()
