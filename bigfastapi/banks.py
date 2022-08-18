@@ -108,7 +108,8 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
 
     if datetime_constraint:
         banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id, 
-                                                        bank_models.BankModels.last_updated > datetime_constraint).filter(bank_models.BankModels.is_deleted==False).all()
+                                                        bank_models.BankModels.last_updated > datetime_constraint).filter(bank_models.BankModels.is_deleted==False, 
+                                                        bank_models.BankModels.date_created > datetime_constraint).all()
     else:
         banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id,bank_models.BankModels.is_deleted==False).all()
 
