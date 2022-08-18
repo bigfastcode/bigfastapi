@@ -8,9 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile,
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import and_
 
-from bigfastapi.auth_api import is_authenticated
 from bigfastapi.db.database import get_db
-from bigfastapi.email import send_email
 from bigfastapi.files import upload_image
 from bigfastapi.models import organization_models, user_models
 from bigfastapi.models.organization_models import (
@@ -25,9 +23,10 @@ from bigfastapi.schemas.organization_schemas import (
     OrganizationUserBase,
     _OrganizationBase,
 )
-from bigfastapi.services import organization_services, email_services
+from bigfastapi.services import email_services, organization_services
+from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.utils.utils import paginate_data, row_to_dict
-from bigfastapi.core.helpers import Helpers
+
 # from bigfastapi.services import email_services
 from .models import organization_models as _models
 
@@ -86,7 +85,7 @@ def create_organization(
         )
         new_org = created_org
         print(new_org.id)
-        return {"data": {"new_business_id": new_org.id, "business": new_org}}
+        return {"message": "Organization created successfully", "data": new_org}
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -144,13 +143,11 @@ async def get_organization(
     )
     # menu = get_organization_menu(organization_id, db)
     return {"data": {"organization": organization}}  # , "menu":MENU
-    
+
     # else:
     #     raise HTTPException(
     #         status_code=status.HTTP_404_NOT_FOUND
     #     )
-
-
 
 
 @app.get(
