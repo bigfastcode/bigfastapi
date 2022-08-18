@@ -128,7 +128,7 @@ def verify_access_token(token: str, credentials_exception, db: orm.Session):
         check_token = (
             db.query(auth_models.Token).filter(auth_models.Token.token == token).first()
         )
-        if check_token == None:
+        if check_token is None:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
         id: str = payload.get("user_id")
@@ -182,6 +182,13 @@ def is_authenticated(
         user = check_api_key(app_id, api_key, db)
 
         return user
+
+
+def valid_email_from_db(email, db: orm.Session = fastapi.Depends(get_db)):
+    found_user = (
+        db.query(user_models.User).filter(user_models.User.email == email).first()
+    )
+    return found_user
 
 
 def generate_code(new_length: int = None):
