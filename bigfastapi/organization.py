@@ -772,13 +772,14 @@ async def changeOrganizationImage(
 
     bucketName = "organzationImages"
     organization = await _models.fetchOrganization(organization_id, db)
-
+    if not organization:
+        raise HTTPException(status_code=404, detail="organization does not exist")
     #  Delete previous organization image if exist
     await _models.deleteBizImageIfExist(organization)
 
     uploadedImage = await upload_image(file, db, bucketName)
     # Update organization image to uploaded image endpoint
-    organization.image = f"/files/image/{bucketName}/{uploadedImage}"
+    organization.image_url = f"/files/image/{bucketName}/{uploadedImage}"
 
     try:
         db.commit()
@@ -786,7 +787,7 @@ async def changeOrganizationImage(
         # menu = get_organization_menu(organization_id, db)
         return {
             "message": "Successful",
-            "data": {"organization": organization, "menu": DEFAULT_MENU},
+            "data": {"organization": organization},
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -811,7 +812,7 @@ async def get_organization_image_upload(
         .first()
     )
 
-    image = org.image
+    image = org.image_url
     filename = f"/{org.id}/{image}"
 
     root_location = os.path.abspath("filestorage")

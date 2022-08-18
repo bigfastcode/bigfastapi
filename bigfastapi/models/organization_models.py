@@ -117,10 +117,12 @@ async def fetchOrganization(orgId: str, db: _orm.Session):
 
 
 async def deleteBizImageIfExist(org: Organization):
+    if not org:
+        return False
     # check if user object contains image endpoint
-    if org.image is not None and len(org.image) > 17 and 'organzationImages/' in org.image:
+    if org.image_url != None and len(org.image_url) > 17 and 'organzationImages/' in org.image_url:
         # construct the image path from endpoint
-        splitPath = org.image.split('organzationImages/', 1)
+        splitPath = org.image_url.split('organzationImages/', 1)
         imagePath = f"\organzationImages\{splitPath[1]}"
         fullStoragePath = os.path.abspath("filestorage") + imagePath
 
@@ -130,7 +132,4 @@ async def deleteBizImageIfExist(org: Organization):
         if isImageInFile:
             deleteRes = await deleteFile(fullStoragePath)
             return deleteRes
-        else:
-            return False
-    else:
-        return False
+    return False
