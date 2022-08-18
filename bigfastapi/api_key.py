@@ -1,27 +1,19 @@
-from turtle import back
+
 from getmac import get_mac_address as gma
 import fastapi
-from fastapi import Request, APIRouter, BackgroundTasks
-import jwt as _jwt
+from fastapi import APIRouter, BackgroundTasks
 import passlib.hash as _hash
 from datetime import datetime
 from .models import auth_models, user_models
 from .schemas import auth_schemas
-from .schemas import users_schemas
 from .utils import utils
-from passlib.context import CryptContext
-from bigfastapi.utils import settings
-from bigfastapi.db import database as _database
-from fastapi.security import OAuth2PasswordBearer
 from uuid import uuid4
 import random
-from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .services import email_services
-from sqlalchemy import and_, or_, not_, desc
+from sqlalchemy import and_
 import datetime
-import socket
 import string
 
 
