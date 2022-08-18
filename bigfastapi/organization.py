@@ -78,7 +78,6 @@ def create_organization(
         )
 
         if organization.wallet == True:
-            print("????")
             organization_services.run_wallet_creation(created_org, db)
 
         background_tasks.add_task(
