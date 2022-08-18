@@ -24,9 +24,8 @@ from bigfastapi.schemas.organization_schemas import (
     _OrganizationBase,
 )
 from bigfastapi.services import email_services, organization_services
-from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.utils.utils import paginate_data, row_to_dict
-
+from bigfastapi.auth_api import is_authenticated
 # from bigfastapi.services import email_services
 from .models import organization_models as _models
 
@@ -78,7 +77,9 @@ def create_organization(
             user=user, db=db, organization=organization
         )
 
-        organization_services.run_wallet_creation(created_org, db)
+        if organization.wallet == True:
+            print("????")
+            organization_services.run_wallet_creation(created_org, db)
 
         background_tasks.add_task(
             organization_services.send_slack_notification, user.email, organization
