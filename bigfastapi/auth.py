@@ -11,6 +11,7 @@ from passlib.context import CryptContext
 from bigfastapi.db.database import get_db
 from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
+from bigfastapi.utils.utils import object_as_dict
 
 from .core.helpers import Helpers
 from .models import user_models
@@ -117,7 +118,8 @@ async def create_user(
         )
 
         return JSONResponse(
-            {"data": user_created, "access_token": access_token}, status_code=201
+            {"data": object_as_dict(user_created), "access_token": access_token},
+            status_code=201,
         )
 
     if user.phone_number:
@@ -149,7 +151,8 @@ async def create_user(
         )
 
         return JSONResponse(
-            {"data": user_created, "access_token": access_token}, status_code=201
+            {"data": object_as_dict(user_created), "access_token": access_token},
+            status_code=201,
         )
 
 
@@ -161,7 +164,6 @@ async def create_admin_user(
     background_tasks: BackgroundTasks,
     db: orm.Session = fastapi.Depends(get_db),
 ):
-    is_token_secure = True if PYTHON_ENV == "production" else False
 
     created_user = auth_service.create_user(user, db, True)
     access_token = auth_service.create_access_token(
@@ -183,7 +185,7 @@ async def create_admin_user(
         samesite="strict",
     )
 
-    return {"data": created_user, "access_token": access_token}
+    return {"data": object_as_dict(created_user), "access_token": access_token}
 
 
 @app.post("/auth/login", status_code=200)
