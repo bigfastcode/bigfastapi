@@ -240,6 +240,13 @@ async def get_organization_users(
             db.query(OrganizationUser)
             .join(user_models.User)
             .join(Role)
+            .with_entities(
+                user_models.User.id,
+                user_models.User.first_name,
+                user_models.User.last_name,
+                user_models.User.email,
+                Role.role_name,
+            )
             .filter(
                 and_(
                     OrganizationUser.user_id == user_models.User.id,
