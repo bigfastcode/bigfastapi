@@ -1,14 +1,13 @@
-
-
 import datetime as _dt
-from pydantic import BaseModel
 from typing import Any, List, Optional
 
-from .email_schema import Email
-from .users_schemas import User
-from enum import Enum
+from pydantic import BaseModel
+
 from .contact_info_schema import ContactInfo
+from .email_schema import Email
 from .location_schema import Location
+from .users_schemas import User
+
 
 class _OrganizationBase(BaseModel):
     id: Optional[str]
@@ -18,13 +17,12 @@ class _OrganizationBase(BaseModel):
     image_url: Optional[str]
 
     # contact info
-    contact_infos: Optional[List[ContactInfo]]  
+    contact_infos: Optional[List[ContactInfo]]
     # location
     location: Optional[List[Location]]
-    
+
     class Config:
         orm_mode = True
-
 
 
 class OrganizationUserBase(BaseModel):
@@ -36,6 +34,7 @@ class OrganizationUserBase(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class InviteBase(BaseModel):
     id: Optional[str]
@@ -50,6 +49,7 @@ class InviteBase(BaseModel):
     class Config:
         orm_mode = True
 
+
 class Role(BaseModel):
     organization_id: Optional[str]
     role_name: str
@@ -58,21 +58,21 @@ class Role(BaseModel):
         orm_mode = True
 
 
-
 # ORGANIZATION SCHEMAS
+
 
 class OrganizationCreate(_OrganizationBase):
     currency_code: str
     name: str
     business_type: str = "retail"
     create_wallet: bool = False
-    pass
+
 
 class OrganizationUpdate(_OrganizationBase):
     currency_code: Optional[str]
     name: Optional[str]
     business_type: Optional[str] = "retail"
-    pass
+
 
 class Organization(_OrganizationBase):
     id: str
@@ -83,12 +83,14 @@ class Organization(_OrganizationBase):
     class Config:
         orm_mode = True
 
+
 class BusinessSwitch(BaseModel):
     id: str
     business_type: str
 
     class Config:
         orm_mode = True
+
 
 class PinOrUnpin(BusinessSwitch):
     menu_item: str
@@ -97,29 +99,35 @@ class PinOrUnpin(BusinessSwitch):
     class Config:
         orm_mode = True
 
+
 # END ORGANIZATION SCHEMAS
 
 # -------------------------------------- #
 
 # ORGANIZATION INVITE SCHEMAS
 
+
 class UserInvite(InviteBase):
     organization: dict
     app_url: str
     email_details: Email
 
+
 class Invite(InviteBase):
     organization_id: str
     invite_code: str
-    
+
     class Config:
         orm_mode = True
+
 
 class OrganizationUser(InviteBase):
     user_id: str
 
+
 class InviteResponse(BaseModel):
     message: str
+
 
 org: dict = dict(
     id="string",
@@ -139,31 +147,69 @@ org: dict = dict(
     business_type="retail",
     image_full_path="string",
 )
+
+
 class SingleInviteResponse(BaseModel):
-    invite: Any = dict(id="string", user_email="string", user_id="string", user_role="string", organization=org)
+    invite: Any = dict(
+        id="string",
+        user_email="string",
+        user_id="string",
+        user_role="string",
+        organization=org,
+    )
     user: str
+
+
 class AllInvites(BaseModel):
     data: List[InviteBase]
+
 
 class AcceptInviteResponse(BaseModel):
     invited: OrganizationUserBase
     organization: _OrganizationBase
 
+
 class RevokedInviteResponse(InviteBase):
     is_revoked: bool = True
     is_deleted: bool = True
 
+
 class DeclinedInviteResponse(InviteBase):
     is_deleted: bool = True
+
 
 # END ORGANIZATION INVITE SCHEMAS
 
 # ------------------------------ #
 
 # ORGANIZATION USER SCHEMAS
+
+
+class Invited(BaseModel):
+    id: str
+    first_name: str
+    last_name: str
+    email: str
+    user_id: str
+    role_name: str
+
+
+class ItemsClass(BaseModel):
+    owner: User
+    invited_users: List[
+        Any
+    ]  # naming list type to Invited class when response is confirmed
+
+
 class OrganizationUsersResponse(BaseModel):
-    user: User
-    invited: List = list(dict(id="string", first_name="string", last_name="string", email="string", user_id="string", role="string", organization_id="string", date_created="string"))
+    page: int
+    size: int
+    total: int
+    items: List[ItemsClass]
+    previous_page: Optional[str]
+    next_page: Optional[str]
+    # invited: List = list(dict(id="string", first_name="string", last_name="string", email="string", user_id="string", role="string", organization_id="string", date_created="string"))
+
 
 # END ORGANIZATION USER SCHEMAS
 
@@ -173,11 +219,16 @@ class OrganizationUsersResponse(BaseModel):
 # ORGANIZATION ROLE SCHEMAS
 class AddRole(Role):
     role_name: str
+
+
 class RoleUpdate(OrganizationUserBase):
     email: str
     role: str
 
+
 class UpdateRoleResponse(BaseModel):
     message: str
     data: OrganizationUserBase
+
+
 # END ORGANIZATION ROLE SCHEMAS
