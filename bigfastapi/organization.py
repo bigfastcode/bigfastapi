@@ -28,12 +28,11 @@ from bigfastapi.models.organization_models import (
     OrganizationUser,
     Role,
 )
-from bigfastapi.schemas import organization_schemas as _schemas
-from bigfastapi.schemas import users_schemas
+from bigfastapi.schemas import organization_schemas, users_schemas
 from bigfastapi.schemas.organization_schemas import (
     AddRole,
+    OrganizationBase,
     OrganizationUserBase,
-    _OrganizationBase,
 )
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
@@ -47,7 +46,7 @@ app = APIRouter(tags=["Organization"])
 
 @app.post("/organizations")
 def create_organization(
-    organization: _schemas.OrganizationCreate,
+    organization: organization_schemas.OrganizationCreate,
     background_tasks: BackgroundTasks,
     user: users_schemas.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db),
@@ -171,7 +170,7 @@ async def get_organization(
 @app.get(
     "/organizations/{organization_id}/users",
     status_code=200,
-    response_model=_schemas.OrganizationUsersResponse,
+    response_model=organization_schemas.OrganizationUsersResponse,
 )
 async def get_organization_users(
     organization_id: str,
@@ -381,7 +380,7 @@ def get_roles(
         returnBody--> list of all available roles in the queried organization
     """
     roles = db.query(Role).filter(Role.organization_id == organization_id)
-    roles = list(map(_schemas.Role.from_orm, roles))
+    roles = list(map(organization_schemas.Role.from_orm, roles))
 
     return roles
 
@@ -436,10 +435,10 @@ def add_role(
 
 @app.put(
     "/organizations/accept-invite/{invite_code}",
-    response_model=_schemas.AcceptInviteResponse,
+    response_model=organization_schemas.AcceptInviteResponse,
 )
 def accept_invite(
-    payload: _schemas.OrganizationUser,
+    payload: organization_schemas.OrganizationUser,
     invite_code: str,
     db: orm.Session = Depends(get_db),
 ):
@@ -507,7 +506,7 @@ def accept_invite(
 
         return {
             "invited": OrganizationUserBase.from_orm(organization_user),
-            "organization": _OrganizationBase.from_orm(organization),
+            "organization": OrganizationBase.from_orm(organization),
         }
 
     except Exception as ex:
@@ -521,10 +520,10 @@ def accept_invite(
 @app.post(
     "/organizations/{organization_id}/invite-user",
     status_code=201,
-    response_model=_schemas.InviteResponse,
+    response_model=organization_schemas.InviteResponse,
 )
 async def invite_user(
-    payload: _schemas.UserInvite,
+    payload: organization_schemas.UserInvite,
     organization_id: str,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
@@ -551,9 +550,7 @@ async def invite_user(
         email_info = payload.email_details
         email_info.organization_id = organization_id
 
-        role = (
-            db.query(Role).filter(Role.role_name == payload.user_role.lower()).first()
-        )
+        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
 
         # make sure you can't send invite to yourself
         if user.email != payload.user_email:
@@ -561,7 +558,7 @@ async def invite_user(
                 db.query(OrganizationInvite)
                 .filter(
                     and_(
-                        OrganizationInvite.user_email == payload.user_email,
+                        OrganizationInvite.email == payload.email,
                         OrganizationInvite.is_deleted == False,
                     )
                 )
@@ -572,7 +569,7 @@ async def invite_user(
                 await email_services.send_email(
                     template_body=email_info,
                     background_tasks=background_tasks,
-                    recipients=[payload.user_email],
+                    recipients=[payload.email],
                     template=template,
                     db=db,
                 )
@@ -580,7 +577,7 @@ async def invite_user(
                     id=uuid4().hex,
                     organization_id=payload.organization.get("id"),
                     user_id=payload.user_id,
-                    user_email=payload.user_email,
+                    email=payload.email,
                     role_id=role.id,
                     invite_code=invite_token,
                 )
@@ -604,7 +601,7 @@ async def invite_user(
 
 @app.get(
     "/organizations/get-invite/{invite_code}",
-    response_model=_schemas.SingleInviteResponse,
+    response_model=organization_schemas.SingleInviteResponse,
 )
 async def get_single_invite(
     invite_code: str,
@@ -675,7 +672,7 @@ async def get_single_invite(
 
 @app.put(
     "/organizations/decline-invite/{invite_code}",
-    response_model=_schemas.DeclinedInviteResponse,
+    response_model=organization_schemas.DeclinedInviteResponse,
 )
 def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
     """intro--> This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
@@ -713,7 +710,7 @@ def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
 
 @app.delete(
     "/organizations/{organization_id}/revoke-invite/{invite_code}",
-    response_model=_schemas.RevokedInviteResponse,
+    response_model=organization_schemas.RevokedInviteResponse,
 )
 def revoke_invite(
     organization_id: str, invite_code: str, db: orm.Session = Depends(get_db)
@@ -759,7 +756,7 @@ def revoke_invite(
 @app.get(
     "/organizations/{organization_id}/invites",
     status_code=200,
-    response_model=_schemas.AllInvites,
+    response_model=organization_schemas.AllInvites,
 )
 def get_pending_invites(organization_id: str, db: orm.Session = Depends(get_db)):
     """intro--> This endpoint allows you to retrieve all pending invites to an organization. To use this endpoint you need to make a get request to the /organizations/invites/{organization_id} endpoint
@@ -799,7 +796,7 @@ def get_pending_invites(organization_id: str, db: orm.Session = Depends(get_db))
 @app.put("/organizations/{organization_id}")
 async def update_organization(
     organization_id: str,
-    organization: _schemas.OrganizationUpdate,
+    organization: organization_schemas.OrganizationUpdate,
     user: users_schemas.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db),
 ):

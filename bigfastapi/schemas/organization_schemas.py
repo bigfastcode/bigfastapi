@@ -9,7 +9,7 @@ from .location_schema import Location
 from .users_schemas import User
 
 
-class _OrganizationBase(BaseModel):
+class OrganizationBase(BaseModel):
     id: Optional[str]
     mission: Optional[str]
     vision: Optional[str]
@@ -38,9 +38,9 @@ class OrganizationUserBase(BaseModel):
 
 class InviteBase(BaseModel):
     id: Optional[str]
-    user_email: Optional[str]
+    email: Optional[str]
     user_id: Optional[str]
-    user_role: Optional[str]
+    role: Optional[str]
     invite_code: Optional[str]
     is_accepted: Optional[bool] = False
     is_revoked: Optional[bool] = False
@@ -61,20 +61,20 @@ class Role(BaseModel):
 # ORGANIZATION SCHEMAS
 
 
-class OrganizationCreate(_OrganizationBase):
+class OrganizationCreate(OrganizationBase):
     currency_code: str
     name: str
     business_type: str = "retail"
     create_wallet: bool = False
 
 
-class OrganizationUpdate(_OrganizationBase):
+class OrganizationUpdate(OrganizationBase):
     currency_code: Optional[str]
     name: Optional[str]
     business_type: Optional[str] = "retail"
 
 
-class Organization(_OrganizationBase):
+class Organization(OrganizationBase):
     id: str
     creator: str
     date_created: _dt.datetime
@@ -166,7 +166,7 @@ class AllInvites(BaseModel):
 
 class AcceptInviteResponse(BaseModel):
     invited: OrganizationUserBase
-    organization: _OrganizationBase
+    organization: OrganizationBase
 
 
 class RevokedInviteResponse(InviteBase):
