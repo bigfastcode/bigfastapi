@@ -4,6 +4,7 @@ import fastapi
 import sqlalchemy.orm as orm
 from decouple import config
 from fastapi import APIRouter, BackgroundTasks, Cookie, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
@@ -11,7 +12,6 @@ from passlib.context import CryptContext
 from bigfastapi.db.database import get_db
 from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
-from bigfastapi.utils.utils import object_as_dict
 
 from .core.helpers import Helpers
 from .models import user_models
@@ -118,7 +118,7 @@ async def create_user(
         )
 
         return JSONResponse(
-            {"data": object_as_dict(user_created), "access_token": access_token},
+            {"data": jsonable_encoder(user_created), "access_token": access_token},
             status_code=201,
         )
 
@@ -151,7 +151,7 @@ async def create_user(
         )
 
         return JSONResponse(
-            {"data": object_as_dict(user_created), "access_token": access_token},
+            {"data": jsonable_encoder(user_created), "access_token": access_token},
             status_code=201,
         )
 
@@ -185,7 +185,10 @@ async def create_admin_user(
         samesite="strict",
     )
 
-    return {"data": object_as_dict(created_user), "access_token": access_token}
+    return JSONResponse(
+        {"data": jsonable_encoder(created_user), "access_token": access_token},
+        status_code=201,
+    )
 
 
 @app.post("/auth/login", status_code=200)
