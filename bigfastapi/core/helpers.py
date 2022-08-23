@@ -1,7 +1,9 @@
 import requests
 import sqlalchemy.orm as orm
 from decouple import config
+from fastapi.exceptions import HTTPException
 
+from bigfastapi.core import messages
 from bigfastapi.models.organization_models import Organization, OrganizationUser
 
 
@@ -25,6 +27,32 @@ class Helpers:
         if store_user is None and organization is None:
             return False
         return True
+
+    async def check_user_org_validity(
+        user_id: str, organization_id: str, db: orm.Session
+    ) -> None:
+        """
+        This method can be called at the top of a request-response controller
+        to check if the user making a request is a member of the organization
+        data is to be retrieved from.
+
+        """
+        organization = (
+            db.query(Organization).filter(Organization.id == organization_id).first()
+        )
+
+        if organization is None:
+            raise HTTPException(status_code=404, detail="Organization does not exist")
+
+        is_valid_member = await Helpers.is_organization_member(
+            user_id=user_id, organization_id=organization_id, db=db
+        )
+
+        if is_valid_member is False:
+            raise HTTPException(
+                status_code=403,
+                detail=messages.NOT_ORGANIZATION_MEMBER,
+            )
 
     async def get_org_currency(organization_id: str, db: orm.Session):
         organisation = (
