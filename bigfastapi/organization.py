@@ -18,7 +18,6 @@ from sqlalchemy import and_
 from sqlalchemy.sql import expression
 
 from bigfastapi.auth_api import is_authenticated
-from bigfastapi.core import messages
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.db.database import get_db
 from bigfastapi.files import upload_image
@@ -36,7 +35,7 @@ from bigfastapi.schemas.organization_schemas import (
 )
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
-from bigfastapi.utils.utils import object_as_dict, paginate_data
+from bigfastapi.utils.utils import paginate_data
 
 # from bigfastapi.services import email_services
 from .models import organization_models as _models
@@ -99,7 +98,7 @@ def create_organization(
         return JSONResponse(
             {
                 "message": "Organization created successfully",
-                "data": object_as_dict(created_org),
+                "data": jsonable_encoder(created_org),
             },
             status_code=201,
         )
@@ -192,24 +191,16 @@ async def get_organization_users(
         returnBody--> list of all users in the queried organization
     """
     try:
+
+        Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+
         organization = (
             db.query(_models.Organization)
             .filter(_models.Organization.id == organization_id)
             .first()
         )
-
-        if organization is None:
-            raise HTTPException(status_code=404, detail="Organization does not exist")
-
-        is_valid_member = await Helpers.is_organization_member(
-            user_id=user.id, organization_id=organization_id, db=db
-        )
-
-        if is_valid_member is False:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=messages.NOT_ORGANIZATION_MEMBER,
-            )
 
         organization_owner_id = organization.user_id
 
@@ -544,6 +535,10 @@ async def invite_user(
         returnBody-->  An object with a key `message`.
     """
     try:
+        await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+
         invite_token = uuid4().hex
         invite_url = f"{payload.app_url}/accept-invite?invite_token={invite_token}"
         payload.email_details.link = invite_url
@@ -553,43 +548,52 @@ async def invite_user(
         role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
 
         # make sure you can't send invite to yourself
-        if user.email != payload.user_email:
-            existing_invite = (
-                db.query(OrganizationInvite)
-                .filter(
-                    and_(
-                        OrganizationInvite.email == payload.email,
-                        OrganizationInvite.is_deleted == False,
-                    )
-                )
-                .first()
+        if user.email == payload.email:
+            return JSONResponse(
+                {"message": "You cannot send an invite to yourself"}, status_code=403
             )
-            if existing_invite is None:
 
-                await email_services.send_email(
-                    template_body=email_info,
-                    background_tasks=background_tasks,
-                    recipients=[payload.email],
-                    template=template,
-                    db=db,
+        existing_invite = (
+            db.query(OrganizationInvite)
+            .filter(
+                and_(
+                    OrganizationInvite.email == payload.email,
+                    OrganizationInvite.is_deleted == False,
                 )
-                invite = OrganizationInvite(
-                    id=uuid4().hex,
-                    organization_id=payload.organization.get("id"),
-                    user_id=payload.user_id,
-                    email=payload.email,
-                    role_id=role.id,
-                    invite_code=invite_token,
-                )
-                db.add(invite)
-                db.commit()
-                db.refresh(invite)
+            )
+            .first()
+        )
+        if existing_invite is not None:
+            return JSONResponse({"message": "Invite already sent"}, status_code=409)
 
-                return {
-                    "message": "Organization invite email will be sent in the background."
-                }
-            return {"message": "invite already sent"}
-        return {"message": "Enter an email you're not logged in with."}
+        await email_services.send_email(
+            template_body=email_info,
+            background_tasks=background_tasks,
+            recipients=[payload.email],
+            template=template,
+            db=db,
+        )
+
+        invite = OrganizationInvite(
+            id=uuid4().hex,
+            organization_id=payload.organization.get("id"),
+            user_id=payload.user_id,
+            email=payload.email,
+            role_id=role.id,
+            invite_code=invite_token,
+        )
+
+        db.add(invite)
+        db.commit()
+        db.refresh(invite)
+
+        return JSONResponse(
+            {
+                "data": jsonable_encoder(invite),
+                "message": "Invite email will be sent in the background.",
+            },
+            status_code=201,
+        )
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -713,7 +717,10 @@ def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
     response_model=organization_schemas.RevokedInviteResponse,
 )
 def revoke_invite(
-    organization_id: str, invite_code: str, db: orm.Session = Depends(get_db)
+    organization_id: str,
+    invite_code: str,
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro-->This endpoint is used to revoke the invitation of a previously invited user. To use this endpoint you need to make a delete request to the /users/revoke-invite/{invite_code} endpoint
 
@@ -758,7 +765,11 @@ def revoke_invite(
     status_code=200,
     response_model=organization_schemas.AllInvites,
 )
-def get_pending_invites(organization_id: str, db: orm.Session = Depends(get_db)):
+async def get_pending_invites(
+    organization_id: str,
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
+):
     """intro--> This endpoint allows you to retrieve all pending invites to an organization. To use this endpoint you need to make a get request to the /organizations/invites/{organization_id} endpoint
 
         paramDesc--> On get request, the request url takes the parameter, organization id
@@ -770,6 +781,10 @@ def get_pending_invites(organization_id: str, db: orm.Session = Depends(get_db))
         returnBody--> all pending invites in the queried organization
     """
     try:
+        await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+
         pending_invites = (
             db.query(OrganizationInvite)
             .filter(
@@ -783,7 +798,9 @@ def get_pending_invites(organization_id: str, db: orm.Session = Depends(get_db))
             .all()
         )
 
-        return {"data": pending_invites}
+        return JSONResponse(
+            {"data": jsonable_encoder(pending_invites)}, status_code=200
+        )
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -850,7 +867,6 @@ async def change_organization_image(
     returnDesc--> On sucessful request, it returns:
         returnBody--> Updated organization object
     """
-
     bucket_name = "organzationImages"
     organization = await _models.fetchOrganization(organization_id, db)
     if not organization:
@@ -887,19 +903,31 @@ async def get_organization_image_upload(
 
         returnBody--> full_image_path property of the organization
     """
-    org = (
-        db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
-    )
+    try:
 
-    image = org.image_url
-    filename = f"/{org.id}/{image}"
+        org = (
+            db.query(_models.Organization)
+            .filter(_models.Organization.id == organization_id)
+            .first()
+        )
 
-    root_location = os.path.abspath("filestorage")
-    full_image_path = root_location + filename
+        image = org.image_url
+        filename = f"/{org.id}/{image}"
 
-    return FileResponse(full_image_path)
+        root_location = os.path.abspath("filestorage")
+        full_image_path = root_location + filename
+
+        if os.path.exists(full_image_path):
+            return FileResponse(full_image_path)
+
+        # TO-DO: return an appropriate 404 response here.
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
 
 
 @app.delete("/organizations/{organization_id}", status_code=204)
