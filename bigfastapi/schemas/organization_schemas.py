@@ -65,7 +65,7 @@ class OrganizationCreate(_OrganizationBase):
     currency_code: str
     name: str
     business_type: str = "retail"
-    create_wallet: bool = False
+    create_wallet: Optional[bool] = False
     pass
 
 class OrganizationUpdate(_OrganizationBase):
