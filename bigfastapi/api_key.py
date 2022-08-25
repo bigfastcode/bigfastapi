@@ -192,11 +192,11 @@ async def create_user(user: auth_schemas.APIKey, db: orm.Session):
 
     password = generate_app_id()
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, hashed_password=_hash.sha256_crypt.hash(password),
+        id=uuid4().hex, email=user.email, password_hash=_hash.sha256_crypt.hash(password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified=True, phone_country_code=user.phone_country_code, is_deleted=False,
-        country=None, state=None, google_id=None, google_image=None,
-        image=None, device_id=None
+        google_id=None, google_image_url=None,
+        image_url=None, device_id=None
     )
 
     db.add(user_obj)

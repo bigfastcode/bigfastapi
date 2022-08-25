@@ -3,7 +3,9 @@ from typing import Union
 import fastapi
 import sqlalchemy.orm as orm
 from decouple import config
-from fastapi import APIRouter, BackgroundTasks, Cookie, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Cookie, Response
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
@@ -24,6 +26,7 @@ ALGORITHM = "HS256"
 app = APIRouter(tags=["Auth"])
 
 PYTHON_ENV = config("PYTHON_ENV")
+IS_REFRESH_TOKEN_SECURE = True if PYTHON_ENV == "production" else False
 
 
 @app.post("/auth/signup", status_code=201)
@@ -109,12 +112,15 @@ async def create_user(
             key="refresh_token",
             value=refresh_token,
             max_age="172800",
-            # secure=True if PYTHON_ENV == "production" else False
+            secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
-            samesite=None,
+            samesite="strict",
         )
 
-        return {"data": user_created, "access_token": access_token}
+        return JSONResponse(
+            {"data": jsonable_encoder(user_created), "access_token": access_token},
+            status_code=201,
+        )
 
     if user.phone_number:
         user_phone = await find_user_phone(
@@ -135,26 +141,19 @@ async def create_user(
 
         background_tasks.add_task(send_slack_notification, user_created)
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
             max_age="172800",
-            secure=False,
+            secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
             samesite="strict",
         )
 
-        return {"data": user_created, "access_token": access_token}
+        return JSONResponse(
+            {"data": jsonable_encoder(user_created), "access_token": access_token},
+            status_code=201,
+        )
 
 
 # ENDPOINT TO CREATE A SUPER ADMIN ACCOUNT
@@ -177,26 +176,19 @@ async def create_admin_user(
 
     background_tasks.add_task(send_slack_notification, created_user)
 
-    if PYTHON_ENV == "production":
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            max_age="172800",
-            secure=True,
-            httponly=True,
-            samesite="strict",
-        )
-
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
         max_age="172800",
-        secure=False,
+        secure=IS_REFRESH_TOKEN_SECURE,
         httponly=True,
         samesite="strict",
     )
 
-    return {"data": created_user, "access_token": access_token}
+    return JSONResponse(
+        {"data": jsonable_encoder(created_user), "access_token": access_token},
+        status_code=201,
+    )
 
 
 @app.post("/auth/login", status_code=200)
@@ -240,21 +232,11 @@ async def login(
 
         background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
             max_age="172800",
-            secure=False,
+            secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
             samesite="strict",
         )
@@ -282,21 +264,11 @@ async def login(
 
         background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
             max_age="172800",
-            secure=False,
+            secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
             samesite="strict",
         )
@@ -307,7 +279,6 @@ async def login(
 # change to refresh-access-token
 @app.get("/auth/refresh-token", status_code=200)
 async def refresh_access_token(
-    request: Request,
     response: Response,
     refresh_token: Union[str, None] = Cookie(default=None),
     db: orm.Session = fastapi.Depends(get_db),
@@ -329,21 +300,11 @@ async def refresh_access_token(
 
     print(refresh_token)
     if valid_refresh_token.email is None:
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
             max_age="172800",
-            secure=False,
+            secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
             samesite="strict",
         )
@@ -360,21 +321,11 @@ async def refresh_access_token(
             {"user_id": valid_refresh_token.id}, db
         )
 
-        if PYTHON_ENV == "production":
-            response.set_cookie(
-                key="refresh_token",
-                value=refresh_token,
-                max_age="172800",
-                secure=True,
-                httponly=True,
-                samesite="strict",
-            )
-
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
             max_age="172800",
-            secure=False,
+            secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
             samesite="strict",
         )
