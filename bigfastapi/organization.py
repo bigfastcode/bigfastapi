@@ -912,10 +912,10 @@ async def get_organization_image_upload(
         )
 
         image = org.image_url
-        filename = f"/{org.id}/{image}"
+        filename = f"{image}"
 
         root_location = os.path.abspath("filestorage")
-        full_image_path = root_location + filename
+        full_image_path = os.path.join(root_location, filename)
 
         if os.path.exists(full_image_path):
             return FileResponse(full_image_path)
