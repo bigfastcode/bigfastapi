@@ -235,9 +235,10 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
         organization_list = native_orgs
         organization_collection = []
         for pos in range(len(organization_list)):
-            appBasePath = config("API_URL")
-            imageURL = appBasePath + f"/organizations/{organization_list[pos].id}/image"
-            setattr(organization_list[pos], "image_full_path", imageURL)
+            if organization_list[pos].image_url not in ["public/img/store.png", "storelogo.png", ""]:
+                appBasePath = config("API_URL")
+                imageURL = appBasePath + f"/organizations/{organization_list[pos].id}/image"
+                setattr(organization_list[pos], "image_full_path", imageURL)
             organization_collection.append(organization_list[pos])
 
         return organization_collection
@@ -263,9 +264,10 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
     org_coll = native_orgs + invited_orgs
     organizationCollection = []
     for pos in range(len(org_coll)):
-        appBasePath = config("API_URL")
-        imageURL = appBasePath + f"/organizations/{org_coll[pos].id}/image"
-        setattr(org_coll[pos], "image_full_path", imageURL)
+        if org_coll[pos].image_url not in ["public/img/store.png", "storelogo.png", ""]:
+            appBasePath = config("API_URL")
+            imageURL = appBasePath + f"/organizations/{org_coll[pos].id}/image"
+            setattr(org_coll[pos], "image_full_path", imageURL)
         organizationCollection.append(org_coll[pos])
 
     return organizationCollection
