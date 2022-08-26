@@ -1,6 +1,6 @@
 import datetime as date
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 import pydantic
 
@@ -49,6 +49,18 @@ class BankResponse(AddBank):
     id: str
     creator_id: str
     last_updated: Optional[date.datetime]
+
+    class Config:
+        orm_mode = True
+
+
+class PaginatedBankResponse(pydantic.BaseModel):
+    page: int
+    size: int
+    total: int
+    items: List[BankResponse]
+    previous_page: Optional[str]
+    next_page: Optional[str]
 
     class Config:
         orm_mode = True
