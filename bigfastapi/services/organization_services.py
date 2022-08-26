@@ -222,12 +222,6 @@ def run_wallet_creation(newOrganization: Models.Organization, db: orm.Session):
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
-def org_image_is_default(organization):
-    if organization.image_url not in ["public/img/store.png", "storelogo.png", ""]:
-        return False
-    return True
-
-
 def get_organizations(user: users_schemas.User, db: orm.Session):
     native_orgs = db.query(Models.Organization).filter_by(user_id=user.id).all()
 
@@ -241,10 +235,9 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
         organization_list = native_orgs
         organization_collection = []
         for pos in range(len(organization_list)):
-            if not org_image_is_default(organization_list[pos]):
-                appBasePath = config("API_URL")
-                imageURL = appBasePath + f"/organizations/{organization_list[pos].id}/image"
-                setattr(organization_list[pos], "image_full_path", imageURL)
+            appBasePath = config("API_URL")
+            imageURL = appBasePath + f"/organizations/{organization_list[pos].id}/image"
+            setattr(organization_list[pos], "image_full_path", imageURL)
             organization_collection.append(organization_list[pos])
 
         return organization_collection
@@ -270,10 +263,9 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
     org_coll = native_orgs + invited_orgs
     organizationCollection = []
     for pos in range(len(org_coll)):
-        if not org_image_is_default(org_coll[pos]):
-            appBasePath = config("API_URL")
-            imageURL = appBasePath + f"/organizations/{org_coll[pos].id}/image"
-            setattr(org_coll[pos], "image_full_path", imageURL)
+        appBasePath = config("API_URL")
+        imageURL = appBasePath + f"/organizations/{org_coll[pos].id}/image"
+        setattr(org_coll[pos], "image_full_path", imageURL)
         organizationCollection.append(org_coll[pos])
 
     return organizationCollection
@@ -292,10 +284,10 @@ async def organization_selector(
         raise _fastapi.HTTPException(
             status_code=404, detail="Organization does not exist"
         )
-    if not org_image_is_default(organization):
-        appBasePath = config("API_URL")
-        imageURL = appBasePath + f"/organizations/{organization_id}/image"
-        setattr(organization, "image_full_path", imageURL)
+
+    appBasePath = config("API_URL")
+    imageURL = appBasePath + f"/organizations/{organization_id}/image"
+    setattr(organization, "image_full_path", imageURL)
 
     return organization
 

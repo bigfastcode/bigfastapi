@@ -876,7 +876,7 @@ async def change_organization_image(
 
     uploaded_image = await upload_image(file, db, bucket_name)
     # Update organization image to uploaded image endpoint
-    organization.image_url = f"/files/image/{bucket_name}/{uploaded_image}"
+    organization.image_url = f"/{bucket_name}/{uploaded_image}"
 
     try:
         db.commit()
@@ -915,10 +915,13 @@ async def get_organization_image_upload(
         filename = f"{image}"
 
         root_location = os.path.abspath("filestorage")
-        full_image_path = os.path.join(root_location, filename)
+        full_image_path = root_location + filename
 
-        if os.path.exists(full_image_path):
+        if org.image_url != "" and os.path.exists(full_image_path):
             return FileResponse(full_image_path)
+        
+        else:
+            raise HTTPException(status_code=404, detail="Image not found")
 
         # TO-DO: return an appropriate 404 response here.
 
