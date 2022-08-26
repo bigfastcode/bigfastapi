@@ -1,19 +1,17 @@
 import datetime as _dt
 import os
-from sqlalchemy import ForeignKey
-import sqlalchemy.orm as _orm
-from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Text, DateTime, Boolean
 from uuid import uuid4
-from bigfastapi.models.location_models import Location
-from bigfastapi.models.contact_info_models import ContactInfo
-from sqlalchemy.orm import relationship
 
+import sqlalchemy.orm as _orm
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.schema import Column
+from sqlalchemy.types import Boolean, DateTime, String, Text
 
 from bigfastapi.db.database import Base
 from bigfastapi.files import deleteFile, isFileExist
-from bigfastapi.schemas import organization_schemas
-from bigfastapi.schemas.organization_schemas import BusinessSwitch
+from bigfastapi.models.contact_info_models import ContactInfo
+from bigfastapi.models.location_models import Location
 
 
 class Organization(Base):
@@ -40,8 +38,13 @@ class Organization(Base):
     date_created_db = Column(DateTime, default=_dt.datetime.utcnow)
     last_updated_db = Column(DateTime, default=_dt.datetime.utcnow)
 
-    org_contact_infos = relationship("OrganizationContactInfo", backref="organizations", lazy="selectin")
-    org_locations = relationship("OrganizationLocation", backref="organizations", lazy="selectin")
+    org_contact_infos = relationship(
+        "OrganizationContactInfo", backref="organizations", lazy="selectin"
+    )
+    org_locations = relationship(
+        "OrganizationLocation", backref="organizations", lazy="selectin"
+    )
+
 
 # Organization Invite
 
@@ -51,7 +54,7 @@ class OrganizationInvite(Base):
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     organization_id = Column(String(255), ForeignKey("organizations.id"))
     user_id = Column(String(255), ForeignKey("users.id"))
-    user_email = Column(String(255), index=True)
+    email = Column(String(255), index=True)
     role_id = Column(String(255), ForeignKey("roles.id"))
     invite_code = Column(String(255), index=True)
     is_accepted = Column(Boolean, default=False)
@@ -61,6 +64,7 @@ class OrganizationInvite(Base):
 
     class Config:
         orm_mode = True
+
 
 # Organization User
 
@@ -84,26 +88,37 @@ class Role(Base):
     role_name = Column(String(255), index=True)
 
 
-
 class OrganizationLocation(Location):
     __tablename__ = "organization_location"
-    association_id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
-    location_id = Column(String(50), ForeignKey("locations.id"), index=True, nullable=False)
-    organization_id =Column(String(50), ForeignKey("organizations.id"), index=True, nullable=False)
+    association_id = Column(
+        String(50), primary_key=True, index=True, default=uuid4().hex
+    )
+    location_id = Column(
+        String(50), ForeignKey("locations.id"), index=True, nullable=False
+    )
+    organization_id = Column(
+        String(50), ForeignKey("organizations.id"), index=True, nullable=False
+    )
 
     __mapper_args__ = {
-        'polymorphic_identity':'organization_location',
+        "polymorphic_identity": "organization_location",
     }
 
 
 class OrganizationContactInfo(ContactInfo):
     __tablename__ = "organization_contact_info"
-    association_id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
-    contact_info_id = Column(String(50), ForeignKey("contact_info.id"), index=True, nullable=False)
-    organization_id =Column(String(255), ForeignKey("organizations.id"), index=True, nullable=False)
+    association_id = Column(
+        String(50), primary_key=True, index=True, default=uuid4().hex
+    )
+    contact_info_id = Column(
+        String(50), ForeignKey("contact_info.id"), index=True, nullable=False
+    )
+    organization_id = Column(
+        String(255), ForeignKey("organizations.id"), index=True, nullable=False
+    )
 
     __mapper_args__ = {
-        'polymorphic_identity':'organization_contact_info',
+        "polymorphic_identity": "organization_contact_info",
     }
 
 
@@ -120,10 +135,14 @@ async def deleteBizImageIfExist(org: Organization):
     if not org:
         return False
     # check if user object contains image endpoint
-    if org.image_url != None and len(org.image_url) > 17 and 'organzationImages/' in org.image_url:
+    if (
+        org.image_url != None
+        and len(org.image_url) > 17
+        and "organzationImages/" in org.image_url
+    ):
         # construct the image path from endpoint
-        splitPath = org.image_url.split('organzationImages/', 1)
-        imagePath = f"\organzationImages\{splitPath[1]}"
+        splitPath = org.image_url.split("organzationImages/", 1)
+        imagePath = rf"\organzationImages\{splitPath[1]}"
         fullStoragePath = os.path.abspath("filestorage") + imagePath
 
         isImageInFile = await isFileExist(fullStoragePath)

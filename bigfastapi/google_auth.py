@@ -6,7 +6,9 @@ import fastapi
 import passlib.hash as _hash
 import sqlalchemy.orm as orm
 from authlib.integrations.starlette_client import OAuth
+from decouple import config
 from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
 from starlette.config import Config
 
 from bigfastapi.db.database import get_db
@@ -40,6 +42,11 @@ oauth.register(
 # Set up the middleware to read the request session
 SECRET_KEY = settings.JWT_SECRET
 BASE_URL = settings.BASE_URL
+PYTHON_ENV = config("PYTHON_ENV")
+
+# Redirect response constants
+IS_REFRESH_TOKEN_SECURE = True if PYTHON_ENV == "production" else False
+REDIRECT_DOMAIN = settings.BASE_URL if PYTHON_ENV == "production" else "localhost"
 
 # Error
 CREDENTIALS_EXCEPTION = HTTPException(
@@ -55,23 +62,39 @@ async def google_login(request: Request):
     redirect_uri = f"{settings.API_URL}/google/token"
     google_auth_uri = await oauth.google.authorize_redirect(request, redirect_uri)
 
+    # TO-DO: Handle in-session user authentication.
+
     return {"data": google_auth_uri}
+    # return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
 @app.get("/google/token")
 async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
-    access_token = await oauth.google.authorize_access_token(request)
-    user_data = await oauth.google.parse_id_token(request, access_token)
+    response = RedirectResponse(settings.BASE_URL)
+
+    token = await oauth.google.authorize_access_token(request)
+    user_data = token["userinfo"]
 
     check_user = auth_service.valid_email_from_db(user_data["email"], db)
 
     if check_user:
-        # user_id = str(check_user.id)
-        # access_token = await create_access_token(data={"user_id": check_user.id}, db=db)
-        # response = f"{BASE_URL}/app/google/authenticate?token={access_token}&user_id={user_id}"
+        refresh_token = await auth_service.create_refresh_token(
+            data={"user_id": check_user.id}, db=db
+        )
 
-        return {"data": check_user, "access_token": access_token}
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            max_age="172800",
+            domain=REDIRECT_DOMAIN,
+            secure=IS_REFRESH_TOKEN_SECURE,
+            httponly=True,
+            samesite="strict",
+        )
+
+        # return {"data": object_as_dict(check_user), "access_token": access_token}
+        return response
 
     S = 10
     ran = "".join(random.choices(string.ascii_uppercase + string.digits, k=S))
@@ -100,7 +123,20 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
     db.commit()
     db.refresh(user_obj)
 
-    access_token["id_token"]
-    # response = f"{BASE_URL}/app/google/authenticate?token={token}&user_id={user_obj.id}"
+    response = RedirectResponse(settings.BASE_URL)
 
-    return {"data": user_obj, "access_token": access_token}
+    refresh_token = await auth_service.create_refresh_token(
+        data={"user_id": user_obj.id}, db=db
+    )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        max_age="172800",
+        domain=REDIRECT_DOMAIN,
+        secure=IS_REFRESH_TOKEN_SECURE,
+        httponly=True,
+        samesite="strict",
+    )
+
+    return response

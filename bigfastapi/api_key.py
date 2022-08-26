@@ -1,27 +1,19 @@
-from turtle import back
+
 from getmac import get_mac_address as gma
 import fastapi
-from fastapi import Request, APIRouter, BackgroundTasks
-import jwt as _jwt
+from fastapi import APIRouter, BackgroundTasks
 import passlib.hash as _hash
 from datetime import datetime
 from .models import auth_models, user_models
 from .schemas import auth_schemas
-from .schemas import users_schemas
 from .utils import utils
-from passlib.context import CryptContext
-from bigfastapi.utils import settings
-from bigfastapi.db import database as _database
-from fastapi.security import OAuth2PasswordBearer
 from uuid import uuid4
 import random
-from jose import JWTError, jwt
 from bigfastapi.db.database import get_db
 import sqlalchemy.orm as orm
 from .services import email_services
-from sqlalchemy import and_, or_, not_, desc
+from sqlalchemy import and_
 import datetime
-import socket
 import string
 
 
@@ -200,11 +192,11 @@ async def create_user(user: auth_schemas.APIKey, db: orm.Session):
 
     password = generate_app_id()
     user_obj = user_models.User(
-        id=uuid4().hex, email=user.email, hashed_password=_hash.sha256_crypt.hash(password),
+        id=uuid4().hex, email=user.email, password_hash=_hash.sha256_crypt.hash(password),
         first_name=user.first_name, last_name=user.last_name, phone_number=user.phone_number,
         is_active=True, is_verified=True, phone_country_code=user.phone_country_code, is_deleted=False,
-        country=None, state=None, google_id=None, google_image=None,
-        image=None, device_id=None
+        google_id=None, google_image_url=None,
+        image_url=None, device_id=None
     )
 
     db.add(user_obj)

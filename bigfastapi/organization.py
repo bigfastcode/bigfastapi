@@ -2,12 +2,23 @@ import os
 from typing import Optional
 from uuid import uuid4
 
-import fastapi as _fastapi
-import sqlalchemy.orm as _orm
-from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, status
+import sqlalchemy.orm as orm
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+    status,
+)
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import and_
+from sqlalchemy.sql import expression
 
+from bigfastapi.auth_api import is_authenticated
+from bigfastapi.core.helpers import Helpers
 from bigfastapi.db.database import get_db
 from bigfastapi.files import upload_image
 from bigfastapi.models import organization_models, user_models
@@ -16,16 +27,15 @@ from bigfastapi.models.organization_models import (
     OrganizationUser,
     Role,
 )
-from bigfastapi.schemas import organization_schemas as _schemas
-from bigfastapi.schemas import users_schemas
+from bigfastapi.schemas import organization_schemas, users_schemas
 from bigfastapi.schemas.organization_schemas import (
     AddRole,
+    OrganizationBase,
     OrganizationUserBase,
-    _OrganizationBase,
 )
 from bigfastapi.services import email_services, organization_services
-from bigfastapi.services.auth_service import is_authenticated
-from bigfastapi.utils.utils import paginate_data, row_to_dict
+from bigfastapi.utils import paginator
+from bigfastapi.utils.utils import paginate_data
 
 # from bigfastapi.services import email_services
 from .models import organization_models as _models
@@ -35,10 +45,10 @@ app = APIRouter(tags=["Organization"])
 
 @app.post("/organizations")
 def create_organization(
-    organization: _schemas.OrganizationCreate,
+    organization: organization_schemas.OrganizationCreate,
     background_tasks: BackgroundTasks,
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
-    db: _orm.Session = _fastapi.Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to create a new organization. To use this endpoint you need to make a post request to the `/organizations` endpoint with the specified body of request.
 
@@ -69,7 +79,7 @@ def create_organization(
         )
 
         if db_org:
-            raise _fastapi.HTTPException(
+            raise HTTPException(
                 status_code=400,
                 detail=f"{organization.name} already exist in your business collection",
             )
@@ -78,14 +88,20 @@ def create_organization(
             user=user, db=db, organization=organization
         )
 
-        organization_services.run_wallet_creation(created_org, db)
+        if organization.wallet is True:
+            organization_services.run_wallet_creation(created_org, db)
 
         background_tasks.add_task(
             organization_services.send_slack_notification, user.email, organization
         )
-        new_org = created_org
-        print(new_org.id)
-        return {"message": "Organization created successfully", "data": new_org}
+
+        return JSONResponse(
+            {
+                "message": "Organization created successfully",
+                "data": jsonable_encoder(created_org),
+            },
+            status_code=201,
+        )
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -97,8 +113,8 @@ def create_organization(
 
 @app.get("/organizations")
 def get_organizations(
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
-    db: _orm.Session = _fastapi.Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
     page_size: int = 15,
     page_number: int = 1,
 ):
@@ -120,8 +136,8 @@ def get_organizations(
 @app.get("/organizations/{organization_id}", status_code=200)
 async def get_organization(
     organization_id: str,
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
-    db: _orm.Session = _fastapi.Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to retrieve details of a particular organizations.
     To use this endpoint you need to make a get request to the /organizations/{organization_id} endpoint
@@ -153,10 +169,16 @@ async def get_organization(
 @app.get(
     "/organizations/{organization_id}/users",
     status_code=200,
-    response_model=_schemas.OrganizationUsersResponse,
+    response_model=organization_schemas.OrganizationUsersResponse,
 )
 async def get_organization_users(
-    organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)
+    organization_id: str,
+    search_value: str = None,
+    sorting_key: str = None,
+    page: int = 1,
+    size: int = 50,
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
 ):
     """intro--> This endpoint allows you to get all users in an organization. To use this endpoint you need to make a get request to the `/organizations/{organization_id}/users` endpoint.
     The `organization_id` parameter is used to query the users(invited users included) in an organization.
@@ -168,65 +190,122 @@ async def get_organization_users(
 
         returnBody--> list of all users in the queried organization
     """
-    invited_list = (
-        db.query(OrganizationUser)
-        .filter(
-            and_(
-                OrganizationUser.organization_id == organization_id,
-                OrganizationUser.is_deleted == False,
+    try:
+
+        Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+
+        organization = (
+            db.query(_models.Organization)
+            .filter(_models.Organization.id == organization_id)
+            .first()
+        )
+
+        organization_owner_id = organization.user_id
+
+        organization_owner = (
+            db.query(user_models.User)
+            .filter(user_models.User.id == organization_owner_id)
+            .first()
+        )
+
+        # invited_list = (
+        #     db.query(OrganizationUser)
+        #     .filter(
+        #         and_(
+        #             OrganizationUser.organization_id == organization_id,
+        #             OrganizationUser.is_deleted == False,
+        #         )
+        #     )
+        #     .all()
+        # )
+
+        page_size = 50 if size < 1 or size > 100 else size
+        page_number = 1 if page <= 0 else page
+        offset = await paginator.off_set(page=page_number, size=page_size)
+
+        # All the users in the organization with their roles
+        query = (
+            db.query(OrganizationUser)
+            .join(user_models.User)
+            .join(Role)
+            .with_entities(
+                user_models.User.id,
+                user_models.User.first_name,
+                user_models.User.last_name,
+                user_models.User.email,
+                Role.role_name,
             )
-        )
-        .all()
-    )
-
-    invited_list = list(map(lambda x: row_to_dict(x), invited_list))
-
-    organization = (
-        db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
-    )
-
-    if organization is None:
-        raise _fastapi.HTTPException(
-            status_code=404, detail="Organization does not exist"
-        )
-    organization_owner_id = organization.user_id
-    organization_owner = (
-        db.query(user_models.User)
-        .filter(user_models.User.id == organization_owner_id)
-        .first()
-    )
-
-    invited_users = []
-    if len(invited_list) > 0:
-        for invited in invited_list:
-            user = (
-                db.query(user_models.User)
-                .filter(
-                    and_(
-                        user_models.User.id == invited["user_id"],
-                        user_models.User.is_deleted == False,
-                    )
+            .filter(
+                and_(
+                    OrganizationUser.user_id == user_models.User.id,
+                    OrganizationUser.role_id == Role.id,
+                    OrganizationUser.organization_id == organization_id,
+                    OrganizationUser.is_deleted == expression.false(),
                 )
-                .first()
             )
-            role = db.query(Role).filter(Role.id == invited["role_id"]).first()
-            if user.id == invited["user_id"]:
-                invited["first_name"] = user.first_name
-                invited["last_name"] = user.last_name
-                invited["email"] = user.email
-                invited["role"] = role.role_name
+            .order_by(OrganizationUser.date_created.desc())
+            .offset(offset=offset)
+            .limit(limit=size)
+        )
 
-            invited_users.append(invited)
+        invited_list = query.all()
+        total_items = query.count()
 
-    users = {"user": organization_owner, "invited": invited_users}
-    return users
+        # invited_list = list(map(lambda x: row_to_dict(x), invited_list))
+
+        # invited_users = []
+
+        # if len(invited_list) > 0:
+        #     for invited in invited_list:
+        #         user = (
+        #             db.query(user_models.User)
+        #             .filter(
+        #                 and_(
+        #                     user_models.User.id == invited["user_id"],
+        #                     user_models.User.is_deleted == False,
+        #                 )
+        #             )
+        #             .first()
+        #         )
+        #         role = db.query(Role).filter(Role.id == invited["role_id"]).first()
+        #         if user.id == invited["user_id"]:
+        #             invited["first_name"] = user.first_name
+        #             invited["last_name"] = user.last_name
+        #             invited["email"] = user.email
+        #             invited["role"] = role.role_name
+
+        #         invited_users.append(invited)
+
+        pointers = await paginator.page_urls(
+            page=page, size=page_size, count=total_items, endpoint="/users"
+        )
+
+        response = {
+            "page": page_number,
+            "size": page_size,
+            "total": total_items,
+            "previous_page": pointers["previous"],
+            "next_page": pointers["next"],
+            "items": [{"owner": organization_owner, "invited_users": invited_list}],
+        }
+
+        # users = {"organization_owner": organization_owner, "users": jsonable_encoder(invited_users)}
+
+        return JSONResponse({"data": jsonable_encoder(response)}, status_code=200)
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
 
 
 @app.delete("/organizations/{organization_id}/users/{user_id}")
 def delete_organization_user(
-    organization_id: str, user_id: str, db: _orm.Session = _fastapi.Depends(get_db)
+    organization_id: str, user_id: str, db: orm.Session = Depends(get_db)
 ):
     """intro--> This endpoint allows you to delete a particular user from an organization. To use this endpoint you need to make a delete request to the /organizations/{organization_id}/users/{user_id} endpoint
 
@@ -280,7 +359,7 @@ def delete_organization_user(
 @app.get("/organizations/{organization_id}/roles")
 def get_roles(
     organization_id: str,
-    db: _orm.Session = _fastapi.Depends(get_db),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to retrieve all available roles in an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/roles endpoint
 
@@ -292,7 +371,7 @@ def get_roles(
         returnBody--> list of all available roles in the queried organization
     """
     roles = db.query(Role).filter(Role.organization_id == organization_id)
-    roles = list(map(_schemas.Role.from_orm, roles))
+    roles = list(map(organization_schemas.Role.from_orm, roles))
 
     return roles
 
@@ -301,7 +380,7 @@ def get_roles(
 def add_role(
     payload: AddRole,
     organization_id: str,
-    db: _orm.Session = _fastapi.Depends(get_db),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to create roles in an organization. To use this endpoint you need to make a post request to the /organizations/{organization_id}/roles endpoint with a specified body of request
 
@@ -347,12 +426,12 @@ def add_role(
 
 @app.put(
     "/organizations/accept-invite/{invite_code}",
-    response_model=_schemas.AcceptInviteResponse,
+    response_model=organization_schemas.AcceptInviteResponse,
 )
 def accept_invite(
-    payload: _schemas.OrganizationUser,
+    payload: organization_schemas.OrganizationUser,
     invite_code: str,
-    db: _orm.Session = _fastapi.Depends(get_db),
+    db: orm.Session = Depends(get_db),
 ):
     """intro-->This endpoint allows for a user to accept an invite. To use this endpoint you need to make a put request to the /users/accept-invite/{token} where token is a unique value recieved by the user on invite. It also takes a specified body of request
 
@@ -418,7 +497,7 @@ def accept_invite(
 
         return {
             "invited": OrganizationUserBase.from_orm(organization_user),
-            "organization": _OrganizationBase.from_orm(organization),
+            "organization": OrganizationBase.from_orm(organization),
         }
 
     except Exception as ex:
@@ -432,15 +511,15 @@ def accept_invite(
 @app.post(
     "/organizations/{organization_id}/invite-user",
     status_code=201,
-    response_model=_schemas.InviteResponse,
+    response_model=organization_schemas.InviteResponse,
 )
 async def invite_user(
-    payload: _schemas.UserInvite,
+    payload: organization_schemas.UserInvite,
     organization_id: str,
     background_tasks: BackgroundTasks,
     template: Optional[str] = "invite_email.html",
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
-    db: _orm.Session = _fastapi.Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint is used to trigger a user invite. To use this endpoint you need to make a post request to the /users/invite/ endpoint with the specified body of request
 
@@ -456,54 +535,65 @@ async def invite_user(
         returnBody-->  An object with a key `message`.
     """
     try:
+        await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+
         invite_token = uuid4().hex
         invite_url = f"{payload.app_url}/accept-invite?invite_token={invite_token}"
         payload.email_details.link = invite_url
         email_info = payload.email_details
         email_info.organization_id = organization_id
 
-        role = (
-            db.query(Role).filter(Role.role_name == payload.user_role.lower()).first()
-        )
+        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
 
         # make sure you can't send invite to yourself
-        if user.email != payload.user_email:
-            existing_invite = (
-                db.query(OrganizationInvite)
-                .filter(
-                    and_(
-                        OrganizationInvite.user_email == payload.user_email,
-                        OrganizationInvite.is_deleted == False,
-                    )
-                )
-                .first()
+        if user.email == payload.email:
+            return JSONResponse(
+                {"message": "You cannot send an invite to yourself"}, status_code=403
             )
-            if existing_invite is None:
 
-                await email_services.send_email(
-                    template_body=email_info,
-                    background_tasks=background_tasks,
-                    recipients=[payload.user_email],
-                    template=template,
-                    db=db,
+        existing_invite = (
+            db.query(OrganizationInvite)
+            .filter(
+                and_(
+                    OrganizationInvite.email == payload.email,
+                    OrganizationInvite.is_deleted == False,
                 )
-                invite = OrganizationInvite(
-                    id=uuid4().hex,
-                    organization_id=payload.organization.get("id"),
-                    user_id=payload.user_id,
-                    user_email=payload.user_email,
-                    role_id=role.id,
-                    invite_code=invite_token,
-                )
-                db.add(invite)
-                db.commit()
-                db.refresh(invite)
+            )
+            .first()
+        )
+        if existing_invite is not None:
+            return JSONResponse({"message": "Invite already sent"}, status_code=409)
 
-                return {
-                    "message": "Organization invite email will be sent in the background."
-                }
-            return {"message": "invite already sent"}
-        return {"message": "Enter an email you're not logged in with."}
+        await email_services.send_email(
+            template_body=email_info,
+            background_tasks=background_tasks,
+            recipients=[payload.email],
+            template=template,
+            db=db,
+        )
+
+        invite = OrganizationInvite(
+            id=uuid4().hex,
+            organization_id=payload.organization.get("id"),
+            user_id=payload.user_id,
+            email=payload.email,
+            role_id=role.id,
+            invite_code=invite_token,
+        )
+
+        db.add(invite)
+        db.commit()
+        db.refresh(invite)
+
+        return JSONResponse(
+            {
+                "data": jsonable_encoder(invite),
+                "message": "Invite email will be sent in the background.",
+            },
+            status_code=201,
+        )
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -515,11 +605,11 @@ async def invite_user(
 
 @app.get(
     "/organizations/get-invite/{invite_code}",
-    response_model=_schemas.SingleInviteResponse,
+    response_model=organization_schemas.SingleInviteResponse,
 )
 async def get_single_invite(
     invite_code: str,
-    db: _orm.Session = _fastapi.Depends(get_db),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint is used to get an invite link for a single user. To use this endpoint you need to make a get request to the /users/invite/{invite_code} endpoint
 
@@ -586,9 +676,9 @@ async def get_single_invite(
 
 @app.put(
     "/organizations/decline-invite/{invite_code}",
-    response_model=_schemas.DeclinedInviteResponse,
+    response_model=organization_schemas.DeclinedInviteResponse,
 )
-def decline_invite(invite_code: str, db: _orm.Session = _fastapi.Depends(get_db)):
+def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
     """intro--> This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
 
     paramDesc--> On put request, the url takes an invite code
@@ -624,10 +714,13 @@ def decline_invite(invite_code: str, db: _orm.Session = _fastapi.Depends(get_db)
 
 @app.delete(
     "/organizations/{organization_id}/revoke-invite/{invite_code}",
-    response_model=_schemas.RevokedInviteResponse,
+    response_model=organization_schemas.RevokedInviteResponse,
 )
 def revoke_invite(
-    organization_id: str, invite_code: str, db: _orm.Session = _fastapi.Depends(get_db)
+    organization_id: str,
+    invite_code: str,
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro-->This endpoint is used to revoke the invitation of a previously invited user. To use this endpoint you need to make a delete request to the /users/revoke-invite/{invite_code} endpoint
 
@@ -670,10 +763,12 @@ def revoke_invite(
 @app.get(
     "/organizations/{organization_id}/invites",
     status_code=200,
-    response_model=_schemas.AllInvites,
+    response_model=organization_schemas.AllInvites,
 )
-def get_pending_invites(
-    organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)
+async def get_pending_invites(
+    organization_id: str,
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to retrieve all pending invites to an organization. To use this endpoint you need to make a get request to the /organizations/invites/{organization_id} endpoint
 
@@ -686,6 +781,10 @@ def get_pending_invites(
         returnBody--> all pending invites in the queried organization
     """
     try:
+        await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+
         pending_invites = (
             db.query(OrganizationInvite)
             .filter(
@@ -699,7 +798,9 @@ def get_pending_invites(
             .all()
         )
 
-        return {"data": pending_invites}
+        return JSONResponse(
+            {"data": jsonable_encoder(pending_invites)}, status_code=200
+        )
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -712,9 +813,9 @@ def get_pending_invites(
 @app.put("/organizations/{organization_id}")
 async def update_organization(
     organization_id: str,
-    organization: _schemas.OrganizationUpdate,
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
-    db: _orm.Session = _fastapi.Depends(get_db),
+    organization: organization_schemas.OrganizationUpdate,
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to update the details of a particular organization organization. To use this endpoint you need to make a put request to the /organizations/{organization_id} endpoint with a specified body of request
 
@@ -749,11 +850,11 @@ async def update_organization(
 
 
 @app.patch("/organizations/{organization_id}/update-image")
-async def changeOrganizationImage(
+async def change_organization_image(
     organization_id: str,
     file: UploadFile = File(...),
-    db: _orm.Session = _fastapi.Depends(get_db),
-    user: str = _fastapi.Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
+    user: str = Depends(is_authenticated),
 ):
     """intro--> This endpoint allows you to upload/change the cover image of an organization.
         To use this endpoint you need to make a get patch request to the
@@ -766,17 +867,16 @@ async def changeOrganizationImage(
     returnDesc--> On sucessful request, it returns:
         returnBody--> Updated organization object
     """
-
-    bucketName = "organzationImages"
+    bucket_name = "organzationImages"
     organization = await _models.fetchOrganization(organization_id, db)
     if not organization:
         raise HTTPException(status_code=404, detail="organization does not exist")
     #  Delete previous organization image if exist
     await _models.deleteBizImageIfExist(organization)
 
-    uploadedImage = await upload_image(file, db, bucketName)
+    uploaded_image = await upload_image(file, db, bucket_name)
     # Update organization image to uploaded image endpoint
-    organization.image_url = f"/files/image/{bucketName}/{uploadedImage}"
+    organization.image_url = f"/{bucket_name}/{uploaded_image}"
 
     try:
         db.commit()
@@ -792,7 +892,7 @@ async def changeOrganizationImage(
 
 @app.get("/organizations/{organization_id}/image")
 async def get_organization_image_upload(
-    organization_id: str, db: _orm.Session = _fastapi.Depends(get_db)
+    organization_id: str, db: orm.Session = Depends(get_db)
 ):
     """intro--> This endpoint allows you to retrieve the cover image of an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/image endpoint
 
@@ -803,26 +903,41 @@ async def get_organization_image_upload(
 
         returnBody--> full_image_path property of the organization
     """
-    org = (
-        db.query(_models.Organization)
-        .filter(_models.Organization.id == organization_id)
-        .first()
-    )
+    try:
 
-    image = org.image_url
-    filename = f"/{org.id}/{image}"
+        org = (
+            db.query(_models.Organization)
+            .filter(_models.Organization.id == organization_id)
+            .first()
+        )
 
-    root_location = os.path.abspath("filestorage")
-    full_image_path = root_location + filename
+        image = org.image_url
+        filename = f"{image}"
 
-    return FileResponse(full_image_path)
+        root_location = os.path.abspath("filestorage")
+        full_image_path = root_location + filename
+
+        if org.image_url != "" and os.path.exists(full_image_path):
+            return FileResponse(full_image_path)
+        
+        else:
+            raise HTTPException(status_code=404, detail="Image not found")
+
+        # TO-DO: return an appropriate 404 response here.
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
 
 
 @app.delete("/organizations/{organization_id}", status_code=204)
 async def delete_organization(
     organization_id: str,
-    user: users_schemas.User = _fastapi.Depends(is_authenticated),
-    db: _orm.Session = _fastapi.Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to delete an organization. To use this endpoint you need to make a delete request to the /organizations/{organization_id} endpoint
 
