@@ -1,25 +1,29 @@
 import json
 from uuid import uuid4
-
+from bigfastapi.utils import paginator
 import fastapi
 import pkg_resources
 import sqlalchemy.orm as orm
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
-from fastapi_pagination import Page, paginate, add_pagination
 
 from bigfastapi.db.database import get_db
 from bigfastapi.models import bank_models
 from bigfastapi.schemas import bank_schemas, users_schemas
 from .auth_api import is_authenticated
 from .core.helpers import Helpers
+from datetime import datetime
+
 
 router = APIRouter()
 
 BANK_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
-@router.post("/banks", status_code=status.HTTP_201_CREATED, response_model=bank_schemas.BankResponse)
+@router.post("/banks", 
+    status_code=status.HTTP_201_CREATED, 
+    response_model=bank_schemas.BankResponse
+)
 async def add_bank_detail(bank: bank_schemas.AddBank,
                           user: users_schemas.User = Depends(is_authenticated),
                           db: orm.Session = Depends(get_db)
@@ -80,14 +84,23 @@ async def add_bank_detail(bank: bank_schemas.AddBank,
     return await bank_models.add_bank(user=user, addbank=addbank, db=db)
 
 
-@router.get("/banks/organizations/{organization_id}", status_code=status.HTTP_200_OK,
-            response_model=Page[bank_schemas.BankResponse])
-async def get_organization_bank_accounts(organization_id: str, user: users_schemas.User = Depends(is_authenticated),
-                                         db: orm.Session = Depends(get_db), page_size: int = 15,
-                                         page_number: int = 1, datetime_constraint = None):
-    """intro-->This endpoint allows you retrieve all available bank details in the database. To use this endpoint you need to make a get request to the /banks/organizations/{organization_id} endpoint
+@router.get("/banks", 
+    status_code=status.HTTP_200_OK,
+    response_model=bank_schemas.PaginatedBankResponse
+)
+async def get_organization_bank_accounts(
+    organization_id: str, 
+    size: int = 50,
+    page: int = 1, 
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db), 
+    datetime_constraint:datetime = None
+):
+    """intro-->This endpoint allows you retrieve all available bank details in the database. 
+        To use this endpoint you need to make a get request to the /banks/organizations/{organization_id} endpoint
 
-    paramDesc-->On get request, the request url takes the query parameter organization id and four(4) other optional query parameters
+    paramDesc-->On get request, the request url takes the query parameter organization id and four(4)
+        other optional query parameters
         param-->org_id: This is the organization Id of the user's current organization
         
     returnDesc--> On sucessful request, it returns a 
@@ -101,28 +114,51 @@ async def get_organization_bank_accounts(organization_id: str, user: users_schem
     Raises
         HTTP_424_FAILED_DEPENDENCY: failed to fetch banks
     """
+
     is_store_member = await Helpers.is_organization_member(user_id=user.id, organization_id=organization_id, db=db)
     if not is_store_member:
         raise fastapi.HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                                    detail="You are not allowed to access this resource")
+            detail="You are not allowed to access this resource")
+
+    page_size = 50 if size < 1 or size > 100 else size
+    page_number = 1 if page <= 0 else page
+    offset = await paginator.off_set(page=page_number, size=page_size)
+
+    bank_query = db.query(bank_models.BankModels).filter(
+            bank_models.BankModels.organization_id==organization_id).filter(
+            bank_models.BankModels.is_deleted==False)
+    total_items = bank_query.count()
 
     if datetime_constraint:
-        banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id, 
-                                                        bank_models.BankModels.last_updated > datetime_constraint).filter(bank_models.BankModels.is_deleted==False, 
-                                                        bank_models.BankModels.date_created > datetime_constraint).all()
+        banks = bank_query.filter(
+            bank_models.BankModels.last_updated > datetime_constraint
+            ).offset(offset).limit(page_size).all()
+
+        total_items = bank_query.filter(
+            bank_models.BankModels.last_updated > datetime_constraint).count()
     else:
-        banks = db.query(bank_models.BankModels).filter(bank_models.BankModels.organization_id==organization_id,bank_models.BankModels.is_deleted==False).all()
-
+        banks = bank_query.offset(offset).limit(page_size).all()
+    
     banks_list = list(map(bank_schemas.BankResponse.from_orm, banks))
-    return paginate(banks_list)
+    pointers = await paginator.page_urls(page=page_number, size=page_size,
+                                         count=total_items, endpoint="/banks")
+    response = {"page": page_number, "size": page_size, "total": total_items,
+                "previous_page": pointers['previous'], "next_page": pointers["next"], "items": banks_list}
+    return response
 
 
-@router.get("/banks/{bank_id}", status_code=status.HTTP_200_OK,
-            response_model=bank_schemas.BankResponse)
-async def get_single_bank(org_id: str, bank_id: str,
-                          user: users_schemas.User = Depends(is_authenticated),
-                          db: orm.Session = Depends(get_db)):
-    """intro-->This endpoint allows you retrieve a particular bank account. To use this endpoint you need to make a get request to the /banks/{bank_id} endpoint
+@router.get("/banks/{bank_id}", 
+    status_code=status.HTTP_200_OK,
+    response_model=bank_schemas.BankResponse
+)
+async def get_single_bank(
+    org_id: str, 
+    bank_id: str,
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    """intro-->This endpoint allows you retrieve a particular bank account. 
+        To use this endpoint you need to make a get request to the /banks/{bank_id} endpoint
 
     paramDesc-->On get request, the request url takes the  parameters bank_id and a query parameter organization id 
         param-->bank_id: This is the bank id of the bank detail
@@ -288,4 +324,3 @@ class BankValidator:
 
 
 BV = BankValidator()
-add_pagination(router)
