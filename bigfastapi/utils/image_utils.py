@@ -42,13 +42,13 @@ def gen_thumbnail(
     :return: A string
     """
 
+    # delete previous thumbnails on new image upload
+    if clean and os.path.exists(root_location + f"/{bucket}/{thumb_id}"):
+        shutil.rmtree(root_location + f"/{bucket}/{thumb_id}")
+
     # create buckets if not exist
     if not os.path.exists(root_location + f"/{bucket}"):
         os.mkdir(root_location + f"/{bucket}")
-    
-    # delete previous thumbnails
-    if clean:
-        shutil.rmtree(root_location + f"/{bucket}/{thumb_id}")
 
     if not os.path.exists(root_location + f"/{bucket}/{thumb_id}"):
         os.mkdir(root_location + f"/{bucket}/{thumb_id}")
