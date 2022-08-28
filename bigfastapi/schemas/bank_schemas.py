@@ -1,6 +1,6 @@
-import datetime as date
+from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 import pydantic
 
@@ -25,30 +25,45 @@ class Frequencies(str, Enum):
 
 
 class BankBase(pydantic.BaseModel):
+    organization_id: str
+    country:  str
     account_number: int
     bank_name: str
-    recipient_name: str = None
-    account_type: str = None
+    recipient_name: Optional[str]
+    account_type: Optional[str]
     currency: Optional[str]  # currency is supposed to be require. Optional for the sake of old data
-    frequency: Frequencies = None
-
-
-class AddBank(BankBase):
-    organization_id: str
-    bank_address: str
+    frequency: Optional[Frequencies]
+    bank_address: Optional[str]
     swift_code: Optional[str]
     sort_code: Optional[str]
-    country: str
     aba_routing_number: Optional[str]
     iban: Optional[str]
     is_preferred: bool = False
-    date_created: Optional[date.datetime]
 
 
-class BankResponse(AddBank):
+class AddBank(BankBase):
+    id: Optional[str]
+    date_created: datetime = datetime.now()
+
+class UpdateBank(BankBase):
+    last_updated:datetime = datetime.now()
+
+class BankResponse(BankBase):
     id: str
     creator_id: str
-    last_updated: Optional[date.datetime]
+    last_updated: datetime
+    date_created: datetime
+    class Config:
+        orm_mode = True
+
+
+class PaginatedBankResponse(pydantic.BaseModel):
+    page: int
+    size: int
+    total: int
+    items: List[BankResponse]
+    previous_page: Optional[str]
+    next_page: Optional[str]
 
     class Config:
         orm_mode = True
