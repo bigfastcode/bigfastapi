@@ -1,4 +1,5 @@
 import datetime as _dt
+import os
 from uuid import uuid4
 
 import fastapi as _fastapi
@@ -222,6 +223,18 @@ def run_wallet_creation(newOrganization: Models.Organization, db: orm.Session):
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
+def create_org_image_full_path(organization):
+    root_files_dirname = os.environ.get("FILES_BASE_FOLDER", "filestorage")
+    root_files_dirpath = os.path.join(root_files_dirname)
+    if (
+        organization.image_url != "" and\
+        os.path.exists(root_files_dirpath + organization.image_url)
+    ):
+        appBasePath = config("API_URL")
+        imageURL = appBasePath + f"/organizations/{organization.id}/image"
+        setattr(organization, "image_full_path", imageURL)
+
+
 def get_organizations(user: users_schemas.User, db: orm.Session):
     native_orgs = db.query(Models.Organization).filter_by(user_id=user.id).all()
 
@@ -235,10 +248,9 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
         organization_list = native_orgs
         organization_collection = []
         for pos in range(len(organization_list)):
-            appBasePath = config("API_URL")
-            imageURL = appBasePath + f"/organizations/{organization_list[pos].id}/image"
-            setattr(organization_list[pos], "image_full_path", imageURL)
-            organization_collection.append(organization_list[pos])
+            organization = organization_list[pos]
+            create_org_image_full_path(organization)
+            organization_collection.append(organization)
 
         return organization_collection
 
@@ -263,10 +275,9 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
     org_coll = native_orgs + invited_orgs
     organizationCollection = []
     for pos in range(len(org_coll)):
-        appBasePath = config("API_URL")
-        imageURL = appBasePath + f"/organizations/{org_coll[pos].id}/image"
-        setattr(org_coll[pos], "image_full_path", imageURL)
-        organizationCollection.append(org_coll[pos])
+        organization = org_coll[pos]
+        create_org_image_full_path(organization)
+        organizationCollection.append(organization)
 
     return organizationCollection
 
@@ -285,9 +296,7 @@ async def organization_selector(
             status_code=404, detail="Organization does not exist"
         )
 
-    appBasePath = config("API_URL")
-    imageURL = appBasePath + f"/organizations/{organization_id}/image"
-    setattr(organization, "image_full_path", imageURL)
+    create_org_image_full_path(organization)
 
     return organization
 
