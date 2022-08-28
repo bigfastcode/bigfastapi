@@ -263,11 +263,12 @@ async def get_country_schema(country: str):
     return schema
 
 
-from bigfastapi.db.database import db_engine
-@router.get("/banks-migration/upate-last_updated",
-         status_code=status.HTTP_200_OK)
-async def update_last_updated():
-    with db_engine.connect() as con:
-        rs = con.execute(
-            'UPDATE banks SET banks.last_updated = banks.date_created')
-    return rs
+###========= uncomment and use this endpoint if your last_updated is showing null====###
+# from bigfastapi.db.database import db_engine
+# @router.get("/banks-migration/upate-last_updated",
+#          status_code=status.HTTP_200_OK)
+# async def update_last_updated():
+#     with db_engine.connect() as con:
+#         rs = con.execute(
+#             'UPDATE banks SET banks.last_updated = banks.date_created')
+#     return rs
