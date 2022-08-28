@@ -13,7 +13,7 @@ async def fetch_bank(id:str, db:Session):
         BankModels.is_deleted== False).first()
     if not bank:
         raise HTTPException(detail="Bank does not exist",
-            status_code=status.HTTP_403_FORBIDDEN)
+            status_code=status.HTTP_404_NOT_FOUND)
     return bank
 
 
