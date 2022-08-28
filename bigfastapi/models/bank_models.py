@@ -1,15 +1,7 @@
 from uuid import uuid4
-
-from fastapi import status
-from fastapi.responses import JSONResponse
-from sqlalchemy import func, ForeignKey, orm
+from sqlalchemy import func, ForeignKey
 from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Integer, DateTime, Boolean
-
-from bigfastapi.db import database
-from bigfastapi.schemas import bank_schemas, users_schemas
-from bigfastapi.schemas.bank_schemas import AddBank
-
 from bigfastapi.db.database import Base
 
 
@@ -36,31 +28,7 @@ class BankModels(Base):
     is_preferred = Column(Boolean(), default=False)
     is_deleted = Column(Boolean(), default=False)
     date_created = Column(DateTime(timezone=True), server_default=func.now())
-    last_updated = Column(DateTime(timezone=True), server_default=func.now())
+    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     date_created_db = Column(DateTime(timezone=True), server_default=func.now())
     last_updated_db = Column(DateTime(timezone=True), server_default=func.now())
 
-
-# ===========================database query service===================================================
-
-async def fetch_bank(user: users_schemas.User, id: str, db: orm.Session):
-    bank = db.query(BankModels).filter(BankModels.id == id).first()
-    if not bank:
-        return JSONResponse({"Bank does not exist"},
-                            status_code=status.HTTP_403_FORBIDDEN)
-    return bank
-
-
-async def add_bank(user: users_schemas.User, addbank: str, db: orm.Session):
-    db.add(addbank)
-    db.commit()
-    db.refresh(addbank)
-
-    return bank_schemas.BankResponse.from_orm(addbank)
-
-
-async def update_bank(addBank: AddBank, db: orm.Session):
-    db.commit()
-    db.refresh(addBank)
-
-    return bank_schemas.BankResponse.from_orm(addBank)
