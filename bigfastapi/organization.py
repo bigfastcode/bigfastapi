@@ -22,6 +22,7 @@ from bigfastapi.core.helpers import Helpers
 from bigfastapi.db.database import get_db
 from bigfastapi.files import upload_image
 from bigfastapi.models import organization_models, user_models
+from bigfastapi.models.extra_info_models import ExtraInfo
 from bigfastapi.models.organization_models import (
     OrganizationInvite,
     OrganizationUser,
@@ -35,6 +36,7 @@ from bigfastapi.schemas.organization_schemas import (
 )
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
+from bigfastapi.utils.image_utils import gen_thumbnail, save_thumbnail_info
 from bigfastapi.utils.utils import paginate_data
 
 # from bigfastapi.services import email_services
@@ -879,6 +881,15 @@ async def change_organization_image(
     organization.image_url = f"/{bucket_name}/{uploaded_image}"
 
     try:
+        # generate thumbnail
+        root_location = os.path.abspath("filestorage")
+        thumbnail = gen_thumbnail(
+            organization.image_url, root_location,
+            organization.id, clean=True
+        )
+        # save thumbnail path to ExtraInfo table with "org_id" as key
+        save_thumbnail_info(thumbnail, organization.id, db)
+
         db.commit()
         db.refresh(organization)
         # menu = get_organization_menu(organization_id, db)
@@ -892,12 +903,17 @@ async def change_organization_image(
 
 @app.get("/organizations/{organization_id}/image")
 async def get_organization_image_upload(
-    organization_id: str, db: orm.Session = Depends(get_db)
+    organization_id: str,
+    width: int = 100,
+    height: int = 100,
+    db: orm.Session = Depends(get_db)
 ):
     """intro--> This endpoint allows you to retrieve the cover image of an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/image endpoint
 
         paramDesc--> On get request, the request url takes the parameter, organization id
             param--> organization_id: This is the unique Id of the organization of interest
+            param--> width: this is the width of the image thumbnail
+            param--> height: this is the height of the image thumbnail
 
     returnDesc--> On sucessful request, it returns:
 
@@ -911,19 +927,46 @@ async def get_organization_image_upload(
             .first()
         )
 
+        size = (width, height)
         image = org.image_url
         filename = f"{image}"
 
         root_location = os.path.abspath("filestorage")
         full_image_path = root_location + filename
 
-        if org.image_url != "" and os.path.exists(full_image_path):
-            return FileResponse(full_image_path)
-        
-        else:
-            raise HTTPException(status_code=404, detail="Image not found")
+        # set thumbnail key and query ExtraInfo by key
+        key = f"thumbnail_{organization_id}_{size}"
+        thumbnail_info = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
 
-        # TO-DO: return an appropriate 404 response here.
+        if thumbnail_info:
+            thumb_path, thumb_size = thumbnail_info.value.split(" && ")
+
+            # return thumbnail if path and size exists
+            if str(size) == thumb_size and os.path.exists(thumb_path):
+                return FileResponse(thumb_path)
+
+            # If thumbnail of size does'nt exist and image to create new exist, create new
+            elif org.image_url != "" and os.path.exists(full_image_path):
+                if (str(size) != thumb_size) or not os.path.exists(thumb_path):
+                    thumbnail = gen_thumbnail(
+                        org.image_url, root_location,
+                        org.id, size, "thumbnails"
+                    )
+                    save_thumbnail_info(thumbnail, org.id, db, size)
+                    return FileResponse(thumbnail)
+            
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+        
+        # Create new thumbnail if organization has no entry in ExtraInfo table
+        else:
+            thumbnail = gen_thumbnail(
+                org.image_url, root_location,
+                org.id, size, "thumbnails"
+            )
+            save_thumbnail_info(thumbnail, org.id, db, size)
+            return FileResponse(thumbnail)
 
     except Exception as ex:
         if type(ex) == HTTPException:
