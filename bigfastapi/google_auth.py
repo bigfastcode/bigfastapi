@@ -71,9 +71,10 @@ async def google_login(request: Request):
 @app.get("/google/token")
 async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
-    response = RedirectResponse(settings.BASE_URL)
+    response = RedirectResponse(f"{settings.BASE_URL}/login")
 
     token = await oauth.google.authorize_access_token(request)
+    print(token)
     user_data = token["userinfo"]
 
     check_user = auth_service.valid_email_from_db(user_data["email"], db)
