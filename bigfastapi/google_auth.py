@@ -63,6 +63,7 @@ async def google_login(request: Request):
     google_auth_uri = await oauth.google.authorize_redirect(request, redirect_uri)
 
     # TO-DO: Handle in-session user authentication.
+    print(google_auth_uri)
 
     return {"data": google_auth_uri}
     # return await oauth.google.authorize_redirect(request, redirect_uri)
@@ -72,6 +73,7 @@ async def google_login(request: Request):
 async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
     response = RedirectResponse(settings.BASE_URL)
+    print(response)
 
     token = await oauth.google.authorize_access_token(request)
     user_data = token["userinfo"]
@@ -103,19 +105,19 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
     user_obj = user_models.User(
         id=uuid4().hex,
         email=user_data.email,
-        password=_hash.sha256_crypt.hash(n),
+        password_hash=_hash.sha256_crypt.hash(n),
         first_name=user_data.given_name,
         last_name=user_data.family_name,
-        phone_number=n,
+        phone_number="",
         is_active=True,
         is_verified=True,
-        country_code="",
+        phone_country_code="",
         is_deleted=False,
-        country="",
-        state="",
+        # country_code="",
+        # state="",
         google_id="",
-        google_image=user_data.picture,
-        image=user_data.picture,
+        google_image_url=user_data.picture,
+        image_url=user_data.picture,
         device_id="",
     )
 
