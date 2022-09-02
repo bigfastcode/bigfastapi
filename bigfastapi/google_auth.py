@@ -125,7 +125,7 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
     db.commit()
     db.refresh(user_obj)
 
-    response = RedirectResponse(settings.BASE_URL)
+    response = RedirectResponse(f"{settings.BASE_URL}/business/create")
 
     refresh_token = await auth_service.create_refresh_token(
         data={"user_id": user_obj.id}, db=db
