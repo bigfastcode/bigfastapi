@@ -52,7 +52,7 @@ validators
 pytest
 fastapi-pagination
 qrcode
-authlib
+authlib==1.0.0
 itsdangerous
 aiofiles
 Pillow
