@@ -27,3 +27,7 @@ class Image(File):
     width: int
     Height: int
 
+
+class CDNImage(BaseModel):
+    filename: str
+    bucketname: str
