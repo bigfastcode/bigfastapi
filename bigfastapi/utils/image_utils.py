@@ -12,10 +12,8 @@ ROOT_LOCATION = os.path.abspath(os.environ.get("FILES_BASE_FOLDER", "filestorage
 THUMBNAIL_BUCKET = "thumbnails"
 
 
-def create_thumbnail_dirs(unique_id, width=None, height=None):
-    width = width if width else height
-    height = height if height else width
-    bucket_path = f"{THUMBNAIL_BUCKET}/{unique_id}/{width}/{height}"
+def create_thumbnail_dirs(unique_id):
+    bucket_path = f"{THUMBNAIL_BUCKET}/{unique_id}"
     full_path = f"{ROOT_LOCATION}/{MAIN_BUCKET}/{bucket_path}"
     if not os.path.exists(full_path):
         os.makedirs(full_path)
@@ -25,7 +23,7 @@ def create_thumbnail_dirs(unique_id, width=None, height=None):
 
 def save_thumbnail_info(filename, thumbnail_path, unique_id, size, db=SessionLocal()):
     key = f"{filename}_{unique_id}_{size}"
-    value = f"{thumbnail_path}/{filename}"
+    value = thumbnail_path
     image_info = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
     if image_info:
         image_info.key = key
@@ -45,6 +43,8 @@ def save_thumbnail_info(filename, thumbnail_path, unique_id, size, db=SessionLoc
 
 def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=None):
     wpercent = None
+    width = width if width else height
+    height = height if height else width
 
     img = Image.open(full_image_path)
     if width and not height:
@@ -55,12 +55,14 @@ def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=
         width = int((float(img.size[1])*float(hpercent)))
     img = img.resize((width, height), Image.ANTIALIAS)
     
-    thumbnail_path = create_thumbnail_dirs(unique_id, width=width, height=height)
+    thumbnail_path = create_thumbnail_dirs(unique_id)
     thumbnail_full_path = f"{ROOT_LOCATION}/{MAIN_BUCKET}/{thumbnail_path}"
-    filename = full_image_path.split("/")[-1]
-    outfile = f"{thumbnail_full_path}/{filename}"
+    filename, ext = os.path.splitext(full_image_path.split("/")[-1])
+    thumbnail_filename = f"{filename}_{width}x{height}{ext}"
+    outfile = f"{thumbnail_full_path}/{thumbnail_filename}"
     img.save(outfile)
 
+    thumbnail_path = f"{thumbnail_path}/{thumbnail_filename}"
     thumbnail = save_thumbnail_info(filename, thumbnail_path, unique_id, (width, height))
 
     return thumbnail
