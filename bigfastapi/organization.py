@@ -888,7 +888,7 @@ async def change_organization_image(
         # generate thumbnail
         image_full_path = os.path.join(os.path.abspath("filestorage"), organization.image_url)
         thumbnail = generate_thumbnail_for_image(
-            image_full_path, organization_id, width, height, db)
+            image_full_path, organization_id, width, height)
 
         db.commit()
         db.refresh(organization)

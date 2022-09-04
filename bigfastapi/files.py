@@ -1,15 +1,19 @@
 import fastapi, os
 
+from bigfastapi.models.user_models import User
+
 from .models import file_models as model
 from .schemas import file_schemas as schema
 
 from uuid import uuid4
 import sqlalchemy.orm as orm
+from sqlalchemy import and_
 from typing import List
 from bigfastapi.db.database import get_db
 from bigfastapi.utils import settings as settings
 from fastapi.responses import FileResponse
 from datetime import datetime
+from bigfastapi.auth_api import is_authenticated
 
 # Import the Router
 app = fastapi.APIRouter()
@@ -141,10 +145,64 @@ async def upload_file(
         db.refresh(file)
 
         return schema.File.from_orm(file)
-    
 
-async def upload_image( file: fastapi.UploadFile = fastapi.File(...),  db: orm.Session = fastapi.Depends(get_db), bucket_name = str):
+
+@app.post("/upload-cdn-link", response_model=schema.File)
+async def upload_image_cdn_link(
+    body: schema.CDNImage,
+    db: orm.Session = fastapi.Depends(get_db),
+    user: User = fastapi.Depends(is_authenticated)
+):
+
+    """
+    Saves a cdn image url to files table. Doesn't create a new file
+    :param bucket_name: unique id or name to use as relationship
+    :param filename: name of file in cdn
+    :param db: Database Session object
+    """
+
+    try:
+        # check if file exists
+        file = db.query(model.File).filter(and_(
+            model.File.filename==body.filename,
+            model.File.bucketname==body.bucketname
+        )).first()
+            
+        # Create a db entry for this file if not exists.
+        if not file:
+            file = model.File(
+                id=uuid4().hex,
+                filename=body.filename,
+                bucketname=body.bucketname,
+                filesize=0
+            )
+
+            db.add(file)
+            db.commit()
+            db.refresh(file)
+
+        return file
+    except Exception as ex:
+        print(ex)
+        raise fastapi.HTTPException(status_code=400, detail=str(ex))
+
+
+@app.post("/images/{bucket_name}/", response_model=schema.File)
+async def upload_image(
+    file: fastapi.UploadFile = fastapi.File(...),
+    db: orm.Session = fastapi.Depends(get_db),
+    bucket_name = str,
+    user: User = fastapi.Depends(is_authenticated)
+):
     
+    """intro-->This endpoint allows you to upload an image to a bucket/storage. To use this endpoint you need to make a post request to the /images/{bucket_name}/ endpoint 
+            paramDesc-->On post request the url takes the query parameter bucket_name
+                param-->bucket_name: This is the name of the bucket you want to save the file to, You can request a list of files in a single folder if you nee to iterate.
+                param-->file_rename: This is a boolean value that if set to true renames the hex values
+    returnDesc--> On successful request, it returns 
+        returnBody--> details of the file just created
+    """
+
     # Make sure the base folder exists
     if settings.FILES_BASE_FOLDER == None or len(settings.FILES_BASE_FOLDER) < 2:
         raise fastapi.HTTPException(status_code=404, detail="base folder does not exist or base folder length too short")
