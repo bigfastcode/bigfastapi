@@ -12,8 +12,10 @@ from bigfastapi.models import credit_wallet_models as credit_wallet_models
 from bigfastapi.models import location_models
 from bigfastapi.models import organization_models as Models
 from bigfastapi.models import wallet_models as wallet_models
+from bigfastapi.models.extra_info_models import ExtraInfo
 from bigfastapi.schemas import organization_schemas as Schemas
 from bigfastapi.schemas import users_schemas
+from bigfastapi.utils.image_utils import generate_thumbnail_for_image
 
 # placeholder menu. will be removed as soon as the dynamic menu flow is completed
 DEFAULT_MENU = {
@@ -223,16 +225,43 @@ def run_wallet_creation(newOrganization: Models.Organization, db: orm.Session):
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
-def create_org_image_full_path(organization):
-    root_files_dirname = os.environ.get("FILES_BASE_FOLDER", "filestorage")
-    root_files_dirpath = os.path.join(root_files_dirname)
-    if (
-        organization.image_url != "" and\
-        os.path.exists(root_files_dirpath + organization.image_url)
-    ):
+def create_org_image_full_path(organization, db: orm.Session):
+    root_location = os.path.abspath(os.environ.get("FILES_BASE_FOLDER", "filestorage"))
+    image_folder = os.environ.get("IMAGES_FOLDER", "images")
+    image_url = organization.image_url.strip("/")
+
+    # if image url is set and exists, set image_full_path to thumbnail path
+    if (image_url != "" and os.path.exists(os.path.join(root_location, image_url))):
         appBasePath = config("API_URL")
-        imageURL = appBasePath + f"/organizations/{organization.id}/image"
-        setattr(organization, "image_full_path", imageURL)
+        filename = image_url.split("/")[-1]
+        size = (60, 60)
+        key = f"{filename}_{organization.id}_{size}"
+        thumbnail = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
+
+        # if thumbnail in db and thumbnail path not exists, create thumbnail and set image_full_path
+        if thumbnail and not os.path.exists(os.path.join(root_location, image_folder, thumbnail.value)):
+            thumbnail = generate_thumbnail_for_image(
+                full_image_path=os.path.join(root_location, image_url),
+                unique_id=organization.id,
+                width=size[0], height=size[1]
+            )
+            imageURL = appBasePath + f"/{thumbnail.value}"
+            setattr(organization, "image_full_path", imageURL)
+        
+        # if thumbnail in db and thumbnail path exists set image_full_path
+        elif thumbnail and os.path.exists(os.path.join(root_location, image_folder, thumbnail.value)):
+            imageURL = appBasePath + f"/{thumbnail.value}"
+            setattr(organization, "image_full_path", imageURL)
+        
+        # if thumbnail not in db but image path exists
+        else:
+            thumbnail = generate_thumbnail_for_image(
+                full_image_path=os.path.join(root_location, image_url),
+                unique_id=organization.id,
+                width=size[0], height=size[1]
+            )
+            imageURL = appBasePath + f"/{thumbnail.value}"
+            setattr(organization, "image_full_path", imageURL)
 
 
 def get_organizations(user: users_schemas.User, db: orm.Session):
@@ -249,7 +278,7 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
         organization_collection = []
         for pos in range(len(organization_list)):
             organization = organization_list[pos]
-            create_org_image_full_path(organization)
+            create_org_image_full_path(organization, db)
             organization_collection.append(organization)
 
         return organization_collection
@@ -276,7 +305,7 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
     organizationCollection = []
     for pos in range(len(org_coll)):
         organization = org_coll[pos]
-        create_org_image_full_path(organization)
+        create_org_image_full_path(organization, db)
         organizationCollection.append(organization)
 
     return organizationCollection
@@ -296,7 +325,7 @@ async def organization_selector(
             status_code=404, detail="Organization does not exist"
         )
 
-    create_org_image_full_path(organization)
+    create_org_image_full_path(organization, db)
 
     return organization
 

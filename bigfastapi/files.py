@@ -155,18 +155,21 @@ async def upload_image( file: fastapi.UploadFile = fastapi.File(...),  db: orm.S
 
     # Create the base folder
     base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
+    image_folder = os.environ.get("IMAGES_FOLDER", "images")
     try:
-        os.makedirs(base_folder)
+        os.makedirs(os.path.join(base_folder, image_folder))
     except:
         pass
 
     # Make sure bucket name exists
     try:
-        os.makedirs(os.path.join(base_folder, bucket_name))
+        os.makedirs(os.path.join(base_folder, image_folder, bucket_name))
     except:
        pass
 
-    full_write_path = os.path.realpath(os.path.join(base_folder, bucket_name, file.filename))
+    full_write_path = os.path.realpath(
+        os.path.join(base_folder, image_folder, bucket_name, file.filename)
+    )
     
     # Make sure there has been no exit from our core folder
     common_path = os.path.commonpath((full_write_path, base_folder))
