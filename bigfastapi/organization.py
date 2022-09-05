@@ -134,10 +134,12 @@ def get_organizations(
 
         all_orgs = organization_services.get_organizations(user, db)
 
-        return paginate_data(all_orgs, page_size, page_number)
     except Exception as ex:
         print("error\n\n",ex,'\n\n\error')
-        return {"status":"500","error":ex}
+        all_orgs = ex
+    
+    return {"status":"500","error":all_orgs}
+
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
