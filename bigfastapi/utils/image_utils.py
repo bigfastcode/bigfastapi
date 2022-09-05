@@ -41,26 +41,28 @@ def save_thumbnail_info(filename, thumbnail_path, unique_id, size, db=SessionLoc
     return image_info
 
 
-def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=None):
-    wpercent = None
+def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=None, scale="width"):
+
     width = width if width else height
     height = height if height else width
 
+    # scale image
     img = Image.open(full_image_path)
-    if width and not height:
-        wpercent = (width/float(img.size[0]))
-        height = int((float(img.size[1])*float(wpercent)))
-    elif height and not width:
-        hpercent = (height/float(img.size[1]))
-        width = int((float(img.size[1])*float(hpercent)))
-    img = img.resize((width, height), Image.ANTIALIAS)
+    scaler = None
+    if scale == "width" or scale == "height":
+        scaler = width if scale == "width" else height
+    if scaler is not None:
+        img = img.resize((scaler, scaler))
+        img.thumbnail((width, height))
+    else:
+        img.thumbnail((width, height))
     
     thumbnail_path = create_thumbnail_dirs(unique_id)
     thumbnail_full_path = f"{ROOT_LOCATION}/{MAIN_BUCKET}/{thumbnail_path}"
     filename, ext = os.path.splitext(full_image_path.split("/")[-1])
     thumbnail_filename = f"{filename}_{width}x{height}{ext}"
     outfile = f"{thumbnail_full_path}/{thumbnail_filename}"
-    img.save(outfile)
+    img.save(outfile, quality=95)
 
     thumbnail_path = f"{thumbnail_path}/{thumbnail_filename}"
     thumbnail = save_thumbnail_info(filename, thumbnail_path, unique_id, (width, height))
