@@ -273,16 +273,18 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
         .all()
     )
     try:
+        try:
+            if len(invited_orgs_pvt) == 0:
+                organization_list = native_orgs
+                organization_collection = []
+                for pos in range(len(organization_list)):
+                    organization = organization_list[pos]
+                    create_org_image_full_path(organization, db)
+                    organization_collection.append(organization)
 
-        if len(invited_orgs_pvt) == 0:
-            organization_list = native_orgs
-            organization_collection = []
-            for pos in range(len(organization_list)):
-                organization = organization_list[pos]
-                create_org_image_full_path(organization, db)
-                organization_collection.append(organization)
-
-            return organization_collection
+                return organization_collection
+        except Exception as e:
+            return e
 
         # organization_id_list = list(
         #     map(lambda x: x.organization_id, invited_orgs_pvt))
@@ -304,12 +306,15 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
 
         org_coll = native_orgs + invited_orgs
         organizationCollection = []
-        for pos in range(len(org_coll)):
-            organization = org_coll[pos]
-            create_org_image_full_path(organization, db)
-            organizationCollection.append(organization)
+        try:
+            for pos in range(len(org_coll)):
+                organization = org_coll[pos]
+                create_org_image_full_path(organization, db)
+                organizationCollection.append(organization)
 
-        return organizationCollection
+            return organizationCollection
+        except Exception as e:
+            return e
     except Exception as e:
         print(e)
         return e
