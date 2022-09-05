@@ -130,9 +130,14 @@ def get_organizations(
 
         returnBody--> a list of organizations
     """
-    all_orgs = organization_services.get_organizations(user, db)
+    try:
 
-    return paginate_data(all_orgs, page_size, page_number)
+        all_orgs = organization_services.get_organizations(user, db)
+
+        return paginate_data(all_orgs, page_size, page_number)
+    except Exception as ex:
+        print("error\n\n",ex,'\n\n\error')
+        return {"status":"500","error":ex}
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
