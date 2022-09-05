@@ -303,12 +303,14 @@ def get_organizations(user: users_schemas.User, db: orm.Session):
 
     org_coll = native_orgs + invited_orgs
     organizationCollection = []
+
     for pos in range(len(org_coll)):
         organization = org_coll[pos]
         create_org_image_full_path(organization, db)
         organizationCollection.append(organization)
 
     return organizationCollection
+
 
 
 async def organization_selector(
