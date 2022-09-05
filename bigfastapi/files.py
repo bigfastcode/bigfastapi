@@ -196,7 +196,8 @@ def get_thumbnail(
     scale: str = "",
     width: int = 0,
     height: int = 0,
-    db: orm.Session = fastapi.Depends(get_db)
+    db: orm.Session = fastapi.Depends(get_db),
+    user: User = fastapi.Depends(is_authenticated)
 ):
     """
     Fetch thumbnail of specific size for filename if exists or create new if file exists
