@@ -1,8 +1,10 @@
 import fastapi, os
 
 from bigfastapi.models.user_models import User
+from bigfastapi.utils.image_utils import generate_thumbnail_for_image
 
 from .models import file_models as model
+from .models.extra_info_models import ExtraInfo
 from .schemas import file_schemas as schema
 
 from uuid import uuid4
@@ -185,6 +187,62 @@ async def upload_image_cdn_link(
     except Exception as ex:
         print(ex)
         raise fastapi.HTTPException(status_code=400, detail=str(ex))
+
+
+@app.get("/images/thumbnail/{bucketname}/{filename}")
+def get_thumbnail(
+    bucketname: str,
+    filename: str,
+    scale: str = "",
+    width: int = 0,
+    height: int = 0,
+    db: orm.Session = fastapi.Depends(get_db),
+    user: User = fastapi.Depends(is_authenticated)
+):
+    """
+    Fetch thumbnail of specific size for filename if exists or create new if file exists
+    :param bucketname: Unique id of original file
+    :param filename: Original filename
+    :param scale: How to scale image if create; options are width, height and empty means None
+    :param width: Thumbnail width
+    :param height: Thumbnail height
+    :param db: Database Session object
+    """
+
+    root_location = os.path.abspath(os.environ.get("FILES_BASE_FOLDER", "filestorage"))
+    image_folder = os.environ.get("IMAGES_FOLDER", "images")
+    try:
+        key = f"{filename}_{bucketname}_{(width, height)}"
+        thumbnail = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
+        if thumbnail:
+            return FileResponse(os.path.join(root_location, image_folder, thumbnail.value))
+        
+        else:
+            file = db.query(model.File).filter(and_(
+                model.File.bucketname==bucketname,
+                model.File.filename==filename
+            )).first()
+
+            if file:
+                full_path_1 = os.path.join(root_location, image_folder, bucketname, filename)
+                full_path_2 = os.path.join(root_location, bucketname.strip("/"), filename)
+                full_path = full_path_1 if os.path.exists(full_path_1) else full_path_2
+
+                thumbnail = generate_thumbnail_for_image(
+                    full_image_path=full_path,
+                    unique_id=bucketname,
+                    width=width,
+                    height=height,
+                    scale=scale
+                )
+                
+                if thumbnail:
+                    return FileResponse(os.path.join(root_location, image_folder, thumbnail.value))
+                
+            raise fastapi.HTTPException(status_code=404, detail="No file to generate a thumbnail")
+    except Exception as ex:
+        print(ex)
+        raise fastapi.HTTPException(status_code=400, detail=str(ex)) 
 
 
 @app.post("/images/{bucket_name}/", response_model=schema.File)
