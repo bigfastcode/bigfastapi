@@ -70,3 +70,4 @@ isort
 autoflake
 pre-commit
 pyupgrade
+httpx
