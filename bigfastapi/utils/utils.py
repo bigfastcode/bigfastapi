@@ -51,6 +51,7 @@ def paginate_data(data, page_size: int, page_number: int):
     end = start + page_size
 
     return {
+        "message":"success!",
         "data": data[start:end],
         "total_documents": data.__len__(),
         "page_limit": page_size,
