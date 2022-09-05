@@ -76,16 +76,31 @@ def get_file(bucket_name: str, file_name: str, db: orm.Session = fastapi.Depends
 async def upload_file(
     bucket_name: str, 
     file: fastapi.UploadFile = fastapi.File(...),
-    file_rename:bool =False, 
+    file_rename:bool = False,
+    width: int = 0,
+    height: int = 0,
+    create_thumbnail: bool = False,
+    scale: str = "",
     db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint allows you to upload a file to a bucket/storage. To use this endpoint you need to make a post request to the /upload-file/{bucket_name}/ endpoint 
             paramDesc-->On post request the url takes the query parameter bucket_name
                 param-->bucket_name: This is the name of the bucket you want to save the file to, You can request a list of files in a single folder if you nee to iterate.
                 param-->file_rename: This is a boolean value that if set to true renames the hex values
-    returnDesc--> On successful request, it returns 
+                param-->width: width of thumbnail to be created from image
+                param-->height: height of thumbnail to be created from image
+                param-->scale: How to scale image when generating thumbnail; options are width or height or ""
+                param-->create_thumbnail: Whether to generate thumbnail or not
+        returnDesc--> On successful request, it returns 
         returnBody--> details of the file just created
     """
+
+    if file.content_type in ["image/jpeg", "image/png"]:
+        return upload_image(
+            file=file, bucket_name=bucket_name,
+            width=width, height=height, db=db,
+            create_thumbnail=create_thumbnail, scale=scale
+        )
     
     # Make sure the base folder exists
     if settings.FILES_BASE_FOLDER == None or len(settings.FILES_BASE_FOLDER) < 2:
@@ -149,41 +164,44 @@ async def upload_file(
         return schema.File.from_orm(file)
 
 
-@app.post("/upload-cdn-link", response_model=schema.File)
-async def upload_image_cdn_link(
-    body: schema.CDNImage,
+@app.post("/images/cdn-link/register", response_model=list[schema.File])
+async def add_image_cdn_link(
+    body: list[schema.CDNImage] = [],
     db: orm.Session = fastapi.Depends(get_db),
     user: User = fastapi.Depends(is_authenticated)
 ):
 
     """
     Saves a cdn image url to files table. Doesn't create a new file
-    :param bucket_name: unique id or name to use as relationship
-    :param filename: name of file in cdn
+    :param body: payload list of cdn image info
     :param db: Database Session object
     """
 
     try:
-        # check if file exists
-        file = db.query(model.File).filter(and_(
-            model.File.filename==body.filename,
-            model.File.bucketname==body.bucketname
-        )).first()
-            
-        # Create a db entry for this file if not exists.
-        if not file:
-            file = model.File(
-                id=uuid4().hex,
-                filename=body.filename,
-                bucketname=body.bucketname,
-                filesize=0
-            )
+        files = []
+        for cdn_image in body:
+            # check if file exists
+            file = db.query(model.File).filter(and_(
+                model.File.filename==cdn_image.filename,
+                model.File.bucketname==cdn_image.bucketname
+            )).first()
+                
+            # Create a db entry for this file if not exists.
+            if not file:
+                file = model.File(
+                    id=uuid4().hex,
+                    filename=cdn_image.filename,
+                    bucketname=cdn_image.bucketname,
+                    filesize=0
+                )
 
-            db.add(file)
-            db.commit()
-            db.refresh(file)
+                db.add(file)
+                db.commit()
+                db.refresh(file)
 
-        return file
+            files.append(file)
+
+        return files
     except Exception as ex:
         print(ex)
         raise fastapi.HTTPException(status_code=400, detail=str(ex))
@@ -245,19 +263,25 @@ def get_thumbnail(
         raise fastapi.HTTPException(status_code=400, detail=str(ex)) 
 
 
-@app.post("/images/{bucket_name}/", response_model=schema.File)
 async def upload_image(
     file: fastapi.UploadFile = fastapi.File(...),
     db: orm.Session = fastapi.Depends(get_db),
     bucket_name = str,
+    width: int = 0,
+    height: int = 0,
+    scale: str = "",
+    create_thumbnail: bool = False,
     user: User = fastapi.Depends(is_authenticated)
 ):
     
     """intro-->This endpoint allows you to upload an image to a bucket/storage. To use this endpoint you need to make a post request to the /images/{bucket_name}/ endpoint 
             paramDesc-->On post request the url takes the query parameter bucket_name
                 param-->bucket_name: This is the name of the bucket you want to save the file to, You can request a list of files in a single folder if you nee to iterate.
-                param-->file_rename: This is a boolean value that if set to true renames the hex values
-    returnDesc--> On successful request, it returns 
+                param-->width: width of thumbnail to be created from image
+                param-->height: height of thumbnail to be created from image
+                param-->scale: How to scale image when generating thumbnail; options are width or height or ""
+                param-->create_thumbnail: Whether to generate thumbnail or not
+        returnDesc--> On successful request, it returns 
         returnBody--> details of the file just created
     """
 
@@ -300,6 +324,15 @@ async def upload_image(
             f.write(contents)
     except OSError:
         raise fastapi.HTTPException(status_code=423, detail="Error writing to the file")
+    
+    # create thumbnail for image
+    if create_thumbnail:
+        generate_thumbnail_for_image(
+            full_image_path=full_write_path,
+            unique_id=bucket_name,
+            width=width,
+            height=height
+        )      
 
     # Retrieve the file size from what we wrote on disk, so we are sure it matches
     filesize = os.path.getsize(full_write_path)

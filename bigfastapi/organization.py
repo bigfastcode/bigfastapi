@@ -857,6 +857,7 @@ async def change_organization_image(
     file: UploadFile = File(...),
     width: int = 60,
     height: int = 60,
+    scale: str = "width",
     db: orm.Session = Depends(get_db),
     user: str = Depends(is_authenticated),
 ):
@@ -880,16 +881,14 @@ async def change_organization_image(
     #  Delete previous organization image if exist
     await _models.deleteBizImageIfExist(organization)
 
-    uploaded_image = await upload_image(file, db, bucket_name)
+    uploaded_image = await upload_image(
+        file=file, db=db, bucket_name=bucket_name,
+        width=width, height=height, scale=scale, create_thumbnail=True
+    )
     # Update organization image to uploaded image endpoint
     organization.image_url = f"{image_folder}/{bucket_name}/{uploaded_image}"
 
     try:
-        # generate thumbnail
-        image_full_path = os.path.join(os.path.abspath("filestorage"), organization.image_url)
-        thumbnail = generate_thumbnail_for_image(
-            image_full_path, organization_id, width, height)
-
         db.commit()
         db.refresh(organization)
         # menu = get_organization_menu(organization_id, db)
