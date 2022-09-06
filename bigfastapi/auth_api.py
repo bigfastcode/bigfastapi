@@ -91,10 +91,11 @@ def verify_access_token(token: str, credentials_exception, db: orm.Session):
         if id is None:
             raise credentials_exception
         token_data = auth_schemas.TokenData(email=email, id=id)
-    except JWTError:
-        raise credentials_exception
 
-    return token_data
+        return token_data
+
+    except JWTError:
+        return JWTError(credentials_exception)
 
 
 def is_authenticated(
@@ -110,9 +111,9 @@ def is_authenticated(
     )
 
     if type(token) == str:
-        token = verify_access_token(token, credentials_exception, db)
+        access_token = verify_access_token(token, credentials_exception, db)
 
-        if token.email is None:
+        if type(access_token) is JWTError:
             refresh_token = verify_refresh_token(
                 refresh_token, credentials_exception, db
             )
