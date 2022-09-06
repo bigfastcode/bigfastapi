@@ -72,10 +72,10 @@ async def google_login(request: Request):
 @app.get("/google/token")
 async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
-    response = RedirectResponse(f"{settings.BASE_URL}/businesses/select")
+    response = RedirectResponse(f"{settings.BASE_URL}/{settings.CLIENT_REDIRECT_URL}")
 
     token = await oauth.google.authorize_access_token(request)
-    print(token)
+
     user_data = token["userinfo"]
 
     check_user = auth_service.valid_email_from_db(user_data["email"], db)
@@ -124,8 +124,6 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
     db.add(user_obj)
     db.commit()
     db.refresh(user_obj)
-
-    response = RedirectResponse(f"{settings.BASE_URL}/businesses/create")
 
     refresh_token = await auth_service.create_refresh_token(
         data={"user_id": user_obj.id}, db=db

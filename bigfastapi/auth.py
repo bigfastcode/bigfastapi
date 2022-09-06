@@ -276,8 +276,7 @@ async def login(
         return {"data": userinfo["response_user"], "access_token": access_token}
 
 
-# change to refresh-access-token
-@app.get("/auth/refresh-token", status_code=200)
+@app.get("/auth/refresh-access-token", status_code=200)
 async def refresh_access_token(
     response: Response,
     refresh_token: Union[str, None] = Cookie(default=None),
@@ -289,7 +288,6 @@ async def refresh_access_token(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    # check if refresh token is valid
 
     if refresh_token is None:
         return {"message": "Log in to authenticate user"}
@@ -298,7 +296,6 @@ async def refresh_access_token(
         refresh_token, credentials_exception, db
     )
 
-    print(refresh_token)
     if valid_refresh_token.email is None:
         response.set_cookie(
             key="refresh_token",
