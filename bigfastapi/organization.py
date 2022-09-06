@@ -13,7 +13,7 @@ from fastapi import (
     status,
 )
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy import and_
 from sqlalchemy.sql import expression
 
@@ -22,7 +22,6 @@ from bigfastapi.core.helpers import Helpers
 from bigfastapi.db.database import get_db
 from bigfastapi.files import upload_image
 from bigfastapi.models import organization_models, user_models
-from bigfastapi.models.extra_info_models import ExtraInfo
 from bigfastapi.models.organization_models import (
     OrganizationInvite,
     OrganizationUser,
@@ -36,7 +35,6 @@ from bigfastapi.schemas.organization_schemas import (
 )
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
-from bigfastapi.utils.image_utils import generate_thumbnail_for_image
 from bigfastapi.utils.utils import paginate_data
 
 # from bigfastapi.services import email_services
@@ -83,14 +81,14 @@ def create_organization(
         if db_org:
             raise HTTPException(
                 status_code=400,
-                detail=f"{organization.name} already exist in your business collection",
+                detail=f"{organization.name} already exist in your organization collection",
             )
 
         created_org = organization_services.create_organization(
             user=user, db=db, organization=organization
         )
 
-        if organization.wallet is True:
+        if organization.create_wallet is True:
             organization_services.run_wallet_creation(created_org, db)
 
         background_tasks.add_task(
@@ -134,7 +132,6 @@ def get_organizations(
     all_orgs = organization_services.get_organizations(user, db)
 
     return paginate_data(all_orgs, page_size, page_number)
-
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
@@ -884,8 +881,13 @@ async def change_organization_image(
     await _models.deleteBizImageIfExist(organization)
 
     uploaded_image = await upload_image(
-        file=file, db=db, bucket_name=bucket_name,
-        width=width, height=height, scale=scale, create_thumbnail=True
+        file=file,
+        db=db,
+        bucket_name=bucket_name,
+        width=width,
+        height=height,
+        scale=scale,
+        create_thumbnail=True,
     )
     # Update organization image to uploaded image endpoint
     organization.image_url = f"{image_folder}/{bucket_name}/{uploaded_image}"
@@ -907,7 +909,7 @@ async def get_organization_image_upload(
     organization_id: str,
     width: int = 100,
     height: int = 100,
-    db: orm.Session = Depends(get_db)
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to retrieve the cover image of an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/image endpoint
 
@@ -921,6 +923,7 @@ async def get_organization_image_upload(
         returnBody--> full_image_path property of the organization
     """
     raise HTTPException(status_code=404, details="This endpoint was removed")
+
 
 @app.delete("/organizations/{organization_id}", status_code=204)
 async def delete_organization(
