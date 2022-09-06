@@ -82,7 +82,7 @@ def verify_access_token(token: str, credentials_exception, db: orm.Session):
         check_token = (
             db.query(auth_models.Token).filter(auth_models.Token.token == token).first()
         )
-        if check_token == None:
+        if check_token is None:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
         id: str = payload.get("user_id")
@@ -106,7 +106,7 @@ def is_authenticated(
 
     credentials_exception = fastapi.HTTPException(
         status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
-        detail=f"Could not validate credentials",
+        detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -127,7 +127,9 @@ def is_authenticated(
             return user
 
         user = (
-            db.query(user_models.User).filter(user_models.User.id == token.id).first()
+            db.query(user_models.User)
+            .filter(user_models.User.id == access_token.id)
+            .first()
         )
 
         return user
@@ -357,9 +359,6 @@ async def password_change_token(
         return {"message": "password change successful"}
     else:
         raise fastapi.HTTPException(status_code=401, detail="Invalid Token")
-
-
-######################### DEFAULT AUTH MAIL SERVICES #####################################
 
 
 async def send_code_password_reset_email(
