@@ -96,7 +96,7 @@ async def upload_file(
     """
 
     if file.content_type in ["image/jpeg", "image/png"]:
-        return upload_image(
+        return await upload_image(
             file=file, bucket_name=bucket_name,
             width=width, height=height, db=db,
             create_thumbnail=create_thumbnail, scale=scale
@@ -214,6 +214,7 @@ def get_thumbnail(
     scale: str = "",
     width: int = 0,
     height: int = 0,
+    plain_response: bool = False,
     db: orm.Session = fastapi.Depends(get_db),
     user: User = fastapi.Depends(is_authenticated)
 ):
@@ -224,6 +225,7 @@ def get_thumbnail(
     :param scale: How to scale image if create; options are width, height and empty means None
     :param width: Thumbnail width
     :param height: Thumbnail height
+    :param plain_response: Flag to toggle between plain response and file response; defaults to False
     :param db: Database Session object
     """
 
@@ -233,7 +235,10 @@ def get_thumbnail(
         key = f"{filename}_{bucketname}_{(width, height)}"
         thumbnail = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
         if thumbnail:
-            return FileResponse(os.path.join(root_location, image_folder, thumbnail.value))
+            if plain_response:
+                return thumbnail.value
+            else:
+                return FileResponse(os.path.join(root_location, image_folder, thumbnail.value))
         
         else:
             file = db.query(model.File).filter(and_(
@@ -254,8 +259,10 @@ def get_thumbnail(
                     scale=scale
                 )
                 
-                if thumbnail:
+                if thumbnail and plain_response == False:
                     return FileResponse(os.path.join(root_location, image_folder, thumbnail.value))
+                else:
+                    return thumbnail.value
                 
             raise fastapi.HTTPException(status_code=404, detail="No file to generate a thumbnail")
     except Exception as ex:
@@ -345,7 +352,7 @@ async def upload_image(
         db.commit()
         db.refresh(existing_file)
 
-        return existing_file.filename
+        return existing_file
     else:
         # Create a db entry for this file. 
         file = model.File(id=uuid4().hex, filename=file.filename, bucketname=bucket_name, filesize=filesize)
@@ -353,7 +360,7 @@ async def upload_image(
         db.commit()
         db.refresh(file)
 
-        return file.filename
+        return file
     
 async def isFileExist(filePath: str):
      """Check the existence of a file in directory
