@@ -1,62 +1,70 @@
-import os, shutil
-from PIL import Image
+import os
 from uuid import uuid4
+from PIL import Image
+
+from bigfastapi.db.database import SessionLocal
+
 
 from bigfastapi.models.extra_info_models import ExtraInfo
 
+MAIN_BUCKET = os.environ.get("IMAGES_FOLDER", "images")
+ROOT_LOCATION = os.path.abspath(os.environ.get("FILES_BASE_FOLDER", "filestorage"))
+THUMBNAIL_BUCKET = "thumbnails"
 
-def save_thumbnail_info(thumbnail_path, organization_id, db, size=(100, 100)):
-    """
-    Save thumbnail info to ExtraInfo table in DB
-    :param thumbnail_path: Absolute path to where thumbnail
-    :param organization_id: unique identifier for the organization
-    :param db: Database session object
-    :param size: thumbnail image size
-    :return: None
-    """
-    try:
-        key = f"thumbnail_{organization_id}_{size}"
-        value = f"{thumbnail_path} && {size}"
-        thumbnail_info = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
-        if not thumbnail_info:
-            thumbnail_info = ExtraInfo(id=uuid4().hex, key=key, value=value)
-        else:
-            thumbnail_info.key = key
-            thumbnail_info.value = value
-        db.add(thumbnail_info)
-        db.commit()
-        db.refresh(thumbnail_info)
-    except Exception as ex:
-        raise ex
+
+def create_thumbnail_dirs(unique_id):
+    bucket_path = f"{THUMBNAIL_BUCKET}/{unique_id}"
+    full_path = f"{ROOT_LOCATION}/{MAIN_BUCKET}/{bucket_path}"
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
     
+    return bucket_path
 
-def gen_thumbnail(
-    filename, root_location, thumb_id, size=(100, 100), bucket="thumbnails", clean=False):
-    """
-    Function to generate variable sized thumbnails from an image
-    :param filename: Name of image file
-    :param root_location: Full path to for saving and fetching image file
-    :param thumb_id: Unique identify added to thumbnail filename
-    :param size: Generated thumbnail size
-    :param bucket: directory name to save thumbnail
-    :return: A string
-    """
 
-    # delete previous thumbnails on new image upload
-    if clean and os.path.exists(root_location + f"/{bucket}/{thumb_id}"):
-        shutil.rmtree(root_location + f"/{bucket}/{thumb_id}")
+def save_thumbnail_info(filename, thumbnail_path, unique_id, size, db=SessionLocal()):
+    key = f"{filename}_{unique_id}_{size}"
+    value = thumbnail_path
+    image_info = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
+    if image_info:
+        image_info.key = key
+        image_info.value = value
+    else:
+        image_info = ExtraInfo(
+            id=uuid4().hex, key=key,
+            value=value,
+            rel_id=f"{unique_id}_thumbnails_{size}"
+        )
+    
+    db.add(image_info)
+    db.commit()
 
-    # create buckets if not exist
-    if not os.path.exists(root_location + f"/{bucket}"):
-        os.mkdir(root_location + f"/{bucket}")
+    return image_info
 
-    if not os.path.exists(root_location + f"/{bucket}/{thumb_id}"):
-        os.mkdir(root_location + f"/{bucket}/{thumb_id}")
 
-    # create thumbnail of specific size
-    image = Image.open(root_location + filename)
-    image.thumbnail(size, Image.ANTIALIAS)
-    outfile_name = f"{root_location}/{bucket}/{thumb_id}/{thumb_id}_{size[0]}x{size[1]}.png"
-    image.save(outfile_name)
+def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=None, scale="width"):
 
-    return outfile_name
+    width = width if width else height
+    height = height if height else width
+
+    # scale image
+    img = Image.open(full_image_path)
+    scaler = None
+    if scale == "width" or scale == "height":
+        scaler = width if scale == "width" else height
+    if scaler is not None:
+        img = img.resize((scaler, scaler))
+        img.thumbnail((width, height))
+    else:
+        img.thumbnail((width, height))
+    
+    thumbnail_path = create_thumbnail_dirs(unique_id)
+    thumbnail_full_path = f"{ROOT_LOCATION}/{MAIN_BUCKET}/{thumbnail_path}"
+    filename, ext = os.path.splitext(full_image_path.split("/")[-1])
+    thumbnail_filename = f"{filename}_{width}x{height}{ext}"
+    outfile = f"{thumbnail_full_path}/{thumbnail_filename}"
+    img.save(outfile, quality=95)
+
+    thumbnail_path = f"{thumbnail_path}/{thumbnail_filename}"
+    thumbnail = save_thumbnail_info(filename, thumbnail_path, unique_id, (width, height))
+
+    return thumbnail

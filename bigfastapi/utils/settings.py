@@ -22,6 +22,7 @@ MAIL_SERVER = config("MAIL_SERVER")
 MAIL_FROM_NAME = config("MAIL_FROM_NAME")
 TEMPLATE_FOLDER = config("TEMPLATE_FOLDER") + "/templates/email/"
 BASE_URL = config("BASE_URL")
+CLIENT_REDIRECT_URL = config("CLIENT_REDIRECT_URL")
 # EMAIL_VERIFICATION_TEMPLATE = config('EMAIL_VERIFICATION_TEMPLATE')
 # PASSWORD_RESET_TEMPLATE = config('PASSWORD_RESET_TEMPLATE')
 FILES_BASE_FOLDER = config("FILES_BASE_FOLDER")
@@ -32,7 +33,7 @@ LANDING_PAGE_FOLDER = config("LANDING_PAGE_FOLDER")
 # PASSWORD_RESET_TEMPLATE="email/password_reset.html"
 
 # If the templates folder is not valid, then we use the bigfastapi templates folder
-if os.path.exists(TEMPLATE_FOLDER) == False:
+if os.path.exists(TEMPLATE_FOLDER) is False:
     TEMPLATE_FOLDER = pkg_resources.resource_filename("bigfastapi", "templates/")
 
 # EMAIL_VERIFICATION_TEMPLATE = os.path.join(TEMPLATE_FOLDER, "email", "welcome_email.html")
