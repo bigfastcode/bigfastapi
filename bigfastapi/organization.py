@@ -890,7 +890,7 @@ async def change_organization_image(
         create_thumbnail=True,
     )
     # Update organization image to uploaded image endpoint
-    organization.image_url = f"{image_folder}/{bucket_name}/{uploaded_image}"
+    organization.image_url = f"{image_folder}/{bucket_name}/{file.filename}"
 
     try:
         db.commit()
