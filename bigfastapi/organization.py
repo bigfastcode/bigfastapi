@@ -91,7 +91,8 @@ def create_organization(
         if organization.create_wallet is True:
             organization_services.run_wallet_creation(created_org, db)
 
-        background_tasks.add_task(
+        if background_tasks is not None:
+            background_tasks.add_task(
             organization_services.send_slack_notification, user.email, organization
         )
 
