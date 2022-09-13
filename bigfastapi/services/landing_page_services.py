@@ -57,4 +57,4 @@ async def upload_images(image, bucket_name:str = uuid4().hex, db: Session = Depe
 
   image_name = await upload_image(image, db=db, bucket_name=bucket_name)
   
-  return str("/" + bucket_name + "/" + image_name)
+  return str("/" + bucket_name + "/" + image_name.filename)
