@@ -32,7 +32,7 @@ LANDING_PAGE_FOLDER = config("LANDING_PAGE_FOLDER")
 # PASSWORD_RESET_TEMPLATE="email/password_reset.html"
 
 # If the templates folder is not valid, then we use the bigfastapi templates folder
-if os.path.exists(TEMPLATE_FOLDER) == False:
+if os.path.exists(TEMPLATE_FOLDER) is False:
     TEMPLATE_FOLDER = pkg_resources.resource_filename("bigfastapi", "templates/")
 
 # EMAIL_VERIFICATION_TEMPLATE = os.path.join(TEMPLATE_FOLDER, "email", "welcome_email.html")
