@@ -3,7 +3,7 @@ from typing import Dict
 from sqlalchemy.orm import Session
 from bigfastapi.auth_api import is_authenticated
 from bigfastapi.db.database import get_db
-
+from bigfastapi.files import upload_image
 from bigfastapi.models import landing_page_models
 from fastapi import  Depends, status, HTTPException
 
@@ -53,3 +53,8 @@ async def add_other_info(landing_page_instance: str, data:Dict, db: Session = De
 
 
 
+async def upload_images(image, bucket_name:str = uuid4().hex, db: Session = Depends(get_db)):
+
+  image_name = await upload_image(image, db=db, bucket_name=bucket_name)
+  
+  return str("/" + bucket_name + "/" + image_name)
