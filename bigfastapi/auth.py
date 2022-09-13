@@ -106,7 +106,8 @@ async def create_user(
             data={"user_id": user_created.id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, user_created)
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, user_created)
 
         response.set_cookie(
             key="refresh_token",
@@ -139,7 +140,8 @@ async def create_user(
             data={"user_id": user_created.id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, user_created)
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, user_created)
 
         response.set_cookie(
             key="refresh_token",
@@ -174,7 +176,8 @@ async def create_admin_user(
         data={"user_id": created_user["user"].id}, db=db
     )
 
-    background_tasks.add_task(send_slack_notification, created_user)
+    if background_tasks is not None:
+        background_tasks.add_task(send_slack_notification, created_user)
 
     response.set_cookie(
         key="refresh_token",
@@ -230,7 +233,8 @@ async def login(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, userinfo["response_user"])
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
         response.set_cookie(
             key="refresh_token",
@@ -262,7 +266,8 @@ async def login(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, userinfo["response_user"])
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
         response.set_cookie(
             key="refresh_token",
@@ -276,8 +281,7 @@ async def login(
         return {"data": userinfo["response_user"], "access_token": access_token}
 
 
-# change to refresh-access-token
-@app.get("/auth/refresh-token", status_code=200)
+@app.get("/auth/refresh-access-token", status_code=200)
 async def refresh_access_token(
     response: Response,
     refresh_token: Union[str, None] = Cookie(default=None),
@@ -289,7 +293,6 @@ async def refresh_access_token(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    # check if refresh token is valid
 
     if refresh_token is None:
         return {"message": "Log in to authenticate user"}
@@ -298,7 +301,6 @@ async def refresh_access_token(
         refresh_token, credentials_exception, db
     )
 
-    print(refresh_token)
     if valid_refresh_token.email is None:
         response.set_cookie(
             key="refresh_token",

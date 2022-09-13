@@ -13,7 +13,7 @@ from fastapi import (
     status,
 )
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy import and_
 from sqlalchemy.sql import expression
 
@@ -22,7 +22,6 @@ from bigfastapi.core.helpers import Helpers
 from bigfastapi.db.database import get_db
 from bigfastapi.files import upload_image
 from bigfastapi.models import organization_models, user_models
-from bigfastapi.models.extra_info_models import ExtraInfo
 from bigfastapi.models.organization_models import (
     OrganizationInvite,
     OrganizationUser,
@@ -36,7 +35,6 @@ from bigfastapi.schemas.organization_schemas import (
 )
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
-from bigfastapi.utils.image_utils import gen_thumbnail, save_thumbnail_info
 from bigfastapi.utils.utils import paginate_data
 
 # from bigfastapi.services import email_services
@@ -83,19 +81,20 @@ def create_organization(
         if db_org:
             raise HTTPException(
                 status_code=400,
-                detail=f"{organization.name} already exist in your business collection",
+                detail=f"{organization.name} already exist in your organization collection",
             )
 
         created_org = organization_services.create_organization(
             user=user, db=db, organization=organization
         )
 
-        if organization.wallet is True:
+        if organization.create_wallet is True:
             organization_services.run_wallet_creation(created_org, db)
 
-        background_tasks.add_task(
-            organization_services.send_slack_notification, user.email, organization
-        )
+        if background_tasks is not None:
+            background_tasks.add_task(
+                organization_services.send_slack_notification, user.email, organization
+            )
 
         return JSONResponse(
             {
@@ -130,6 +129,7 @@ def get_organizations(
 
         returnBody--> a list of organizations
     """
+
     all_orgs = organization_services.get_organizations(user, db)
 
     return paginate_data(all_orgs, page_size, page_number)
@@ -212,17 +212,6 @@ async def get_organization_users(
             .first()
         )
 
-        # invited_list = (
-        #     db.query(OrganizationUser)
-        #     .filter(
-        #         and_(
-        #             OrganizationUser.organization_id == organization_id,
-        #             OrganizationUser.is_deleted == False,
-        #         )
-        #     )
-        #     .all()
-        # )
-
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
         offset = await paginator.off_set(page=page_number, size=page_size)
@@ -254,31 +243,6 @@ async def get_organization_users(
 
         invited_list = query.all()
         total_items = query.count()
-
-        # invited_list = list(map(lambda x: row_to_dict(x), invited_list))
-
-        # invited_users = []
-
-        # if len(invited_list) > 0:
-        #     for invited in invited_list:
-        #         user = (
-        #             db.query(user_models.User)
-        #             .filter(
-        #                 and_(
-        #                     user_models.User.id == invited["user_id"],
-        #                     user_models.User.is_deleted == False,
-        #                 )
-        #             )
-        #             .first()
-        #         )
-        #         role = db.query(Role).filter(Role.id == invited["role_id"]).first()
-        #         if user.id == invited["user_id"]:
-        #             invited["first_name"] = user.first_name
-        #             invited["last_name"] = user.last_name
-        #             invited["email"] = user.email
-        #             invited["role"] = role.role_name
-
-        #         invited_users.append(invited)
 
         pointers = await paginator.page_urls(
             page=page, size=page_size, count=total_items, endpoint="/users"
@@ -459,8 +423,8 @@ def accept_invite(
             .filter(
                 and_(
                     OrganizationInvite.invite_code == invite_code,
-                    OrganizationInvite.is_deleted == False,
-                    OrganizationInvite.is_revoked == False,
+                    OrganizationInvite.is_deleted == expression.false(),
+                    OrganizationInvite.is_revoked == expression.false(),
                 )
             )
             .first()
@@ -488,6 +452,7 @@ def accept_invite(
             user_id=payload.user_id,
             role_id=existing_invite.role_id,
         )
+
         db.add(organization_user)
         db.commit()
         db.refresh(organization_user)
@@ -542,7 +507,7 @@ async def invite_user(
         )
 
         invite_token = uuid4().hex
-        invite_url = f"{payload.app_url}/accept-invite?invite_token={invite_token}"
+        invite_url = f"{payload.app_url}/g/accept-invite?invite_token={invite_token}"
         payload.email_details.link = invite_url
         email_info = payload.email_details
         email_info.organization_id = organization_id
@@ -560,7 +525,7 @@ async def invite_user(
             .filter(
                 and_(
                     OrganizationInvite.email == payload.email,
-                    OrganizationInvite.is_deleted == False,
+                    OrganizationInvite.is_deleted == expression.false(),
                 )
             )
             .first()
@@ -631,42 +596,47 @@ async def get_single_invite(
             .filter(
                 and_(
                     OrganizationInvite.invite_code == invite_code,
-                    OrganizationInvite.is_deleted == False,
-                    OrganizationInvite.is_revoked == False,
+                    OrganizationInvite.is_deleted == expression.false(),
+                    OrganizationInvite.is_revoked == expression.false(),
                 )
             )
             .first()
         )
-        if existing_invite:
-            existing_user = (
-                db.query(user_models.User)
-                .filter(user_models.User.email == existing_invite.user_email)
-                .first()
+        if existing_invite is None:
+            return JSONResponse({"message": "Invalid invite code"}, status_code=404)
+
+        existing_user = (
+            db.query(user_models.User)
+            .filter(
+                and_(
+                    user_models.User.email == existing_invite.email,
+                    user_models.User.is_deleted == expression.false(),
+                )
+            )
+            .first()
+        )
+
+        organization = (
+            db.query(organization_models.Organization)
+            .filter(
+                organization_models.Organization.id == existing_invite.organization_id
+            )
+            .first()
+        )
+
+        setattr(existing_invite, "organization", organization)
+
+        user = existing_user if existing_user is not None else None
+
+        if not existing_invite:
+            return JSONResponse(
+                {
+                    "message": "Invite not found! Try again or ask the inviter to invite you again."
+                },
+                status_code=404,
             )
 
-            organization = (
-                db.query(organization_models.Organization)
-                .filter(
-                    organization_models.Organization.id
-                    == existing_invite.organization_id
-                )
-                .first()
-            )
-
-            setattr(existing_invite, "organization", organization)
-            user_exists = ""
-            if existing_user is not None:
-                user_exists = "exists"
-            if not existing_invite:
-                return JSONResponse(
-                    {
-                        "message": "Invite not found! Try again or ask the inviter to invite you again."
-                    },
-                    status_code=404,
-                )
-
-            return {"invite": existing_invite, "user": user_exists}
-        return JSONResponse({"message": "Invalid invite code"}, status_code=404)
+        return {"invite": existing_invite, "user": user}
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -792,9 +762,9 @@ async def get_pending_invites(
             .filter(
                 and_(
                     OrganizationInvite.organization_id == organization_id,
-                    OrganizationInvite.is_deleted == False,
-                    OrganizationInvite.is_accepted == False,
-                    OrganizationInvite.is_revoked == False,
+                    OrganizationInvite.is_deleted == expression.false(),
+                    OrganizationInvite.is_accepted == expression.false(),
+                    OrganizationInvite.is_revoked == expression.false(),
                 )
             )
             .all()
@@ -855,6 +825,9 @@ async def update_organization(
 async def change_organization_image(
     organization_id: str,
     file: UploadFile = File(...),
+    width: int = 60,
+    height: int = 60,
+    scale: str = "width",
     db: orm.Session = Depends(get_db),
     user: str = Depends(is_authenticated),
 ):
@@ -869,27 +842,28 @@ async def change_organization_image(
     returnDesc--> On sucessful request, it returns:
         returnBody--> Updated organization object
     """
-    bucket_name = "organzationImages"
+    bucket_name = organization_id
+    image_folder = os.environ.get("IMAGES_FOLDER", "images")
     organization = await _models.fetchOrganization(organization_id, db)
     if not organization:
         raise HTTPException(status_code=404, detail="organization does not exist")
+
     #  Delete previous organization image if exist
     await _models.deleteBizImageIfExist(organization)
 
-    uploaded_image = await upload_image(file, db, bucket_name)
+    await upload_image(
+        file=file,
+        db=db,
+        bucket_name=bucket_name,
+        width=width,
+        height=height,
+        scale=scale,
+        create_thumbnail=True,
+    )
     # Update organization image to uploaded image endpoint
-    organization.image_url = f"/{bucket_name}/{uploaded_image}"
+    organization.image_url = f"{image_folder}/{bucket_name}/{file.filename}"
 
     try:
-        # generate thumbnail
-        root_location = os.path.abspath("filestorage")
-        thumbnail = gen_thumbnail(
-            organization.image_url, root_location,
-            organization.id, clean=True
-        )
-        # save thumbnail path to ExtraInfo table with "org_id" as key
-        save_thumbnail_info(thumbnail, organization.id, db)
-
         db.commit()
         db.refresh(organization)
         # menu = get_organization_menu(organization_id, db)
@@ -906,7 +880,7 @@ async def get_organization_image_upload(
     organization_id: str,
     width: int = 100,
     height: int = 100,
-    db: orm.Session = Depends(get_db)
+    db: orm.Session = Depends(get_db),
 ):
     """intro--> This endpoint allows you to retrieve the cover image of an organization. To use this endpoint you need to make a get request to the /organizations/{organization_id}/image endpoint
 
@@ -919,61 +893,7 @@ async def get_organization_image_upload(
 
         returnBody--> full_image_path property of the organization
     """
-    try:
-
-        org = (
-            db.query(_models.Organization)
-            .filter(_models.Organization.id == organization_id)
-            .first()
-        )
-
-        size = (width, height)
-        image = org.image_url
-        filename = f"{image}"
-
-        root_location = os.path.abspath("filestorage")
-        full_image_path = root_location + filename
-
-        # set thumbnail key and query ExtraInfo by key
-        key = f"thumbnail_{organization_id}_{size}"
-        thumbnail_info = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
-
-        if thumbnail_info:
-            thumb_path, thumb_size = thumbnail_info.value.split(" && ")
-
-            # return thumbnail if path and size exists
-            if str(size) == thumb_size and os.path.exists(thumb_path):
-                return FileResponse(thumb_path)
-
-            # If thumbnail of size does'nt exist and image to create new exist, create new
-            elif org.image_url != "" and os.path.exists(full_image_path):
-                if (str(size) != thumb_size) or not os.path.exists(thumb_path):
-                    thumbnail = gen_thumbnail(
-                        org.image_url, root_location,
-                        org.id, size, "thumbnails"
-                    )
-                    save_thumbnail_info(thumbnail, org.id, db, size)
-                    return FileResponse(thumbnail)
-            
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
-        
-        # Create new thumbnail if organization has no entry in ExtraInfo table
-        else:
-            thumbnail = gen_thumbnail(
-                org.image_url, root_location,
-                org.id, size, "thumbnails"
-            )
-            save_thumbnail_info(thumbnail, org.id, db, size)
-            return FileResponse(thumbnail)
-
-    except Exception as ex:
-        if type(ex) == HTTPException:
-            raise ex
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
-        )
+    raise HTTPException(status_code=404, details="This endpoint was removed")
 
 
 @app.delete("/organizations/{organization_id}", status_code=204)
@@ -992,7 +912,3 @@ async def delete_organization(
         returnBody--> "success"
     """
     return await organization_services.delete_organization(organization_id, user, db)
-
-
-# /////////////////////////////////////////////////////////////////////////////////
-# organization Services

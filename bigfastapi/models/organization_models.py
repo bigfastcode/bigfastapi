@@ -135,20 +135,15 @@ async def deleteBizImageIfExist(org: Organization):
     if not org:
         return False
     # check if user object contains image endpoint
-    if (
-        org.image_url != None
-        and len(org.image_url) > 17
-        and "organzationImages/" in org.image_url
-    ):
-        # construct the image path from endpoint
-        splitPath = org.image_url.split("organzationImages/", 1)
-        imagePath = rf"\organzationImages\{splitPath[1]}"
-        fullStoragePath = os.path.abspath("filestorage") + imagePath
+    if (org.image_url != None):
+        image_url = org.image_url.strip("/")
+        image_folder = os.environ.get("IMAGES_FOLDER", "images")
+        image_path = f"/{image_folder}/{image_url}"
 
-        isImageInFile = await isFileExist(fullStoragePath)
+        isImageInFile = await isFileExist(image_path)
 
         # check if image exist in file prior and delete it
         if isImageInFile:
-            deleteRes = await deleteFile(fullStoragePath)
+            deleteRes = await deleteFile(image_path)
             return deleteRes
     return False
