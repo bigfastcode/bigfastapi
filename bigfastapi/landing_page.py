@@ -93,59 +93,61 @@ async def createlandingpage(background_tasks: BackgroundTasks, request: landing_
     # check if company logo is uploaded else raise error
     if not company_logo :
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload company logo")
-    company_logo = "/" + bucket_name + "/" + await upload_image(company_logo, db=db, bucket_name=bucket_name)
+    print(type(company_logo))    
+    print(company_logo)
+    company_logo = "/" + str(bucket_name) + "/" + str(await upload_image(company_logo, db=db, bucket_name=bucket_name))
 
     
     if not favicon:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload favicon")
-    favicon = "/" + bucket_name + "/" + await upload_image(favicon, db=db, bucket_name=bucket_name)
+    favicon = "/" + bucket_name + "/" + str(await upload_image(favicon, db=db, bucket_name=bucket_name))
     
     if not shape_one:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape one")
-    shape_one = "/" + bucket_name + "/" + await upload_image(shape_one, db=db, bucket_name=bucket_name)
+    shape_one = "/" + bucket_name + "/" + str(await upload_image(shape_one, db=db, bucket_name=bucket_name))
     
     if not shape_two:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape two")
-    shape_two = "/" + bucket_name + "/" + await upload_image(shape_two, db=db, bucket_name=bucket_name)
+    shape_two = "/" + bucket_name + "/" + str(await upload_image(shape_two, db=db, bucket_name=bucket_name))
     
     if not shape_three:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape three")
-    shape_three = "/" + bucket_name + "/" + await upload_image(shape_three, db=db, bucket_name=bucket_name)
+    shape_three = "/" + bucket_name + "/" + str(await upload_image(shape_three, db=db, bucket_name=bucket_name))
 
     # check if section three image is uploaded else raise error
     if not section_three_image:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload section_Three_image")
-    section_three_image = "/" + bucket_name + "/" + await upload_image(section_three_image, db=db, bucket_name=bucket_name)
+    section_three_image = "/" + bucket_name + "/" + str(await upload_image(section_three_image, db=db, bucket_name=bucket_name))
 
     # check if section four image is uploaded else raise error
     if not section_four_image:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Section_Four_image")
-    section_four_image = "/" + bucket_name + "/" + await upload_image(section_four_image, db=db, bucket_name=bucket_name)
+    section_four_image = "/" + bucket_name + "/" + str(await upload_image(section_four_image, db=db, bucket_name=bucket_name))
 
     # check if section one image link is uploaded else raise error
     if not section_one_image_link:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload image for section one")
-    section_one_image_link = "/" + bucket_name + "/" + await upload_image(section_one_image_link, db=db, bucket_name=bucket_name)
+    section_one_image_link = "/" + bucket_name + "/" + str(await upload_image(section_one_image_link, db=db, bucket_name=bucket_name))
 
     # check if body h3 logo one is uploaded else raise error
     if not body_h3_logo_one:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_One")
-    body_h3_logo_one = "/" + bucket_name + "/" + await upload_image(body_h3_logo_one, db=db, bucket_name=bucket_name)
+    body_h3_logo_one = "/" + bucket_name + "/" + str(await upload_image(body_h3_logo_one, db=db, bucket_name=bucket_name))
 
     # check if body h3 logo two is uploaded else raise error
     if not body_h3_logo_two:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload body_h3_logo_two")
-    body_h3_logo_two = "/" + bucket_name + "/" + await upload_image(body_h3_logo_two, db=db, bucket_name=bucket_name)
+    body_h3_logo_two = "/" + bucket_name + "/" + str(await upload_image(body_h3_logo_two, db=db, bucket_name=bucket_name))
 
     # check if body h3 logo three is uploaded else raise error
     if not body_h3_logo_three:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_Three")
-    body_h3_logo_three = "/" + bucket_name + "/" + await upload_image(body_h3_logo_three, db=db, bucket_name=bucket_name)
+    body_h3_logo_three = "/" + bucket_name + "/" + str(await upload_image(body_h3_logo_three, db=db, bucket_name=bucket_name))
 
     # check if body h3 logo four is uploaded else raise error
     if not body_h3_logo_four:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_Four")
-    body_h3_logo_four = "/" + bucket_name + "/" + await upload_image(body_h3_logo_four, db=db, bucket_name=bucket_name)
+    body_h3_logo_four = "/" + bucket_name + "/" + str(await upload_image(body_h3_logo_four, db=db, bucket_name=bucket_name))
 
 
     # map schema to landing page model
