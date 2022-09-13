@@ -92,9 +92,7 @@ async def createlandingpage(background_tasks: BackgroundTasks, request: landing_
 
     # check if company logo is uploaded else raise error
     if not company_logo :
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload company logo")
-    print(type(company_logo))    
-    print(company_logo)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload company logo")    
     company_logo = "/" + str(bucket_name) + "/" + str(await upload_image(company_logo, db=db, bucket_name=bucket_name))
 
     
