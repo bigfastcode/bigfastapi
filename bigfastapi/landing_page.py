@@ -140,7 +140,7 @@ async def createlandingpage(background_tasks: BackgroundTasks, request: landing_
     # check if body h3 logo four is uploaded else raise error
     if not body_h3_logo_four:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_Four")
-    body_h3_logo_four = "/" + bucket_name + "/" + await upload_image(body_h3_logo_four, db=db, bucket_name=bucket_name)
+    body_h3_logo_four = await landing_page_services.upload_images(body_h3_logo_four, db=db, bucket_name=bucket_name)
 
     # map schema to landing page model
     d = await landing_page_services.create_landing_page(landing_page_name=request.landing_page_name, bucket_name=bucket_name, db=db, current_user=current_user.id)
@@ -595,7 +595,7 @@ def getdicvalue(landing_id: str, key: str, db: Session = Depends(get_db)):
 # Function to retrieve landing page images
 def image_fullpath(filetype, imagepath):
     if filetype == "image":
-        root_location = os.path.abspath("filestorage")
+        root_location = os.path.abspath("filestorage/images")
         image_location = os.path.join(root_location, imagepath)
     else:
         root_location1 = os.path.abspath("templates/")
