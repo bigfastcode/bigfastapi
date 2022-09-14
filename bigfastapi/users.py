@@ -1,26 +1,29 @@
-import fastapi as fastapi
-from sqlalchemy import and_
 import os
 
+import fastapi as fastapi
 import passlib.hash as _hash
-from bigfastapi.models import user_models, auth_models
-from fastapi import APIRouter, HTTPException, UploadFile, File, status
 import sqlalchemy.orm as orm
-from bigfastapi.db.database import get_db
-from .schemas import users_schemas as _schemas
-from .schemas.organization_schemas import OrganizationUserBase, RoleUpdate, UpdateRoleResponse
-from .auth_api import is_authenticated, send_code_password_reset_email,  resend_token_verification_mail, verify_user_token, password_change_token
-from .files import deleteFile, isFileExist, upload_image
-from .email import send_email
-from .models.organization_models import OrganizationUser, Role
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
+from bigfastapi.db.database import get_db
+from bigfastapi.models import auth_models, user_models
+
+from .auth_api import (
+    is_authenticated,
+    password_change_token,
+    resend_token_verification_mail,
+    send_code_password_reset_email,
+    verify_user_token,
+)
+from .files import deleteFile, isFileExist, upload_image
+from .schemas import users_schemas as _schemas
 
 app = APIRouter(tags=["User"])
 
 
 @app.get("/users/me", response_model=_schemas.User)
 async def get_user(user: _schemas.User = fastapi.Depends(is_authenticated)):
-    """intro-->This endpoint allows you to retrieve details about the currently logged in user, to use this endpoint you need to make a get request to the  /users/me endpoint 
+    """intro-->This endpoint allows you to retrieve details about the currently logged in user, to use this endpoint you need to make a get request to the  /users/me endpoint
 
     returnDesc-->On sucessful request, it returns:
 
@@ -46,11 +49,15 @@ async def update_user(
 
 # user must be a super user to perform this
 @app.put("/users/{user_id}/activate")
-async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user: _schemas.User = fastapi.Depends(is_authenticated),
-                        db: orm.Session = fastapi.Depends(get_db)):
-    """intro-->This endpoint allows a super user to activate a user, to use this endpoint user must be a super user. You need to make a put request to the  /users/{user_id}/activate endpoint with a specified body of request to activate a user 
+async def activate_user(
+    user_activate: _schemas.UserActivate,
+    user_id: str,
+    user: _schemas.User = fastapi.Depends(is_authenticated),
+    db: orm.Session = fastapi.Depends(get_db),
+):
+    """intro-->This endpoint allows a super user to activate a user, to use this endpoint user must be a super user. You need to make a put request to the  /users/{user_id}/activate endpoint with a specified body of request to activate a user
 
-    paramDesc--> On put request the url takes a query parameter "user_id" 
+    paramDesc--> On put request the url takes a query parameter "user_id"
         param-->notification_id: This is the unique identifier of the user
         reqBody-->email: This is the email address of the user
         reqBody-->is_active: This is the current state of user, this is set to true when the user is active and false otherwise.
@@ -58,18 +65,22 @@ async def activate_user(user_activate: _schemas.UserActivate, user_id: str, user
     returnDesc-->On sucessful request, it returns:
         returnBody--> "success".
     """
-    if user.is_superuser == False:
+    if user.is_superuser is False:
         raise fastapi.HTTPException(
-            status_code=403, detail="only super admins can perform this operation")
-    user_act = await get_user(db, id=user_id)
-    if user.is_active == True:
+            status_code=403, detail="only super admins can perform this operation"
+        )
+    existing_user = await get_user(db, id=user_id)
+    if existing_user.is_active is True:
         raise fastapi.HTTPException(
-            status_code=403, detail="this user is already active")
+            status_code=403, detail="this user is already active"
+        )
     await activate(user_activate, user_id, db)
 
 
 @app.post("/users/recover-password")
-async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)):
+async def recover_password(
+    email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)
+):
     """intro-->This endpoint allows for password recovery, to use this endpoint you need to make a post request to the /users/recover-password endpoint
 
         reqBody-->email: This is the email address of the user
@@ -84,7 +95,9 @@ async def recover_password(email: _schemas.UserRecoverPassword, db: orm.Session 
 
 
 @app.post("/users/reset-password")
-async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fastapi.Depends(get_db)):
+async def reset_password(
+    user: _schemas.UserResetPassword, db: orm.Session = fastapi.Depends(get_db)
+):
     """intro-->This endpoint allows a user to reset their password after recieving a given code on password recovery, to use this endpoint you need to make a post request to the /users/reset-password endpoint
 
         reqBody-->email: This is the email address of the user
@@ -100,20 +113,21 @@ async def reset_password(user: _schemas.UserResetPassword, db: orm.Session = fas
     return await resetpassword(user, code_exist.user_id, db)
 
 
-@app.put('/users/profile/update')
+@app.put("/users/profile/update")
 async def updateUserProfile(
-        payload: _schemas.UpdateUserReq,
-        db: orm.Session = fastapi.Depends(get_db),
-        user: str = fastapi.Depends(is_authenticated)):
+    payload: _schemas.UpdateUserReq,
+    db: orm.Session = fastapi.Depends(get_db),
+    user: str = fastapi.Depends(is_authenticated),
+):
     """intro-->This endpoint allows for users to update their profile details. To use this endpoint you need to make a put request to the /users/profile/update enpoint with a specified body of request with details to be updated
 
         reqBody-->email: This is the email address of the user
         reqBody-->first_name: This is a unique code sent to the user on password recovery
-        reqBody-->last_name: This is the registered password of the user   
-        reqBody-->country_code: This is the registered password of the user   
-        reqBody-->phone_number: This is the registered password of the user   
-        reqBody-->country: This is the registered password of the user   
-        reqBody-->state: This is the registered password of the user   
+        reqBody-->last_name: This is the registered password of the user
+        reqBody-->country_code: This is the registered password of the user
+        reqBody-->phone_number: This is the registered password of the user
+        reqBody-->country: This is the registered password of the user
+        reqBody-->state: This is the registered password of the user
 
 
     returnDesc--> On sucessful request, it returns message:
@@ -125,20 +139,21 @@ async def updateUserProfile(
     return {"data": updatedUser}
 
 
-@app.patch('/users/password/update')
+@app.patch("/users/password/update")
 async def updatePassword(
-        payload: _schemas.updatePasswordRequest,
-        db: orm.Session = fastapi.Depends(get_db),
-        user: str = fastapi.Depends(is_authenticated)):
+    payload: _schemas.updatePasswordRequest,
+    db: orm.Session = fastapi.Depends(get_db),
+    user: str = fastapi.Depends(is_authenticated),
+):
     """intro-->This endpoint allows for users to update their password. To use this endpoint you need to make a patch request to the /users/password/update endpoint with a body of request with details of the new password.
 
         reqBody-->email: This is the email address of the user
         reqBody-->first_name: This is a unique code sent to the user on password recovery
-        reqBody-->last_name: This is the registered password of the user   
-        reqBody-->country_code: This is the registered password of the user   
-        reqBody-->phone_number: This is the registered password of the user   
-        reqBody-->country: This is the registered password of the user   
-        reqBody-->state: This is the registered password of the user   
+        reqBody-->last_name: This is the registered password of the user
+        reqBody-->country_code: This is the registered password of the user
+        reqBody-->phone_number: This is the registered password of the user
+        reqBody-->country: This is the registered password of the user
+        reqBody-->state: This is the registered password of the user
 
 
     returnDesc--> On sucessful request, it returns message:
@@ -147,78 +162,9 @@ async def updatePassword(
     """
 
     dbResponse = await updateUserPassword(db, user.id, payload)
-    return {"data":  dbResponse}
+    return {"data": dbResponse}
 
 
-@app.patch("/users/{user_id}/change", response_model=UpdateRoleResponse)
-def update_user_role(
-    payload: RoleUpdate,
-    db: orm.Session = fastapi.Depends(get_db)
-):
-    """intro-->This endpoint is used to update a user's role. To use this endpoint you need to make a patch request to the /users/{user_id}/change endpoint
-
-    paramDesc-->On patch request, the url takes a user's id
-        param-->user_id: This is the user id of the user
-
-
-    returnDesc--> On sucessful request, it returns:
-
-        returnBody--> An object with a key `message` with the value - "User role successfully updated", 
-            and `data` containing the updated store user data.
-    """
-    try:
-
-        existing_user = (
-            db.query(user_models.User)
-            .filter(
-                user_models.User.email == payload.email
-            )
-            .first()
-        )
-
-        if existing_user is not None:
-            existing_store_user = (
-                db.query(OrganizationUser)
-                .filter(OrganizationUser.user_id == existing_user.id)
-                .first()
-            )
-
-            role = (
-                db.query(Role)
-                .filter(Role.role_name == payload.role.lower())
-                .first()
-            )
-            existing_store_user.role_id = role.id
-            db.add(existing_store_user)
-            db.commit()
-            db.refresh(existing_store_user)
-
-            return {
-                "message": "User role updated successfully",
-                "data": OrganizationUserBase.from_orm(existing_store_user)
-            }
-        return {"message": "User does not exist"}
-
-    except Exception as ex:
-        if type(ex) == HTTPException:
-            raise ex
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            , detail=str(ex)) 
-
-# ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
-
-# @app.post("/users/verify/code/{code}")
-# async def verify_user_with_code(
-#     code: str,
-#     db: orm.Session = fastapi.Depends(get_db),
-#     ):
-#     return await verify_user_code(code)
-
-
-# ////////////////////////////////////////////////////CODE //////////////////////////////////////////////////////////////
-
-
-# ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 @app.post("/users/resend-verification/token")
 async def resend_token_verification(
     email: _schemas.UserTokenVerification,
@@ -269,18 +215,19 @@ async def password_change_with_token(
         reqBody-->password: This is the new user of the password
 
     returnDesc--> On sucessful request, it returns message:
-        returnBody--> "success" 
+        returnBody--> "success"
     """
     return await password_change_token(password, token, db)
 
 
-@app.patch('/users/image/upload')
+@app.patch("/users/image/upload")
 async def updatePassword(
-        file: UploadFile = File(...),
-        db: orm.Session = fastapi.Depends(get_db),
-        user: str = fastapi.Depends(is_authenticated)):
+    file: UploadFile = File(...),
+    db: orm.Session = fastapi.Depends(get_db),
+    user: str = fastapi.Depends(is_authenticated),
+):
 
-    """intro-->This endpoint is used to update a user's image. 
+    """intro-->This endpoint is used to update a user's image.
        To use this endpoint you need to make a patch request to the /users/image/upload endpoint
        with the image file as payload and the user authorization/bearer token
 
@@ -289,25 +236,30 @@ async def updatePassword(
         returnBody--> "Updated User Object"
     """
 
-    bucketName = 'profileImages'
+    bucketName = "profileImages"
     # Delete prev usuer image if exist
-    checkAndDeleteRes = await deleteIfFileExistPrior(user)
+    await deleteIfFileExistPrior(user)
 
     uploadedImage = await upload_image(file, db, bucketName)
     imageEndpoint = constructImageEndpoint(uploadedImage, bucketName)
 
     updatedUser = await updateUserImage(user.id, db, imageEndpoint)
-    return {"data":  updatedUser}
+    return {"data": updatedUser}
 
 
 # ////////////////////////////////////////////////////TOKEN //////////////////////////////////////////////////////////////
 
+
 async def deleteIfFileExistPrior(user: _schemas.User):
     # check if user object contains image endpoint
-    if user.image_url is not None and len(user.image_url) > 17 and 'profileImages/' in user.image_url:
+    if (
+        user.image_url is not None
+        and len(user.image_url) > 17
+        and "profileImages/" in user.image_url
+    ):
         # construct the image path from endpoint
-        splitPath = user.image_url.split('profileImages/', 1)
-        imagePath = f"\profileImages\{splitPath[1]}"
+        splitPath = user.image_url.split("profileImages/", 1)
+        imagePath = rf"\profileImages\{splitPath[1]}"
         fullStoragePath = os.path.abspath("filestorage") + imagePath
 
         isProfileImageExistPrior = await isFileExist(fullStoragePath)
@@ -326,13 +278,12 @@ def constructImageEndpoint(Uploadedimage: str, bucketName: str):
 
 
 async def updateUserImage(userId: str, db: orm.Session, imageEndpoint: str):
-    user = db.query(user_models.User).filter(
-        user_models.User.id == userId).first()
+    user = db.query(user_models.User).filter(user_models.User.id == userId).first()
     user.image_url = imageEndpoint
     try:
         db.commit()
         db.refresh(user)
-        print('update user image successfully')
+        print("update user image successfully")
         return user
     except Exception as e:
         print(e)
@@ -340,10 +291,16 @@ async def updateUserImage(userId: str, db: orm.Session, imageEndpoint: str):
 
 
 async def get_password_reset_code_sent_to_email(code: str, db: orm.Session):
-    return db.query(auth_models.PasswordResetCode).filter(auth_models.PasswordResetCode.code == code).first()
+    return (
+        db.query(auth_models.PasswordResetCode)
+        .filter(auth_models.PasswordResetCode.code == code)
+        .first()
+    )
 
 
-async def user_update(user_update: _schemas.UserUpdate, user: _schemas.User, db: orm.Session):
+async def user_update(
+    user_update: _schemas.UserUpdate, user: _schemas.User, db: orm.Session
+):
     user = await get_user(db=db, id=user.id)
 
     if user_update.first_name != "":
@@ -361,7 +318,9 @@ async def user_update(user_update: _schemas.UserUpdate, user: _schemas.User, db:
     return _schemas.User.from_orm(user)
 
 
-async def activate(user_activate: _schemas.UserActivate, user: _schemas.User, db: orm.Session):
+async def activate(
+    user_activate: _schemas.UserActivate, user: _schemas.User, db: orm.Session
+):
     user = await get_user(db=db, id=user_activate.email)
     user_activate.is_activte = True
     db.commit()
@@ -370,7 +329,9 @@ async def activate(user_activate: _schemas.UserActivate, user: _schemas.User, db
     return _schemas.User.from_orm(user)
 
 
-async def deactivate(user_activate: _schemas.UserActivate, user: _schemas.User, db: orm.Session):
+async def deactivate(
+    user_activate: _schemas.UserActivate, user: _schemas.User, db: orm.Session
+):
     user = await get_user(db=db, email=user_activate.email)
     user_activate.is_active = False
     db.commit()
@@ -382,7 +343,8 @@ async def resetpassword(user: _schemas.UserResetPassword, id: str, db: orm.Sessi
     user_found = await get_user(db, id=id)
     user_found.password = _hash.sha256_crypt.hash(user.password)
     db.query(auth_models.PasswordResetCode).filter(
-        auth_models.PasswordResetCode.user_id == user_found.id).delete()
+        auth_models.PasswordResetCode.user_id == user_found.id
+    ).delete()
     db.commit()
     db.refresh(user_found)
     return "password reset successful"
@@ -390,21 +352,25 @@ async def resetpassword(user: _schemas.UserResetPassword, id: str, db: orm.Sessi
 
 async def get_user(db: orm.Session, email="", id=""):
     if email != "":
-        return db.query(user_models.User).filter(user_models.User.email == email).first()
+        return (
+            db.query(user_models.User).filter(user_models.User.email == email).first()
+        )
     if id != "":
         return db.query(user_models.User).filter(user_models.User.id == id).first()
 
 
 async def delete_password_reset_code(db: orm.Session, user_id: str):
     db.query(auth_models.PasswordResetCode).filter(
-        auth_models.PasswordResetCode.user_id == user_id).delete()
+        auth_models.PasswordResetCode.user_id == user_id
+    ).delete()
     db.commit()
 
 
 # Update user profile/Bio
-async def updateUserDetails(db: orm.Session, userId: str, payload: _schemas.UpdateUserReq):
-    user = db.query(user_models.User).filter(
-        user_models.User.id == userId).first()
+async def updateUserDetails(
+    db: orm.Session, userId: str, payload: _schemas.UpdateUserReq
+):
+    user = db.query(user_models.User).filter(user_models.User.id == userId).first()
 
     user.first_name = payload.first_name
     user.last_name = payload.last_name
@@ -418,14 +384,15 @@ async def updateUserDetails(db: orm.Session, userId: str, payload: _schemas.Upda
         db.refresh(user)
         return user
     except:
-        raise HTTPException(status_code=500, detail='Something went wrong')
+        raise HTTPException(status_code=500, detail="Something went wrong")
 
 
 # Update user profile/Bio
-async def updateUserPassword(db: orm.Session, userId: str, payload: _schemas.updatePasswordRequest):
+async def updateUserPassword(
+    db: orm.Session, userId: str, payload: _schemas.updatePasswordRequest
+):
     if payload.password == payload.password_confirmation:
-        user = db.query(user_models.User).filter(
-            user_models.User.id == userId).first()
+        user = db.query(user_models.User).filter(user_models.User.id == userId).first()
         user.password = _hash.sha256_crypt.hash(payload.password)
 
         try:
@@ -433,6 +400,6 @@ async def updateUserPassword(db: orm.Session, userId: str, payload: _schemas.upd
             db.refresh(user)
             return user
         except:
-            raise HTTPException(status_code=500, detail='Something went wrong')
+            raise HTTPException(status_code=500, detail="Something went wrong")
     else:
-        raise HTTPException(status_code=422, detail='Password does not match')
+        raise HTTPException(status_code=422, detail="Password does not match")
