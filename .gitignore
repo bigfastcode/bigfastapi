@@ -131,6 +131,7 @@ ENV/
 env.bak/
 venv.bak/
 bigfastapi-env/
+env-bfa/
 
 # Spyder project settings
 .spyderproject
@@ -165,3 +166,4 @@ identifier.sqlite
 
 Pipfile
 workspace.code-workspace
+Pipfile.lock

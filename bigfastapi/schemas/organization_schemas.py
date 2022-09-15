@@ -66,7 +66,6 @@ class OrganizationCreate(OrganizationBase):
     name: str
     business_type: str = "retail"
     create_wallet: Optional[bool] = False
-    pass
 
 
 class OrganizationUpdate(OrganizationBase):
@@ -153,12 +152,12 @@ org: dict = dict(
 class SingleInviteResponse(BaseModel):
     invite: Any = dict(
         id="string",
-        user_email="string",
+        email="string",
         user_id="string",
-        user_role="string",
+        role="string",
         organization=org,
     )
-    user: str
+    user: User
 
 
 class AllInvites(BaseModel):
