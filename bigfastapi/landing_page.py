@@ -44,9 +44,9 @@ def path(filetype: str, image_name: str, folder: str, request: Request, ):
     This endpoint is used in the landing page html to fetch images 
     """
     if filetype == "css":
-        return image_fullpath("css", f"{folder}/{image_name}")
+        return image_fullpath("css", image_name)
     elif filetype == "js":
-        return image_fullpath("js", f"{folder}/{image_name}")
+        return image_fullpath("js", image_name)
     else:
         return image_fullpath("image", f"{folder}/{image_name}")
 
@@ -598,7 +598,7 @@ def image_fullpath(filetype, imagepath):
         root_location = os.path.abspath("filestorage/images")
         image_location = os.path.join(root_location, imagepath)
     else:
-        root_location1 = os.path.abspath("templates/")
+        root_location1 = os.path.abspath(LANDING_PAGE_FOLDER)
         image_location = os.path.join(root_location1, imagepath)
     return FileResponse(image_location)
 
