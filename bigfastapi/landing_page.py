@@ -605,7 +605,7 @@ def getdicvalue(landing_id: str, key:str, db:Session = Depends(get_db)):
 # Function to retrieve landing page images
 def image_fullpath(filetype, imagepath):
     if filetype == "image":
-        root_location = os.path.abspath("filestorage")
+        root_location = os.path.abspath("filestorage/images")
         image_location = os.path.join(root_location, imagepath)
     else:
         root_location1 = os.path.abspath("templates/")
