@@ -63,7 +63,7 @@ def addActivitiesLog(
 
 @app.get("/logs/details")
 def getActivitiesLog(
-    organization_id: str,
+    organization_id: str,    
     db: Session = Depends(get_db),
     user: str = _fastapi.Depends(is_authenticated),
 
@@ -85,6 +85,33 @@ def getActivitiesLog(
     logs = getOrganizationActivitiesLog(organization_id, db)
 
     return logs
+
+@app.get("/logs/{model_name}/details")
+def getModelActivitiesLog(
+    model_name: str,
+    organization_id: str,      
+    db: Session = Depends(get_db),
+    user: str = _fastapi.Depends(is_authenticated),
+
+):
+    """intro-->This endpoint allows you retrieve details of all logs. To use this endpoint you need to make a get request to the /logs/details endpoint
+
+        paramDesc-->On get request, the url takes the parameter, organization_id
+            param-->organization_id: This is the user's current organization
+        
+    returnDesc--> On sucessful request, it returns 
+        returnBody--> details of the organization's activity logs
+    """
+    organization = db.query(Organization).filter(
+        Organization.id == organization_id).first()
+    if not organization:
+        return JSONResponse({"message": "Organization does not exist"},
+                            status_code=status.HTTP_400_BAD_REQUEST)
+               
+    logs = getModelActivitiesLog(model_name,organization_id, db)                               
+
+    return logs
+
 
 @app.delete("/logs/{id}")
 def deleteActivitiesLog(id: str, body: DeleteActivitiesLogBase, db: Session = Depends(get_db)):
@@ -167,13 +194,25 @@ def getOrganizationActivitiesLog(organization_id, db):
         .filter(ActivitiesModel.organization_id == organization_id)
         .filter(ActivitiesModel.is_deleted == False)
     )
-    organization = db.query(Organization).filter(Organization.id == organization_id).first()
+    # organization = db.query(Organization).filter(Organization.id == organization_id).first()
 
     logCollection = list(map(ActivitiesSchema.from_orm, logs))
 
-    for log in logCollection:
-        userInfo = (db.query(userModel.User).filter(userModel.User.id == log.user_id).first())
-        setattr(log, 'user', userInfo)
-        setattr(log, 'organization', organization)
+    # for log in logCollection:
+    #     userInfo = (db.query(userModel.User).filter(userModel.User.id == log.user_id).first())
+    #     setattr(log, 'user', userInfo)
+    #     setattr(log, 'organization', organization)
     
     return logCollection
+
+
+def getModelActivitiesLog(model_name, organization_id, db):
+
+    logs = (db.query(ActivitiesModel).filter(ActivitiesModel.model_name == model_name)
+        .filter(ActivitiesModel.organization_id == organization_id)
+        .filter(ActivitiesModel.is_deleted == False)        
+    )    
+
+    logCollection = list(map(ActivitiesSchema.from_orm, logs))
+      
+    return logCollection    
