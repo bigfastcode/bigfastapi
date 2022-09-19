@@ -20,23 +20,6 @@ class DeleteActivitiesLogBase(pydantic.BaseModel):
         orm_mode = True
 
 
-# class ActivitiesLogOutput(pydantic.BaseModel):
-#     id : str
-#     action : str = '' 
-#     object_id : str
-#     object_url : str = ''
-#     model_name: str
-#     user_id: str
-#     organization_id: str
-#     organization : list = []
-#     user : list = []
-#     user_id : str
-#     is_deleted : bool
-#     created_at : datetime.datetime
-
-#     class Config:
-#         orm_mode = True
-
 class ActivitiesLogOutput(pydantic.BaseModel):
     id : str
     action : str = ''     
