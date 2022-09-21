@@ -63,7 +63,7 @@ def addActivitiesLog(
 
 @app.get("/logs/details")
 def getActivitiesLog(
-    organization_id: str,
+    organization_id: str,    
     db: Session = Depends(get_db),
     user: str = _fastapi.Depends(is_authenticated),
 
@@ -85,6 +85,8 @@ def getActivitiesLog(
     logs = getOrganizationActivitiesLog(organization_id, db)
 
     return logs
+
+
 
 @app.delete("/logs/{id}")
 def deleteActivitiesLog(id: str, body: DeleteActivitiesLogBase, db: Session = Depends(get_db)):
@@ -167,13 +169,13 @@ def getOrganizationActivitiesLog(organization_id, db):
         .filter(ActivitiesModel.organization_id == organization_id)
         .filter(ActivitiesModel.is_deleted == False)
     )
-    organization = db.query(Organization).filter(Organization.id == organization_id).first()
+    # organization = db.query(Organization).filter(Organization.id == organization_id).first()
 
     logCollection = list(map(ActivitiesSchema.from_orm, logs))
 
-    for log in logCollection:
-        userInfo = (db.query(userModel.User).filter(userModel.User.id == log.user_id).first())
-        setattr(log, 'user', userInfo)
-        setattr(log, 'organization', organization)
+    # for log in logCollection:
+    #     userInfo = (db.query(userModel.User).filter(userModel.User.id == log.user_id).first())
+    #     setattr(log, 'user', userInfo)
+    #     setattr(log, 'organization', organization)
     
     return logCollection
