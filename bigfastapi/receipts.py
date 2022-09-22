@@ -132,7 +132,7 @@ async def send_receipt(
         db.refresh(receipt)
 
         return JSONResponse(
-            {"message": "receipt sent", "data": jsonable_encoder(receipt)},
+            {"message": "receipt sent", "data": payload},
             status_code=201,
         )
 
