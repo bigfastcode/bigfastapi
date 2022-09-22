@@ -263,6 +263,7 @@ async def login(
         )
 
         background_tasks.add_task(send_slack_notification, userinfo["response_user"])
+   
 
         response.set_cookie(
             key="refresh_token",

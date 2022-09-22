@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.models.organization_models import Organization
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from .core.helpers import Helpers
 import requests
 from starlette.background import BackgroundTask
 
@@ -154,10 +155,11 @@ def createActivityLog(model_name, object_id, user, log, db):
     setattr(activityLog, 'user', userInfo)
     setattr(activityLog, 'organization', organization)
 
-    #send request to slack
+    send request to slack
     requests.post(url=config('LOG_WEBHOOK_URL'), 
         json={"text" : str(" " if user.first_name is None else user.first_name) +' '+ str(" " if user.last_name is None else user.last_name) +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
     )
+
 
     return activityLog
 
@@ -177,3 +179,5 @@ def getOrganizationActivitiesLog(organization_id, db):
         setattr(log, 'organization', organization)
     
     return logCollection
+
+
