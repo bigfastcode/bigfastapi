@@ -110,7 +110,7 @@ async def upload_file(
     returnBody--> details of the file just created
     """
 
-    if file.content_type in ["image/jpeg", "image/png"]:
+    if os.path.splitext(file.filename)[-1] in ["jpeg", "jpg", "png"]:
         return await upload_image(
             file=file,
             bucket_name=bucket_name,

@@ -64,7 +64,7 @@ def addActivitiesLog(
 
 @app.get("/logs/details")
 def getActivitiesLog(
-    organization_id: str,
+    organization_id: str,    
     db: Session = Depends(get_db),
     user: str = _fastapi.Depends(is_authenticated),
 
@@ -86,6 +86,8 @@ def getActivitiesLog(
     logs = getOrganizationActivitiesLog(organization_id, db)
 
     return logs
+
+
 
 @app.delete("/logs/{id}")
 def deleteActivitiesLog(id: str, body: DeleteActivitiesLogBase, db: Session = Depends(get_db)):
@@ -134,11 +136,16 @@ def deleteAllActivitiesLog(body: DeleteActivitiesLogBase, db: Session = Depends(
 
 #======================= LOG SERVICES ===============================
 
-def createActivityLog(model_name, object_id, user, log, db):
+def createActivityLog(model_name, model_id, user, log, db, created_for_id: str = None, created_for_model:str=None):
     
     activityLog = ActivitiesModel(
-        id= uuid4().hex, organization_id = log.organization_id, 
-        user_id= user.id, object_id= object_id, object_url=log.object_url,
+        id= uuid4().hex, 
+        organization_id = log["organization_id"], 
+        user_id= user.id, 
+        model_id= model_id, 
+        created_for_id=None if not created_for_id else created_for_id,
+        created_for_model=None if not created_for_model else created_for_model,
+        object_url=log["object_url"],
         model_name=model_name, action=log.action, created_at=datetime.now()
     )
 
@@ -147,7 +154,7 @@ def createActivityLog(model_name, object_id, user, log, db):
     db.refresh(activityLog)
 
     organization = db.query(Organization).filter(
-        Organization.id == log.organization_id).first()
+        Organization.id == activityLog.organization_id).first()
 
     userInfo = db.query(userModel.User).filter(
         userModel.User.id == user.id).first()
@@ -155,7 +162,7 @@ def createActivityLog(model_name, object_id, user, log, db):
     setattr(activityLog, 'user', userInfo)
     setattr(activityLog, 'organization', organization)
 
-    send request to slack
+    # send request to slack
     requests.post(url=config('LOG_WEBHOOK_URL'), 
         json={"text" : str(" " if user.first_name is None else user.first_name) +' '+ str(" " if user.last_name is None else user.last_name) +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
     )
@@ -169,15 +176,13 @@ def getOrganizationActivitiesLog(organization_id, db):
         .filter(ActivitiesModel.organization_id == organization_id)
         .filter(ActivitiesModel.is_deleted == False)
     )
-    organization = db.query(Organization).filter(Organization.id == organization_id).first()
+    # organization = db.query(Organization).filter(Organization.id == organization_id).first()
 
     logCollection = list(map(ActivitiesSchema.from_orm, logs))
 
-    for log in logCollection:
-        userInfo = (db.query(userModel.User).filter(userModel.User.id == log.user_id).first())
-        setattr(log, 'user', userInfo)
-        setattr(log, 'organization', organization)
+    # for log in logCollection:
+    #     userInfo = (db.query(userModel.User).filter(userModel.User.id == log.user_id).first())
+    #     setattr(log, 'user', userInfo)
+    #     setattr(log, 'organization', organization)
     
     return logCollection
-
-

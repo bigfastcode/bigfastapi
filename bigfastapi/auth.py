@@ -106,7 +106,8 @@ async def create_user(
             data={"user_id": user_created.id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, user_created)
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, user_created)
 
         response.set_cookie(
             key="refresh_token",
@@ -139,7 +140,8 @@ async def create_user(
             data={"user_id": user_created.id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, user_created)
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, user_created)
 
         response.set_cookie(
             key="refresh_token",
@@ -174,7 +176,8 @@ async def create_admin_user(
         data={"user_id": created_user["user"].id}, db=db
     )
 
-    background_tasks.add_task(send_slack_notification, created_user)
+    if background_tasks is not None:
+        background_tasks.add_task(send_slack_notification, created_user)
 
     response.set_cookie(
         key="refresh_token",
@@ -230,7 +233,8 @@ async def login(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, userinfo["response_user"])
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
         response.set_cookie(
             key="refresh_token",
@@ -262,8 +266,8 @@ async def login(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
-        background_tasks.add_task(send_slack_notification, userinfo["response_user"])
-   
+        if background_tasks is not None:
+            background_tasks.add_task(send_slack_notification, userinfo["response_user"])
 
         response.set_cookie(
             key="refresh_token",

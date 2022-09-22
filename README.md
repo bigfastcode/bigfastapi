@@ -5,7 +5,6 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 ---
 **BigFastAPI Documentation**: <a href="https://bigfa.st/" target="_blank">https://bigfa.st/</a>,
 
-
 **FastAPI Documentation**: <a href="https://fastapi.tiangolo.com" target="_blank">https://fastapi.tiangolo.com</a>
 
 ---
@@ -13,6 +12,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 ## Features
 
 ### Implemented
+
 - Authentication (login, logout)
 - Users
 - Organizations
@@ -30,24 +30,24 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - Credits
 - Products
 
-
 ### In Progress
+
 - Transactional Email sending + templates
 - Plans
 - Bank Accounts
 - Subscriptions
 - Settings
 
-
 ### Planned
+
 - Currency Rates
 - Marketing Emails
 - Research bank format providers to build on
 - Analytics
 - ActivityLog
 
+## How to use BigFastAPI
 
-# How to use BigFastAPI
 - Create a new python project
 - Create a main.py file and set it up as described in the fastapi documentation
 - install the latest version of bigfastapi by running `pip install bigfastapi`
@@ -60,8 +60,7 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 - Run the main.py file `python main.py` to start up your server. 
 - learn more about how to use bigfastapi at <a href="https://bigfa.st/" target="_blank">https://bigfa.st/</a>
 
-
-# How to contribute to BigFastAPI
+## How to contribute to BigFastAPI
 
 1. Fork and clone the bigfastapi repository.
 2. Create a virtual environment with `python3 -m venv env` or `python -m venv env`
@@ -74,9 +73,9 @@ BigFastAPI is an extension of [FastAPI](https://github.com/tiangolo/fastapi) tha
 8. You can install your local version of the library into another project run: `pip install <path to local bigfastapi>\dist\<name of whl file>`
 9. **update on pypi** using `twine upload --repository-url https://upload.pypi.org/legacy/ dist/*` (first install twine using `pip install twine`)
 
-# Documentation
+## Documentation
 
-When you run the sample code, visit http://127.0.0.1:7001/docs to view the documentation for all endpoints
+When you run the sample code, visit <http://127.0.0.1:7001/docs> to view the documentation for all endpoints
 
 ## License
 

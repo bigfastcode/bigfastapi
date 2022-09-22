@@ -21,6 +21,7 @@ class Receipt(BaseModel):
 
 class attributes(Receipt):
     recipients: List[EmailStr] = []
+    create_file: Optional[bool]
 
 class DeleteSelectedReceipts(BaseModel):
     organization_id: str

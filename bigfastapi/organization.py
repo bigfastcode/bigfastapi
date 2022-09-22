@@ -32,6 +32,8 @@ from bigfastapi.schemas.organization_schemas import (
     AddRole,
     OrganizationBase,
     OrganizationUserBase,
+    RoleUpdate,
+    UpdateRoleResponse,
 )
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
@@ -91,9 +93,10 @@ def create_organization(
         if organization.create_wallet is True:
             organization_services.run_wallet_creation(created_org, db)
 
-        background_tasks.add_task(
-            organization_services.send_slack_notification, user.email, organization
-        )
+        if background_tasks is not None:
+            background_tasks.add_task(
+                organization_services.send_slack_notification, user.email, organization
+            )
 
         return JSONResponse(
             {
@@ -191,6 +194,8 @@ async def get_organization_users(
 
         returnBody--> list of all users in the queried organization
     """
+
+    # TODO: Add filtering and sorting functionality
     try:
 
         Helpers.check_user_org_validity(
@@ -210,17 +215,6 @@ async def get_organization_users(
             .filter(user_models.User.id == organization_owner_id)
             .first()
         )
-
-        # invited_list = (
-        #     db.query(OrganizationUser)
-        #     .filter(
-        #         and_(
-        #             OrganizationUser.organization_id == organization_id,
-        #             OrganizationUser.is_deleted == False,
-        #         )
-        #     )
-        #     .all()
-        # )
 
         page_size = 50 if size < 1 or size > 100 else size
         page_number = 1 if page <= 0 else page
@@ -254,31 +248,6 @@ async def get_organization_users(
         invited_list = query.all()
         total_items = query.count()
 
-        # invited_list = list(map(lambda x: row_to_dict(x), invited_list))
-
-        # invited_users = []
-
-        # if len(invited_list) > 0:
-        #     for invited in invited_list:
-        #         user = (
-        #             db.query(user_models.User)
-        #             .filter(
-        #                 and_(
-        #                     user_models.User.id == invited["user_id"],
-        #                     user_models.User.is_deleted == False,
-        #                 )
-        #             )
-        #             .first()
-        #         )
-        #         role = db.query(Role).filter(Role.id == invited["role_id"]).first()
-        #         if user.id == invited["user_id"]:
-        #             invited["first_name"] = user.first_name
-        #             invited["last_name"] = user.last_name
-        #             invited["email"] = user.email
-        #             invited["role"] = role.role_name
-
-        #         invited_users.append(invited)
-
         pointers = await paginator.page_urls(
             page=page, size=page_size, count=total_items, endpoint="/users"
         )
@@ -295,6 +264,83 @@ async def get_organization_users(
         # users = {"organization_owner": organization_owner, "users": jsonable_encoder(invited_users)}
 
         return JSONResponse({"data": jsonable_encoder(response)}, status_code=200)
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
+
+
+@app.patch(
+    "/organizations/{organization_id}/users/{user_id}",
+    response_model=UpdateRoleResponse,
+)
+async def change_user_role(
+    organization_id: str,
+    user_id: str,
+    payload: RoleUpdate,
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
+):
+    """intro-->This endpoint is used to update a user's role. To use this endpoint you need to make a patch request to the /users/{user_id}/change endpoint
+
+    paramDesc-->On patch request, the url takes a user's id
+        param-->user_id: This is the user id of the user
+
+
+    returnDesc--> On sucessful request, it returns:
+
+        returnBody--> An object with a key `message` with the value - "User role successfully updated",
+            and `data` containing the updated store user data.
+    """
+
+    await Helpers.check_user_org_validity(
+        user_id=user.id, organization_id=organization_id, db=db
+    )
+    try:
+        existing_user = (
+            db.query(user_models.User)
+            .filter(
+                and_(
+                    user_models.User.id == user_id,
+                    user_models.User.email == payload.email,
+                )
+            )
+            .first()
+        )
+
+        if existing_user is None:
+            return JSONResponse({"message": "User does not exist"}, status_code=404)
+
+        existing_store_user = (
+            db.query(OrganizationUser)
+            .filter(
+                and_(
+                    OrganizationUser.user_id == existing_user.id,
+                    OrganizationUser.organization_id == organization_id,
+                )
+            )
+            .first()
+        )
+
+        if existing_store_user is None:
+            return JSONResponse(
+                {"message": "User does not exist in this organization"}, status_code=404
+            )
+
+        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
+
+        existing_store_user.role_id = role.id
+        db.add(existing_store_user)
+        db.commit()
+        db.refresh(existing_store_user)
+
+        return {
+            "message": "User role updated successfully",
+            "data": OrganizationUserBase.from_orm(existing_store_user),
+        }
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -458,8 +504,8 @@ def accept_invite(
             .filter(
                 and_(
                     OrganizationInvite.invite_code == invite_code,
-                    OrganizationInvite.is_deleted == False,
-                    OrganizationInvite.is_revoked == False,
+                    OrganizationInvite.is_deleted == expression.false(),
+                    OrganizationInvite.is_revoked == expression.false(),
                 )
             )
             .first()
@@ -487,6 +533,7 @@ def accept_invite(
             user_id=payload.user_id,
             role_id=existing_invite.role_id,
         )
+
         db.add(organization_user)
         db.commit()
         db.refresh(organization_user)
@@ -541,7 +588,7 @@ async def invite_user(
         )
 
         invite_token = uuid4().hex
-        invite_url = f"{payload.app_url}/accept-invite?invite_token={invite_token}"
+        invite_url = f"{payload.app_url}/g/accept-invite?invite_token={invite_token}"
         payload.email_details.link = invite_url
         email_info = payload.email_details
         email_info.organization_id = organization_id
@@ -559,7 +606,7 @@ async def invite_user(
             .filter(
                 and_(
                     OrganizationInvite.email == payload.email,
-                    OrganizationInvite.is_deleted == False,
+                    OrganizationInvite.is_deleted == expression.false(),
                 )
             )
             .first()
@@ -630,42 +677,47 @@ async def get_single_invite(
             .filter(
                 and_(
                     OrganizationInvite.invite_code == invite_code,
-                    OrganizationInvite.is_deleted == False,
-                    OrganizationInvite.is_revoked == False,
+                    OrganizationInvite.is_deleted == expression.false(),
+                    OrganizationInvite.is_revoked == expression.false(),
                 )
             )
             .first()
         )
-        if existing_invite:
-            existing_user = (
-                db.query(user_models.User)
-                .filter(user_models.User.email == existing_invite.user_email)
-                .first()
+        if existing_invite is None:
+            return JSONResponse({"message": "Invalid invite code"}, status_code=404)
+
+        existing_user = (
+            db.query(user_models.User)
+            .filter(
+                and_(
+                    user_models.User.email == existing_invite.email,
+                    user_models.User.is_deleted == expression.false(),
+                )
+            )
+            .first()
+        )
+
+        organization = (
+            db.query(organization_models.Organization)
+            .filter(
+                organization_models.Organization.id == existing_invite.organization_id
+            )
+            .first()
+        )
+
+        setattr(existing_invite, "organization", organization)
+
+        user = existing_user if existing_user is not None else None
+
+        if not existing_invite:
+            return JSONResponse(
+                {
+                    "message": "Invite not found! Try again or ask the inviter to invite you again."
+                },
+                status_code=404,
             )
 
-            organization = (
-                db.query(organization_models.Organization)
-                .filter(
-                    organization_models.Organization.id
-                    == existing_invite.organization_id
-                )
-                .first()
-            )
-
-            setattr(existing_invite, "organization", organization)
-            user_exists = ""
-            if existing_user is not None:
-                user_exists = "exists"
-            if not existing_invite:
-                return JSONResponse(
-                    {
-                        "message": "Invite not found! Try again or ask the inviter to invite you again."
-                    },
-                    status_code=404,
-                )
-
-            return {"invite": existing_invite, "user": user_exists}
-        return JSONResponse({"message": "Invalid invite code"}, status_code=404)
+        return {"invite": existing_invite, "user": user}
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -717,7 +769,7 @@ def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
     "/organizations/{organization_id}/revoke-invite/{invite_code}",
     response_model=organization_schemas.RevokedInviteResponse,
 )
-def revoke_invite(
+async def revoke_invite(
     organization_id: str,
     invite_code: str,
     user: users_schemas.User = Depends(is_authenticated),
@@ -732,7 +784,11 @@ def revoke_invite(
     returnDesc--> On successful request, it returns message,
         returnBody--> an object contain the invite data with the `is_deleted` and `is_revoked` field set to True
     """
+    await Helpers.check_user_org_validity(
+        user_id=user.id, organization_id=organization_id, db=db
+    )
     try:
+        # TODO: return proper error response for invalid invite token
 
         revoked_invite = (
             db.query(OrganizationInvite)
@@ -791,9 +847,9 @@ async def get_pending_invites(
             .filter(
                 and_(
                     OrganizationInvite.organization_id == organization_id,
-                    OrganizationInvite.is_deleted == False,
-                    OrganizationInvite.is_accepted == False,
-                    OrganizationInvite.is_revoked == False,
+                    OrganizationInvite.is_deleted == expression.false(),
+                    OrganizationInvite.is_accepted == expression.false(),
+                    OrganizationInvite.is_revoked == expression.false(),
                 )
             )
             .all()
@@ -880,7 +936,7 @@ async def change_organization_image(
     #  Delete previous organization image if exist
     await _models.deleteBizImageIfExist(organization)
 
-    uploaded_image = await upload_image(
+    await upload_image(
         file=file,
         db=db,
         bucket_name=bucket_name,
@@ -890,7 +946,7 @@ async def change_organization_image(
         create_thumbnail=True,
     )
     # Update organization image to uploaded image endpoint
-    organization.image_url = f"{image_folder}/{bucket_name}/{uploaded_image}"
+    organization.image_url = f"{image_folder}/{bucket_name}/{file.filename}"
 
     try:
         db.commit()
@@ -941,7 +997,3 @@ async def delete_organization(
         returnBody--> "success"
     """
     return await organization_services.delete_organization(organization_id, user, db)
-
-
-# /////////////////////////////////////////////////////////////////////////////////
-# organization Services

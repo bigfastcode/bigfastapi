@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 from uuid import uuid4
 
 import sqlalchemy.orm as orm
@@ -71,9 +72,21 @@ async def send_receipt(
                 detail=messages.NOT_ORGANIZATION_MEMBER,
             )
         
+        custom_template_dir = payload.custom_template_dir
+        create_file = payload.create_file if payload.create_file else create_file
+        
+        if not custom_template_dir:
+            template_dir_path = os.path.abspath(
+                os.environ.get("TEMPLATES_DIR", payload.template))
+            if not os.path.exists(template_dir_path):
+                raise HTTPException(
+                    status_code=404, detail=f"Template: {payload.template} does not exist")
+            custom_template_dir = "/".join(template_dir_path.split("/")[:-1])
+            template = payload.template.split("/")[-1]
+
         html_string = convert_template_to_html(
-                template_dir=payload.custom_template_dir,
-                template_file=payload.template,
+                template_dir=custom_template_dir,
+                template_file=template,
                 template_data=payload.data
             )
 
@@ -96,9 +109,9 @@ async def send_receipt(
             await email_services.send_email(
                 title=payload.subject,
                 recipients=payload.recipients,
-                template=payload.template if payload.template else "mail_receipt.html",
+                template=template if template else "mail_receipt.html",
                 template_body=payload.data,
-                custom_template_dir=payload.custom_template_dir,
+                custom_template_dir=custom_template_dir,
                 background_tasks=background_tasks,
                 db=db,
                 file="./filestorage/pdfs/" + pdf_name,
@@ -107,9 +120,9 @@ async def send_receipt(
             await email_services.send_email(
                 title=payload.subject,
                 recipients=payload.recipients,
-                template=payload.template if payload.template else "mail_receipt.html",
+                template=template if template else "mail_receipt.html",
                 template_body=payload.data,
-                custom_template_dir=payload.custom_template_dir,
+                custom_template_dir=custom_template_dir,
                 background_tasks=background_tasks,
                 db=db,
             )
@@ -119,7 +132,7 @@ async def send_receipt(
         db.refresh(receipt)
 
         return JSONResponse(
-            {"message": "receipt sent", "data": jsonable_encoder(receipt)},
+            {"message": "receipt sent", "data": payload},
             status_code=201,
         )
 

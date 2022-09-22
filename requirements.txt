@@ -71,3 +71,4 @@ autoflake
 pre-commit
 pyupgrade
 httpx
+mysql-connector-python
