@@ -32,6 +32,8 @@ from bigfastapi.schemas.organization_schemas import (
     AddRole,
     OrganizationBase,
     OrganizationUserBase,
+    RoleUpdate,
+    UpdateRoleResponse,
 )
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
@@ -192,6 +194,8 @@ async def get_organization_users(
 
         returnBody--> list of all users in the queried organization
     """
+
+    # TODO: Add filtering and sorting functionality
     try:
 
         Helpers.check_user_org_validity(
@@ -260,6 +264,83 @@ async def get_organization_users(
         # users = {"organization_owner": organization_owner, "users": jsonable_encoder(invited_users)}
 
         return JSONResponse({"data": jsonable_encoder(response)}, status_code=200)
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
+
+
+@app.patch(
+    "/organizations/{organization_id}/users/{user_id}",
+    response_model=UpdateRoleResponse,
+)
+async def change_user_role(
+    organization_id: str,
+    user_id: str,
+    payload: RoleUpdate,
+    db: orm.Session = Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated),
+):
+    """intro-->This endpoint is used to update a user's role. To use this endpoint you need to make a patch request to the /users/{user_id}/change endpoint
+
+    paramDesc-->On patch request, the url takes a user's id
+        param-->user_id: This is the user id of the user
+
+
+    returnDesc--> On sucessful request, it returns:
+
+        returnBody--> An object with a key `message` with the value - "User role successfully updated",
+            and `data` containing the updated store user data.
+    """
+
+    await Helpers.check_user_org_validity(
+        user_id=user.id, organization_id=organization_id, db=db
+    )
+    try:
+        existing_user = (
+            db.query(user_models.User)
+            .filter(
+                and_(
+                    user_models.User.id == user_id,
+                    user_models.User.email == payload.email,
+                )
+            )
+            .first()
+        )
+
+        if existing_user is None:
+            return JSONResponse({"message": "User does not exist"}, status_code=404)
+
+        existing_store_user = (
+            db.query(OrganizationUser)
+            .filter(
+                and_(
+                    OrganizationUser.user_id == existing_user.id,
+                    OrganizationUser.organization_id == organization_id,
+                )
+            )
+            .first()
+        )
+
+        if existing_store_user is None:
+            return JSONResponse(
+                {"message": "User does not exist in this organization"}, status_code=404
+            )
+
+        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
+
+        existing_store_user.role_id = role.id
+        db.add(existing_store_user)
+        db.commit()
+        db.refresh(existing_store_user)
+
+        return {
+            "message": "User role updated successfully",
+            "data": OrganizationUserBase.from_orm(existing_store_user),
+        }
 
     except Exception as ex:
         if type(ex) == HTTPException:
@@ -688,7 +769,7 @@ def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
     "/organizations/{organization_id}/revoke-invite/{invite_code}",
     response_model=organization_schemas.RevokedInviteResponse,
 )
-def revoke_invite(
+async def revoke_invite(
     organization_id: str,
     invite_code: str,
     user: users_schemas.User = Depends(is_authenticated),
@@ -703,7 +784,11 @@ def revoke_invite(
     returnDesc--> On successful request, it returns message,
         returnBody--> an object contain the invite data with the `is_deleted` and `is_revoked` field set to True
     """
+    await Helpers.check_user_org_validity(
+        user_id=user.id, organization_id=organization_id, db=db
+    )
     try:
+        # TODO: return proper error response for invalid invite token
 
         revoked_invite = (
             db.query(OrganizationInvite)
