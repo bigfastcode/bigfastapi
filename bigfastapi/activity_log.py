@@ -136,8 +136,9 @@ def deleteAllActivitiesLog(body: DeleteActivitiesLogBase, db: Session = Depends(
 
 #======================= LOG SERVICES ===============================
 
-def createActivityLog(model_name, model_id, user, log, db, created_for_id: str = None, created_for_model:str=None):
+def createActivityLog(model_name, model_id, user, log, db, created_for_id: str=None, created_for_model: str=None):
     
+
     activityLog = ActivitiesModel(
         id= uuid4().hex, 
         organization_id = log["organization_id"], 
@@ -146,7 +147,7 @@ def createActivityLog(model_name, model_id, user, log, db, created_for_id: str =
         created_for_id=None if not created_for_id else created_for_id,
         created_for_model=None if not created_for_model else created_for_model,
         object_url=log["object_url"],
-        model_name=model_name, action=log.action, created_at=datetime.now()
+        model_name=model_name, action=log["action"], created_at=datetime.now()
     )
 
     db.add(activityLog)
@@ -164,11 +165,12 @@ def createActivityLog(model_name, model_id, user, log, db, created_for_id: str =
 
     # send request to slack
     requests.post(url=config('LOG_WEBHOOK_URL'), 
-        json={"text" : str(" " if user.first_name is None else user.first_name) +' '+ str(" " if user.last_name is None else user.last_name) +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
+        json={"text" : str(" " if user.first_name is None else user.first_name) +' '+ str(" " if user.last_name is None else user.last_name) +' '+ log["action"]},headers={"Content-Type": "application/json"}, verify=True
     )
 
 
     return activityLog
+
 
 def getOrganizationActivitiesLog(organization_id, db):
     
