@@ -143,6 +143,7 @@ def createActivityLog(model_name, model_id, user, log, db, created_for_id: str=N
         id= uuid4().hex, 
         organization_id = log["organization_id"], 
         user_id= user.id, 
+        # user_name = "",
         model_id= model_id, 
         created_for_id=None if not created_for_id else created_for_id,
         created_for_model=None if not created_for_model else created_for_model,
