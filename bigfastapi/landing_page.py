@@ -311,30 +311,16 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
     # check if the user is superuser
     if current_user.is_superuser:
 
-        # query the database using the landing page name
-        update_landing_page_data = db.query(landing_page_models.LandingPage).filter(
-            landing_page_models.LandingPage.landing_page_name == landingpage_name).first()
-
-        # check if update landing page does not exist, throw an error
-        if update_landing_page_data is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Landing page does not exist")
-
-        # check if the landing page name is not the same as the landing page name in the database, throw an error
-        if update_landing_page_data.landing_page_name != request.landing_page_name:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Landing page name cannot be changed")
-
         request_fields = [
             "company_name",
             "body_h1",
-            "body_h3", 
+            "body_h3",
             "body_h3_logo_one_name",
             "body_h3_logo_two_name",
             "body_h3_logo_three_name",
             "body_h3_logo_four_name",
             "body_paragraph",
-            "body_h3_logo_one_paragraph", 
+            "body_h3_logo_one_paragraph",
             "body_h3_logo_two_paragraph",
             "body_h3_logo_three_paragraph",
             "body_h3_logo_four_paragraph",
@@ -353,8 +339,8 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
             "contact_us_link",
             "footer_contact_address",
             "customer_care_email",
-            "title",            
-            ]
+            "title"
+        ]
         
         request_files = [
             "favicon",
@@ -369,99 +355,35 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
             "body_h3_logo_four",
             "section_three_image",
             "section_four_image",
-
         ]
-        
+
+        params = locals()
+
+        # query the database using the landing page name
+        update_landing_page_data = db.query(landing_page_models.LandingPage).filter(
+            landing_page_models.LandingPage.landing_page_name == landingpage_name).first()
+
+        # check if update landing page does not exist, throw an error
+        if update_landing_page_data is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Landing page does not exist")
+
+        # check if the landing page name is not the same as the landing page name in the database, throw an error
+        if update_landing_page_data.landing_page_name != request.landing_page_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Landing page name cannot be changed")
+
         for field in request_fields:
             if getdicvalue(update_landing_page_data.id, db=db, key=field) != request[field]:
                 db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == getdicvalue(update_landing_page_data.id, db=db, key=field)).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id, db=db,key=field), request[field])}, synchronize_session=False)
 
-        if await isFileExist(favicon.filename) is not True:
-            favicon1 = getdicvalue(update_landing_page_data.id,db=db,key="favicon")
-            if await deleteFile(favicon1):
-                favicon = await upload_image(favicon, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == favicon1).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, favicon1, "/" + update_landing_page_data.bucket_name + "/" + favicon)}, synchronize_session=False)
-
-        if await isFileExist(shape_one.filename) is not True:
-            shape_one1 = getdicvalue(update_landing_page_data.id,db=db,key="shape_one")
-            if await deleteFile(shape_one1):
-                shape_one = await upload_image(shape_one, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == shape_one1).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="shape_one"), "/" + update_landing_page_data.bucket_name + "/" + shape_one)},synchronize_session=False)
-
-        if await isFileExist(shape_two.filename) is not True:
-            shape_two1 = getdicvalue(update_landing_page_data.id,db=db,key="shape_two")
-            if await deleteFile(shape_two1):
-                shape_two = await upload_image(shape_two, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == shape_two1).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="shape_two"),"/" + update_landing_page_data.bucket_name + "/" + shape_two)},synchronize_session=False)
-
-        if await isFileExist(shape_three.filename) is not True:
-            shape_three1 = getdicvalue(update_landing_page_data.id,db=db,key="shape_three")
-            if await deleteFile(shape_three1):
-                shape_three = await upload_image(shape_three, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==shape_three1).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="shape_three"),"/" + update_landing_page_data.bucket_name + "/" + shape_three)},synchronize_session=False)
-
-        # check company logo is uploaded, update the company logo
-        if await isFileExist(company_logo.filename) is not True:
-            company_logo1 = getdicvalue(update_landing_page_data.id,db=db,key="company_logo")
-            if await deleteFile(company_logo1):
-                company_logo = await upload_image(company_logo, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==company_logo1).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="company_logo"),"/" + update_landing_page_data.bucket_name + "/" + company_logo)},synchronize_session=False)
-
-        # check if section one image is uploaded, update the section one image
-        if await isFileExist(section_one_image_link.filename) is not True:
-            section_one_image_link1 = getdicvalue(update_landing_page_data.id,db=db,key="section_one_image_link")
-            if await deleteFile(section_one_image_link1):
-                section_one_image_link = section_one_image_link
-                section_one_image_link = await upload_image(section_one_image_link, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="section_one_image_link")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="section_one_image_link"),"/" + update_landing_page_data.bucket_name + "/" + section_one_image_link)},synchronize_session=False)
-
-        # check if body h3 logo one image is uploaded, update the body h3 logo one image
-        if await isFileExist(body_h3_logo_one.filename) is not True:
-            body_h3_logo_one1 = getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one")
-            if await deleteFile(body_h3_logo_one1):
-                body_h3_logo_one = body_h3_logo_one
-                body_h3_logo_one = await upload_image(body_h3_logo_one, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one"),"/" + update_landing_page_data.bucket_name + "/" + body_h3_logo_one)},synchronize_session=False)
-
-        # check if body h3 logo two image is uploaded, update the body h3 logo two image
-        if await isFileExist(body_h3_logo_two.filename) is not True:
-            body_h3_logo_two1 = getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two")
-            if await deleteFile(body_h3_logo_two1):
-                body_h3_logo_two = body_h3_logo_two
-                body_h3_logo_two = await upload_image(body_h3_logo_two, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two"),"/" + update_landing_page_data.bucket_name + "/" + body_h3_logo_two)},synchronize_session=False)
-
-        # check if body h3 logo three image is uploaded, update the body h3 logo three image
-        if await isFileExist(body_h3_logo_three.filename) is not True:
-            body_h3_logo_three1 = getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three")
-            if await deleteFile(body_h3_logo_three1):
-                body_h3_logo_three = body_h3_logo_three
-                body_h3_logo_three = await upload_image(body_h3_logo_three, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three"),"/" + update_landing_page_data.bucket_name + "/" + body_h3_logo_three)},synchronize_session=False)
-
-        # check if body h3 logo four image is uploaded, update the body h3 logo four image
-        if await isFileExist(body_h3_logo_four.filename) is not True:
-            body_h3_logo_four1 = getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four")
-            if await deleteFile(body_h3_logo_four1):
-                body_h3_logo_four = body_h3_logo_four
-                body_h3_logo_four = await upload_image(body_h3_logo_four, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four"),"/" + update_landing_page_data.bucket_name + "/" + body_h3_logo_four)},synchronize_session=False)
-
-        # check if section three image is uploaded, update the section three image
-        if await isFileExist(section_three_image.filename) != True:
-            section_three_image1 = getdicvalue(update_landing_page_data.id,db=db,key="section_three_image")
-            if await deleteFile(section_three_image1):
-                section_three_image = section_three_image
-                section_three_image = await upload_image(section_three_image, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="section_three_image")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="section_three_image"),"/" + update_landing_page_data.bucket_name + "/" + section_three_image)},synchronize_session=False)
-
-        # check if section four image is uploaded, update the section four image
-        if await isFileExist(section_four_image.filename) != True:
-            section_four_image1 = getdicvalue(update_landing_page_data.id,db=db,key="section_four_image")
-            if await deleteFile(section_four_image1):
-                section_four_image = section_four_image
-                section_four_image = await upload_image(section_four_image, db=db, bucket_name=update_landing_page_data.bucket_name)
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="section_four_image")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="section_four_image"),"/" + update_landing_page_data.bucket_name + "/" + section_four_image)},synchronize_session=False)
+        for key in params.keys():
+            if key in request_files:
+                if not await isFileExist(params[key].filename):
+                    query = getdicvalue(update_landing_page_data.id, db=db, key=key)
+                    if await deleteFile(query):
+                        upload = await upload_image(params[key], db=db, bucket_name=update_landing_page_data.bucket_name)
+                        db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == query).update({landing_page_models.LandingPageOtherInfo.value: func.replace(landing_page_models.LandingPageOtherInfo.value, query, "/" + update_landing_page_data.bucket_name + "/" + upload)}, synchronize_session=False)
 
         # attempt to update the landing page data
         try:
