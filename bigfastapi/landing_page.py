@@ -242,24 +242,18 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
         raise HTTPException(status_code=404, detail="Landing page not found")
     h = {
         "body_h1": getdicvalue(landingpage_data.id,db=db, key= "body_h1"),
-        "body_paragraph":getdicvalue(landingpage_data.id,db=db, key="body_paragraph"),
+        "body_paragraph": getdicvalue(landingpage_data.id,db=db, key="body_paragraph"),
         "body_h3": getdicvalue(landingpage_data.id,db=db, key= "body_h3"),
-        "body_h3_logo_one": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one"),
         "body_h3_logo_one_name": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one_name"),
         "body_h3_logo_one_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one_paragraph"),
-        "body_h3_logo_two": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_two"),
         "body_h3_logo_two_name": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_two_name"),
         "body_h3_logo_two_paragraph": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_two_paragraph"),
-        "body_h3_logo_three": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three"),
         "body_h3_logo_three_name": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_three_name"),
         "body_h3_logo_three_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three_paragraph"),
-        "body_h3_logo_four": image_path + getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_four"),
         "body_h3_logo_four_name": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_four_name"),
         "body_h3_logo_four_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_four_paragraph"),
-        "section_one_image_link": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_one_image_link"),
         "section_three_paragraph": getdicvalue(landingpage_data.id,db=db, key= "section_three_paragraph"),
         "section_three_sub_paragraph": getdicvalue(landingpage_data.id,db=db, key= "section_three_sub_paragraph"),
-        "section_three_image": image_path + getdicvalue(landingpage_data.id,db=db, key="section_three_image"),
         "footer_h3": getdicvalue(landingpage_data.id,db=db, key= "footer_h3"),
         "footer_h3_paragraph": getdicvalue(landingpage_data.id,db=db, key= "footer_h3_paragraph"),
         "footer_name_employee": getdicvalue(landingpage_data.id,db=db, key= "footer_name_employee"),
@@ -271,12 +265,18 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
         "about_link": getdicvalue(landingpage_data.id,db=db, key= "about_link"),
         "faq_link": getdicvalue(landingpage_data.id,db=db, key= "faq_link"),
         "contact_us_link": getdicvalue(landingpage_data.id,db=db, key= "contact_us_link"),
-        "section_four_image": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_four_image"),
         "company_name": getdicvalue(landingpage_data.id,db=db, key= "company_name"),
-        "company_logo": image_path + getdicvalue(landingpage_data.id,db=db, key= "company_logo"),
         "login_link": getdicvalue(landingpage_data.id,db=db, key= "login_link"),
         "signup_link": getdicvalue(landingpage_data.id,db=db, key= "signup_link"),
         "title": getdicvalue(landingpage_data.id,db=db, key= "title"),
+        "body_h3_logo_one": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one"),
+        "body_h3_logo_two": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_two"),
+        "body_h3_logo_three": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three"),
+        "section_three_image": image_path + getdicvalue(landingpage_data.id,db=db, key="section_three_image"),
+        "section_four_image": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_four_image"),
+        "section_one_image_link": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_one_image_link"),
+        "body_h3_logo_four": image_path + getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_four"),
+        "company_logo": image_path + getdicvalue(landingpage_data.id,db=db, key= "company_logo"),
         "favicon": image_path + getdicvalue(landingpage_data.id,db=db, key= "favicon"),
         "shape_one": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_one"),
         "shape_two": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_two"),
@@ -325,116 +325,56 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Landing page name cannot be changed")
 
-        #  check if landing page company name is not the same, update the landing page company name
-        if getdicvalue(update_landing_page_data.id,db=db,key="company_name") != request.company_name:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="company_name")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="company_name"), request.company_name)}, synchronize_session=False)
+        request_fields = [
+            "company_name",
+            "body_h1",
+            "body_h3", 
+            "body_h3_logo_one_name",
+            "body_h3_logo_two_name",
+            "body_h3_logo_three_name",
+            "body_h3_logo_four_name",
+            "body_paragraph",
+            "body_h3_logo_one_paragraph", 
+            "body_h3_logo_two_paragraph",
+            "body_h3_logo_three_paragraph",
+            "body_h3_logo_four_paragraph",
+            "section_three_paragraph",
+            "section_three_sub_paragraph",
+            "footer_h3",
+            "footer_h3_paragraph",
+            "footer_name_employee",
+            "name_job_description",
+            "footer_h2_text",
+            "login_link",
+            "signup_link",
+            "home_link",
+            "about_link",
+            "faq_link",
+            "contact_us_link",
+            "footer_contact_address",
+            "customer_care_email",
+            "title",            
+            ]
+        
+        request_files = [
+            "favicon",
+            "shape_one",
+            "shape_two",
+            "shape_three",
+            "company_logo",
+            "section_one_image_link",
+            "body_h3_logo_one",
+            "body_h3_logo_two",
+            "body_h3_logo_three",
+            "body_h3_logo_four",
+            "section_three_image",
+            "section_four_image",
 
-        # check if landing page body H1 is not the same, update the landing page body H1
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h1") != request.body_h1:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h1")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h1"), request.body_h1)}, synchronize_session=False)
-
-        # check if landing page body paragraph is not the same, update the landing page body paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_paragraph") != request.body_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == getdicvalue(update_landing_page_data.id,db=db,key="body_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_paragraph"), request.body_paragraph)}, synchronize_session=False)
-
-        # check if landing page body H3 logo one name is not the same, update the landing page body H3 logo one name
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3") != request.body_h3:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3"), request.body_h3)}, synchronize_session=False)
-
-        # check if landing page body h3 logo one name is not the same, update the landing page body h3 logo one name
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one_name") != request.body_h3_logo_one_name:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one_name")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one_name"), request.body_h3_logo_one_name)}, synchronize_session=False)
-
-        # check if landing page body h3 logo one paragraph is not the same, update the landing page body h3 logo one paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one_paragraph") != request.body_h3_logo_one_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_one_paragraph"), request.body_h3_logo_one_paragraph)}, synchronize_session=False)
-
-        # check if landing page body h3 logo two name is not the same, update the landing page body h3 logo two name
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two_name") != request.body_h3_logo_two_name:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two_name")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two_name"), request.body_h3_logo_two_name)}, synchronize_session=False)
-
-        # check if landing page body h3 logo two paragraph is not the same, update the landing page body h3 two paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two_paragraph") != request.body_h3_logo_two_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_two_paragraph"), request.body_h3_logo_two_paragraph)}, synchronize_session=False)
-
-        # chcek if landing page body h3 logo three name is not the same, update the landing page body h3 logo three name
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three_name") != request.body_h3_logo_three_name:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three_name")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three_name"), request.body_h3_logo_three_name)}, synchronize_session=False)
-
-        # check if landing page body h3 logo three paragraph is not the same, update the landing page body h3 logo three paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three_paragraph")!= request.body_h3_logo_three_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_three_paragraph"), request.body_h3_logo_three_paragraph)}, synchronize_session=False)
-
-        # check if landing page body h3 logo four name is not the same, update the landing page body h3 logo four name
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four_name") != request.body_h3_logo_four_name:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four_name")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four_name"), request.body_h3_logo_four_name)}, synchronize_session=False)
-
-        # check if landing page body h3 logo four paragraph is not the same, update the landing page body h3 logo four paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four_paragraph") != request.body_h3_logo_four_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="body_h3_logo_four_paragraph"), request.body_h3_logo_four_paragraph)}, synchronize_session=False)
-
-        # check if landing page section three paragraph is not the same, update the landing page section three paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="section_three_paragraph") != request.section_three_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="section_three_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="section_three_paragraph"), request.section_three_paragraph)}, synchronize_session=False)
-
-        # check if landing page section three sub paragraph is not the same, update the landing page section three sub paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="section_three_sub_paragraph") != request.section_three_sub_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="section_three_sub_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="section_three_sub_paragraph"), request.section_three_sub_paragraph)}, synchronize_session=False)
-
-        # check if landing page footer h3 is not the same, update the landing page footer h3
-        if getdicvalue(update_landing_page_data.id,db=db,key="footer_h3") != request.footer_h3:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="footer_h3")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="footer_h3"), request.footer_h3)}, synchronize_session=False)
-
-        # check if landing page footer paragraph is not the same, update the landing page footer paragraph
-        if getdicvalue(update_landing_page_data.id,db=db,key="footer_h3_paragraph") != request.footer_h3_paragraph:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="footer_h3_paragraph")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="footer_h3_paragraph"), request.footer_h3_paragraph)}, synchronize_session=False)
-
-        # check if landing page footer name employee is not the same, update the landing page footer name employee
-        if getdicvalue(update_landing_page_data.id,db=db,key="footer_name_employee") != request.footer_name_employee:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="footer_name_employee")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="footer_name_employee"), request.footer_name_employee)}, synchronize_session=False)
-
-        # check if landing page positon of emplaoyee is not the same, update the landing page positon of emplaoyee
-        if getdicvalue(update_landing_page_data.id,db=db,key="name_job_description") != request.name_job_description:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="name_job_description")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="name_job_description"), request.name_job_description)}, synchronize_session=False)
-
-        # check if landing page footer h2 text is not the same, update the landing page footer h2 text
-        if getdicvalue(update_landing_page_data.id,db=db,key="footer_h2_text") != request.footer_h2_text:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="footer_h2_text")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="footer_h2_text"), request.footer_h2_text)}, synchronize_session=False)
-
-            # check if login link is not the same, update the login link
-        if getdicvalue(update_landing_page_data.id,db=db,key="login_link") != request.login_link:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="login_link")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="login_link"), request.login_link)}, synchronize_session=False)
-
-            # check if signup link is not the same, update the signup link
-        if getdicvalue(update_landing_page_data.id,db=db,key="signup_link") != request.signup_link:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="signup_link")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="signup_link"), request.signup_link)}, synchronize_session=False)
-
-            # check if home link is not the same, update the home link
-        if getdicvalue(update_landing_page_data.id,db=db,key="home_link") != request.home_link:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="home_link")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="home_link"), request.home_link)}, synchronize_session=False)
-
-            # check if about link is not the same, update the about link
-        if getdicvalue(update_landing_page_data.id,db=db,key="about_link") != request.about_link:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="about_link")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="about_link"), request.about_link)}, synchronize_session=False)
-
-            # check if faq link is not the same, update the faq link
-        if getdicvalue(update_landing_page_data.id,db=db,key="faq_link") != request.faq_link:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="faq_link")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="faq_link"), request.faq_link)}, synchronize_session=False)
-
-            # check if contact link is not the same, update the contact link
-        if getdicvalue(update_landing_page_data.id,db=db,key="contact_us_link") != request.contact_us_link:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="contact_us_link")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="contact_us_link"), request.contact_us_link)}, synchronize_session=False)
-
-            # check if contact address is not the same, update the contact address
-        if getdicvalue(update_landing_page_data.id,db=db,key="footer_contact_address") != request.footer_contact_address:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="footer_contact_address")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="footer_contact_address"), request.footer_contact_address)}, synchronize_session=False)
-
-            #  check if customer care mail is not the same, update the customer care mail
-        if getdicvalue(update_landing_page_data.id,db=db,key="customer_care_email") != request.customer_care_email:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="customer_care_email")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="customer_care_email"), request.customer_care_email)}, synchronize_session=False)
-
-        if getdicvalue(update_landing_page_data.id,db=db,key="title")!= request.title:
-            db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value==getdicvalue(update_landing_page_data.id,db=db,key="title")).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id,db=db,key="title"), request.title)}, synchronize_session=False)
+        ]
+        
+        for field in request_fields:
+            if getdicvalue(update_landing_page_data.id, db=db, key=field) != request[field]:
+                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == getdicvalue(update_landing_page_data.id, db=db, key=field)).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id, db=db,key=field), request[field])}, synchronize_session=False)
 
         if await isFileExist(favicon.filename) is not True:
             favicon1 = getdicvalue(update_landing_page_data.id,db=db,key="favicon")
