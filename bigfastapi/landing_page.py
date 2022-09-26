@@ -3,7 +3,7 @@ from typing import List
 from uuid import uuid4
 
 import pkg_resources
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status, Request)
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status)
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -23,6 +23,51 @@ app = APIRouter(tags=["Landing Page"])
 
 templates = Jinja2Templates(directory=LANDING_PAGE_FOLDER)
 
+request_fields = [
+    "company_name",
+    "body_h1",
+    "body_h3",
+    "body_h3_logo_one_name",
+    "body_h3_logo_two_name",
+    "body_h3_logo_three_name",
+    "body_h3_logo_four_name",
+    "body_paragraph",
+    "body_h3_logo_one_paragraph",
+    "body_h3_logo_two_paragraph",
+    "body_h3_logo_three_paragraph",
+    "body_h3_logo_four_paragraph",
+    "section_three_paragraph",
+    "section_three_sub_paragraph",
+    "footer_h3",
+    "footer_h3_paragraph",
+    "footer_name_employee",
+    "name_job_description",
+    "footer_h2_text",
+    "login_link",
+    "signup_link",
+    "home_link",
+    "about_link",
+    "faq_link",
+    "contact_us_link",
+    "footer_contact_address",
+    "customer_care_email",
+    "title"
+]
+
+request_files = [
+    "favicon",
+    "shape_one",
+    "shape_two",
+    "shape_three",
+    "company_logo",
+    "section_one_image_link",
+    "body_h3_logo_one",
+    "body_h3_logo_two",
+    "body_h3_logo_three",
+    "body_h3_logo_four",
+    "section_three_image",
+    "section_four_image",
+]
 
 # Endpoint to open index.html
 @app.get("/landing-page/index.html")
@@ -69,6 +114,9 @@ async def createlandingpage(background_tasks: BackgroundTasks, request: landing_
                             shape_two: UploadFile = File(...),
                             shape_three: UploadFile = File(...),):
 
+    # get all the parameters of the current function in a dictionary
+    params = locals()
+
     # checks if user is a superuser
     if current_user.is_superuser is not True:
         raise HTTPException(status_code=403, detail="You are not allowed to perform this action")
@@ -81,114 +129,30 @@ async def createlandingpage(background_tasks: BackgroundTasks, request: landing_
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="landing_page_name already exist")
 
     # check if all form fields are filled
-    if request.landing_page_name == "" or request.company_name == "" or request.body_h1 == "" or request.body_paragraph == "" or request.body_h3 == "" or request.body_h3_logo_one_name == "" or request.body_h3_logo_one_paragraph == "" or request.body_h3_logo_two_name == "" or request.body_h3_logo_two_paragraph == "" or request.body_h3_logo_three_name == "" or request.body_h3_logo_three_paragraph == "" or request.body_h3_logo_four_name == "" or request.body_h3_logo_four_paragraph == "" or request.section_three_paragraph == "" or request.section_three_sub_paragraph == "" or request.footer_h3 == "" or request.footer_h3_paragraph == "" or request.footer_name_employee == "" or request.name_job_description == "" or request.footer_contact_address == "" or request.home_link == "" or request.about_link == "" or request.faq_link == "" or request.contact_us_link == "" or request.login_link == "" or request.signup_link == "" or request.footer_h2_text == "" or request.customer_care_email == "" or request.home_link == "" or request.about_link == "" or request.faq_link == "":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields")
+    for key, value in vars(request).items():
+        if key in request_fields and value == "":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Please fill all fields")
 
-    # check if company logo is uploaded else raise error
-    if not company_logo :
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload company logo")
-    company_logo =await landing_page_services.upload_images(company_logo, db=db, bucket_name=bucket_name)
+    other_info = {}
 
+    # check if any required image is missing and raise error else upload image (add to dictionary: other_info)
+    for key, value in params.items():
+        if key in request_files:
+            if not value:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Please upload image for {key}")
+            other_info[key] = await landing_page_services.upload_images(value, db=db, bucket_name=bucket_name)
     
-    if not favicon:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload favicon")
-    favicon = await landing_page_services.upload_images(favicon, db=db, bucket_name=bucket_name)
-    
-    if not shape_one:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape one")
-    shape_one = await landing_page_services.upload_images(shape_one, db=db, bucket_name=bucket_name)
-    
-    if not shape_two:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape two")
-    shape_two = await landing_page_services.upload_images(shape_two, db=db, bucket_name=bucket_name)
-    
-    if not shape_three:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload shape three")
-    shape_three = await landing_page_services.upload_images(shape_three, db=db, bucket_name=bucket_name)
-
-    # check if section three image is uploaded else raise error
-    if not section_three_image:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload section_Three_image")
-    section_three_image = await landing_page_services.upload_images(section_three_image, db=db, bucket_name=bucket_name)
-
-    # check if section four image is uploaded else raise error
-    if not section_four_image:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Section_Four_image")
-    section_four_image = await landing_page_services.upload_images(section_four_image, db=db, bucket_name=bucket_name)
-
-    # check if section one image link is uploaded else raise error
-    if not section_one_image_link:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload image for section one")
-    section_one_image_link = await landing_page_services.upload_images(section_one_image_link, db=db, bucket_name=bucket_name)
-
-    # check if body h3 logo one is uploaded else raise error
-    if not body_h3_logo_one:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_One")
-    body_h3_logo_one = await landing_page_services.upload_images(body_h3_logo_one, db=db, bucket_name=bucket_name)
-
-    # check if body h3 logo two is uploaded else raise error
-    if not body_h3_logo_two:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload body_h3_logo_two")
-    body_h3_logo_two = await landing_page_services.upload_images(body_h3_logo_two, db=db, bucket_name=bucket_name)
-
-    # check if body h3 logo three is uploaded else raise error
-    if not body_h3_logo_three:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_Three")
-    body_h3_logo_three = await landing_page_services.upload_images(body_h3_logo_three, db=db, bucket_name=bucket_name)
-
-    # check if body h3 logo four is uploaded else raise error
-    if not body_h3_logo_four:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload Body_H3_logo_Four")
-    body_h3_logo_four = await landing_page_services.upload_images(body_h3_logo_four, db=db, bucket_name=bucket_name)
-
     # map schema to landing page model
     d = await landing_page_services.create_landing_page(landing_page_name=request.landing_page_name, bucket_name=bucket_name, db=db, current_user=current_user.id)
     if not d:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="could not be saved")
-    other_info = {
+    
+    # after confirming all fields are available, add them to dictionary (other_info)
+    for key, value in vars(request).items():
+        if key in request_fields:
+            other_info[key] = value
 
-        "body_h1": request.body_h1,
-        "body_paragraph": request.body_paragraph,
-        "body_h3": request.body_h3,
-        "body_h3_logo_one": body_h3_logo_one,
-        "body_h3_logo_one_name": request.body_h3_logo_one_name,
-        "body_h3_logo_one_paragraph": request.body_h3_logo_one_paragraph,
-        "body_h3_logo_two": body_h3_logo_two,
-        "body_h3_logo_two_name": request.body_h3_logo_two_name,
-        "body_h3_logo_two_paragraph": request.body_h3_logo_two_paragraph,
-        "body_h3_logo_three": body_h3_logo_three,
-        "body_h3_logo_three_name": request.body_h3_logo_three_name,
-        "body_h3_logo_three_paragraph": request.body_h3_logo_three_paragraph,
-        "body_h3_logo_four": body_h3_logo_four,
-        "body_h3_logo_four_name": request.body_h3_logo_four_name,
-        "body_h3_logo_four_paragraph": request.body_h3_logo_four_paragraph,
-        "section_one_image_link": section_one_image_link,
-        "section_three_paragraph": request.section_three_paragraph,
-        "section_three_sub_paragraph": request.section_three_sub_paragraph,
-        "section_three_image": section_three_image,
-        "footer_h3": request.footer_h3,
-        "footer_h3_paragraph": request.footer_h3_paragraph,
-        "footer_name_employee": request.footer_name_employee,
-        "name_job_description": request.name_job_description,
-        "footer_h2_text": request.footer_h2_text,
-        "footer_contact_address": request.footer_contact_address,
-        "customer_care_email": request.customer_care_email,
-        "home_link": request.home_link,
-        "about_link": request.about_link,
-        "faq_link": request.faq_link,
-        "contact_us_link": request.contact_us_link,
-        "section_four_image": section_four_image,
-        "company_name": request.company_name,
-        "company_logo": company_logo,
-        "login_link": request.login_link,
-        "signup_link": request.signup_link,
-        "title" : request.title,
-        "favicon" : favicon,
-        "shape_one" : shape_one,
-        "shape_two" : shape_two,
-        "shape_three" : shape_three,
-    }
     background_tasks.add_task(landing_page_services.add_other_info, landing_page_instance=d, data=other_info, db=db)
     return {"success": "Landing page created"}
 
@@ -240,52 +204,22 @@ async def get_landing_page(request: Request, landingpage_name: str, db: Session 
     # check if landing page data is returned and extract the data
     if not landingpage_data:
         raise HTTPException(status_code=404, detail="Landing page not found")
-    h = {
-        "body_h1": getdicvalue(landingpage_data.id,db=db, key= "body_h1"),
-        "body_paragraph": getdicvalue(landingpage_data.id,db=db, key="body_paragraph"),
-        "body_h3": getdicvalue(landingpage_data.id,db=db, key= "body_h3"),
-        "body_h3_logo_one_name": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one_name"),
-        "body_h3_logo_one_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one_paragraph"),
-        "body_h3_logo_two_name": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_two_name"),
-        "body_h3_logo_two_paragraph": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_two_paragraph"),
-        "body_h3_logo_three_name": getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_three_name"),
-        "body_h3_logo_three_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three_paragraph"),
-        "body_h3_logo_four_name": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_four_name"),
-        "body_h3_logo_four_paragraph": getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_four_paragraph"),
-        "section_three_paragraph": getdicvalue(landingpage_data.id,db=db, key= "section_three_paragraph"),
-        "section_three_sub_paragraph": getdicvalue(landingpage_data.id,db=db, key= "section_three_sub_paragraph"),
-        "footer_h3": getdicvalue(landingpage_data.id,db=db, key= "footer_h3"),
-        "footer_h3_paragraph": getdicvalue(landingpage_data.id,db=db, key= "footer_h3_paragraph"),
-        "footer_name_employee": getdicvalue(landingpage_data.id,db=db, key= "footer_name_employee"),
-        "name_job_description": getdicvalue(landingpage_data.id,db=db, key= "name_job_description"),
-        "footer_h2_text": getdicvalue(landingpage_data.id,db=db, key= "footer_h2_text"),
-        "footer_contact_address": getdicvalue(landingpage_data.id,db=db, key= "footer_contact_address"),
-        "customer_care_email": getdicvalue(landingpage_data.id,db=db, key= "customer_care_email"),
-        "home_link": getdicvalue(landingpage_data.id,db=db, key= "home_link"),
-        "about_link": getdicvalue(landingpage_data.id,db=db, key= "about_link"),
-        "faq_link": getdicvalue(landingpage_data.id,db=db, key= "faq_link"),
-        "contact_us_link": getdicvalue(landingpage_data.id,db=db, key= "contact_us_link"),
-        "company_name": getdicvalue(landingpage_data.id,db=db, key= "company_name"),
-        "login_link": getdicvalue(landingpage_data.id,db=db, key= "login_link"),
-        "signup_link": getdicvalue(landingpage_data.id,db=db, key= "signup_link"),
-        "title": getdicvalue(landingpage_data.id,db=db, key= "title"),
-        "body_h3_logo_one": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_one"),
-        "body_h3_logo_two": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_two"),
-        "body_h3_logo_three": image_path + getdicvalue(landingpage_data.id,db=db, key= "body_h3_logo_three"),
-        "section_three_image": image_path + getdicvalue(landingpage_data.id,db=db, key="section_three_image"),
-        "section_four_image": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_four_image"),
-        "section_one_image_link": image_path + getdicvalue(landingpage_data.id,db=db, key= "section_one_image_link"),
-        "body_h3_logo_four": image_path + getdicvalue(landingpage_data.id,db=db, key="body_h3_logo_four"),
-        "company_logo": image_path + getdicvalue(landingpage_data.id,db=db, key= "company_logo"),
-        "favicon": image_path + getdicvalue(landingpage_data.id,db=db, key= "favicon"),
-        "shape_one": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_one"),
-        "shape_two": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_two"),
-        "shape_three": image_path + getdicvalue(landingpage_data.id,db=db, key= "shape_three"),
-        "landing_page_name": landingpage_data.landing_page_name,
-        "css_file": css_path,
-        "js_file": js_path,
-        "LANDING_PAGE_FORM_PATH": LANDING_PAGE_FORM_PATH,
-    }
+    
+    # declare a context dictionary that will be sent to the templating engine
+    h = {}
+
+    # update the context dictionary with the requested field info and image paths
+    for field in request_fields:
+        h[field] = getdicvalue(landingpage_data.id, db=db, key=field)
+    for file in request_files:
+        h[file] = image_path + getdicvalue(landingpage_data.id, db=db, key=file)
+    
+    # update the context dictionary with the landing page name and paths to the js and css
+    h["landing_page_name"] = landingpage_data.landing_page_name
+    h["css_file"] = css_path
+    h["js_file"] = js_path
+    h["LANDING_PAGE_FORM_PATH"] = LANDING_PAGE_FORM_PATH
+
     return templates.TemplateResponse("landingpage.html", {"request": request, "h": h})
 
     # if no data is returned, throw an error
@@ -308,95 +242,56 @@ async def update_landing_page(landingpage_name: str, request: landing_page_schem
     """
     This endpoint will update a single landing page in the database with data from the request
     """
+
+    # get all the parameters of the current function in a dictionary
+    params = locals()
+
     # check if the user is superuser
-    if current_user.is_superuser:
-
-        request_fields = [
-            "company_name",
-            "body_h1",
-            "body_h3",
-            "body_h3_logo_one_name",
-            "body_h3_logo_two_name",
-            "body_h3_logo_three_name",
-            "body_h3_logo_four_name",
-            "body_paragraph",
-            "body_h3_logo_one_paragraph",
-            "body_h3_logo_two_paragraph",
-            "body_h3_logo_three_paragraph",
-            "body_h3_logo_four_paragraph",
-            "section_three_paragraph",
-            "section_three_sub_paragraph",
-            "footer_h3",
-            "footer_h3_paragraph",
-            "footer_name_employee",
-            "name_job_description",
-            "footer_h2_text",
-            "login_link",
-            "signup_link",
-            "home_link",
-            "about_link",
-            "faq_link",
-            "contact_us_link",
-            "footer_contact_address",
-            "customer_care_email",
-            "title"
-        ]
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=404, detail="You are not allowed to perform this action")
         
-        request_files = [
-            "favicon",
-            "shape_one",
-            "shape_two",
-            "shape_three",
-            "company_logo",
-            "section_one_image_link",
-            "body_h3_logo_one",
-            "body_h3_logo_two",
-            "body_h3_logo_three",
-            "body_h3_logo_four",
-            "section_three_image",
-            "section_four_image",
-        ]
+    # query the database using the landing page name
+    update_landing_page_data = db.query(landing_page_models.LandingPage).filter(
+        landing_page_models.LandingPage.landing_page_name == landingpage_name).first()
 
-        params = locals()
+    # check if update landing page does not exist, throw an error
+    if update_landing_page_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Landing page does not exist")
 
-        # query the database using the landing page name
-        update_landing_page_data = db.query(landing_page_models.LandingPage).filter(
-            landing_page_models.LandingPage.landing_page_name == landingpage_name).first()
+    # check if the landing page name is not the same as the landing page name in the database, throw an error
+    if update_landing_page_data.landing_page_name != request.landing_page_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Landing page name cannot be changed")
 
-        # check if update landing page does not exist, throw an error
-        if update_landing_page_data is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Landing page does not exist")
+    # query and update each of the text fields given in the http request
+    for field in request_fields:
+        if getdicvalue(update_landing_page_data.id, db=db, key=field) != request[field]:
+            db.query(landing_page_models.LandingPageOtherInfo).filter(
+                landing_page_models.LandingPageOtherInfo.value == getdicvalue(
+                    update_landing_page_data.id, db=db, key=field)).update(
+                        {landing_page_models.LandingPageOtherInfo.value:func.replace(
+                            landing_page_models.LandingPageOtherInfo.value, getdicvalue(
+                                update_landing_page_data.id, db=db,key=field), request[field])}, synchronize_session=False)
 
-        # check if the landing page name is not the same as the landing page name in the database, throw an error
-        if update_landing_page_data.landing_page_name != request.landing_page_name:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Landing page name cannot be changed")
+    # query and update each of the file fields given in the http request
+    for key, value in params.items():
+        if key in request_files and not await isFileExist(value.filename):
+            query = getdicvalue(update_landing_page_data.id, db=db, key=key)
+            if await deleteFile(query):
+                upload = await upload_image(params[key], db=db, bucket_name=update_landing_page_data.bucket_name)
+                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == query).update({landing_page_models.LandingPageOtherInfo.value: func.replace(landing_page_models.LandingPageOtherInfo.value, query, f"/{update_landing_page_data.bucket_name}/{upload}")}, synchronize_session=False)
 
-        for field in request_fields:
-            if getdicvalue(update_landing_page_data.id, db=db, key=field) != request[field]:
-                db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == getdicvalue(update_landing_page_data.id, db=db, key=field)).update({landing_page_models.LandingPageOtherInfo.value:func.replace(landing_page_models.LandingPageOtherInfo.value, getdicvalue(update_landing_page_data.id, db=db,key=field), request[field])}, synchronize_session=False)
 
-        for key in params.keys():
-            if key in request_files:
-                if not await isFileExist(params[key].filename):
-                    query = getdicvalue(update_landing_page_data.id, db=db, key=key)
-                    if await deleteFile(query):
-                        upload = await upload_image(params[key], db=db, bucket_name=update_landing_page_data.bucket_name)
-                        db.query(landing_page_models.LandingPageOtherInfo).filter(landing_page_models.LandingPageOtherInfo.value == query).update({landing_page_models.LandingPageOtherInfo.value: func.replace(landing_page_models.LandingPageOtherInfo.value, query, "/" + update_landing_page_data.bucket_name + "/" + upload)}, synchronize_session=False)
-
-        # attempt to update the landing page data
-        try:
-            db.commit()
-            db.refresh(update_landing_page_data)
-            return update_landing_page_data
-        except Exception as e:
-            print(e)
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="An error occured while updating the landing page data")
-
-    else:
-        raise HTTPException(status_code=404, detail="Landing page not found")
+    # attempt to update the landing page data
+    try:
+        db.commit()
+        db.refresh(update_landing_page_data)
+        return update_landing_page_data
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="An error occured while updating the landing page data")
 
 
 # Endpoint to delete landing page data
