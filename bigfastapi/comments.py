@@ -24,6 +24,8 @@ from .schemas import comments_schemas
 from .models import comments_models, user_models
 from .auth_api import *
 
+from bigfastapi.schemas import users_schemas
+from bigfastapi.auth_api import is_authenticated
 
 
 from fastapi.security import HTTPBearer
@@ -100,6 +102,7 @@ def create_new_comment_for_object(
     background_tasks: BackgroundTasks,
     comment: comments_schemas.CommentBase,
     db_Session=Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
 ):  
     """intro-->This endpoint is used to create a top level comment for an object. To use this endpoint you need to make a post request to the /comments/{model_type}/{object_id} endpoint 
             paramDesc-->On post request the url takes two parameters, model_type & object_id
@@ -118,18 +121,19 @@ def create_new_comment_for_object(
     log = create_log_comment( 
         organization_id=comment.org_id,
         model_id=obj.id,
+        comment=comment.text,
         model_name="Comment", 
         activity="added",
         created_for_id=object_id,
         created_for_model="biz_partner",
         db=db_Session, 
-        user=comment.commenter_id
+        user=user
     ) 
 
     background_tasks.add_task(
         createActivityLog, 
-        model_name="Comment", model_id=obj.id, user=commenter, 
-        log=log,  db=db_Session, created_for_id=object_id, 
+        model_name="Comment", model_id=obj.id, user=user, 
+        log=log, db=db_Session, created_for_id=object_id, 
         created_for_model="biz_partner"
     )
 
@@ -214,21 +218,19 @@ def vote_on_comment(
 def create_log_comment(
     organization_id:str,
     model_id: str,
-    model_name: str, 
+    model_name: str,
+    comment: str, 
     created_for_id: str,
     created_for_model:str,
     db: _orm.Session,
-    user: str,
+    user: users_schemas.User = Depends(is_authenticated),
     activity: str = "added",
 
 ):
 
-    print(user)
+    print(user)   
 
-    commenter = db.query(user_models.User).filter(user_models.User.id == user).first()
-    print(commenter)
-
-    action = f'{commenter.first_name} {activity} a Comment'
+    action = f'{user.first_name} {activity} a Comment "{comment}"'
     log = {
         'action': action,
         'organization_id': organization_id,
