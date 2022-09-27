@@ -225,10 +225,7 @@ def create_log_comment(
     db: _orm.Session,
     user: users_schemas.User = Depends(is_authenticated),
     activity: str = "added",
-
-):
-
-    print(user)   
+):      
 
     action = f'{user.first_name} {activity} a Comment "{comment}"'
     log = {
