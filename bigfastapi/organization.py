@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+from sqlite3 import Timestamp
 from typing import Optional
 from uuid import uuid4
 
@@ -117,8 +118,7 @@ def create_organization(
 
 @app.get("/organizations")
 def get_organizations(
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = datetime,
+    datetime_constraint: datetime = None,
     user: users_schemas.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db),
     page_size: int = 15,
@@ -136,12 +136,10 @@ def get_organizations(
         returnBody--> a list of organizations
     """
 
-    organizations = organization_services.get_organizations(
-        user=user, db=db, start_date=start_date, end_date=end_date
-    )
-    if start_date and end_date:
+
+    if datetime_constraint != None:
         organizations = organization_services.get_organizations(
-        user=user, db=db, start_date=start_date, end_date=end_date
+        user=user, db=db, timestamp=datetime_constraint
     )
     else:
         organizations = organization_services.get_organizations(

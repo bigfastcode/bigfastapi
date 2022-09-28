@@ -5,7 +5,7 @@ from uuid import uuid4
 import fastapi as _fastapi
 from decouple import config
 from sqlalchemy import orm
-
+from sqlalchemy import or_
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.models import contact_info_models
 from bigfastapi.models import credit_wallet_models as credit_wallet_models
@@ -264,14 +264,14 @@ def create_org_image_full_path(organization, db: orm.Session):
             setattr(organization, "image_full_path", imageURL)
 
 
-def get_organizations(user: users_schemas.User, db: orm.Session, start_date: str =None, end_date: str =None):
+def get_organizations(user: users_schemas.User, db: orm.Session, timestamp: str = None):
     # filter by start and end date if provided
-    
-    if start_date and end_date is not None:
+
+    if timestamp is not None:
         native_orgs = (
             db.query(Models.Organization)
             .filter(Models.Organization.user_id == user.id)
-            .filter(Models.Organization.last_updated.between(end_date, start_date))
+            .filter(or_(Models.Organization.date_created > timestamp, Models.Organization.last_updated_db > timestamp))
             .all()
         )
     else:
