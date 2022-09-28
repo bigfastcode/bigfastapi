@@ -166,4 +166,5 @@ identifier.sqlite
 
 Pipfile
 workspace.code-workspace
+bfa-cpme.code-workspace
 Pipfile.lock
