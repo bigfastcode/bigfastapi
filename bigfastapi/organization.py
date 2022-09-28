@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from typing import Optional
 from uuid import uuid4
@@ -116,13 +117,13 @@ def create_organization(
 
 @app.get("/organizations")
 def get_organizations(
+    start_date: Optional[str],
+    end_date: Optional[str] = datetime,
     user: users_schemas.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db),
     page_size: int = 15,
     page_number: int = 1,
     # fetach organization by specific date range
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
 ):
     """intro--> This endpoint allows you to retrieve all organizations. To use this endpoint you need to make a get request to the /organizations endpoint
 
