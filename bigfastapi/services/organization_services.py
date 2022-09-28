@@ -264,12 +264,28 @@ def create_org_image_full_path(organization, db: orm.Session):
             setattr(organization, "image_full_path", imageURL)
 
 
-def get_organizations(user: users_schemas.User, db: orm.Session):
-    native_orgs = db.query(Models.Organization).filter_by(user_id=user.id).all()
+def get_organizations(user: users_schemas.User, db: orm.Session, start_date: str =None, end_date: str =None):
+    # filter by start and end date if provided
+    
+    if start_date and end_date:
+        native_orgs = (
+            db.query(Models.Organization)
+            .filter(Models.Organization.user_id == user.id)
+            .filter(Models.Organization.date_created.between(end_date, start_date))
+            .all()
+        )
+    else:
+        native_orgs = (
+            db.query(Models.Organization)
+            .filter(Models.Organization.user_id == user.id)
+            .all()
+        )
+    # native_orgs = db.query(Models.Organization).filter_by(user_id=user.id).all()
 
     invited_orgs_pvt = (
         db.query(Models.OrganizationUser)
         .filter(Models.OrganizationUser.user_id == user.id)
+
         .all()
     )
 
