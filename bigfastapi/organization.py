@@ -120,6 +120,9 @@ def get_organizations(
     db: orm.Session = Depends(get_db),
     page_size: int = 15,
     page_number: int = 1,
+    # fetach organization by specific date range
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
 ):
     """intro--> This endpoint allows you to retrieve all organizations. To use this endpoint you need to make a get request to the /organizations endpoint
 
@@ -131,10 +134,32 @@ def get_organizations(
 
         returnBody--> a list of organizations
     """
+    try:
+        organizations = organization_services.get_organizations(
+            user=user, db=db, start_date=start_date, end_date=end_date
+        )
 
-    all_orgs = organization_services.get_organizations(user, db)
+        paginated_data = paginate_data(
+            data=organizations, page_size=page_size, page_number=page_number
+        )
 
-    return paginate_data(all_orgs, page_size, page_number)
+        return JSONResponse(
+            {
+                "message": "Organizations retrieved successfully",
+                "data": jsonable_encoder(paginated_data),
+            },
+            status_code=200,
+        )
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        )
+    # all_orgs = organization_services.get_organizations(user, db)
+
+    # return paginate_data(all_orgs, page_size, page_number)
 
 
 @app.get("/organizations/{organization_id}", status_code=200)
