@@ -10,6 +10,7 @@ class CommentBase(pydantic.BaseModel):
     name : str
     email : str
     commenter_id: str = None
+    org_id: Optional[str] = None
 
 class Comment(CommentBase):
     id : str

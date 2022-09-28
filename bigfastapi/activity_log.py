@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.models.organization_models import Organization
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from .core.helpers import Helpers
 import requests
 from starlette.background import BackgroundTask
 
@@ -135,12 +136,19 @@ def deleteAllActivitiesLog(body: DeleteActivitiesLogBase, db: Session = Depends(
 
 #======================= LOG SERVICES ===============================
 
-def createActivityLog(model_name, object_id, user, log, db):
+def createActivityLog(model_name, model_id, user, log, db, created_for_id: str=None, created_for_model: str=None):
     
+
     activityLog = ActivitiesModel(
-        id= uuid4().hex, organization_id = log.organization_id, 
-        user_id= user.id, object_id= object_id, object_url=log.object_url,
-        model_name=model_name, action=log.action, created_at=datetime.now()
+        id= uuid4().hex, 
+        organization_id = log["organization_id"], 
+        user_id= user.id, 
+        # user_name = "",
+        model_id= model_id, 
+        created_for_id=None if not created_for_id else created_for_id,
+        created_for_model=None if not created_for_model else created_for_model,
+        object_url=log["object_url"],
+        model_name=model_name, action=log["action"], created_at=datetime.now()
     )
 
     db.add(activityLog)
@@ -148,7 +156,7 @@ def createActivityLog(model_name, object_id, user, log, db):
     db.refresh(activityLog)
 
     organization = db.query(Organization).filter(
-        Organization.id == log.organization_id).first()
+        Organization.id == activityLog.organization_id).first()
 
     userInfo = db.query(userModel.User).filter(
         userModel.User.id == user.id).first()
@@ -156,12 +164,14 @@ def createActivityLog(model_name, object_id, user, log, db):
     setattr(activityLog, 'user', userInfo)
     setattr(activityLog, 'organization', organization)
 
-    #send request to slack
+    # send request to slack
     requests.post(url=config('LOG_WEBHOOK_URL'), 
-        json={"text" : str(" " if user.first_name is None else user.first_name) +' '+ str(" " if user.last_name is None else user.last_name) +' '+ log.action},headers={"Content-Type": "application/json"}, verify=True
+        json={"text" : str(" " if user.first_name is None else user.first_name) +' '+ str(" " if user.last_name is None else user.last_name) +' '+ log["action"]},headers={"Content-Type": "application/json"}, verify=True
     )
 
+
     return activityLog
+
 
 def getOrganizationActivitiesLog(organization_id, db):
     

@@ -16,6 +16,10 @@ def get_db_engine():
     MYSQL_DRIVER = config("MYSQL_DRIVER")
     DATABASE_URL = ""
 
+
+
+
+
     if DB_TYPE == "mysql":
         DATABASE_URL = f"mysql+{MYSQL_DRIVER}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     elif DB_TYPE == "postgresql":

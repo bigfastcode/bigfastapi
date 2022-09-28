@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, BackgroundTasks
 from typing import List, Any
 import fastapi as _fastapi
 from fastapi.param_functions import Depends
@@ -19,10 +19,13 @@ from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 from bigfastapi.utils import settings as settings
 from bigfastapi.db import database
+from bigfastapi.activity_log import createActivityLog
 from .schemas import comments_schemas
-from .models import comments_models
+from .models import comments_models, user_models
 from .auth_api import *
 
+from bigfastapi.schemas import users_schemas
+from bigfastapi.auth_api import is_authenticated
 
 
 from fastapi.security import HTTPBearer
@@ -96,8 +99,10 @@ def reply_to_comment(
 def create_new_comment_for_object(
     model_type: str,
     object_id: str,
+    background_tasks: BackgroundTasks,
     comment: comments_schemas.CommentBase,
     db_Session=Depends(get_db),
+    user: users_schemas.User = Depends(is_authenticated)
 ):  
     """intro-->This endpoint is used to create a top level comment for an object. To use this endpoint you need to make a post request to the /comments/{model_type}/{object_id} endpoint 
             paramDesc-->On post request the url takes two parameters, model_type & object_id
@@ -110,6 +115,29 @@ def create_new_comment_for_object(
     obj = db_create_comment_for_object(
         object_id=object_id, comment=comment, model_type=model_type, db=db_Session
     )
+
+    commenter = db_Session.query(user_models.User).filter(user_models.User.id == comment.commenter_id).first()
+
+    log = create_log_comment( 
+        organization_id=comment.org_id,
+        model_id=obj.id,
+        comment=comment.text,
+        model_name="Comment", 
+        activity="added",
+        created_for_id=object_id,
+        created_for_model="biz_partner",
+        db=db_Session, 
+        user=user
+    ) 
+
+    background_tasks.add_task(
+        createActivityLog, 
+        model_name="Comment", model_id=obj.id, user=user, 
+        log=log, db=db_Session, created_for_id=object_id, 
+        created_for_model="biz_partner"
+    )
+
+
     return {"status": True, "data": obj}
 
 
@@ -186,6 +214,27 @@ def vote_on_comment(
 
 
 #=================================== COMMENT SERVICES =================================#
+
+def create_log_comment(
+    organization_id:str,
+    model_id: str,
+    model_name: str,
+    comment: str, 
+    created_for_id: str,
+    created_for_model:str,
+    db: _orm.Session,
+    user: users_schemas.User = Depends(is_authenticated),
+    activity: str = "added",
+):      
+
+    action = f'{user.first_name} {activity} a Comment "{comment}"'
+    log = {
+        'action': action,
+        'organization_id': organization_id,
+        'object_url': "comment"            
+    }
+    return log
+
 
 def db_vote_for_comments(comment_id: int, model_type:str, action: str, db: _orm.Session):
     
