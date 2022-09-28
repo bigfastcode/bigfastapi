@@ -131,10 +131,14 @@ async def send_receipt(
         db.commit()
         db.refresh(receipt)
 
-        return JSONResponse(
-            {"message": "receipt sent", "data": payload},
-            status_code=201,
+        response_data = payload.dict()
+        response_data["receipt_id"] = receipt.id
+        response_data["created_at"] = receipt.created_at
+        response_data["path"] = os.path.join(
+            os.path.abspath("./filestorage/pdfs/"), pdf_name
         )
+
+        return {"message": "receipt sent", "data": response_data}, 201
 
     except Exception as ex:
         db.rollback()
