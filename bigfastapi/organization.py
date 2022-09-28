@@ -139,7 +139,14 @@ def get_organizations(
         organizations = organization_services.get_organizations(
             user=user, db=db, start_date=start_date, end_date=end_date
         )
-
+        if start_date and end_date:
+            organizations = organization_services.get_organizations(
+            user=user, db=db, start_date=start_date, end_date=end_date
+        )
+        else:
+            organizations = organization_services.get_organizations(
+            user=user, db=db)
+            
         paginated_data = paginate_data(
             data=organizations, page_size=page_size, page_number=page_number
         )
