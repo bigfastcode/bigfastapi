@@ -234,7 +234,9 @@ async def login(
         )
 
         if background_tasks is not None:
-            background_tasks.add_task(send_slack_notification, userinfo["response_user"])
+            background_tasks.add_task(
+                send_slack_notification, userinfo["response_user"]
+            )
 
         response.set_cookie(
             key="refresh_token",
@@ -267,7 +269,9 @@ async def login(
         )
 
         if background_tasks is not None:
-            background_tasks.add_task(send_slack_notification, userinfo["response_user"])
+            background_tasks.add_task(
+                send_slack_notification, userinfo["response_user"]
+            )
 
         response.set_cookie(
             key="refresh_token",
@@ -287,6 +291,17 @@ async def refresh_access_token(
     refresh_token: Union[str, None] = Cookie(default=None),
     db: orm.Session = fastapi.Depends(get_db),
 ):
+    """Refreshes an access_token with the issued refresh_token
+    Parameters
+        ----------
+        refresh_token : str, None
+            The refresh token sent in the cookie by the client (default is None)
+
+        Raises
+        ------
+        UnauthorizedError
+            If the refresh token is None.
+    """
 
     credentials_exception = fastapi.HTTPException(
         status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
@@ -295,7 +310,10 @@ async def refresh_access_token(
     )
 
     if refresh_token is None:
-        return {"message": "Log in to authenticate user"}
+        return fastapi.HTTPException(
+            detail="Log in to authenticate user",
+            status_code=fastapi.status.HTTP_401_AUTHORIZED,
+        )
 
     valid_refresh_token = auth_service.verify_refresh_token(
         refresh_token, credentials_exception, db
