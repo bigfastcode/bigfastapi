@@ -451,3 +451,35 @@ async def sync_batch_user(
         },
         status_code=202 if user__obj['updated'] else 201,
     )
+
+
+@app.get("/auth/sync/user", status_code=201)
+async def sync_get_user(
+    email: str,
+    organization_id: str,
+    db: orm.Session = fastapi.Depends(get_db),
+):
+
+    # Steps:
+    user_obj = db.query(user_models.User) \
+        .filter(user_models.User.email == email) \
+        .first()
+
+    joined_org = db.query(OrganizationUser) \
+        .filter(OrganizationUser.user_id == user_obj.id) \
+        .filter(OrganizationUser.organization_id == organization_id) \
+        .first()
+
+    has_invite = db.query(OrganizationInvite) \
+        .filter(OrganizationInvite.user_id == user_obj.id) \
+        .filter(OrganizationInvite.organization_id == organization_id) \
+        .first()
+
+    return JSONResponse(
+        {
+            "user": jsonable_encoder(user_obj),
+            "invite": jsonable_encoder(has_invite),
+            "user_org": jsonable_encoder(joined_org),
+        },
+        status_code=200,
+    )
