@@ -312,7 +312,7 @@ async def refresh_access_token(
     if refresh_token is None:
         return fastapi.HTTPException(
             detail="Log in to authenticate user",
-            status_code=fastapi.status.HTTP_401_AUTHORIZED,
+            status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
         )
 
     valid_refresh_token = auth_service.verify_refresh_token(
