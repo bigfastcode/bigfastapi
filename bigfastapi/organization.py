@@ -123,7 +123,6 @@ def get_organizations(
     db: orm.Session = Depends(get_db),
     page_size: int = 15,
     page_number: int = 1,
-    reverse: bool = False,
     # fetach organization by specific date range
 ):
     """intro--> This endpoint allows you to retrieve all organizations. To use this endpoint you need to make a get request to the /organizations endpoint
