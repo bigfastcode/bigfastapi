@@ -7,7 +7,7 @@ import fastapi
 import jwt as JWT
 import passlib.hash as _hash
 import sqlalchemy.orm as orm
-from fastapi import Cookie
+from fastapi import Cookie, BackgroundTasks
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -414,15 +414,18 @@ async def password_change_token(
 
 
 async def send_code_password_reset_email(
-    email: str, db: orm.Session, codelength: int = None
+    email: str, db: orm.Session,
+    background_tasks: BackgroundTasks,
+    codelength: int = None
 ):
     user = await get_user(db, email=email)
     if user:
         code = await create_forgot_pasword_code(user, codelength)
         print(code)
         await email_services.send_email(
-            email,
-            user,
+            recipients=[email],
+            # user,
+            background_tasks=background_tasks,
             template="password_reset.html",
             title="Password Reset",
             code=code,
