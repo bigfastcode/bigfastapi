@@ -8,7 +8,7 @@ from sqlalchemy.types import DateTime, String
 from bigfastapi.db.database import Base
 
 
-class VirtualTables(Base):
+class VirtualTable(Base):
     __tablename__ = "virtual_tables"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     name = Column(String(255), index=True)
@@ -28,9 +28,11 @@ class VirtualTableData(Base):
     int_column_2 = Column(String(191))
     int_column_3 = Column(String(191))
     organization_id = Column(String(255), index=True)
+    date_created = Column(DateTime, default=datetime.datetime.now())
+    last_updated = Column(DateTime, default=datetime.datetime.now())
 
 
-class VirtualTableColumns(Base):
+class VirtualTableColumn(Base):
     __tablename__ = "virtual_table_columns"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
     virtual_table_id = Column(String(255), ForeignKey("organizations.id"), index=True)
@@ -39,3 +41,5 @@ class VirtualTableColumns(Base):
     db_table_column_name = Column(String(191))
     type = Column(String(50), nullable=True)
     organization_id = Column(String(255), index=True)
+    date_created = Column(DateTime, default=datetime.datetime.now())
+    last_updated = Column(DateTime, default=datetime.datetime.now())
