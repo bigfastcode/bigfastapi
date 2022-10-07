@@ -74,6 +74,23 @@ def get_all_comments_for_object(
     return {"status": True, "data": qs}
 
 
+@app.get("/comments/{model_type}/comment/{comment_id}")
+def get_specific_comment(
+    model_type: str, comment_id: str, db_Session=Depends(get_db)):    
+
+    """intro-->This endpoint allows you to retrieve a specific comment of model type. To use this endpoint you need to make a get request to the /comments/{model_type}/{comment_id} endpoint 
+            paramDesc-->On get request the url takes two parameters, model_type & comment_id
+                param-->model_type: This is the model type of the comment
+                param-->comment_id: This is the id of the comment
+
+        returnDesc--> On sucessful request, it returns 
+            returnBody--> the comment
+    """
+    comment_obj = db_retrieve_comment_by_id(comment_id, model_type, db=db_Session)
+
+    return comment_obj
+
+
 @app.post("/comments/{model_type}/{comment_id}/reply")
 def reply_to_comment(
     model_type: str,
@@ -144,7 +161,7 @@ def create_new_comment_for_object(
 @app.put("/comments/{model_type}/{comment_id}/update")
 def update_comment_by_id(
     model_type: str,
-    comment_id: int,
+    comment_id: str,
     comment: comments_schemas.CommentUpdate,
     db_Session=Depends(get_db),
 ):
@@ -245,7 +262,7 @@ def db_vote_for_comments(comment_id: int, model_type:str, action: str, db: _orm.
     db.refresh(comment_obj)
     return comment_obj
 
-def db_retrieve_comment_by_id(object_id: int, model_type:str, db: _orm.Session):
+def db_retrieve_comment_by_id(object_id: str, model_type:str, db: _orm.Session):
     """Retrieves a Comment by ID
 
     Args:
@@ -352,7 +369,7 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     
     return obj
 
-def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_type:str):
+def db_update_comment(object_id:str, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_type:str):
     """Edit a Comment Object
 
     Args:
