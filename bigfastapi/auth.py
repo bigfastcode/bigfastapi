@@ -483,6 +483,13 @@ async def sync_get_user(
         .filter(user_models.User.email == email) \
         .first()
 
+    if not user_obj:
+        return JSONResponse({
+            "error": "User not found"
+        },
+        status_code=404,
+    )
+
     joined_org = db.query(OrganizationUser) \
         .filter(OrganizationUser.user_id == user_obj.id) \
         .filter(OrganizationUser.organization_id == organization_id) \
