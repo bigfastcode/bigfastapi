@@ -524,3 +524,55 @@ def send_slack_notification(user):
     message = "New login from " + user.email
     # sends the message to slack
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
+
+
+
+async def sync_user(
+    user: auth_schemas.UserCreate, db: orm.Session, is_su: bool = False, is_active: bool = True
+):
+    su_status = True if is_su else False
+
+    # retrieve by email, separate list to update from list to insert
+    # update all, insert all, id as pk
+
+    existing_user = (
+        db.query(user_models.User).filter(user_models.User.email == user.email).first()
+    )
+
+    if existing_user:
+        return ({
+            "data": auth_schemas.UserCreateOut.from_orm(existing_user),
+            "updated": True
+        })
+
+    if not user.id:
+        user.id = uuid4().hex
+    user_obj = user_models.User(
+        id=user.id,
+        email=user.email,
+        password_hash=_hash.sha256_crypt.hash(user.password),
+        first_name=user.first_name,
+        last_name=user.last_name,
+        phone_number=user.phone_number,
+        is_active=is_active,
+        is_verified=True,
+        is_superuser=su_status,
+        phone_country_code=user.phone_country_code,
+        is_deleted=False,
+        google_id=user.google_id,
+        google_image_url=user.google_image_url,
+        image_url=user.image_url,
+        device_id=user.device_id,
+    )
+
+    try:
+        db.add(user_obj)
+        db.commit()
+        db.refresh(user_obj)
+        return ({
+            "data": auth_schemas.UserCreateOut.from_orm(user_obj),
+            "updated": False
+        })
+    except:
+        db.rollback()
+        # raise Exception or print error

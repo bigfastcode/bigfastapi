@@ -385,3 +385,119 @@ def send_slack_notification(user):
     message = "New login from " + user.email
     # sends the message to slack
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
+
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = =
+# imports
+from bigfastapi.models.organization_models import (
+    OrganizationInvite,
+    OrganizationUser,
+)
+from uuid import uuid4
+
+@app.post("/auth/sync/user", status_code=201)
+async def sync_batch_user(
+    user: auth_schemas.UserCreateSync,
+    db: orm.Session = fastapi.Depends(get_db),
+):
+    # Steps:
+    # - Create a User in deactivated mode
+    # - if user exists update, else create
+    # - Send Invite to Organization Invited as accepted
+    # - Add User ID to OrganizationUsers
+
+    user__obj = await auth_service.sync_user(user, db=db, is_active=False)
+    user_obj = user__obj['data']
+
+    joined_org = db.query(OrganizationUser) \
+        .filter(OrganizationUser.user_id == user_obj.id) \
+        .filter(OrganizationUser.organization_id == user.organization_id) \
+        .first()
+
+    has_invite = db.query(OrganizationInvite) \
+        .filter(OrganizationInvite.user_id == user_obj.id) \
+        .filter(OrganizationInvite.organization_id == user.organization_id) \
+        .first()
+
+
+    if user_obj and not has_invite:
+        # on bulk - if user and has invite pop out of list and append to update list
+        # then do bulk_update_mappings (on update list) and bulk insert mappings (on insert list)
+        has_invite = OrganizationInvite(
+            id=uuid4().hex,
+            organization_id=user.organization_id,
+            user_id=user_obj.id,
+            email=user_obj.email,
+            role_id=user.role_id,
+            invite_code=user.password,
+
+            # replicate the invite accepted and deleted
+            is_accepted=True,
+            is_deleted=True,
+        )
+
+        db.add(has_invite)
+
+
+        if user_obj and not joined_org:
+            joined_org = OrganizationUser(
+                id=uuid4().hex,
+                organization_id=user.organization_id,
+                user_id=user_obj.id,
+                role_id=user.role_id,
+            )
+
+            db.add(joined_org)
+
+
+        try:
+            db.commit()
+            db.refresh(has_invite)
+            db.refresh(joined_org)
+
+        except Exception as e:
+            db.rollback()
+            print(e)
+            # print or raise exception could not join org
+
+    return JSONResponse(
+        {
+            "user": jsonable_encoder(user_obj),
+            "invite": jsonable_encoder(has_invite),
+            "user_org": jsonable_encoder(joined_org),
+        },
+        status_code=202 if user__obj['updated'] else 201,
+    )
+
+
+@app.get("/auth/sync/user", status_code=201)
+async def sync_get_user(
+    email: str,
+    organization_id: str,
+    db: orm.Session = fastapi.Depends(get_db),
+):
+
+    # Steps:
+    user_obj = db.query(user_models.User) \
+        .filter(user_models.User.email == email) \
+        .first()
+
+    joined_org = db.query(OrganizationUser) \
+        .filter(OrganizationUser.user_id == user_obj.id) \
+        .filter(OrganizationUser.organization_id == organization_id) \
+        .first()
+
+    has_invite = db.query(OrganizationInvite) \
+        .filter(OrganizationInvite.user_id == user_obj.id) \
+        .filter(OrganizationInvite.organization_id == organization_id) \
+        .first()
+
+    return JSONResponse(
+        {
+            "user": jsonable_encoder(user_obj),
+            "invite": jsonable_encoder(has_invite),
+            "user_org": jsonable_encoder(joined_org),
+        },
+        status_code=200,
+    )
