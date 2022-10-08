@@ -25,7 +25,7 @@ from .models import comments_models, user_models
 from .auth_api import *
 
 from bigfastapi.schemas import users_schemas
-from bigfastapi.auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 
 
 from fastapi.security import HTTPBearer

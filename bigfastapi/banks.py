@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.responses import JSONResponse
 from bigfastapi.db.database import get_db
 from bigfastapi.schemas import bank_schemas, users_schemas
-from bigfastapi.auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.core import messages
 from datetime import datetime

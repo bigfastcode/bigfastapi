@@ -1,20 +1,18 @@
 import os
 
-import fastapi as fastapi
+import fastapi
 import passlib.hash as _hash
 import sqlalchemy.orm as orm
 from fastapi import APIRouter, File, HTTPException, UploadFile, BackgroundTasks
 
 from bigfastapi.db.database import get_db
 from bigfastapi.models import auth_models, user_models
+from bigfastapi.services.auth_service import (is_authenticated,
+                                              password_change_token,
+                                              resend_token_verification_mail,
+                                              send_code_password_reset_email,
+                                              verify_user_token)
 
-from .auth_api import (
-    is_authenticated,
-    password_change_token,
-    resend_token_verification_mail,
-    send_code_password_reset_email,
-    verify_user_token,
-)
 from .files import deleteFile, isFileExist, upload_image
 from .schemas import users_schemas as _schemas
 
