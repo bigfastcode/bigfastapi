@@ -533,10 +533,15 @@ async def sync_user(
     # update all, insert all, id as pk
 
     existing_user = (
-        db.query(user_models.User).filter(user_models.User.email == user.email).first()
+        db.query(user_models.User).filter(user_models.User.id == user.id).first()
     )
 
     if existing_user:
+        existing_user.email = user.email
+        try:
+            db.commit()
+        except:
+            db.rollback()
         return ({
             "data": auth_schemas.UserCreateOut.from_orm(existing_user),
             "updated": True
