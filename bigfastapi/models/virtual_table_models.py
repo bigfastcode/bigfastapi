@@ -21,6 +21,7 @@ class VirtualTable(Base):
 class VirtualTableData(Base):
     __tablename__ = "virtual_table_data"
     id = Column(String(255), primary_key=True, index=True, default=uuid4().hex)
+    virtual_table_id = Column(String(255), ForeignKey("organizations.id"), index=True)
     str_column_1 = Column(String(191))
     str_column_2 = Column(String(191))
     str_column_3 = Column(String(191))
