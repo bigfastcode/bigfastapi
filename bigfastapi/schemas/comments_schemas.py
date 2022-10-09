@@ -6,6 +6,7 @@ from typing import List, Optional
 
 
 class CommentBase(pydantic.BaseModel):
+    id: Optional[str]
     text : str 
     name : str
     email : str
