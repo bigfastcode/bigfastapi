@@ -46,6 +46,27 @@ class UserCreate(_UserBase):
         orm_mode = True
 
 
+class UserCreateSync(_pydantic.BaseModel):
+    id: Optional[str]
+    password: str
+    email: str
+    organization_id: str
+    role_id: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone_number: Optional[str]
+    phone_country_code: Optional[str]
+    image_url: Optional[str]
+    device_id: Optional[str]
+    # country: Optional[str]
+    # state: Optional[str]
+    google_id: Optional[str]
+    google_image_url: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
 class UserCreateOut(_UserBase):
     id: Optional[str]
     first_name: Optional[str]
