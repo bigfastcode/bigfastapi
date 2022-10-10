@@ -86,7 +86,7 @@ def get_specific_comment(
         returnDesc--> On sucessful request, it returns 
             returnBody--> the comment
     """
-    comment_obj = db_retrieve_comment_by_id(comment_id, model_type, db=db_Session)
+    comment_obj = db_retrieve_specific_comment_based_on_model_type(comment_id, model_type, db=db_Session)
 
     return comment_obj
 
@@ -390,3 +390,24 @@ def db_update_comment(object_id:str, comment: comments_schemas.CommentUpdate, db
     db.refresh(object_db)
     return comments_schemas.Comment.from_orm(object_db)
     
+
+def db_retrieve_specific_comment_based_on_model_type(object_id:str, model_type:str, db: _orm.Session):
+    """Retrieves a comment of a model type by ID
+
+    Args:
+        object_id (int): ID of target Comment
+        model_type (str): model type of comment
+        db (_orm.Session): DB Session to commit to. Automatically determined by FastAPI
+
+    Returns:
+        sqlalchemy Model Object: ORM Comment Object with ID = object_id on Success, else 404 error
+    """
+    comment_obj = db.query(comments_models.Comment).filter(comments_models.Comment.model_type == model_type, 
+                    comments_models.Comment.id == object_id).first()
+
+    if comment_obj is None:
+        raise _fastapi.HTTPException(
+            status_code=404, detail="Comment does not exist"
+        )
+
+    return comment_obj                         
