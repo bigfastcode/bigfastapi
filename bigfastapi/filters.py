@@ -14,7 +14,7 @@ app = APIRouter(tags=["Receipts"])
 @app.post("/filters", status_code=201)
 def create_filter(
     organization_id: str,
-    table: str,
+    table_name: str,
     filter_query: str,
     db: orm.Session = Depends(get_db),
 ):
@@ -24,7 +24,8 @@ def create_filter(
 
     Parameters
     ----------
-
+    organization_id: The id of the organization
+    table_name: The name of the table
 
     Raises
     ------
