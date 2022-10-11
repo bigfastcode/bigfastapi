@@ -12,7 +12,9 @@ class CommentBase(pydantic.BaseModel):
     email : str
     commenter_id: str = None
     org_id: Optional[str] = None
-    time_created: Optional[datetime.datetime]    
+    time_created: Optional[datetime.datetime] = datetime.datetime.now()
+    time_updated: Optional[datetime.datetime] = datetime.datetime.now()
+        
 
 class Comment(CommentBase):
     id : str

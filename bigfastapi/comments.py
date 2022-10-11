@@ -361,10 +361,11 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     Returns:
         Comment: Data of the newly Created Comment
     """
-        
+
     id = comment.id if comment.id else uuid4().hex
     obj = comments_models.Comment(id=id, rel_id=object_id, model_type=model_type, text=comment.text, 
-                    name=comment.name, email=comment.email, commenter_id=comment.commenter_id)
+                    name=comment.name, email=comment.email, commenter_id=comment.commenter_id, 
+                    time_created=comment.time_created, time_updated=comment.time_updated)
     db.add(obj)
     db.commit()
     db.refresh(obj)
