@@ -1,4 +1,4 @@
-import datetime as _dt
+import datetime as datetime
 from sqlite3 import Timestamp
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -12,7 +12,6 @@ from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_DEFAULT_SQLITE
 from bigfastapi.utils.utils import generate_short_id
 import bigfastapi.db.database as _database
-from datetime import datetime
 
 class Comment(_database.Base):
     __tablename__ = "comment"
