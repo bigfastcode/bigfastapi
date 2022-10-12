@@ -63,44 +63,57 @@
                                                     </td>
                                                 </tr>
 
-                                                {% for dict_item in parent_list %}
+                                              
                                                 <tr>
                                                     <td  style="padding-top:10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px;">
                                                         <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                                             <tr>
                                                                 <td align="left" width="260">
-                                                                    {{ dict_item.description if dict_item.description else
-                                                                        "N/A"}}
-                                                                       
+                                                                    {{ parent_list.description if parent_list.description
+                                                                        else "Invoice with invoice ID" + " " + parent_list.id +
+                                                                        " " + "is due" + " " +
+                                                                        parent_list.due_date.strftime('%Y-%m-%d') }}
+                                                                        <br/>
+
+
+                                                                        <b style="margin-top:1rem;">Invoice Breakdown</b> <br/>
+                                                                        {% for invoice_item in parent_list.items %}
+        
+                                                                        <span>
+                                                                          {{invoice_item.quantity}} quantity of
+                                                                          {{invoice_item.item_name if invoice_item.item_name else
+                                                                          invoice_item.item_id or invoice_item.id}}
+                                                                        </span>
+                                                                        <br />
                                                   
-                                                            
+                                                                        {% endfor %}
                                                                 </td>
 
                                                               
                                                                 <td align="right" width="260">
-                                                                    {{currency}} {{"{:,.2f}".format(dict_item.amount) }}
+                                                                    {{currency}} {{"{:,.2f}".format(parent_list.total_amount) }}
                                                                 </td>
                                                             </tr>
                                                         </table>
                                                     </td>
                                                 </tr>
 
-                                                {% endfor %}
+                                       
                                                 <tr>
                                                     <td style="padding-top: 0; padding-right: 0; padding-bottom: 10px; padding-left: 10px;">
 
                                                                   <table style="width: 100%; border-collapse:collapse;">
                                                                     <tr>
                                                                       <td style="background-color:#eee;border:1px solid #bbb;padding:5px;width:50%;">Total</td>
-                                                                      <td style="background-color:#fff;padding:5px;border:1px solid #bbb;width:50%;text-align: right;">{{currency}} {{"{:,.2f}".format(amount) }}</td>
+                                                                      <td style="background-color:#fff;padding:5px;border:1px solid #bbb;width:50%;text-align: right;">{{currency}} {{"{:,.2f}".format(parent_list.total_amount) }}</td>
                                                                     </tr>
                                                                     <tr>
                                                                       <td style="background-color:#eee;border:1px solid #bbb;padding:5px;width:50%;">Amount Paid</td>
-                                                                      <td style="background-color:#fff;padding:5px;border:1px solid #bbb;width:50%;text-align: right;">{{currency}} {{"{:,.2f}".format(amount_paid) }}</td>
+                                                                      <td style="background-color:#fff;padding:5px;border:1px solid #bbb;width:50%;text-align: right;">0</td>
                                                                    </tr>
                                                                    <tr>
                                                                       <td style="background-color:#eee;border:1px solid #bbb;padding:5px;width:50%;">Balance Due</td>
-                                                                      <td style="background-color:#fff;border:1px solid #bbb;padding:5px;width:50%;text-align: right;"></td>
+                                                                      <td style="background-color:#fff;border:1px solid #bbb;padding:5px;width:50%;text-align: right;">0</td>
                                                                    </tr>
                                                                   </table>
 

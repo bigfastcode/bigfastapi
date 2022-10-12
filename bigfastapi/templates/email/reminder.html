@@ -1,0 +1,1253 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Customer Pay Me(CPME)</title>
+
+    <style type="text/css">
+      a:hover {
+        color: #333cc1 !important;
+      }
+      a:active {
+        color: #333cc1 !important;
+      }
+      a:visited {
+        color: #333cc1 !important;
+      }
+      h1 a:active {
+        color: #333cc1 !important;
+      }
+      h2 a:active {
+        color: #333cc1 !important;
+      }
+      h3 a:active {
+        color: #333cc1 !important;
+      }
+      h4 a:active {
+        color: #333cc1 !important;
+      }
+      h5 a:active {
+        color: #333cc1 !important;
+      }
+      h6 a:active {
+        color: #333cc1 !important;
+      }
+      h1 a:visited {
+        color: #333cc1 !important;
+      }
+      h2 a:visited {
+        color: #333cc1 !important;
+      }
+      h3 a:visited {
+        color: #333cc1 !important;
+      }
+      h4 a:visited {
+        color: #333cc1 !important;
+      }
+      h5 a:visited {
+        color: #333cc1 !important;
+      }
+      h6 a:visited {
+        color: #333cc1 !important;
+      }
+      .button:hover table td {
+        background: #333cc1 !important;
+      }
+      .tiny-button:hover table td {
+        background: #333cc1 !important;
+      }
+      .small-button:hover table td {
+        background: #333cc1 !important;
+      }
+      .medium-button:hover table td {
+        background: #333cc1 !important;
+      }
+      .large-button:hover table td {
+        background: #333cc1 !important;
+      }
+      .button:hover {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .button:active {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .button:visited {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .tiny-button:hover {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .tiny-button:active {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .tiny-button:visited {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .small-button:hover {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .small-button:active {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .small-button:visited {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .medium-button:hover {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .medium-button:active {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .medium-button:visited {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .large-button:hover {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .large-button:active {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .large-button:visited {
+        color: #ffffff !important;
+        font-family: Helvetica, Arial, sans-serif;
+        text-decoration: none;
+      }
+      .secondary:hover table td {
+        background: #d0d0d0 !important;
+      }
+      .success:hover table td {
+        background: #457a1a !important;
+      }
+      .alert:hover table td {
+        background: #970b0e !important;
+      }
+      @media only screen and (max-width: 600px) {
+        table[class="body"] img {
+          width: auto !important;
+          height: auto !important;
+        }
+        table[class="body"] .container {
+          width: 95% !important;
+        }
+        table[class="body"] .row {
+          width: 100% !important;
+          display: block !important;
+        }
+        table[class="body"] .wrapper {
+          display: block !important;
+          padding-right: 0 !important;
+        }
+        table[class="body"] .columns {
+          table-layout: fixed !important;
+          float: none !important;
+          width: 100% !important;
+          padding-right: 0px !important;
+          padding-left: 0px !important;
+          display: block !important;
+        }
+        table[class="body"] .column {
+          table-layout: fixed !important;
+          float: none !important;
+          width: 100% !important;
+          padding-right: 0px !important;
+          padding-left: 0px !important;
+          display: block !important;
+        }
+        table[class="body"] .wrapper.first .columns {
+          display: table !important;
+        }
+        table[class="body"] .wrapper.first .column {
+          display: table !important;
+        }
+        table[class="body"] table.columns td {
+          width: 100%;
+        }
+        table[class="body"] table.column td {
+          width: 100%;
+        }
+        table[class="body"] td.offset-by-one {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-two {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-three {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-four {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-five {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-six {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-seven {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-eight {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-nine {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-ten {
+          padding-left: 0 !important;
+        }
+        table[class="body"] td.offset-by-eleven {
+          padding-left: 0 !important;
+        }
+        table[class="body"] .expander {
+          width: 9999px !important;
+        }
+        table[class="body"] .hide-for-small {
+          display: none !important;
+        }
+        table[class="body"] .show-for-desktop {
+          display: none !important;
+        }
+        table[class="body"] .show-for-small {
+          display: inherit !important;
+        }
+        table[class="body"] .hide-for-desktop {
+          display: inherit !important;
+        }
+        .confirm-num {
+          clear: both;
+          width: 100% !important;
+        }
+      }
+    </style>
+  </head>
+  <body
+    style="
+      width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      color: #222222;
+      display: block;
+      font-family: 'Helvetica', 'Arial', sans-serif;
+      font-weight: normal;
+      text-align: left;
+      line-height: 19px;
+      font-size: 14px;
+      margin: 0;
+      padding: 0;
+    "
+  >
+    <table
+      class="body"
+      style="
+        border-spacing: 0;
+        border-collapse: collapse;
+        vertical-align: top;
+        text-align: left;
+        height: 100%;
+        width: 100%;
+        color: #616161;
+        font-family: arial;
+        background: #f5f5f5;
+        padding: 0;
+      "
+      bgcolor="#F5F5F5"
+    >
+      <tbody>
+        <tr
+          style="vertical-align: top; text-align: left; padding: 0"
+          align="left"
+        >
+          <td
+            class="center"
+            align="center"
+            valign="top"
+            style="
+              word-break: break-word;
+              -webkit-hyphens: auto;
+              -moz-hyphens: auto;
+              hyphens: auto;
+              border-collapse: collapse !important;
+              vertical-align: top;
+              text-align: center;
+              padding: 0;
+            "
+          >
+            <center style="width: 100%">
+              <!-- Heading starts -->
+              <table
+                class="container"
+                style="
+                  border-spacing: 0;
+                  border-collapse: collapse;
+                  vertical-align: top;
+                  text-align: inherit;
+                  width: 580px;
+                  margin: 0 auto;
+                  padding: 0;
+                "
+              >
+                <tbody>
+                  <tr
+                    style="vertical-align: top; text-align: left; padding: 0"
+                    align="left"
+                  >
+                    <td
+                      style="
+                        word-break: break-word;
+                        -webkit-hyphens: auto;
+                        -moz-hyphens: auto;
+                        hyphens: auto;
+                        border-collapse: collapse !important;
+                        vertical-align: top;
+                        text-align: left;
+                        padding: 0;
+                      "
+                      align="left"
+                      valign="top"
+                    >
+                      <br /><br />
+                      <table
+                        class="header row"
+                        style="
+                          border-spacing: 0;
+                          border-collapse: collapse;
+                          vertical-align: top;
+                          text-align: left;
+                          width: 100%;
+                          position: relative;
+                          display: block;
+                          border-radius: 6px;
+                          /* background: #058bdd; */
+                          background: #fd7e14;
+                          padding: 0px;
+                        "
+                        bgcolor="#058BDD"
+                      >
+                        <tbody>
+                          <tr
+                            style="
+                              vertical-align: top;
+                              text-align: left;
+                              padding: 0;
+                            "
+                            align="left"
+                          >
+                            <td
+                              class="wrapper last"
+                              style="
+                                word-break: break-word;
+                                -webkit-hyphens: auto;
+                                -moz-hyphens: auto;
+                                hyphens: auto;
+                                border-collapse: collapse !important;
+                                vertical-align: top;
+                                text-align: left;
+                                position: relative;
+                                padding: 10px 0px 0px;
+                              "
+                              align="left"
+                              valign="top"
+                            >
+                              <table
+                                class="twelve columns"
+                                style="
+                                  border-spacing: 0;
+                                  border-collapse: collapse;
+                                  vertical-align: top;
+                                  text-align: left;
+                                  width: 580px;
+                                  margin: 0 auto;
+                                  padding: 0;
+                                "
+                              >
+                                <tbody>
+                                  <tr
+                                    style="
+                                      vertical-align: top;
+                                      text-align: left;
+                                      padding: 0;
+                                    "
+                                    align="left"
+                                  >
+                                    <td
+                                      class="center"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: center;
+                                        padding: 0px 0px 10px;
+                                      "
+                                      align="center"
+                                      valign="top"
+                                    >
+                                      <center style="width: 100%">
+                                        <h1
+                                          style="
+                                            color: #fff;
+                                            font-size: 48px;
+                                            margin-bottom: 20px;
+                                          "
+                                        >
+                                          CustomerPayMe(CPME)
+                                        </h1>
+                                      </center>
+                                    </td>
+                                    <td
+                                      class="expander"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: left;
+                                        visibility: hidden;
+                                        width: 0px;
+                                        padding: 0;
+                                      "
+                                      align="left"
+                                      valign="top"
+                                    ></td>
+                                  </tr>
+                                  <tr
+                                    style="
+                                      vertical-align: top;
+                                      text-align: left;
+                                      padding: 0;
+                                    "
+                                    align="left"
+                                  >
+                                    <td
+                                      class="center"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: center;
+                                        padding: 0px 0px 10px;
+                                      "
+                                      align="center"
+                                      valign="top"
+                                    >
+                                      <center style="width: 100%">
+                                        <span
+                                          style="color: #fff; font-size: 12px"
+                                          >The Biggest Hotel Reservation Agency
+                                          in Nigeria</span
+                                        >
+                                      </center>
+                                    </td>
+                                    <td
+                                      class="expander"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: left;
+                                        visibility: hidden;
+                                        width: 0px;
+                                        padding: 0;
+                                      "
+                                      align="left"
+                                      valign="top"
+                                    ></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <table
+                        class="row"
+                        style="
+                          border-spacing: 0;
+                          border-collapse: collapse;
+                          vertical-align: top;
+                          text-align: left;
+                          width: 100%;
+                          position: relative;
+                          display: block;
+                          padding: 0px;
+                        "
+                      >
+                        <tbody>
+                          <tr
+                            style="
+                              vertical-align: top;
+                              text-align: left;
+                              padding: 0;
+                            "
+                            align="left"
+                          >
+                            <td
+                              class="wrapper last"
+                              style="
+                                word-break: break-word;
+                                -webkit-hyphens: auto;
+                                -moz-hyphens: auto;
+                                hyphens: auto;
+                                border-collapse: collapse !important;
+                                vertical-align: top;
+                                text-align: left;
+                                position: relative;
+                                padding: 10px 0px 0px;
+                              "
+                              align="left"
+                              valign="top"
+                            >
+                              <meta
+                                http-equiv="Content-Type"
+                                content="text/html; charset=UTF-8"
+                              />
+                              <title>Hotels.ng</title>
+                              <meta
+                                name="viewport"
+                                content="width=device-width, initial-scale=1.0"
+                              />
+
+                              <table
+                                class="row"
+                                style="
+                                  border-spacing: 0;
+                                  border-collapse: collapse;
+                                  vertical-align: top;
+                                  text-align: left;
+                                  width: 100%;
+                                  position: relative;
+                                  display: block;
+                                  padding: 0px;
+                                "
+                              >
+                                <tbody>
+                                  <tr
+                                    style="
+                                      vertical-align: top;
+                                      text-align: left;
+                                      padding: 0;
+                                    "
+                                    align="left"
+                                  >
+                                    <td
+                                      class="wrapper last"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: left;
+                                        position: relative;
+                                        padding: 10px 0px 0px;
+                                      "
+                                      align="left"
+                                      valign="top"
+                                    >
+                                      <table
+                                        class="twelve columns"
+                                        style="
+                                          border-spacing: 0;
+                                          border-collapse: collapse;
+                                          vertical-align: top;
+                                          text-align: left;
+                                          width: 580px;
+                                          margin: 0 auto;
+                                          padding: 0;
+                                        "
+                                      >
+                                        <tbody>
+                                          <tr
+                                            style="
+                                              vertical-align: top;
+                                              text-align: left;
+                                              padding: 0;
+                                            "
+                                            align="left"
+                                          >
+                                            <td
+                                              class="expander"
+                                              style="
+                                                word-break: break-word;
+                                                -webkit-hyphens: auto;
+                                                -moz-hyphens: auto;
+                                                hyphens: auto;
+                                                border-collapse: collapse !important;
+                                                vertical-align: top;
+                                                text-align: left;
+                                                visibility: hidden;
+                                                width: 0px;
+                                                padding: 0;
+                                              "
+                                              align="left"
+                                              valign="top"
+                                            ></td>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <!-- Heading ends --><!-- Body starts -->
+                      <table
+                        class="container white-bg-container"
+                        style="
+                          border-spacing: 0;
+                          border-collapse: collapse;
+                          vertical-align: top;
+                          text-align: inherit;
+                          width: 580px;
+                          background: #ffffff;
+                          margin: 0 auto;
+                          padding: 15px;
+                        "
+                        bgcolor="#ffffff"
+                      >
+                        <tbody>
+                          <tr
+                            style="
+                              vertical-align: top;
+                              text-align: left;
+                              padding: 0;
+                            "
+                            align="left"
+                          >
+                            <td
+                              class="white-bg-container"
+                              style="
+                                word-break: break-word;
+                                -webkit-hyphens: auto;
+                                -moz-hyphens: auto;
+                                hyphens: auto;
+                                border-collapse: collapse !important;
+                                vertical-align: top;
+                                text-align: left;
+                                background: #ffffff;
+                                padding: 15px;
+                              "
+                              align="left"
+                              bgcolor="#ffffff"
+                              valign="top"
+                            >
+                              <table
+                                class="row"
+                                style="
+                                  border-spacing: 0;
+                                  border-collapse: collapse;
+                                  vertical-align: top;
+                                  text-align: left;
+                                  width: 100%;
+                                  position: relative;
+                                  display: block;
+                                  padding: 0px;
+                                "
+                              >
+                                <tbody>
+                                  <tr
+                                    style="
+                                      vertical-align: top;
+                                      text-align: left;
+                                      padding: 0;
+                                    "
+                                    align="left"
+                                  >
+                                    <td
+                                      class="wrapper last"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: left;
+                                        position: relative;
+                                        padding: 10px 0px 0px;
+                                      "
+                                      align="left"
+                                      valign="top"
+                                    >
+                                      <table
+                                        class="twelve columns"
+                                        style="
+                                          border-spacing: 0;
+                                          border-collapse: collapse;
+                                          vertical-align: top;
+                                          text-align: left;
+                                          width: 580px;
+                                          margin: 0 auto;
+                                          padding: 0;
+                                        "
+                                      >
+                                        <tbody>
+                                          <tr
+                                            style="
+                                              vertical-align: top;
+                                              text-align: left;
+                                              padding: 0;
+                                            "
+                                            align="left"
+                                          >
+                                            <td
+                                              style="
+                                                word-break: break-word;
+                                                -webkit-hyphens: auto;
+                                                -moz-hyphens: auto;
+                                                hyphens: auto;
+                                                border-collapse: collapse !important;
+                                                vertical-align: top;
+                                                text-align: left;
+                                                padding: 0px 0px 10px;
+                                              "
+                                              align="left"
+                                              valign="top"
+                                            ></td>
+                                            <td
+                                              class="expander"
+                                              style="
+                                                word-break: break-word;
+                                                -webkit-hyphens: auto;
+                                                -moz-hyphens: auto;
+                                                hyphens: auto;
+                                                border-collapse: collapse !important;
+                                                vertical-align: top;
+                                                text-align: left;
+                                                visibility: hidden;
+                                                width: 0px;
+                                                padding: 0;
+                                              "
+                                              align="left"
+                                              valign="top"
+                                            ></td>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                              <table
+                                class="row"
+                                style="
+                                  border-spacing: 0;
+                                  border-collapse: collapse;
+                                  vertical-align: top;
+                                  text-align: left;
+                                  width: 100%;
+                                  position: relative;
+                                  display: block;
+                                  padding: 0px;
+                                "
+                              >
+                                <tbody>
+                                  <tr
+                                    style="
+                                      vertical-align: top;
+                                      text-align: left;
+                                      padding: 0;
+                                    "
+                                    align="left"
+                                  >
+                                    <td
+                                      class="wrapper last"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: left;
+                                        position: relative;
+                                        padding: 10px 0px 0px;
+                                      "
+                                      align="left"
+                                      valign="top"
+                                    >
+                                      <table
+                                        class="twelve columns"
+                                        style="
+                                          border-spacing: 0;
+                                          border-collapse: collapse;
+                                          vertical-align: top;
+                                          text-align: left;
+                                          width: 580px;
+                                          margin: 0 auto;
+                                          padding: 0;
+                                        "
+                                      >
+                                        <tbody>
+                                          <tr
+                                            style="
+                                              vertical-align: top;
+                                              text-align: left;
+                                              padding: 0;
+                                            "
+                                            align="left"
+                                          >
+                                            <td
+                                              style="
+                                                word-break: break-word;
+                                                -webkit-hyphens: auto;
+                                                -moz-hyphens: auto;
+                                                hyphens: auto;
+                                                border-collapse: collapse !important;
+                                                vertical-align: top;
+                                                text-align: left;
+                                                padding: 0px 0px 10px;
+                                              "
+                                              align="left"
+                                              valign="top"
+                                            >
+                                              <span>
+                                                Dear Disu,
+                                                <br /><br />
+
+                                                You have ignored all reminders
+                                                and pleas to settle your debt.
+                                                <br /><br />
+
+                                                You now have three days to remit
+                                                all outstanding bills or your
+                                                hotel will be placed on the list
+                                                of hotels that we are
+                                                considering termination with.<br /><br />
+
+                                                Reach me within the next three
+                                                business days at +234 9083406663
+                                                or disujt@gmail.com so that we
+                                                can discuss how to resolve this
+                                                quickly. Otherwise, we will be
+                                                left with no other option.
+                                              </span>
+                                            </td>
+                                            <td
+                                              class="expander"
+                                              style="
+                                                word-break: break-word;
+                                                -webkit-hyphens: auto;
+                                                -moz-hyphens: auto;
+                                                hyphens: auto;
+                                                border-collapse: collapse !important;
+                                                vertical-align: top;
+                                                text-align: left;
+                                                visibility: hidden;
+                                                width: 0px;
+                                                padding: 0;
+                                              "
+                                              align="left"
+                                              valign="top"
+                                            ></td>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                              <table
+                                class="row"
+                                style="
+                                  border-spacing: 0;
+                                  border-collapse: collapse;
+                                  vertical-align: top;
+                                  text-align: left;
+                                  width: 100%;
+                                  position: relative;
+                                  display: block;
+                                  padding: 0px;
+                                "
+                              >
+                                <tbody>
+                                  <tr
+                                    style="
+                                      vertical-align: top;
+                                      text-align: left;
+                                      padding: 0;
+                                    "
+                                    align="left"
+                                  >
+                                    <td
+                                      class="wrapper"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: left;
+                                        position: relative;
+                                        padding: 10px 20px 0px 0px;
+                                      "
+                                      align="left"
+                                      valign="top"
+                                    >
+                                      <hr
+                                        style="
+                                          color: #d9d9d9;
+                                          height: 1px;
+                                          background: #d9d9d9;
+                                          border: none;
+                                        "
+                                      />
+                                      <!-- Remarks Here --><br />
+                                      <div style="margin-bottom: 80px">
+                                        <div
+                                          style="
+                                            padding-bottom: 15px;
+                                            display: inline-block;
+                                          "
+                                        >
+                                          Best Regards,
+                                          <br /><span
+                                            style="
+                                              font-weight: lighter;
+                                              font-size: 15px;
+                                              color: #d7d7d7;
+                                            "
+                                            >Disu OLuwatoyin | Account
+                                            Receivables</span
+                                          >
+                                          <br />
+                                          <br />
+                                          Hotel Booking Limited (RC: 1103947)
+                                          <br />
+                                          No. 3 Birrel Avenue, Sabo, Yaba,
+                                          Lagos. <br />
+                                          +2348146923873<br />
+                                        </div>
+                                        <div
+                                          class="confirm-num"
+                                          style="
+                                            display: inline-block;
+                                            float: right;
+                                          "
+                                        >
+                                          <table
+                                            style="
+                                              border-spacing: 0;
+                                              border-collapse: collapse;
+                                              vertical-align: top;
+                                              text-align: left;
+                                              padding: 0;
+                                            "
+                                          >
+                                            <tbody>
+                                              <tr
+                                                style="
+                                                  vertical-align: top;
+                                                  text-align: left;
+                                                  padding: 0;
+                                                "
+                                                align="left"
+                                              >
+                                                <td
+                                                  style="
+                                                    word-break: break-word;
+                                                    -webkit-hyphens: auto;
+                                                    -moz-hyphens: auto;
+                                                    hyphens: auto;
+                                                    border-collapse: collapse !important;
+                                                    vertical-align: top;
+                                                    text-align: left;
+                                                    padding: 0;
+                                                  "
+                                                  align="left"
+                                                  valign="top"
+                                                >
+                                                  <span
+                                                    style="
+                                                      font-weight: bold;
+                                                      color: #d7d7d7;
+                                                    "
+                                                    >Email:</span
+                                                  >
+                                                </td>
+                                                <td
+                                                  style="
+                                                    word-break: break-word;
+                                                    -webkit-hyphens: auto;
+                                                    -moz-hyphens: auto;
+                                                    hyphens: auto;
+                                                    border-collapse: collapse !important;
+                                                    vertical-align: top;
+                                                    text-align: left;
+                                                    padding: 0;
+                                                  "
+                                                  align="left"
+                                                  valign="top"
+                                                >
+                                                  <span
+                                                    style="
+                                                      font-weight: bold;
+                                                      color: #058bdd;
+                                                      padding-left: 4px;
+                                                    "
+                                                    >disujt@gmail.com</span
+                                                  >
+                                                </td>
+                                              </tr>
+                                              <tr
+                                                style="
+                                                  vertical-align: top;
+                                                  text-align: left;
+                                                  padding: 0;
+                                                "
+                                                align="left"
+                                              >
+                                                <td
+                                                  style="
+                                                    word-break: break-word;
+                                                    -webkit-hyphens: auto;
+                                                    -moz-hyphens: auto;
+                                                    hyphens: auto;
+                                                    border-collapse: collapse !important;
+                                                    vertical-align: top;
+                                                    text-align: left;
+                                                    padding: 0;
+                                                  "
+                                                  align="left"
+                                                  valign="top"
+                                                >
+                                                  <span
+                                                    style="
+                                                      font-weight: bold;
+                                                      color: #d7d7d7;
+                                                    "
+                                                    >Phone:</span
+                                                  >
+                                                </td>
+                                                <td
+                                                  style="
+                                                    word-break: break-word;
+                                                    -webkit-hyphens: auto;
+                                                    -moz-hyphens: auto;
+                                                    hyphens: auto;
+                                                    border-collapse: collapse !important;
+                                                    vertical-align: top;
+                                                    text-align: left;
+                                                    padding: 0;
+                                                  "
+                                                  align="left"
+                                                  valign="top"
+                                                >
+                                                  <span
+                                                    style="
+                                                      font-weight: bold;
+                                                      color: #058bdd;
+                                                      padding-left: 4px;
+                                                    "
+                                                    >+234 9083406663</span
+                                                  >
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+
+                                      <center style="width: 100%">
+                                        This email was sent to --client mail--
+                                        for hotel reservation purposes.
+                                        <br />
+                                        Were you satisfied with our service? If
+                                        No, e-mail your complaints to our
+                                        Managing Director md@hotels.ng
+                                      </center>
+                                    </td>
+                                    <td
+                                      class="expander"
+                                      style="
+                                        word-break: break-word;
+                                        -webkit-hyphens: auto;
+                                        -moz-hyphens: auto;
+                                        hyphens: auto;
+                                        border-collapse: collapse !important;
+                                        vertical-align: top;
+                                        text-align: left;
+                                        visibility: hidden;
+                                        width: 0px;
+                                        padding: 0;
+                                      "
+                                      align="left"
+                                      valign="top"
+                                    ></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <!-- Body ends -->
+              <table
+                class="row"
+                style="
+                  border-spacing: 0;
+                  border-collapse: collapse;
+                  vertical-align: top;
+                  text-align: left;
+                  width: 100%;
+                  position: relative;
+                  padding: 0px;
+                "
+              >
+                <tbody>
+                  <tr
+                    style="vertical-align: top; text-align: left; padding: 0"
+                    align="left"
+                  >
+                    <td
+                      class="wrapper last"
+                      style="
+                        word-break: break-word;
+                        -webkit-hyphens: auto;
+                        -moz-hyphens: auto;
+                        hyphens: auto;
+                        border-collapse: collapse !important;
+                        vertical-align: top;
+                        text-align: left;
+                        position: relative;
+                        padding: 10px 0px 0px;
+                      "
+                      align="left"
+                      valign="top"
+                    >
+                      <table
+                        class="twelve columns"
+                        style="
+                          border-spacing: 0;
+                          border-collapse: collapse;
+                          vertical-align: top;
+                          text-align: left;
+                          width: 580px;
+                          margin: 0 auto;
+                          padding: 0;
+                        "
+                      >
+                        <tbody>
+                          <tr
+                            style="
+                              vertical-align: top;
+                              text-align: left;
+                              padding: 0;
+                            "
+                            align="left"
+                          >
+                            <td
+                              style="
+                                word-break: break-word;
+                                -webkit-hyphens: auto;
+                                -moz-hyphens: auto;
+                                hyphens: auto;
+                                border-collapse: collapse !important;
+                                vertical-align: top;
+                                text-align: left;
+                                padding: 0px 0px 10px;
+                              "
+                              align="left"
+                              valign="top"
+                            >
+                              <div
+                                class="footer"
+                                style="
+                                  font-size: 10px;
+                                  color: #aaa;
+                                  text-align: center;
+                                  line-height: 1.4;
+                                  margin: 0 15px;
+                                "
+                                align="center"
+                              >
+                                Hotels.ng is an online booking agency
+                                specialised in hotel booking within Nigeria. We
+                                market hotels online and book rooms for clients.
+                                We proffer hotel accommodation solution to
+                                people looking for hotels within an area or
+                                particular city.
+                                <br />
+                                We provide them with appropriate hotels that
+                                match their budget and expectations.
+                              </div>
+                            </td>
+                            <td
+                              class="expander"
+                              style="
+                                word-break: break-word;
+                                -webkit-hyphens: auto;
+                                -moz-hyphens: auto;
+                                hyphens: auto;
+                                border-collapse: collapse !important;
+                                vertical-align: top;
+                                text-align: left;
+                                visibility: hidden;
+                                width: 0px;
+                                padding: 0;
+                              "
+                              align="left"
+                              valign="top"
+                            ></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <br /><br />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </center>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
