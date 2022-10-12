@@ -12,8 +12,8 @@ class CommentBase(pydantic.BaseModel):
     email : str
     commenter_id: str = None
     org_id: Optional[str] = None
-    time_created: Optional[datetime.datetime] = datetime.datetime.now()
-    time_updated: Optional[datetime.datetime] = datetime.datetime.now()
+    date_created: Optional[datetime.datetime] = datetime.datetime.now()
+    last_updated: Optional[datetime.datetime] = datetime.datetime.now()
         
 
 class Comment(CommentBase):
@@ -22,8 +22,8 @@ class Comment(CommentBase):
     commenter_id: str = None
     downvotes : int
     upvotes : int
-    time_created : datetime.datetime
-    time_updated : datetime.datetime
+    date_created : datetime.datetime
+    last_updated : datetime.datetime
     replies : List["Comment"]
     class Config:
         orm_mode = True
