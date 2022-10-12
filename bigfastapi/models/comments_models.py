@@ -1,4 +1,4 @@
-import datetime as _dt
+import datetime as datetime
 from sqlite3 import Timestamp
 import sqlalchemy as _sql
 import sqlalchemy.orm as _orm
@@ -25,9 +25,11 @@ class Comment(_database.Base):
     text = Column(String(500))
     downvotes = Column(Integer, default=0, nullable=False)
     upvotes = Column(Integer, default=0, nullable=False)
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
-    time_updated = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
-
+    date_created = Column(DateTime, default=datetime.datetime.utcnow)      
+    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
+    date_created_db = Column(DateTime(timezone=True), server_default=func.now())   
+    last_updated_db = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+    
     p_id = Column(String(255), ForeignKey("comment.id", ondelete="cascade"))
     parent = _orm.relationship("Comment", backref=_orm.backref('replies',  cascade="all, delete-orphan"), remote_side=[id], post_update=True, single_parent=True, uselist=True)
 
