@@ -6,11 +6,15 @@ from typing import List, Optional
 
 
 class CommentBase(pydantic.BaseModel):
+    id: Optional[str]
     text : str 
     name : str
     email : str
     commenter_id: str = None
     org_id: Optional[str] = None
+    date_created: Optional[datetime.datetime] = datetime.datetime.now()
+    last_updated: Optional[datetime.datetime] = datetime.datetime.now()
+        
 
 class Comment(CommentBase):
     id : str
@@ -18,8 +22,8 @@ class Comment(CommentBase):
     commenter_id: str = None
     downvotes : int
     upvotes : int
-    time_created : datetime.datetime
-    time_updated : datetime.datetime
+    date_created : datetime.datetime
+    last_updated : datetime.datetime
     replies : List["Comment"]
     class Config:
         orm_mode = True
