@@ -74,6 +74,23 @@ def get_all_comments_for_object(
     return {"status": True, "data": qs}
 
 
+@app.get("/comments/{model_type}/comment/{comment_id}")
+def get_specific_comment(
+    model_type: str, comment_id: str, db_Session=Depends(get_db)):    
+
+    """intro-->This endpoint allows you to retrieve a specific comment of model type. To use this endpoint you need to make a get request to the /comments/{model_type}/{comment_id} endpoint 
+            paramDesc-->On get request the url takes two parameters, model_type & comment_id
+                param-->model_type: This is the model type of the comment
+                param-->comment_id: This is the id of the comment
+
+        returnDesc--> On sucessful request, it returns 
+            returnBody--> the comment
+    """
+    comment_obj = db_retrieve_specific_comment_based_on_model_type(comment_id, model_type, db=db_Session)
+
+    return comment_obj
+
+
 @app.post("/comments/{model_type}/{comment_id}/reply")
 def reply_to_comment(
     model_type: str,
@@ -144,7 +161,7 @@ def create_new_comment_for_object(
 @app.put("/comments/{model_type}/{comment_id}/update")
 def update_comment_by_id(
     model_type: str,
-    comment_id: int,
+    comment_id: str,
     comment: comments_schemas.CommentUpdate,
     db_Session=Depends(get_db),
 ):
@@ -245,7 +262,7 @@ def db_vote_for_comments(comment_id: int, model_type:str, action: str, db: _orm.
     db.refresh(comment_obj)
     return comment_obj
 
-def db_retrieve_comment_by_id(object_id: int, model_type:str, db: _orm.Session):
+def db_retrieve_comment_by_id(object_id: str, model_type:str, db: _orm.Session):
     """Retrieves a Comment by ID
 
     Args:
@@ -344,15 +361,18 @@ def db_create_comment_for_object(object_id: str, comment: comments_schemas.Comme
     Returns:
         Comment: Data of the newly Created Comment
     """
-    obj = comments_models.Comment(id=uuid4().hex, rel_id=object_id, model_type=model_type, text=comment.text, 
-                    name=comment.name, email=comment.email, commenter_id=comment.commenter_id)
+
+    id = comment.id if comment.id else uuid4().hex
+    obj = comments_models.Comment(id=id, rel_id=object_id, model_type=model_type, text=comment.text, 
+                    name=comment.name, email=comment.email, commenter_id=comment.commenter_id, 
+                    date_created=comment.date_created, last_updated=comment.last_updated)
     db.add(obj)
     db.commit()
     db.refresh(obj)
     
     return obj
 
-def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_type:str):
+def db_update_comment(object_id:str, comment: comments_schemas.CommentUpdate, db: _orm.Session, model_type:str):
     """Edit a Comment Object
 
     Args:
@@ -372,3 +392,24 @@ def db_update_comment(object_id:int, comment: comments_schemas.CommentUpdate, db
     db.refresh(object_db)
     return comments_schemas.Comment.from_orm(object_db)
     
+
+def db_retrieve_specific_comment_based_on_model_type(object_id:str, model_type:str, db: _orm.Session):
+    """Retrieves a comment of a model type by ID
+
+    Args:
+        object_id (int): ID of target Comment
+        model_type (str): model type of comment
+        db (_orm.Session): DB Session to commit to. Automatically determined by FastAPI
+
+    Returns:
+        sqlalchemy Model Object: ORM Comment Object with ID = object_id on Success, else 404 error
+    """
+    comment_obj = db.query(comments_models.Comment).filter(comments_models.Comment.model_type == model_type, 
+                    comments_models.Comment.id == object_id).first()
+
+    if comment_obj is None:
+        raise _fastapi.HTTPException(
+            status_code=404, detail="Comment does not exist"
+        )
+
+    return comment_obj                         
