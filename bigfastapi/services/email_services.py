@@ -23,8 +23,8 @@ conf = ConnectionConfig(
     MAIL_PORT=settings.MAIL_PORT,
     MAIL_SERVER=settings.MAIL_SERVER,
     MAIL_FROM_NAME=settings.MAIL_FROM_NAME,
-    MAIL_TLS=False,
-    MAIL_SSL=True,
+    MAIL_STARTTLS=False,
+    MAIL_SSL_TLS=True,
     USE_CREDENTIALS=True,
     TEMPLATE_FOLDER=os.path.join(settings.TEMPLATE_FOLDER, "email"),
 )
