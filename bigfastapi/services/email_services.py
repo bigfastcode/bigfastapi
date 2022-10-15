@@ -33,18 +33,25 @@ conf = ConnectionConfig(
 
 async def send_email(
     background_tasks: BackgroundTasks,
-    code: int,
+    code: int = None,
     template: str = "",
-    title: str = "", 
-    email_details: dict = {},
-    recipients: list = [],
-    template_body: dict = {},
+    title: str = "",
+    email_details: dict = None,
+    recipients: list = None,
+    template_body: dict = None,
     custom_template_dir: str = "",
-    file: Union[UploadFile, None] = None, 
+    file: Union[UploadFile, None] = None,
     db: orm.Session = fastapi.Depends(get_db)
-    ):
+):
+    if email_details is None:
+        email_details = {}
+    if recipients is None:
+        recipients = []
+    if template_body is None:
+        template_body = {}
     try:
-        template_body["code"] = code
+        if code:
+            template_body["code"] = code
 
         if email_details:
             template_body["details"] = email_details
@@ -53,7 +60,7 @@ async def send_email(
             conf.TEMPLATE_FOLDER = custom_template_dir
         
         if file is not None:
-               message = MessageSchema(
+            message = MessageSchema(
                 subject=title,
                 recipients=recipients,
                 template_body=template_body,
@@ -66,14 +73,13 @@ async def send_email(
                 recipients=recipients,
                 template_body=template_body,
                 subtype="html",
-                    
-                )
+            )
 
         fm = FastMail(conf)
         background_tasks.add_task(fm.send_message, message, template_name=template)
 
     except Exception as ex:
-        if type(ex) == HTTPException:
+        if isinstance(ex, HTTPException):
             raise ex
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
