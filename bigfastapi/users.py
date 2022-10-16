@@ -1,20 +1,18 @@
 import os
 
-import fastapi as fastapi
+import fastapi
 import passlib.hash as _hash
 import sqlalchemy.orm as orm
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile, BackgroundTasks
 
 from bigfastapi.db.database import get_db
 from bigfastapi.models import auth_models, user_models
+from bigfastapi.services.auth_service import (is_authenticated,
+                                              password_change_token,
+                                              resend_token_verification_mail,
+                                              send_code_password_reset_email,
+                                              verify_user_token)
 
-from .auth_api import (
-    is_authenticated,
-    password_change_token,
-    resend_token_verification_mail,
-    send_code_password_reset_email,
-    verify_user_token,
-)
 from .files import deleteFile, isFileExist, upload_image
 from .schemas import users_schemas as _schemas
 
@@ -79,7 +77,7 @@ async def activate_user(
 
 @app.post("/users/recover-password")
 async def recover_password(
-    email: _schemas.UserRecoverPassword, db: orm.Session = fastapi.Depends(get_db)
+    email: _schemas.UserRecoverPassword, background_tasks: BackgroundTasks, db: orm.Session = fastapi.Depends(get_db)
 ):
     """intro-->This endpoint allows for password recovery, to use this endpoint you need to make a post request to the /users/recover-password endpoint
 
@@ -90,7 +88,7 @@ async def recover_password(
     """
     user = await get_user(db=db, email=email.email)
     await delete_password_reset_code(db, user.id)
-    await send_code_password_reset_email(email.email, db)
+    await send_code_password_reset_email(email=email.email, background_tasks=background_tasks, db=db)
     return f"password reset code has been sent to {email.email}"
 
 
@@ -341,7 +339,7 @@ async def deactivate(
 
 async def resetpassword(user: _schemas.UserResetPassword, id: str, db: orm.Session):
     user_found = await get_user(db, id=id)
-    user_found.password = _hash.sha256_crypt.hash(user.password)
+    user_found.password_hash = _hash.sha256_crypt.hash(user.password)
     db.query(auth_models.PasswordResetCode).filter(
         auth_models.PasswordResetCode.user_id == user_found.id
     ).delete()

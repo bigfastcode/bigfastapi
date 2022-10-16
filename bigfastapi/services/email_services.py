@@ -33,16 +33,21 @@ conf = ConnectionConfig(
 
 async def send_email(
     background_tasks: BackgroundTasks,
+    code: int,
     template: str = "",
     title: str = "", 
-    email_details: dict = {}, 
-    recipients: list = [], 
-    template_body: dict = {}, 
+    email_details: dict = {},
+    recipients: list = [],
+    template_body: dict = {},
     custom_template_dir: str = "",
     file: Union[UploadFile, None] = None, 
     db: orm.Session = fastapi.Depends(get_db)
     ):
     try:
+        template_body["code"] = code
+
+        if email_details:
+            template_body["details"] = email_details
 
         if custom_template_dir != "":
             conf.TEMPLATE_FOLDER = custom_template_dir
@@ -72,4 +77,4 @@ async def send_email(
             raise ex
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
-        )
+        ) from ex

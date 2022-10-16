@@ -15,7 +15,7 @@ from starlette.responses import RedirectResponse
 from bigfastapi import models
 
 from bigfastapi.db.database import get_db
-from bigfastapi.auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.models import credit_wallet_models as model, organization_models, wallet_models
 from bigfastapi.schemas import credit_wallet_schemas as schema, credit_wallet_conversion_schemas

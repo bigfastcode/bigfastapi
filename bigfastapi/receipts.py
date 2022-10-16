@@ -12,7 +12,7 @@ from sqlalchemy import and_
 
 from bigfastapi.db.database import get_db
 
-from .auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from .core import messages
 from .core.helpers import Helpers
 from .services import email_services

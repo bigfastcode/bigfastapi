@@ -16,7 +16,7 @@ from celery import Celery
 from decouple import config
 
 from bigfastapi.auth import app as authentication
-# from bigfastapi.auth_api import app as jwt_services
+# from bigfastapi.services.auth_service import app as jwt_services
 from bigfastapi.banks import router as banks
 from bigfastapi.blog import app as blog
 # from bigfastapi.products import app as products
