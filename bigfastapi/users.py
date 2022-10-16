@@ -1,9 +1,10 @@
 import os
+from datetime import datetime
 
 import fastapi
 import passlib.hash as _hash
-import sqlalchemy.orm as orm
-from fastapi import APIRouter, File, HTTPException, UploadFile, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
+from sqlalchemy import orm
 
 from bigfastapi.db.database import get_db
 from bigfastapi.models import auth_models, user_models
@@ -106,8 +107,14 @@ async def reset_password(
         returnBody--> "success".
     """
     code_exist = await get_password_reset_code_sent_to_email(user.code, db)
+    valid_time_in_secs = 1800
+    time_diff_in_secs = (datetime.utcnow() - code_exist.date_created).total_seconds()
+
     if code_exist is None:
         raise fastapi.HTTPException(status_code=403, detail="invalid code")
+    if valid_time_in_secs < time_diff_in_secs:
+        raise fastapi.HTTPException(status_code=403, detail="code expired")
+
     return await resetpassword(user, code_exist.user_id, db)
 
 
