@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from bigfastapi.models import plan_models
 from bigfastapi.schemas import plan_schemas, users_schemas
-from bigfastapi.auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from main import app
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./database.db"

@@ -6,7 +6,7 @@ from sqlalchemy import orm
 from fastapi import APIRouter, status
 from sqlalchemy import desc
 from bigfastapi.db.database import get_db
-from .auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.core import messages
 from bigfastapi.models import organization_models, user_models, wallet_models as model

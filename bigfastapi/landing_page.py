@@ -25,7 +25,7 @@ from bigfastapi.schemas import landing_page_schemas
 from bigfastapi.services import landing_page_services
 from bigfastapi.utils.settings import LANDING_PAGE_FOLDER, LANDING_PAGE_FORM_PATH
 
-from .auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 
 app = APIRouter(tags=["Landing Page"])
 
