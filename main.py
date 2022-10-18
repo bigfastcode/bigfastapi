@@ -38,6 +38,7 @@ from bigfastapi.pdfs import app as pdfs
 from bigfastapi.plans import app as plans
 from bigfastapi.qrcode import app as qrcode
 from bigfastapi.receipts import app as receipts
+from bigfastapi.extra_info import app as extrainfo
 from bigfastapi.settings import app as settings
 from bigfastapi.sms import app as sms
 from bigfastapi.subscription import app as sub
@@ -257,6 +258,7 @@ app.include_router(settings, tags=["Settings"])
 app.include_router(wallet, tags=["Wallet"])
 app.include_router(credit, tags=["CreditWallet"])
 app.include_router(notification, tags=["Notification"])
+app.include_router(extrainfo, tags=["Extra Info"])
 app.include_router(pdfs)
 # app.include_router(jwt_services)
 app.include_router(receipts)
@@ -265,7 +267,6 @@ app.include_router(sms)
 app.include_router(activity_log)
 app.include_router(api_key)
 app.include_router(landing_page)
-
 
 
 @app.get("/", tags=["Home"])
