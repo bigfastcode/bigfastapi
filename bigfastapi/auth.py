@@ -14,7 +14,7 @@ from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
 
 from .core.helpers import Helpers
-from .models import user_models
+from .models import user_models, auth_models
 from .schemas import auth_schemas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -507,4 +507,47 @@ async def sync_get_user(
             "user_org": jsonable_encoder(joined_org),
         },
         status_code=200,
+    )
+
+# logout user
+@app.post("/auth/{user_id}/logout", status_code=200)
+async def logout_user(
+    user_id,
+    response: Response,
+    db: orm.Session = fastapi.Depends(get_db),
+):
+    # Steps:
+    # - Find User
+    # - Delete Token
+    # - Delete User Cookies
+    #  find user by id
+    found_user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
+
+    if not found_user:
+        return JSONResponse(
+            {"error": "User not found"}, status_code=404,
+        )
+
+    # delete refresh token
+    token = db.query(auth_models.Token) \
+        .filter(auth_models.Token.user_id == user_id) \
+        .first()
+
+    if token:
+        db.delete(token)
+
+    try:
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        print(e)
+        # print or raise exception could not join org
+
+    # delete user cookies
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+
+    return JSONResponse(
+        {"message": "User logged out successfully"}, status_code=200,
     )
