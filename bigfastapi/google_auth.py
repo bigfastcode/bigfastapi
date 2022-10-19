@@ -93,7 +93,6 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
             secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
             samesite="strict",
-
         )
 
         # return {"data": object_as_dict(check_user), "access_token": access_token}
