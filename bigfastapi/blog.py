@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from typing import List
 import fastapi as fastapi
 import sqlalchemy.orm as orm
-from .auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from .schemas import users_schemas as user_schema
 from .schemas import blog_schemas as schema
 from .models import blog_models as model
@@ -31,8 +31,8 @@ def create_blog(blog: schema.BlogCreate, user: user_schema.User = fastapi.Depend
         returnBody--> the blog object with details specified below.
     """
     
-    db_blog = model.get_blog_by_title(title=blog.title, db=db)
-    if db_blog:
+    # db_blog = model.get_blog_by_title(title=blog.title, db=db)
+    if model.get_blog_by_title(title=blog.title, db=db):
         raise fastapi.HTTPException(status_code=400, detail="Blog title already exists")
     
     blog = model.Blog(id=uuid4().hex, title=blog.title, content=blog.content, creator=user.id)

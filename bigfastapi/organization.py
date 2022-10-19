@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import and_
 from sqlalchemy.sql import expression
 
-from bigfastapi.auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.db.database import get_db
 from bigfastapi.files import upload_image

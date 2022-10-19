@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from bigfastapi.auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.db.database import get_db
 from bigfastapi.files import upload_image
 from bigfastapi.models import landing_page_models

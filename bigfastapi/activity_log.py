@@ -10,7 +10,8 @@ from bigfastapi.utils import settings as settings
 from bigfastapi.schemas.activity_log_schemas import ActivitiesLogBase
 from bigfastapi.schemas.activity_log_schemas import ActivitiesLogOutput as ActivitiesSchema
 from bigfastapi.schemas.activity_log_schemas import DeleteActivitiesLogBase
-from .auth_api import *
+# from .auth_api import *
+from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.models.activity_log_models import Activitylog as ActivitiesModel
 from fastapi import APIRouter, Depends, status, HTTPException
 from bigfastapi.models.organization_models import Organization
@@ -19,7 +20,7 @@ from sqlalchemy.orm import Session
 from .core.helpers import Helpers
 import requests
 from starlette.background import BackgroundTask
-
+from datetime import datetime
 
 
 app = APIRouter(tags=["Activitieslog"])

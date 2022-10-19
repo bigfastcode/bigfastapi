@@ -1,5 +1,5 @@
 from .schemas import plan_schemas, users_schemas
-from .auth_api import is_authenticated
+from bigfastapi.services.auth_service import is_authenticated
 from .models import plan_models
 from fastapi import APIRouter, Depends, HTTPException, status, responses
 from bigfastapi.db.database import get_db

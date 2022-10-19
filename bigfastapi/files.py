@@ -8,9 +8,9 @@ import sqlalchemy.orm as orm
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
 
-from bigfastapi.auth_api import is_authenticated
 from bigfastapi.db.database import get_db
 from bigfastapi.models.user_models import User
+from bigfastapi.auth_api import is_authenticated
 from bigfastapi.utils import settings as settings
 from bigfastapi.utils.image_utils import generate_thumbnail_for_image
 
