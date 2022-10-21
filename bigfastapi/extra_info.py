@@ -39,7 +39,8 @@ from fastapi.security import HTTPBearer
 app = APIRouter(tags=["Extra Info"])
 
 
-@app.get("/extrainfo/{model_type}", response_model=List[ExtraInfoBase])
+@app.get("/extrainfo/{model_type}", response_model=List[ExtraInfoBase],
+         status_code=status.HTTP_200_OK)
 def get_all_extra_info_related_to_model(
     model_type: str, db_Session: _orm.Session = Depends(get_db)
 ):
@@ -56,7 +57,7 @@ def get_all_extra_info_related_to_model(
     return extrainfos
 
 
-@app.get("/extrainfo/{model_type}/{object_id}", response_model=List[ExtraInfoBase])
+@app.get("/extrainfo/{model_type}/{object_id}", response_model=List[ExtraInfoBase], status_code=status.HTTP_200_OK)
 def get_all_extrainfo_for_object(
     model_type: str, object_id: str, db_Session=Depends(get_db)
 ):
@@ -75,7 +76,7 @@ def get_all_extrainfo_for_object(
     return extrainfos
 
 
-@app.post("/extrainfo/{model_type}/{object_id}", response_model=ExtraInfoBase)
+@app.post("/extrainfo/{model_type}/{object_id}", response_model=ExtraInfoBase, status_code=status.HTTP_201_CREATED)
 def create_new_extra_info(
     model_type: str,
     object_id: str,
@@ -99,7 +100,7 @@ def create_new_extra_info(
     return extrainfo
 
 
-@app.put("/extrainfo/{model_type}/{extrainfo_id}", response_model=ExtraInfoBase)
+@app.put("/extrainfo/{model_type}/{extrainfo_id}", response_model=ExtraInfoBase, status_code=status.HTTP_201_CREATED)
 def update_extra_info_by_id(
     model_type: str,
     extrainfo_id: str,
