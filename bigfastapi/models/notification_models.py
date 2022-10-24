@@ -1,10 +1,11 @@
 from datetime import datetime
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, DateTime, Boolean
+from sqlalchemy.types import String, DateTime, Boolean, Enum
 from uuid import uuid4
 import bigfastapi.db.database as database
 from bigfastapi.schemas import users_schemas as schema
 import sqlalchemy.orm as orm
+import enum
 
 
 # class Notification(database.Base):
