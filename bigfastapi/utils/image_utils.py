@@ -24,19 +24,22 @@ def create_thumbnail_dirs(unique_id):
 def save_thumbnail_info(filename, thumbnail_path, unique_id, size, db=SessionLocal()):
     key = f"{filename}_{unique_id}_{size}"
     value = thumbnail_path
-    image_info = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
-    if image_info:
-        image_info.key = key
-        image_info.value = value
-    else:
-        image_info = ExtraInfo(
-            id=uuid4().hex, key=key,
-            value=value,
-            rel_id=f"{unique_id}_thumbnails_{size}"
-        )
-    
-    db.add(image_info)
-    db.commit()
+
+    with SessionLocal() as db:
+        db.expire_on_commit = False
+        image_info = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
+        if image_info:
+            image_info.key = key
+            image_info.value = value
+        else:
+            image_info = ExtraInfo(
+                id=uuid4().hex, key=key,
+                value=value,
+                rel_id=f"{unique_id}_thumbnails_{size}"
+            )
+        
+        db.add(image_info)
+        db.commit()
 
     return image_info
 
