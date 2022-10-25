@@ -547,12 +547,6 @@ async def logout_user(
     # delete user cookies
     response.delete_cookie(
             key="refresh_token",
-            value="",
-            max_age="0",
-            domain="/",
-            secure=IS_REFRESH_TOKEN_SECURE,
-            httponly=True,
-            samesite="strict",
         )
     # return response and set cookies
     return JSONResponse(
