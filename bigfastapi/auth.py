@@ -545,9 +545,17 @@ async def logout_user(
         # print or raise exception could not join org
 
     # delete user cookies
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-
+    response.delete_cookie(
+            key="refresh_token",
+            value="",
+            max_age="0",
+            domain="/",
+            secure=IS_REFRESH_TOKEN_SECURE,
+            httponly=True,
+            samesite="strict",
+        )
+    # return response and set cookies
     return JSONResponse(
-        {"message": "User logged out successfully"}, status_code=200,
+        {"message": "User logged out"},
+        status_code=200,
     )
