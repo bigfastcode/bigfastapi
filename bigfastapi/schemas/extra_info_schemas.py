@@ -14,3 +14,8 @@ class ExtraInfoBase(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ExtraInfoUpdate(BaseModel):
+    key: Optional[str]
+    value: Optional[str]
