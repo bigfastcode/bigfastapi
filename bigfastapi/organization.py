@@ -1014,3 +1014,23 @@ async def delete_organization(
         returnBody--> "success"
     """
     return await organization_services.delete_organization(organization_id, user, db)
+
+
+@app.delete("/organization/{role_name}/drop")
+def drop_role(
+    role_name: str,
+    user: users_schemas.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    """
+    Delete role_name and set all related field to null
+    """
+    
+    try:
+        deleted = organization_services.drop_role_by_name(
+            role_name=role_name, db=db
+        )
+    except Exception as e:
+        raise e
+    
+    return {"message": "Successful"} if deleted else {"message": "Failed"}
