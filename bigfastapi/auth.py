@@ -545,8 +545,8 @@ async def logout_user(
         # print or raise exception could not join org
 
     # delete user cookies
-    response.delete_cookie(
-            key="refresh_token",
+    response.set_cookie(
+            max_age=0
         )
     # return response and set cookies
     return JSONResponse(
