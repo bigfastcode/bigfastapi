@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from uuid import uuid4
+from datetime import date
 
 import sqlalchemy.orm as orm
 from bigfastapi.utils.utils import convert_template_to_html
@@ -133,7 +134,7 @@ async def send_receipt(
 
     response_data = payload.dict()
     response_data["receipt_id"] = receipt.id
-    response_data["created_at"] = receipt.created_at
+    response_data["created_at"] = date.today().strftime("%d %B, %Y")
     response_data["path"] = os.path.join(
         os.path.abspath("./filestorage/pdfs/"), pdf_name
     )
