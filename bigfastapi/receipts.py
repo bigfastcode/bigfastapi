@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from uuid import uuid4
+from datetime import date
 
 import sqlalchemy.orm as orm
 from bigfastapi.utils.utils import convert_template_to_html
@@ -53,100 +54,100 @@ async def send_receipt(
         HTTP_403_FORBIDDEN: User is not a member of organization
         HTTP_422_UNPROCESSABLE_ENTITY: Request validation error
     """
-    try:
-        organization = await organization_models.fetchOrganization(
-            orgId=payload.organization_id, db=db
-        )
-        if not organization:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=messages.INVALID_ORGANIZATION,
-            )
-
-        is_valid_member = await Helpers.is_organization_member(
-            user_id=user.id, organization_id=organization.id, db=db
-        )
-        if is_valid_member == False:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=messages.NOT_ORGANIZATION_MEMBER,
-            )
-        
-        custom_template_dir = payload.custom_template_dir
-        create_file = payload.create_file if payload.create_file else create_file
-        
-        if not custom_template_dir:
-            template_dir_path = os.path.abspath(
-                os.environ.get("TEMPLATES_DIR", payload.template))
-            if not os.path.exists(template_dir_path):
-                raise HTTPException(
-                    status_code=404, detail=f"Template: {payload.template} does not exist")
-            custom_template_dir = "/".join(template_dir_path.split("/")[:-1])
-            template = payload.template.split("/")[-1]
-
-        html_string = convert_template_to_html(
-                template_dir=custom_template_dir,
-                template_file=template,
-                template_data=payload.data
-            )
-
-        receipt = Receipt(
-            id=uuid4().hex,
-            sender_email=payload.sender_email,
-            recipient=payload.recipients[0],
-            subject=payload.subject,
-            message=html_string,
-            organization_id=payload.organization_id,
-        )
-
-        if create_file == True:
-            pdf_name = (payload.subject) + str(uuid4().hex) + ".pdf"
-
-            schema = {"htmlString": html_string, "pdfName": pdf_name}
-            file = receipts_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
-            receipt.file_id = file.id
-
-            await email_services.send_email(
-                title=payload.subject,
-                recipients=payload.recipients,
-                template=template if template else "mail_receipt.html",
-                template_body=payload.data,
-                custom_template_dir=custom_template_dir,
-                background_tasks=background_tasks,
-                db=db,
-                file="./filestorage/pdfs/" + pdf_name,
-            )
-        else:
-            await email_services.send_email(
-                title=payload.subject,
-                recipients=payload.recipients,
-                template=template if template else "mail_receipt.html",
-                template_body=payload.data,
-                custom_template_dir=custom_template_dir,
-                background_tasks=background_tasks,
-                db=db,
-            )
-
-        db.add(receipt)
-        db.commit()
-        db.refresh(receipt)
-
-        response_data = payload.dict()
-        response_data["receipt_id"] = receipt.id
-        response_data["created_at"] = receipt.created_at
-        response_data["path"] = os.path.join(
-            os.path.abspath("./filestorage/pdfs/"), pdf_name
-        )
-
-        return {"message": "receipt sent", "data": response_data}, 201
-
-    except Exception as ex:
-        db.rollback()
-        if type(ex) == HTTPException:
-            raise ex
+    # try:
+    organization = await organization_models.fetchOrganization(
+        orgId=payload.organization_id, db=db
+    )
+    if not organization:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=messages.INVALID_ORGANIZATION,
         )
+
+    is_valid_member = await Helpers.is_organization_member(
+        user_id=user.id, organization_id=organization.id, db=db
+    )
+    if is_valid_member == False:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=messages.NOT_ORGANIZATION_MEMBER,
+        )
+    
+    custom_template_dir = payload.custom_template_dir
+    create_file = payload.create_file if payload.create_file else create_file
+    
+    if not custom_template_dir:
+        template_dir_path = os.path.abspath(
+            os.environ.get("TEMPLATES_DIR", payload.template))
+        if not os.path.exists(template_dir_path):
+            raise HTTPException(
+                status_code=404, detail=f"Template: {payload.template} does not exist")
+        custom_template_dir = "/".join(template_dir_path.split("/")[:-1])
+        template = payload.template.split("/")[-1]
+
+    html_string = convert_template_to_html(
+            template_dir=custom_template_dir,
+            template_file=template,
+            template_data=payload.data
+        )
+
+    receipt = Receipt(
+        id=uuid4().hex,
+        sender_email=payload.sender_email,
+        recipient=payload.recipients[0],
+        subject=payload.subject,
+        message=html_string,
+        organization_id=payload.organization_id,
+    )
+
+    if create_file == True:
+        pdf_name = (payload.subject) + str(uuid4().hex) + ".pdf"
+
+        schema = {"htmlString": html_string, "pdfName": pdf_name}
+        file = receipts_services.convert_to_pdf(pdf_schema.Format(**schema), db=db)
+        receipt.file_id = file.id
+
+        await email_services.send_email(
+            title=payload.subject,
+            recipients=payload.recipients,
+            template=template if template else "mail_receipt.html",
+            template_body=payload.data,
+            custom_template_dir=custom_template_dir,
+            background_tasks=background_tasks,
+            db=db,
+            file="./filestorage/pdfs/" + pdf_name,
+        )
+    else:
+        await email_services.send_email(
+            title=payload.subject,
+            recipients=payload.recipients,
+            template=template if template else "mail_receipt.html",
+            template_body=payload.data,
+            custom_template_dir=custom_template_dir,
+            background_tasks=background_tasks,
+            db=db,
+        )
+
+    db.add(receipt)
+    db.commit()
+    db.refresh(receipt)
+
+    response_data = payload.dict()
+    response_data["receipt_id"] = receipt.id
+    response_data["created_at"] = date.today().strftime("%d %B, %Y")
+    response_data["path"] = os.path.join(
+        os.path.abspath("./filestorage/pdfs/"), pdf_name
+    )
+
+    return {"message": "receipt sent", "data": response_data}, 201
+
+    # except Exception as ex:
+        # db.rollback()
+        # if type(ex) == HTTPException:
+        #     raise ex
+        # raise HTTPException(
+        #     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+        # )
 
 
 @app.get(
