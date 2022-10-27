@@ -22,7 +22,7 @@ from bigfastapi.schemas import users_schemas as user_schema
 
 
 
-def create_notification(
+def create_notification( #might later be an async def
     notification: NotificationCreate,
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
@@ -56,15 +56,28 @@ def create_notification(
 def get_notification_recipients(module, organization_id, access_level):
     group_members = db.query(NotificationGroupMember.member_id).join(NotificationGroupModule).filter(
         NotificationGroupModule.module == module).all() 
-    
-    #if empty list, default group members will be all users 
-    if group_members is None:
+
+    if access_level and group_members is None:
         users = db.query(OrganizationUser.user_id).join(Role).filter(
             OrganizationUser.organization_id == organization_id
             ).filter(Role.role_name == access_level).all()
-
         return users
-    return group_members  
+
+    if access_level is None and group_members is None :
+        users = db.query(OrganizationUser.user_id).filter(
+            OrganizationUser.organization_id == organization_id
+            ).all()
+        return users
+
+    if group_members and access_level is None:
+        return group_members
+
+    if group_members and access_level:
+        #get group members with access_level = access_level    
+        pass                  
+         
+
+    
 
 
 def create_notification_setting(
@@ -74,15 +87,7 @@ def create_notification_setting(
 ):
     new_settings = Setting(
         id=notification_seting.id if notification_setting.id else uuid4().hex,
-        organization_id=notification_setting.organization_id,
-        sales=notification_setting.sales,
-        products=notification_setting.products,
-        stocks=notification_setting.stocks,
-        debts=notification_setting.debts,
-        payments=notification_setting.payments,
-        purchases=notification_setting.purchases,
-        invoices=notification_setting.invoices,
-        comments=notification_setting.comments,
+        organization_id=notification_setting.organization_id,        
         access_level=notification_setting.access_level,
         send_via=notification_setting.send_via
     )
@@ -95,28 +100,13 @@ async def update_notification_setting(
     fetched_setting,
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)):
-
-    if notification_setting.sales:           
-        fetched_setting.sales = notification_setting.sales
-    if notification_setting.products:
-        fetched_setting.products = notification_setting.products
-    if notification_setting.stocks:
-        fetched_setting.stocks = notification_setting.stocks
-    if notification_setting.debts:
-        fetched_setting.debts = notification_setting.debts
-    if notification_setting.payments:
-        fetched_setting.payments = notification_setting.payments
-    if notification_setting.purchases:
-        fetched_setting.purchases = notification_setting.purchases
-    if notification_setting.invoices:
-        fetched_setting.invoices = notification_setting.invoices
-    if notification_setting.comments:
-        fetched_setting.comments = notification_setting.comments
+   
     if notification_setting.access_level:
         fetched_setting.access_level = notification_setting.access_level
     if notification_setting.send_via:
         fetched_setting.send_via = notification_setting.send_via   
     fetched_setting.last_updated = notification_setting.last_updated if notification_setting.last_updated else datetime.now()
+    fetched_setting.last_updated_db = datetime.now()
 
     db.commit()
     db.refresh(fetched_setting)
@@ -125,11 +115,19 @@ async def update_notification_setting(
 
 async def fetch_existing_setting(id:str, organization_id:str, db:orm.Session):
     notification_setting = db.query(Setting).filter(Setting.id == id).filter(
-        Setting.organization_id== organization_id).first()
+        Setting.organization_id == organization_id).first()
     if not notification_setting:
         raise HTTPException(detail="Notification does not exist",
             status_code=status.HTTP_404_NOT_FOUND)
     return notification_setting
 
 
+async def get_organization_access_level(organization_id: str):
+    org_notification_setting = db.query(Setting).filter(
+        Setting.organization_id == organization_id 
+    ).first()
+   
+    access_level = org_notification_setting.access_level
+
+    return access_level
             
