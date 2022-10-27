@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, DateTime, Boolean, Enum, Text
+from sqlalchemy.types import String, DateTime, Boolean, Enum
 from uuid import uuid4
 import bigfastapi.db.database as database
 from bigfastapi.schemas import users_schemas as schema
@@ -32,7 +32,7 @@ class Notification(database.Base):
     __tablename__ = "notifications"
     id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
     creator_id = Column(String(50), index=True)
-    message = Column(Text())
+    message = Column(String(500), index=True)
     organization_id = Column(String(50), index=True)
     access_level = Column(String(100), index = True, default="admin")    
     date_created = Column(DateTime, default=datetime.utcnow)
