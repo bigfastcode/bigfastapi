@@ -21,22 +21,21 @@ from enum import Enum
 #         orm_mode = True
 
 
-class AccessLevel(str, Enum):
-    admin = "admin"
-    invitees = "invitees"
-    all = "all"
+class SendVia(str, Enum):
+    email = "email"
+    in_app = "in_app"
+    both = "both"
 
 
 class NotificationBase(pydantic.BaseModel):
     message: str
-    recipient_id: str
+    # recipient_ids: List[str]
     organization_id: str
-    access_level: AccessLevel        
-
+    access_level: str
 
 class Notification(NotificationBase):
     id: str
-    user_id: str
+    creator_id: str
     is_read: bool
     date_created: datetime
     last_updated: datetime
@@ -48,7 +47,50 @@ class Notification(NotificationBase):
 #     creator: str = Field(..., description="creator='' makes the authenticated user email the creator. If you want to override it, pass the email you want to use eg. creator='support@admin.com'")
 
 class NotificationCreate(NotificationBase):
-    user_id: str
+    creator_id: str
+    module: str
+
+
+class NotificationSetting(pydantic.BaseModel): #should a creator_id be present here and in the model?
+    organization_id: str
+    
+    access_level: str
+    send_via: SendVia
+
+
+class NotificationSettingUpdate(NotificationSetting):
+    last_updated: datetime = datetime.now()
+
+
+class NotificationSettingResponse(NotificationSetting):
+    id: str
+    date_created: datetime
+    last_updated: datetime     
+
+
+class NotificationGroup(pydantic.BaseModel):
+    name: str
+
+
+class NotificationGroupResponse(NotificationGroup):
+    id: str
+    date_created: datetime
+    last_updated: datetime
+
+
+class NotificationGroupUpdate(NotificationGroup):
+    last_updated: datetime = datetime.now()   
+
+
+class NotificationGroupMember(pydantic.BaseModel):
+    group_id: str
+    member_id: str     
+
+
+class NotificationGroupMemberResponse(NotificationGroupMember):
+    id: str
+    date_created: datetime
+    last_updated: datetime  
 
 
 class NotificationUpdate(NotificationBase):
