@@ -6,7 +6,7 @@ import bigfastapi.db.database as database
 from bigfastapi.schemas import users_schemas as schema
 import sqlalchemy.orm as orm
 import enum
-
+from sqlalchemy.orm import relationship
 
 # class Notification(database.Base):
 #     __tablename__ = "notifications"
