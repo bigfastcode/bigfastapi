@@ -194,31 +194,156 @@ async def update_org_notification_settings(
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)):
 
-    """intro-->This endpoint allows you to create a new notification. To create, you need to make a post request to the /notification endpoint with a required body of request as specified below
+    if user.is_superuser:
 
-        reqBody-->message: This is the content of the notification
-        reqBody-->recipient: This the receiver of the notification
-        reqBody-->creator: This is the creator of the notification
+        #organization and user check
+        await Helpers.check_user_org_validity(
+                user_id=user.id, organization_id=notification_setting.organization_id, db=db
+            )     
 
-    returnDesc-->On sucessful request, it returns
-        returnBody--> the details of the newly created notification.
-    """     
-    #organization and user check
-    await Helpers.check_user_org_validity(
-            user_id=user.id, organization_id=notification_setting.organization_id, db=db
+        existing_setting = await fetch_existing_setting(
+            id=setting_id,
+            organization_id=notification_setting.organization_id, 
+            db=db
+        )
+        updated_notification_setting = await update_notification_setting(
+            notification_setting=notification_setting, 
+            fetched_setting=existing_setting
         )     
 
-    existing_setting = await fetch_existing_setting(
-        id=setting_id,
-        organization_id=notification_setting.organization_id, 
-        db=db
-    )
-    updated_notification_setting = await update_notification_setting(
-        notification_setting=notification_setting, 
-        fetched_setting=existing_setting
-    )     
-    
-    return new_notification_setting
+        return updated_notification_setting
+
+    return JSONResponse(
+            {"message": "Only an Admin can perform this action"}, 
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )    
+
+
+@app.post("/notification-group", response_model=schema.NotificationGroupResponse)
+async def create_notification_group(
+    group: schema.NotificationGroup,
+    organization_id: str, #query_parameter
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)):
+
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )     
+
+    new_notification_group = model.NotificationGroup(id=uuid4().hex, name=group.name)      
+
+    db.add(new_notification_group)
+    db.commit()
+    db.refresh(new_notification_group)    
+
+    return new_notification_group
+
+
+@app.put("/notification-group/{group_id}", response_model=schema.NotificationGroupResponse)
+async def update_notification_group(
+    group_id: str,   
+    organization_id: str, #query_parameter,
+    group: schema.NotificationGroupUpdate,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )     
+
+    fetched_group = db.query(model.NotificationGroup).filter(
+    model.NotificationGroup.id == group_id).first()
+    if fetched_group is None:
+        raise HTTPException(detail="Notification group does not exist",
+            status_code=status.HTTP_404_NOT_FOUND)
+          
+    if group.name:
+        fetched_group.name = group.name
+    fetched_group.last_updated = group.last_updated if group.last_updated else datetime.now()
+    fetched_group.last_updated_db = datetime.now()
+
+    db.commit()
+    db.refresh(fetched_group)         
+
+    return fetched_group
+
+
+@app.delete("/notification-group/{group_id}")
+def delete_notification_group(
+    notification_id: str,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    """intro-->This endpoint allows you to delete a particular notification group from the database. You need to make a delete request to the /notification-group/{notification_id} endpoint.
+
+    paramDesc-->On delete request the url takes a query parameter "group_id" 
+        param-->group_id: This is the unique identifier of the notification group
+
+    returnDesc-->On sucessful request, it returns message,
+        returnBody--> "success".
+    """
+
+    group = db.query(model.NotificationGroup).filter(
+    model.NotificationGroup.id == group_id).first()
+
+    if group is None:
+        raise HTTPException(detail="Notification group not found",
+            status_code=status.HTTP_404_NOT_FOUND)
+
+    db.delete(group)
+    db.commit()
+
+    return {"message":"successfully deleted"}
+
+
+@app.post("/notification-group/notification-member", response_model=schema.NotificationGroupMemberResponse)
+def add_member_to_notification_group(
+    group_member: schema.NotificationGroupMember,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    new_group_member = model.NotificationGroupMember(
+        id=uuid4().hex, group_id=group_member.group_id, member=group_member.member_id
+    )   
+
+    db.add(new_group_member)
+    db.commit()
+    db.refresh(new_group_member)    
+
+    return new_group_member
+
+
+
+@app.delete("/notification-group/notification-member/{group_member_id}")
+def delete_notification_group(
+    group_member_id: str,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    """intro-->This endpoint allows you to delete a particular notification group from the database. You need to make a delete request to the /notification-group/{notification_id} endpoint.
+
+    paramDesc-->On delete request the url takes a query parameter "group_id" 
+        param-->group_id: This is the unique identifier of the notification group
+
+    returnDesc-->On sucessful request, it returns message,
+        returnBody--> "success".
+    """
+
+    group_member = db.query(model.NotificationGroupMember).filter(
+    model.NotificationGroupMember.id == group_member_id).first()
+
+    if group_member is None:
+        raise HTTPException(detail="Notification group member not found",
+            status_code=status.HTTP_404_NOT_FOUND)
+
+    db.delete(group_member)
+    db.commit()
+
+    return {"message":"successfully deleted"}
+
 
 
 @app.put("/notification/{notification_id}/read", response_model=schema.Notification)
