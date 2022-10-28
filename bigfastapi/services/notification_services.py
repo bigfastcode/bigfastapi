@@ -86,7 +86,7 @@ def create_notification_setting(
     db: orm.Session = Depends(get_db)
 ):
     new_settings = Setting(
-        id=notification_seting.id if notification_setting.id else uuid4().hex,
+        id=notification_setting.id if notification_setting.id else uuid4().hex,
         organization_id=notification_setting.organization_id,        
         access_level=notification_setting.access_level,
         send_via=notification_setting.send_via
