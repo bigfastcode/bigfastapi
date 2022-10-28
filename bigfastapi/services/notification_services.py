@@ -19,7 +19,7 @@ from bigfastapi.schemas.notification_schemas import(
     NotificationSettingUpdate
 )
 from bigfastapi.schemas import users_schemas as user_schema
-
+from uuid import uuid4
 
 
 def create_notification( #might later be an async def
