@@ -108,10 +108,12 @@ async def reset_password(
     """
     code_exist = await get_password_reset_code_sent_to_email(user.code, db)
     valid_time_in_secs = 1800
-    time_diff_in_secs = (datetime.utcnow() - code_exist.date_created).total_seconds()
 
     if code_exist is None:
         raise fastapi.HTTPException(status_code=403, detail="invalid code")
+
+    time_diff_in_secs = (datetime.utcnow() - code_exist.date_created).total_seconds()
+
     if valid_time_in_secs < time_diff_in_secs:
         raise fastapi.HTTPException(status_code=403, detail="code expired")
 

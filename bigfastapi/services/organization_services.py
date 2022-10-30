@@ -514,3 +514,27 @@ def send_slack_notification(user, organization):
     # sends the message to slack
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
 
+
+def drop_role_by_name(role_name, db):
+    roles = db.query(Models.Role).filter(
+        Models.Role.role_name==role_name
+    ).all()
+
+    if not roles:
+        raise _fastapi.HTTPException(
+            status_code=404, detail=f"No role with name {role_name} found"
+        )
+    
+    for role in roles:
+        db.query(Models.OrganizationUser).filter(
+            Models.OrganizationUser.role_id==role.id
+        ).update({"role_id": None})
+
+        db.query(Models.OrganizationInvite).filter(
+            Models.OrganizationInvite.role_id==role.id
+        ).update({"role_id": None})
+
+        db.delete(role)
+        db.commit()
+
+    return True

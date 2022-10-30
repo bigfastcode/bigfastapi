@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta
 from typing import Union
 
 import fastapi
+
 import sqlalchemy.orm as orm
 from decouple import config
 from fastapi import APIRouter, BackgroundTasks, Cookie, Response
@@ -8,13 +10,14 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
+from fastapi.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
-
+from bigfastapi.utils import settings
 from .core.helpers import Helpers
-from .models import user_models
+from .models import user_models, auth_models
 from .schemas import auth_schemas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -508,3 +511,57 @@ async def sync_get_user(
         },
         status_code=200,
     )
+
+# logout user
+@app.get("/auth/{user_id}/logout", status_code=200)
+async def logout_user(
+    user_id,
+    response: Response,
+    refresh_token: Union[str, None] = Cookie(default=None),
+    db: orm.Session = fastapi.Depends(get_db),
+):
+    # Steps:
+    # - Find User
+    # - Delete Token
+    # - Delete User Cookies
+    #  find user by id
+    found_user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
+
+    if not found_user:
+        return JSONResponse(
+            {"error": "User not found"}, status_code=404,
+        )
+
+    # delete refresh token
+    token = db.query(auth_models.Token) \
+        .filter(auth_models.Token.user_id == user_id) \
+        .first()
+
+    if token:
+        db.delete(token)
+
+    try:
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        print(e)
+        # print or raise exception could not join org
+
+    # delete user cookies
+    
+    # response.set_cookie(key="session", value="", expires=0)
+    # response.set_cookie(key="token", value="", expires=0)
+    response.set_cookie(key="refresh_token", value="", expires=0)
+    # response.set_cookie(key="access_token", value="", expires=0)
+    
+    response.set_cookie(
+        key="refresh_token",
+        max_age="0",
+        secure=IS_REFRESH_TOKEN_SECURE,
+        httponly=True,
+        samesite="strict",
+    )
+    return {
+        "message": "user logged out",
+    }

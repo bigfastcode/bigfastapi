@@ -46,7 +46,7 @@ PYTHON_ENV = config("PYTHON_ENV")
 
 # Redirect response constants
 IS_REFRESH_TOKEN_SECURE = True if PYTHON_ENV == "production" else False
-REDIRECT_DOMAIN = settings.BASE_URL if PYTHON_ENV == "production" else "localhost"
+REDIRECT_DOMAIN = BASE_URL if PYTHON_ENV == "production" else "localhost"
 
 # Error
 CREDENTIALS_EXCEPTION = HTTPException(
@@ -72,7 +72,8 @@ async def google_login(request: Request):
 @app.get("/google/token")
 async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
-    response = RedirectResponse(f"{settings.BASE_URL}/{settings.CLIENT_REDIRECT_URL}")
+    # response = RedirectResponse(f"{settings.BASE_URL}/{settings.CLIENT_REDIRECT_URL}")
+    response = RedirectResponse(f"{BASE_URL}/businesses/select")
 
     token = await oauth.google.authorize_access_token(request)
 
@@ -93,7 +94,6 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
             secure=IS_REFRESH_TOKEN_SECURE,
             httponly=True,
             samesite="strict",
-
         )
 
         # return {"data": object_as_dict(check_user), "access_token": access_token}
@@ -125,6 +125,8 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
     db.add(user_obj)
     db.commit()
     db.refresh(user_obj)
+
+    response = RedirectResponse(f"{BASE_URL}/businesses/create")
 
     refresh_token = await auth_service.create_refresh_token(
         data={"user_id": user_obj.id}, db=db

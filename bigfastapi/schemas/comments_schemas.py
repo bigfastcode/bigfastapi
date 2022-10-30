@@ -22,8 +22,8 @@ class Comment(CommentBase):
     commenter_id: str = None
     downvotes: int
     upvotes: int
-    date_created: datetime.datetime
-    last_updated: datetime.datetime
+    date_created: Optional[datetime.datetime]
+    last_updated: Optional[datetime.datetime]
     replies: List["Comment"]
 
     class Config:
