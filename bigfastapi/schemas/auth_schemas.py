@@ -91,6 +91,7 @@ class UserCreateOut(_UserBase):
 class UserLogin(_UserBase):
     phone_number: Optional[str]
     phone_country_code: Optional[str]
+    device_id: Optional[str]
     password: str
 
 
