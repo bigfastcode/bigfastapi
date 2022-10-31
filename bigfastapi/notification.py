@@ -35,23 +35,22 @@ def get_a_notification(notification_id: str, db: orm.Session = Depends(get_db)):
 
     return model.notification_selector(id=notification_id, db=db)
 
-@app.get("/notifications", response_model=List[schema.Notification])
-def get_all_notifications(db: orm.Session = Depends(get_db)):  
+# @app.get("/notifications", response_model=List[schema.Notification])
+# def get_all_notifications(db: orm.Session = Depends(get_db)):  
 
-    """intro-->This endpoint allows you to retrieve all notifications from the database. To retrieve you need to make a get request to the /notifications endpoint
-
-
-    returnDesc-->On sucessful request, it returns
-        returnBody--> an array of notifications.
-    """
-
-    notifications = db.query(model.Notification).all()
-    return list(map(schema.Notification.from_orm, notifications))
+#     """intro-->This endpoint allows you to retrieve all notifications from the database. To retrieve you need to make a get request to the /notifications endpoint
 
 
-@app.get("/notifications/{user_id}", response_model=List[schema.NotificationRecipientResponse])
-async def get_user_notifications(
-    user_id: str,
+#     returnDesc-->On sucessful request, it returns
+#         returnBody--> an array of notifications.
+#     """
+
+#     notifications = db.query(model.Notification).all()
+#     return list(map(schema.Notification.from_orm, notifications))
+
+
+@app.get("/notifications", response_model=List[schema.NotificationRecipientResponse])
+async def get_user_notifications(    
     organization_id: str,
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)):  
@@ -68,11 +67,12 @@ async def get_user_notifications(
         )     
 
     notifications = db.query(model.Notification).join(model.NotificationRecipient).filter(
-                    model.NotificationRecipient.recipient_id == user_id 
+                    model.NotificationRecipient.recipient_id == user.id 
                     ).order_by(model.Notification.date_created.desc()).all()
+    print(notifications)                
 
-    #return notifications            
-    return list(map(schema.Notification.from_orm, notifications))
+    # return notifications            
+    return list(map(schema.NotificationRecipientResponse.from_orm, notifications))
     
 
 # @app.post("/notification", response_model=schema.Notification)
@@ -101,7 +101,7 @@ async def get_user_notifications(
 
 #     return schema.Notification.from_orm(new_notification)
 
-# added
+
 @app.post("/notification", response_model=schema.Notification)
 async def create_user_notification(
     notification: schema.NotificationCreate,
