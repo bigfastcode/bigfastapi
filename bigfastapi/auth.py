@@ -564,7 +564,6 @@ async def sync_get_user(
 async def logout_user(
     user_id,
     response: Response,
-    refresh_token: Union[str, None] = Cookie(default=None),
     db: orm.Session = fastapi.Depends(get_db),
 ):
     # Steps:
@@ -595,13 +594,6 @@ async def logout_user(
         print(e)
         # print or raise exception could not join org
 
-    # delete user cookies
-    
-    # response.set_cookie(key="session", value="", expires=0)
-    # response.set_cookie(key="token", value="", expires=0)
-    response.set_cookie(key="refresh_token", value="", expires=0)
-    # response.set_cookie(key="access_token", value="", expires=0)
-    
     response.set_cookie(
         key="refresh_token",
         max_age="0",
