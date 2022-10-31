@@ -1,7 +1,7 @@
 from datetime import datetime
 import pydantic as pydantic
 from pydantic import Field
-from typing import Optional, List
+from typing import Any, Optional, List
 from fastapi import Depends
 from enum import Enum
 
@@ -13,13 +13,14 @@ class SendVia(str, Enum):
 
 
 class NotificationBase(pydantic.BaseModel):
-    message: str    
+    message: str
     organization_id: str
     access_level: str
 
+
 class Notification(NotificationBase):
     id: str
-    creator_id: str    
+    creator_id: str
     date_created: datetime
     last_updated: datetime
 
@@ -27,7 +28,7 @@ class Notification(NotificationBase):
         orm_mode = True
 
 
-class NotificationRecipientResponse(NotificationBase):    
+class NotificationRecipientResponse(NotificationBase):
     id: str
     creator_id: str
     is_read: Optional[bool] = False
@@ -36,10 +37,11 @@ class NotificationRecipientResponse(NotificationBase):
     last_updated: datetime
 
     class Config:
-        orm_mode = True        
+        orm_mode = True
 
 # class NotificationCreate(NotificationBase):
 #     creator: str = Field(..., description="creator='' makes the authenticated user email the creator. If you want to override it, pass the email you want to use eg. creator='support@admin.com'")
+
 
 class NotificationCreate(NotificationBase):
     creator_id: str
@@ -47,7 +49,7 @@ class NotificationCreate(NotificationBase):
 
 
 class NotificationSetting(pydantic.BaseModel):
-    organization_id: str    
+    organization_id: str
     access_level: str
     send_via: SendVia
     status: Optional[bool] = True
@@ -81,20 +83,19 @@ class NotificationGroupResponse(NotificationGroup):
         orm_mode = True
 
 
-
 class NotificationGroupUpdate(NotificationGroup):
-    last_updated: datetime = datetime.now()   
+    last_updated: datetime = datetime.now()
 
 
 class NotificationGroupMember(pydantic.BaseModel):
     group_id: str
-    member_id: str     
+    member_id: str
 
 
 class NotificationGroupMemberResponse(NotificationGroupMember):
     id: str
     date_created: datetime
-    last_updated: datetime  
+    last_updated: datetime
 
     class Config:
         orm_mode = True
@@ -102,12 +103,12 @@ class NotificationGroupMemberResponse(NotificationGroupMember):
 
 class NotificationModule(pydantic.BaseModel):
     module_name: str
-    status: Optional[bool] = True  
+    status: Optional[bool] = True
 
 
 class NotificationModuleUpdate(pydantic.BaseModel):
     status: Optional[bool]
-    last_updated: datetime = datetime.now() 
+    last_updated: datetime = datetime.now()
 
 
 class NotificationModuleResponse(NotificationModule):
@@ -120,8 +121,8 @@ class NotificationModuleResponse(NotificationModule):
 
 
 class NotificationGroupModule(pydantic.BaseModel):
-   group_id: str
-   module_id: str
+    group_id: str
+    module_id: str
 
 
 class NotificationGroupModuleResponse(NotificationGroupModule):
@@ -135,3 +136,15 @@ class NotificationGroupModuleResponse(NotificationGroupModule):
 
 class NotificationUpdate(NotificationBase):
     pass
+
+
+class FetchNotificationsResponse(pydantic.BaseModel):
+    page: int
+    size: int
+    total: int
+    items: Any
+    previous_page: Optional[str]
+    next_page: Optional[str]
+
+    class Config:
+        orm_mode = True
