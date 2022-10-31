@@ -6,7 +6,7 @@ from uuid import uuid4
 import fastapi
 import jwt as JWT
 import passlib.hash as _hash
-from sqlalchemy import orm
+from sqlalchemy import and_, orm
 from fastapi import BackgroundTasks, Cookie
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -581,3 +581,38 @@ async def sync_user(
     except:
         db.rollback()
         # raise Exception or print error
+
+
+async def create_device_token(user, db: orm.Session):
+    device_token = db.query(auth_models.DeviceToken).filter(
+        auth_models.DeviceToken.device_id==user.device_id
+    ).first()
+
+    if not device_token or device_token.max_age <= datetime.utcnow():
+        device_token = auth_models.DeviceToken(
+            device_id=user.device_id,
+            user_email=user.email,
+            token=uuid4().hex
+        )
+        db.add(device_token)
+        db.commit()
+        db.refresh(device_token)
+    
+    return device_token
+
+
+async def get_device_token(device_id: str, device_token: str, db: orm.Session):
+    device_credentials = db.query(auth_models.DeviceToken).filter(
+        and_(
+            auth_models.DeviceToken.device_id==device_id,
+            auth_models.DeviceToken.token==device_token
+        )
+    ).first()
+
+    if device_credentials.max_age <= datetime.utcnow():
+        raise fastapi.HTTPException(
+            status_code=401, 
+            detail="Device token expired, generate a new one"
+        )
+    
+    return device_credentials
