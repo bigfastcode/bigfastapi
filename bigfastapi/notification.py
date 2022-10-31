@@ -48,8 +48,8 @@ def get_all_notifications(db: orm.Session = Depends(get_db)):
     notifications = db.query(model.Notification).all()
     return list(map(schema.Notification.from_orm, notifications))
 
-# added
-@app.get("/notifications/{user_id}", response_model=List[schema.Notification])
+
+@app.get("/notifications/{user_id}", response_model=List[schema.NotificationRecipientResponse])
 async def get_user_notifications(
     user_id: str,
     organization_id: str,
@@ -69,7 +69,7 @@ async def get_user_notifications(
 
     notifications = db.query(model.Notification).join(model.NotificationRecipient).filter(
                     model.NotificationRecipient.recipient_id == user_id 
-                    ).filter(model.NotificationRecipient.is_cleared == False).all()
+                    ).order_by(model.Notification.date_created.desc()).all()
 
     #return notifications            
     return list(map(schema.Notification.from_orm, notifications))
@@ -126,8 +126,8 @@ async def create_user_notification(
 
     return new_notification
 
-# added
-@app.get("/notifications-settings/{organization_id}", response_model=List[schema.NotificationSettingResponse])
+
+@app.get("/notifications-settings/{organization_id}", response_model=schema.NotificationSettingResponse)
 async def get_org_notification_settings(
     organization_id: str,
     user: user_schema.User = Depends(is_authenticated),
@@ -146,12 +146,12 @@ async def get_org_notification_settings(
 
     notification_settings = db.query(model.NotificationSetting).filter(
                     model.NotificationSetting.organization_id == organization_id 
-                    ).all()
+                    ).first()
 
     return notification_settings   
 
     
-# added
+
 @app.post("/notification-settings", response_model=schema.NotificationSettingResponse)
 async def create_org_notification_settings(
     notification_setting: schema.NotificationSetting,
@@ -173,13 +173,22 @@ async def create_org_notification_settings(
         await Helpers.check_user_org_validity(
                 user_id=user.id, organization_id=notification_setting.organization_id, db=db
             )     
+        existing_org_setting = db.query(model.NotificationSetting).filter(
+                    model.NotificationSetting.organization_id == notification_setting.organization_id 
+                    ).first()
 
-        new_notification_setting = create_notification_setting(
-            notification_setting=notification_setting, 
-            user=user, 
-            db=db
-        )         
-        return new_notification_setting
+        if existing_org_setting is None:             
+            new_notification_setting = create_notification_setting(
+                notification_setting=notification_setting, 
+                user=user, 
+                db=db
+            )         
+            return new_notification_setting
+
+        return JSONResponse(
+            {"message": "Organization already has notification settings, another cannot be created"}, 
+            status_code=status.HTTP_409_CONFLICT
+        )     
 
     return JSONResponse(
             {"message": "Only an Admin can perform this action"}, 
@@ -219,6 +228,30 @@ async def update_org_notification_settings(
         )    
 
 
+
+@app.get(
+    "/notification-group/{group_id}", response_model=schema.NotificationGroupResponse)
+async def get_notification_group(
+    group_id: str,
+    organization_id: str,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+    group = db.query(model.NotificationGroup).filter(
+                    model.NotificationGroup.id == group_id 
+                    ).first()
+
+    if group is None:
+        raise HTTPException(detail="Notification group does not exist",
+            status_code=status.HTTP_404_NOT_FOUND)                      
+
+    return group
+
+
 @app.post("/notification-group", response_model=schema.NotificationGroupResponse)
 async def create_notification_group(
     group: schema.NotificationGroup,
@@ -231,13 +264,22 @@ async def create_notification_group(
             user_id=user.id, organization_id=organization_id, db=db
         )     
 
-    new_notification_group = model.NotificationGroup(id=uuid4().hex, name=group.name)      
+    existing_notification_group = db.query(model.NotificationGroup).filter(
+                    model.NotificationGroup.name == group.name 
+                    ).first()
+    if existing_notification_group is None:                
+        new_notification_group = model.NotificationGroup(id=uuid4().hex, name=group.name)      
 
-    db.add(new_notification_group)
-    db.commit()
-    db.refresh(new_notification_group)    
+        db.add(new_notification_group)
+        db.commit()
+        db.refresh(new_notification_group)    
 
-    return new_notification_group
+        return new_notification_group
+
+    return JSONResponse(
+            {"message": "Notification group already exists."}, 
+            status_code=status.HTTP_409_CONFLICT
+        )      
 
 
 @app.put("/notification-group/{group_id}", response_model=schema.NotificationGroupResponse)
@@ -262,8 +304,7 @@ async def update_notification_group(
           
     if group.name:
         fetched_group.name = group.name
-    fetched_group.last_updated = group.last_updated if group.last_updated else datetime.now()
-    fetched_group.last_updated_db = datetime.now()
+    fetched_group.last_updated = group.last_updated if group.last_updated else datetime.now()    
 
     db.commit()
     db.refresh(fetched_group)         
@@ -272,8 +313,9 @@ async def update_notification_group(
 
 
 @app.delete("/notification-group/{group_id}")
-def delete_notification_group(
-    notification_id: str,
+async def delete_notification_group(
+    group_id: str,   
+    organization_id: str, #query_parameter,
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
 ):
@@ -285,6 +327,10 @@ def delete_notification_group(
     returnDesc-->On sucessful request, it returns message,
         returnBody--> "success".
     """
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )  
 
     group = db.query(model.NotificationGroup).filter(
     model.NotificationGroup.id == group_id).first()
@@ -299,21 +345,55 @@ def delete_notification_group(
     return {"message":"successfully deleted"}
 
 
+
+@app.get(
+    "/notification-group/notification-member/{group_id}", 
+    response_model=List[schema.NotificationGroupMemberResponse]
+)
+async def get_notification_group_members(
+    group_id: str,
+    organization_id: str,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )
+    group_members = db.query(model.NotificationGroupMember).filter(
+                    model.NotificationGroupMember.group_id == group_id
+                    ).all()                          
+
+    return group_members
+
+
 @app.post("/notification-group/notification-member", response_model=schema.NotificationGroupMemberResponse)
 def add_member_to_notification_group(
     group_member: schema.NotificationGroupMember,
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
 ):
-    new_group_member = model.NotificationGroupMember(
-        id=uuid4().hex, group_id=group_member.group_id, member=group_member.member_id
-    )   
 
-    db.add(new_group_member)
-    db.commit()
-    db.refresh(new_group_member)    
+    existing_group_member = db.query(model.NotificationGroupMember).filter(
+                            model.NotificationGroupMember.group_id == group_member.group_id
+                            ).filter(model.NotificationGroupMember.member_id == group_member.member_id
+                            ).first()
+    
+    if existing_group_member is None:     
+        new_group_member = model.NotificationGroupMember(
+            id=uuid4().hex, group_id=group_member.group_id, member_id=group_member.member_id
+        )   
 
-    return new_group_member
+        db.add(new_group_member)
+        db.commit()
+        db.refresh(new_group_member)  
+
+        return new_group_member
+
+    return JSONResponse(
+        {"message": "Group member already exists."}, 
+        status_code=status.HTTP_409_CONFLICT
+    )      
 
 
 
@@ -340,6 +420,141 @@ def delete_notification_group(
             status_code=status.HTTP_404_NOT_FOUND)
 
     db.delete(group_member)
+    db.commit()
+
+    return {"message":"successfully deleted"}
+
+
+
+@app.post("/notification-module", response_model=schema.NotificationModuleResponse)
+async def create_notification_module(
+    module: schema.NotificationModule,
+    organization_id: str, #query_parameter
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)):
+
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )     
+
+    existing_module = db.query(model.NotificationModule).filter(
+                    model.NotificationModule.module_name == module.module_name 
+                    ).first()
+    if existing_module is None:                
+        new_module = model.NotificationModule(id=uuid4().hex, module_name=module.module_name, status=module.status)      
+
+        db.add(new_module)
+        db.commit()
+        db.refresh(new_module)    
+
+        return new_module
+
+    return JSONResponse(
+            {"message": "Notification module already exists."}, 
+            status_code=status.HTTP_409_CONFLICT
+        )      
+
+
+
+@app.put("/notification-module/{module_id}", response_model=schema.NotificationModuleResponse)
+async def update_notification_module(
+    module_id: str,   
+    organization_id: str, #query_parameter,
+    module: schema.NotificationModuleUpdate,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )     
+
+    fetched_notification_module = db.query(model.NotificationModule).filter(
+    model.NotificationModule.id == module_id).first()
+    if fetched_notification_module is None:
+        raise HTTPException(detail="Notification module does not exist",
+            status_code=status.HTTP_404_NOT_FOUND)
+          
+    if module.status != "":
+        fetched_notification_module.status = module.status
+    fetched_notification_module.last_updated = module.last_updated if module.last_updated else datetime.now()    
+
+    db.commit()
+    db.refresh(fetched_notification_module)         
+
+    return fetched_notification_module
+    
+
+@app.delete("/notification-module/{module_id}")
+def delete_notification_module(
+    module_id: str,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    
+    notification_module = db.query(model.NotificationModule).filter(
+    model.NotificationModule.id == module_id).first()
+
+    if notification_module is None:
+        raise HTTPException(detail="Notification module not found",
+            status_code=status.HTTP_404_NOT_FOUND)
+
+    db.delete(notification_module)
+    db.commit()
+
+    return {"message":"successfully deleted"}
+
+
+@app.post("/notification-group-module", response_model=schema.NotificationGroupModuleResponse)
+async def create_notification_group_module(
+    group_module: schema.NotificationGroupModule,
+    organization_id: str, #query_parameter
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)):
+
+    #organization and user check
+    await Helpers.check_user_org_validity(
+            user_id=user.id, organization_id=organization_id, db=db
+        )     
+
+    existing_group_module = db.query(model.NotificationGroupModule).filter(
+                    model.NotificationGroupModule.group_id == group_module.group_id 
+                    ).filter(model.NotificationGroupModule.module_id == group_module.module_id
+                    ).first()
+
+    if existing_group_module is None:                
+        new_group_module = model.NotificationGroupModule(
+            id=uuid4().hex, group_id=group_module.group_id, module_id=group_module.module_id)      
+
+        db.add(new_group_module)
+        db.commit()
+        db.refresh(new_group_module)    
+
+        return new_group_module
+
+    return JSONResponse(
+            {"message": "Notification group module already exists."}, 
+            status_code=status.HTTP_409_CONFLICT
+        )          
+
+
+@app.delete("/notification-group-module/{group_module_id}")
+def delete_notification_group_module(
+    group_module_id: str,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    
+    notification_group_module = db.query(model.NotificationGroupModule).filter(
+    model.NotificationGroupModule.id == group_module_id).first()
+
+    if notification_group_module is None:
+        raise HTTPException(detail="Notification group module not found",
+            status_code=status.HTTP_404_NOT_FOUND)
+
+    db.delete(notification_group_module)
     db.commit()
 
     return {"message":"successfully deleted"}
