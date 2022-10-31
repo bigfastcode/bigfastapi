@@ -3,6 +3,7 @@ import os
 import random
 import re
 from random import randrange
+import datetime as dt
 
 import fastapi
 import pkg_resources
@@ -194,3 +195,7 @@ def convert_template_to_html(template_dir, template_file, template_data):
         html_text = Template(html_text).render(template_data)
 
     return html_text
+
+
+def gen_max_age():
+    return dt.datetime.utcnow() + dt.timedelta(days=365)
