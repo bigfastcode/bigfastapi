@@ -44,8 +44,7 @@ def create_notification(
             organization_id=notification["organization_id"],
             access_level=notification["access_level"]         
         )
-        db.add(new_notification)
-        # db.commit()
+        db.add(new_notification)        
 
         recipient_ids = get_notification_recipients(             
             organization_id=notification["organization_id"],
