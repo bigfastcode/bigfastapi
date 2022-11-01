@@ -263,6 +263,11 @@ async def get_country_schema(country: str):
     return schema
 
 
+@router.get("/banks/list/nigeria", status_code=status.HTTP_200_OK)
+async def get_nigerian_banks():
+    banks = await bank_services.fetch_nigerian_banks()
+    return banks
+
 ###========= uncomment and use this endpoint if your last_updated is showing null====###
 # from bigfastapi.db.database import db_engine
 # @router.get("/banks-migration/upate-last_updated",
