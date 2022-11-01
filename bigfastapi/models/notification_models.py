@@ -77,6 +77,8 @@ class NotificationGroup(database.Base):
     __tablename__ = "notification_groups"
     id = Column(String(50), primary_key=True, index=True, default=uuid4().hex)
     name = Column(String(255), index=True)
+    organization_id = Column(String(50), ForeignKey(
+        "organizations.id"))  # foreignkey to organization
     date_created = Column(DateTime, default=datetime.utcnow)
     last_updated = Column(DateTime, default=datetime.utcnow)
     notification_group_members = relationship(
