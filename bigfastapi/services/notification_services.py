@@ -214,3 +214,13 @@ async def get_notifications(user_id: str, organization_id: str, db: orm.Session,
     notifications = (notifications_query.offset(offset=offset).limit(limit=size).all())
 
     return notifications, total_items
+
+
+async def check_group_member_exists(group_id:str, member_id:str, db: orm.Session):
+    member = db.query(NotificationGroupMember).filter(NotificationGroupMember.group_id == group_id
+            ).filter(NotificationGroupMember.member_id == member_id).first()
+
+    if member != None:
+        return True
+    else:
+        return False        
