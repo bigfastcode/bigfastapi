@@ -248,6 +248,13 @@ async def create_notification_group(
             id=uuid4().hex, name=group.name)
 
         db.add(new_notification_group)
+
+        if group.members:
+            for member in group.members:
+                add_member = model.NotificationGroupMember(
+                    id=uuid4().hex, group_id=new_notification_group.id, member_id=member)
+                db.add(add_member)
+
         db.commit()
         db.refresh(new_notification_group)
 

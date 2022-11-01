@@ -72,12 +72,32 @@ class NotificationSettingResponse(NotificationSetting):
 
 class NotificationGroup(pydantic.BaseModel):
     name: str
+    members: Optional[List]
+
+
+class GroupUser(pydantic.BaseModel):
+    first_name: Optional[str]
+    last_name: Optional[str]
+    email: str
+
+    class Config:
+        orm_mode = True
+
+
+class GroupMembersOutput(pydantic.BaseModel):
+    member_id: str
+    date_created: datetime
+    user_member: Optional[GroupUser]
+
+    class Config:
+        orm_mode = True
 
 
 class NotificationGroupResponse(NotificationGroup):
     id: str
     date_created: datetime
     last_updated: datetime
+    notification_group_members: Optional[List[GroupMembersOutput]]
 
     class Config:
         orm_mode = True
