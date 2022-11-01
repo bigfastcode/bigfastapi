@@ -17,7 +17,8 @@ from .services.notification_services import (
     create_notification_setting,
     fetch_existing_setting,
     update_notification_setting,
-    get_notifications
+    get_notifications,
+    check_group_member_exists
 )
 from bigfastapi.core.helpers import Helpers
 
@@ -205,6 +206,28 @@ async def update_org_notification_settings(
     )
 
 
+
+@app.get("/notification-groups", response_model=List[schema.NotificationGroupResponse])
+async def get_all_notification_groups(
+    organization_id: str,
+    user: user_schema.User = Depends(is_authenticated),
+    db: orm.Session = Depends(get_db)
+):
+    #organization and user check
+    await Helpers.check_user_org_validity(
+        user_id=user.id, organization_id=organization_id, db=db
+    )
+    groups = db.query(model.NotificationGroup).filter(
+                model.NotificationGroup.organization_id == organization_id
+            ).all()
+
+    if groups is None:
+        raise HTTPException(detail="Organization has no notification groups",
+                            status_code=status.HTTP_404_NOT_FOUND)         
+
+    return groups
+
+
 @app.get(
     "/notification-group/{group_id}", response_model=schema.NotificationGroupResponse)
 async def get_notification_group(
@@ -288,6 +311,16 @@ async def update_notification_group(
 
     if group.name:
         fetched_group.name = group.name
+    if group.members:
+        for member in group.members:
+            member_exist = await check_group_member_exists(group_id=fetched_group.id, member_id=member, db=db)
+            if member_exist:
+                pass
+            else:
+                add_member = model.NotificationGroupMember(
+                    id=uuid4().hex, group_id=fetched_group.id, member_id=member)
+                db.add(add_member)
+
     fetched_group.last_updated = group.last_updated if group.last_updated else datetime.now()
 
     db.commit()
