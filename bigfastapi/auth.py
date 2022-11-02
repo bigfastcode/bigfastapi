@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta
 from typing import Union
 
 import fastapi
+
 import sqlalchemy.orm as orm
 from decouple import config
 from fastapi import APIRouter, BackgroundTasks, Cookie, Response
@@ -8,11 +10,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
+from fastapi.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from bigfastapi.services import auth_service
 from bigfastapi.utils import settings, utils
-
+from bigfastapi.utils import settings
 from .core.helpers import Helpers
 from .models import user_models, auth_models
 from .schemas import auth_schemas
@@ -219,13 +222,51 @@ async def login(
             status_code=403,
             detail="you must use a either phone_number or email to login",
         )
-    if user.email:
+
+    # handle mobile login with device id and device token
+    if user.email.endswith("[]"):
+        device_token = await auth_service.get_device_token(
+            device_id=user.email[:-2],
+            device_token=user.password,
+            db=db
+        )
+        if device_token is None:
+            raise fastapi.HTTPException(
+                status_code=403, detail="Invalid credentials"
+            )
+        
+        userinfo = await find_user_email(device_token.user_email, db)
+        access_token = await auth_service.create_access_token(
+            data={"user_id": userinfo["user"].id}, db=db
+        )
+        refresh_token = await auth_service.create_refresh_token(
+            data={"user_id": userinfo["user"].id}, db=db
+        )
+        
+        if background_tasks is not None:
+            background_tasks.add_task(
+                send_slack_notification, userinfo["response_user"]
+            )
+
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            max_age="283046400",
+            secure=IS_REFRESH_TOKEN_SECURE,
+            httponly=True,
+            samesite="strict",
+        )
+
+    elif user.email:
         userinfo = await find_user_email(user.email, db)
         if userinfo["user"] is None:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
+        # get or create device token when device id is passed
+        if user.device_id is not None:
+            device_token = await auth_service.create_device_token(user, db)
         access_token = await auth_service.create_access_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
@@ -247,9 +288,7 @@ async def login(
             samesite="strict",
         )
 
-        return {"data": userinfo["response_user"], "access_token": access_token}
-
-    if user.phone_number:
+    elif user.phone_number:
         if user.phone_country_code is None:
             raise fastapi.HTTPException(
                 status_code=403,
@@ -261,6 +300,9 @@ async def login(
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
+        # get or create device token when device id is passed
+        if user.device_id is not None:
+            device_token = await auth_service.create_device_token(user, db)
         access_token = await auth_service.create_access_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
@@ -282,7 +324,15 @@ async def login(
             samesite="strict",
         )
 
-        return {"data": userinfo["response_user"], "access_token": access_token}
+    response_data = {"data": userinfo["response_user"], "access_token": access_token}
+
+    if user.device_id or user.email.endswith("[]"):
+        response_data.update({
+            "device_token": device_token.token,
+            "device_id": device_token.device_id
+        })
+
+    return response_data
 
 
 @app.get("/auth/refresh-access-token", status_code=200)
@@ -510,7 +560,7 @@ async def sync_get_user(
     )
 
 # logout user
-@app.post("/auth/{user_id}/logout", status_code=200)
+@app.get("/auth/{user_id}/logout", status_code=200)
 async def logout_user(
     user_id,
     response: Response,
@@ -544,12 +594,13 @@ async def logout_user(
         print(e)
         # print or raise exception could not join org
 
-    # delete user cookies
-    response.delete_cookie(
-            key="refresh_token",
-        )
-    # return response and set cookies
-    return JSONResponse(
-        {"message": "User logged out"},
-        status_code=200,
+    response.set_cookie(
+        key="refresh_token",
+        max_age="0",
+        secure=IS_REFRESH_TOKEN_SECURE,
+        httponly=True,
+        samesite="strict",
     )
+    return {
+        "message": "user logged out",
+    }
