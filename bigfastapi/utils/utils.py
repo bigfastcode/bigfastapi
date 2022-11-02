@@ -1,9 +1,10 @@
+import datetime as dt
 import json
 import os
 import random
 import re
 from random import randrange
-import datetime as dt
+from typing import Union
 
 import fastapi
 import pkg_resources
@@ -52,7 +53,7 @@ def paginate_data(data, page_size: int, page_number: int):
     end = start + page_size
 
     return {
-        "message":"success",
+        "message": "success",
         "data": data[start:end],
         "total_documents": data.__len__(),
         "page_limit": page_size,
@@ -73,16 +74,14 @@ def find_country(ctry):
         return found_country["name"]
 
 
-def dialcode(dcode):
+def validate_phone_dialcode(dcode) -> Union[str, None]:
     with open(DATA_PATH + "/dialcode.json") as file:
         dialcodes = json.load(file)
         found_dialcode = next(
             (dialcode for dialcode in dialcodes if dialcode["dial_code"] == dcode), None
         )
         if found_dialcode is None:
-            raise fastapi.HTTPException(
-                status_code=403, detail="This is an invalid dialcode"
-            )
+            return None
         return found_dialcode["dial_code"]
 
 

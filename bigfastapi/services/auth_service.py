@@ -6,10 +6,10 @@ from uuid import uuid4
 import fastapi
 import jwt as JWT
 import passlib.hash as _hash
-from sqlalchemy import and_, orm
 from fastapi import BackgroundTasks, Cookie
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy import and_, orm
 
 from bigfastapi.api_key import check_api_key
 from bigfastapi.core.helpers import Helpers
@@ -31,47 +31,151 @@ JWT_SECRET = settings.JWT_SECRET
 ALGORITHM = "HS256"
 
 
+async def find_user_by_email(email: str, db: orm.Session):
+    found_user = (
+        db.query(user_models.User).filter(user_models.User.email == email).first()
+    )
+    return {
+        "user": found_user,
+        "response_user": auth_schemas.UserCreateOut.from_orm(found_user),
+    }
+
+
+async def find_user_by_phone(
+    phone_number: str, phone_country_code: str, db: orm.Session
+):
+    found_user = (
+        db.query(user_models.User)
+        .filter(
+            and_(
+                user_models.User.phone_number == phone_number,
+                user_models.User.phone_country_code == phone_country_code,
+            )
+        )
+        .first()
+    )
+
+    return {
+        "user": found_user,
+        "response_user": auth_schemas.UserCreateOut.from_orm(found_user),
+    }
+
+
+# APPROACH SUBJECT TO REVIEW!
 async def create_user(
     user: auth_schemas.UserCreate, db: orm.Session, is_su: bool = False
 ):
     su_status = True if is_su else False
 
-    existing_user = (
-        db.query(user_models.User).filter(user_models.User.email == user.email).first()
-    )
-    if existing_user:
-        raise fastapi.HTTPException(
-            status_code=422, detail=f"Account with {user.email} already exist"
+    # Validate email and phone input fields
+    validate_email_and_phone_fields(user)
+
+    existing_user_with_email = None
+    existing_user_with_phone = None
+
+    if user.email:
+        existing_user_with_email = await find_user_by_email(email=user.email, db=db)
+
+        if existing_user_with_email is not None:
+            raise fastapi.HTTPException(
+                status_code=403, detail="An account with this email already exist"
+            )
+
+    if user.phone_number:
+        existing_user_with_phone = await find_user_by_phone(
+            phone_number=user.phone_number,
+            phone_country_code=user.phone_country_code,
+            db=db,
         )
 
-    if user.phone_number and user.country_code is None:
-        raise fastapi.HTTPException(status_code=422, detail="Country code is required")
-    if user.phone_number and user.country_code:
-        if utils.dialcode(user.country_code) is None:
-            raise fastapi.HTTPException(status_code=422, detail="Invalid country code")
+        if existing_user_with_phone is not None:
+            raise fastapi.HTTPException(
+                status_code=403,
+                detail="An account with this phone number already exist",
+            )
 
-    user_obj = user_models.User(
-        id=uuid4().hex,
-        email=user.email,
-        password_hash=_hash.sha256_crypt.hash(user.password),
-        first_name=user.first_name,
-        last_name=user.last_name,
-        phone_number=user.phone_number,
-        is_active=True,
-        is_verified=True,
-        is_superuser=su_status,
-        phone_country_code=user.phone_country_code,
-        is_deleted=False,
-        google_id=user.google_id,
-        google_image_url=user.google_image_url,
-        image_url=user.image_url,
-        device_id=user.device_id,
-    )
+    if existing_user_with_email is None:
+        # proceed with account creation with email
+        user_obj = user_models.User(
+            id=uuid4().hex,
+            email=user.email,
+            password_hash=_hash.sha256_crypt.hash(user.password),
+            first_name=user.first_name,
+            last_name=user.last_name,
+            phone_number=user.phone_number,
+            is_active=True,
+            is_verified=True,
+            is_superuser=su_status,
+            phone_country_code=user.phone_country_code,
+            is_deleted=False,
+            google_id=user.google_id,
+            google_image_url=user.google_image_url,
+            image_url=user.image_url,
+            device_id=user.device_id,
+        )
 
-    db.add(user_obj)
-    db.commit()
-    db.refresh(user_obj)
-    return auth_schemas.UserCreateOut.from_orm(user_obj)
+        db.add(user_obj)
+        db.commit()
+        db.refresh(user_obj)
+
+        return auth_schemas.UserCreateOut.from_orm(user_obj)
+
+    if existing_user_with_phone is None:
+        # proceed to account creation with phone
+        user_obj = user_models.User(
+            id=uuid4().hex,
+            email=user.email,
+            password_hash=_hash.sha256_crypt.hash(user.password),
+            first_name=user.first_name,
+            last_name=user.last_name,
+            phone_number=user.phone_number,
+            is_active=True,
+            is_verified=True,
+            is_superuser=su_status,
+            phone_country_code=user.phone_country_code,
+            is_deleted=False,
+            google_id=user.google_id,
+            google_image_url=user.google_image_url,
+            image_url=user.image_url,
+            device_id=user.device_id,
+        )
+
+        db.add(user_obj)
+        db.commit()
+        db.refresh(user_obj)
+
+        return auth_schemas.UserCreateOut.from_orm(user_obj)
+
+
+def validate_email_and_phone_fields(user: auth_schemas.UserCreate):
+    if user.email is None and user.phone_number is None:
+        raise fastapi.HTTPException(
+            status_code=403,
+            detail="You must use a either phone_number or email to sign up",
+        )
+
+    # Validate phone number
+    if user.phone_number and user.phone_country_code is None:
+        raise fastapi.HTTPException(
+            status_code=422,
+            detail="Country code is required when a phone number is specified",
+        )
+
+    if user.phone_number and user.phone_country_code:
+        check_country_code = utils.validate_phone_dialcode(user.phone_country_code)
+        if check_country_code is None:
+            raise fastapi.HTTPException(status_code=403, detail="Invalid country code")
+    if user.phone_number is None and user.phone_country_code:
+        raise fastapi.HTTPException(
+            status_code=422,
+            detail="You must add a phone number when you add a country code",
+        )
+
+
+def send_slack_notification_for_auth(user, action: str = "login"):
+    message = f"New {action} from {user.email}"
+
+    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
 
 
 async def create_access_token(data: dict, db: orm.Session):
@@ -414,9 +518,10 @@ async def password_change_token(
 
 
 async def send_code_password_reset_email(
-    email: str, db: orm.Session,
+    email: str,
+    db: orm.Session,
     background_tasks: BackgroundTasks,
-    codelength: int = None
+    codelength: int = None,
 ):
     user = await get_user(db, email=email)
     if not user:
@@ -526,9 +631,11 @@ def send_slack_notification(user):
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
 
 
-
 async def sync_user(
-    user: auth_schemas.UserCreate, db: orm.Session, is_su: bool = False, is_active: bool = True
+    user: auth_schemas.UserCreate,
+    db: orm.Session,
+    is_su: bool = False,
+    is_active: bool = True,
 ):
     su_status = True if is_su else False
 
@@ -545,10 +652,10 @@ async def sync_user(
             db.commit()
         except:
             db.rollback()
-        return ({
+        return {
             "data": auth_schemas.UserCreateOut.from_orm(existing_user),
-            "updated": True
-        })
+            "updated": True,
+        }
 
     if not user.id:
         user.id = uuid4().hex
@@ -574,45 +681,45 @@ async def sync_user(
         db.add(user_obj)
         db.commit()
         db.refresh(user_obj)
-        return ({
-            "data": auth_schemas.UserCreateOut.from_orm(user_obj),
-            "updated": False
-        })
+        return {"data": auth_schemas.UserCreateOut.from_orm(user_obj), "updated": False}
     except:
         db.rollback()
         # raise Exception or print error
 
 
 async def create_device_token(user, db: orm.Session):
-    device_token = db.query(auth_models.DeviceToken).filter(
-        auth_models.DeviceToken.device_id==user.device_id
-    ).first()
+    device_token = (
+        db.query(auth_models.DeviceToken)
+        .filter(auth_models.DeviceToken.device_id == user.device_id)
+        .first()
+    )
 
     if not device_token or device_token.max_age <= datetime.utcnow():
         device_token = auth_models.DeviceToken(
-            device_id=user.device_id,
-            user_email=user.email,
-            token=uuid4().hex
+            device_id=user.device_id, user_email=user.email, token=uuid4().hex
         )
         db.add(device_token)
         db.commit()
         db.refresh(device_token)
-    
+
     return device_token
 
 
 async def get_device_token(device_id: str, device_token: str, db: orm.Session):
-    device_credentials = db.query(auth_models.DeviceToken).filter(
-        and_(
-            auth_models.DeviceToken.device_id==device_id,
-            auth_models.DeviceToken.token==device_token
+    device_credentials = (
+        db.query(auth_models.DeviceToken)
+        .filter(
+            and_(
+                auth_models.DeviceToken.device_id == device_id,
+                auth_models.DeviceToken.token == device_token,
+            )
         )
-    ).first()
+        .first()
+    )
 
     if device_credentials.max_age <= datetime.utcnow():
         raise fastapi.HTTPException(
-            status_code=401, 
-            detail="Device token expired, generate a new one"
+            status_code=401, detail="Device token expired, generate a new one"
         )
-    
+
     return device_credentials
