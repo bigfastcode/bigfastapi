@@ -177,7 +177,7 @@ async def create_org_notification_settings(
 @app.put("/notification-settings/{setting_id}", response_model=schema.NotificationSettingResponse)
 async def update_org_notification_settings(
         setting_id: str,
-        notification_setting: schema.NotificationSetting,
+        notification_setting: schema.NotificationSettingUpdate,
         user: user_schema.User = Depends(is_authenticated),
         db: orm.Session = Depends(get_db)):
 
@@ -195,7 +195,9 @@ async def update_org_notification_settings(
         )
         updated_notification_setting = await update_notification_setting(
             notification_setting=notification_setting,
-            fetched_setting=existing_setting
+            fetched_setting=existing_setting,
+            user=user,
+            db=db
         )
 
         return updated_notification_setting
@@ -268,7 +270,7 @@ async def create_notification_group(
     ).first()
     if existing_notification_group is None:
         new_notification_group = model.NotificationGroup(
-            id=uuid4().hex, name=group.name)
+            id=uuid4().hex, name=group.name, organization_id=organization_id)
 
         db.add(new_notification_group)
 
