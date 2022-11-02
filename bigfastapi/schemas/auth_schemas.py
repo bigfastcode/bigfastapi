@@ -1,11 +1,10 @@
 import datetime as dt
-import pydantic as _pydantic
-from pydantic import Field
-from uuid import UUID
-from typing import List, Optional
+from typing import Optional
+
+from pydantic import BaseModel
 
 
-class _UserBase(_pydantic.BaseModel):
+class _UserBase(BaseModel):
     email: Optional[str]
 
 
@@ -14,7 +13,7 @@ class UserUpdate(_UserBase):
     last_name: str
 
 
-class UserPasswordUpdate(_pydantic.BaseModel):
+class UserPasswordUpdate(BaseModel):
     password: str
 
 
@@ -46,7 +45,7 @@ class UserCreate(_UserBase):
         orm_mode = True
 
 
-class UserCreateSync(_pydantic.BaseModel):
+class UserCreateSync(BaseModel):
     id: Optional[str]
     password: str
     email: str
@@ -58,8 +57,6 @@ class UserCreateSync(_pydantic.BaseModel):
     phone_country_code: Optional[str]
     image_url: Optional[str]
     device_id: Optional[str]
-    # country: Optional[str]
-    # state: Optional[str]
     google_id: Optional[str]
     google_image_url: Optional[str]
 
@@ -116,8 +113,6 @@ class User(_UserBase):
     image_url: Optional[str]
     is_deleted: bool
     device_id: Optional[str]
-    # country: Optional[str]
-    # state: Optional[str]
     google_id: Optional[str]
     google_image_url: Optional[str]
     date_created: dt.datetime
@@ -137,11 +132,10 @@ class APIKey(_UserBase):
     last_name: Optional[str]
 
 
-class APIKEYCheck(_pydantic.BaseModel):
+class APIKEYCheck(BaseModel):
     app_id: str
     api_key: str
 
 
 class APIKeyReset(_UserBase):
     code: str
-    

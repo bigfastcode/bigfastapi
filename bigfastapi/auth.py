@@ -1,8 +1,6 @@
-from datetime import datetime, timedelta
 from typing import Union
 
 import fastapi
-
 import sqlalchemy.orm as orm
 from decouple import config
 from fastapi import APIRouter, BackgroundTasks, Cookie, Response
@@ -10,14 +8,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
-from fastapi.responses import RedirectResponse
 
 from bigfastapi.db.database import get_db
 from bigfastapi.services import auth_service
-from bigfastapi.utils import settings, utils
 from bigfastapi.utils import settings
-from .core.helpers import Helpers
-from .models import user_models, auth_models
+
+from .models import auth_models, user_models
 from .schemas import auth_schemas
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -60,57 +56,20 @@ async def create_user(
         returnBody--> "success".
     """
 
-    if user.email is None and user.phone_number is None:
-        raise fastapi.HTTPException(
-            status_code=403,
-            detail="you must use a either phone_number or email to sign up",
-        )
-    if user.phone_number and user.phone_country_code is None:
-        raise fastapi.HTTPException(
-            status_code=403,
-            detail="you must add a country code when you add a phone number",
-        )
-    if user.phone_number and user.phone_country_code:
-        check_contry_code = utils.dialcode(user.phone_country_code)
-        if check_contry_code is None:
-            raise fastapi.HTTPException(
-                status_code=403, detail="this country code is invalid"
-            )
-    if user.phone_number is None and user.phone_country_code:
-        raise fastapi.HTTPException(
-            status_code=403,
-            detail="you must add a phone number when you add a country code",
-        )
-    # if user.country:
-    #     check_country = utils.find_country(user.country)
-    #     if check_country is None:
-    #         raise fastapi.HTTPException(
-    #             status_code=403, detail="this country is invalid")
+    new_user = await auth_service.create_user(user=user, db=db)
 
-    if user.email or (user.email and user.phone_number):
-        user_email = await find_user_email(user.email, db)
-        if user_email["user"] is not None:
-            raise fastapi.HTTPException(
-                status_code=403, detail="This email already exist"
-            )
-        if user.phone_number:
-            user_phone = await find_user_phone(
-                user.phone_number, user.phone_country_code, db
-            )
-            if user_phone["user"] is not None:
-                raise fastapi.HTTPException(
-                    status_code=403, detail="This phone number already exist"
-                )
-        user_created = await auth_service.create_user(user, db=db)
+    if new_user is not None:
         access_token = await auth_service.create_access_token(
-            data={"user_id": user_created.id}, db=db
-        )
-        refresh_token = await auth_service.create_refresh_token(
-            data={"user_id": user_created.id}, db=db
+            data={"user_id": new_user.id}, db=db
         )
 
-        if background_tasks is not None:
-            background_tasks.add_task(send_slack_notification, user_created)
+        refresh_token = await auth_service.create_refresh_token(
+            data={"user_id": new_user.id}, db=db
+        )
+
+        background_tasks.add_task(
+            auth_service.send_slack_notification_for_auth, new_user, "signup"
+        )
 
         response.set_cookie(
             key="refresh_token",
@@ -122,41 +81,7 @@ async def create_user(
         )
 
         return JSONResponse(
-            {"data": jsonable_encoder(user_created), "access_token": access_token},
-            status_code=201,
-        )
-
-    if user.phone_number:
-        user_phone = await find_user_phone(
-            user.phone_number, user.phone_country_code, db
-        )
-        if user_phone["user"] is not None:
-            raise fastapi.HTTPException(
-                status_code=403, detail="Phone_Number already exist"
-            )
-        user_created = await create_user(user, db=db)
-        access_token = await auth_service.create_access_token(
-            data={"user_id": user_created.id}, db=db
-        )
-
-        refresh_token = await auth_service.create_refresh_token(
-            data={"user_id": user_created.id}, db=db
-        )
-
-        if background_tasks is not None:
-            background_tasks.add_task(send_slack_notification, user_created)
-
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            max_age="172800",
-            secure=IS_REFRESH_TOKEN_SECURE,
-            httponly=True,
-            samesite="strict",
-        )
-
-        return JSONResponse(
-            {"data": jsonable_encoder(user_created), "access_token": access_token},
+            {"data": jsonable_encoder(new_user), "access_token": access_token},
             status_code=201,
         )
 
@@ -170,31 +95,36 @@ async def create_admin_user(
     db: orm.Session = fastapi.Depends(get_db),
 ):
 
-    created_user = auth_service.create_user(user, db, True)
-    access_token = auth_service.create_access_token(
-        data={"user_id": created_user.id}, db=db
-    )
+    new_admin_user = await auth_service.create_user(user=user, db=db)
 
-    refresh_token = await auth_service.create_refresh_token(
-        data={"user_id": created_user["user"].id}, db=db
-    )
+    if new_admin_user is not None:
+        access_token = await auth_service.create_access_token(
+            data={"user_id": new_admin_user.id}, db=db
+        )
 
-    if background_tasks is not None:
-        background_tasks.add_task(send_slack_notification, created_user)
+        refresh_token = await auth_service.create_refresh_token(
+            data={"user_id": new_admin_user.id}, db=db
+        )
 
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        max_age="172800",
-        secure=IS_REFRESH_TOKEN_SECURE,
-        httponly=True,
-        samesite="strict",
-    )
+        background_tasks.add_task(
+            auth_service.send_slack_notification_for_auth,
+            new_admin_user,
+            "admin signup",
+        )
 
-    return JSONResponse(
-        {"data": jsonable_encoder(created_user), "access_token": access_token},
-        status_code=201,
-    )
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            max_age="172800",
+            secure=IS_REFRESH_TOKEN_SECURE,
+            httponly=True,
+            samesite="strict",
+        )
+
+        return JSONResponse(
+            {"data": jsonable_encoder(new_admin_user), "access_token": access_token},
+            status_code=201,
+        )
 
 
 @app.post("/auth/login", status_code=200)
@@ -226,27 +156,22 @@ async def login(
     # handle mobile login with device id and device token
     if user.email.endswith("[]"):
         device_token = await auth_service.get_device_token(
-            device_id=user.email[:-2],
-            device_token=user.password,
-            db=db
+            device_id=user.email[:-2], device_token=user.password, db=db
         )
         if device_token is None:
-            raise fastapi.HTTPException(
-                status_code=403, detail="Invalid credentials"
-            )
-        
-        userinfo = await find_user_email(device_token.user_email, db)
+            raise fastapi.HTTPException(status_code=403, detail="Invalid credentials")
+
+        userinfo = await auth_service.find_user_by_email(device_token.user_email, db)
         access_token = await auth_service.create_access_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
         refresh_token = await auth_service.create_refresh_token(
             data={"user_id": userinfo["user"].id}, db=db
         )
-        
-        if background_tasks is not None:
-            background_tasks.add_task(
-                send_slack_notification, userinfo["response_user"]
-            )
+
+        background_tasks.add_task(
+            auth_service.send_slack_notification_for_auth, userinfo
+        )
 
         response.set_cookie(
             key="refresh_token",
@@ -258,8 +183,8 @@ async def login(
         )
 
     elif user.email:
-        userinfo = await find_user_email(user.email, db)
-        if userinfo["user"] is None:
+        userinfo = await auth_service.find_user_by_email(user.email, db)
+        if userinfo is None:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
@@ -274,10 +199,9 @@ async def login(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
-        if background_tasks is not None:
-            background_tasks.add_task(
-                send_slack_notification, userinfo["response_user"]
-            )
+        background_tasks.add_task(
+            auth_service.send_slack_notification_for_auth, userinfo
+        )
 
         response.set_cookie(
             key="refresh_token",
@@ -294,8 +218,10 @@ async def login(
                 status_code=403,
                 detail="you must add country_code when using phone_number to login",
             )
-        userinfo = await find_user_phone(user.phone_number, user.phone_country_code, db)
-        if userinfo["user"] is None:
+        userinfo = await auth_service.find_user_by_phone(
+            user.phone_number, user.phone_country_code, db
+        )
+        if userinfo is None:
             raise fastapi.HTTPException(status_code=403, detail="Invalid Credentials")
         veri = userinfo["user"].verify_password(user.password)
         if not veri:
@@ -310,10 +236,9 @@ async def login(
             data={"user_id": userinfo["user"].id}, db=db
         )
 
-        if background_tasks is not None:
-            background_tasks.add_task(
-                send_slack_notification, userinfo["response_user"]
-            )
+        background_tasks.add_task(
+            auth_service.send_slack_notification_for_auth, userinfo
+        )
 
         response.set_cookie(
             key="refresh_token",
@@ -327,10 +252,9 @@ async def login(
     response_data = {"data": userinfo["response_user"], "access_token": access_token}
 
     if user.device_id or user.email.endswith("[]"):
-        response_data.update({
-            "device_token": device_token.token,
-            "device_id": device_token.device_id
-        })
+        response_data.update(
+            {"device_token": device_token.token, "device_id": device_token.device_id}
+        )
 
     return response_data
 
@@ -406,45 +330,12 @@ async def refresh_access_token(
     return {"user": user, "access_token": access_token, "expires_in": 900}
 
 
-async def find_user_email(email, db: orm.Session):
-    found_user = (
-        db.query(user_models.User).filter(user_models.User.email == email).first()
-    )
-    return {
-        "user": found_user,
-        "response_user": auth_schemas.UserCreateOut.from_orm(found_user),
-    }
-
-
-async def find_user_phone(phone_number, phone_country_code, db: orm.Session):
-    found_user = (
-        db.query(user_models.User)
-        .filter(
-            user_models.User.phone_number == phone_number
-            and user_models.User.phone_country_code == phone_country_code
-        )
-        .first()
-    )
-    return {
-        "user": found_user,
-        "response_user": auth_schemas.UserCreateOut.from_orm(found_user),
-    }
-
-
-def send_slack_notification(user):
-    message = "New login from " + user.email
-    # sends the message to slack
-    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
-
-
+from uuid import uuid4
 
 # = = = = = = = = = = = = = = = = = = = = = = = = =
 # imports
-from bigfastapi.models.organization_models import (
-    OrganizationInvite,
-    OrganizationUser,
-)
-from uuid import uuid4
+from bigfastapi.models.organization_models import OrganizationInvite, OrganizationUser
+
 
 @app.post("/auth/sync/user", status_code=201)
 async def sync_batch_user(
@@ -458,18 +349,21 @@ async def sync_batch_user(
     # - Add User ID to OrganizationUsers
 
     user__obj = await auth_service.sync_user(user, db=db, is_active=False)
-    user_obj = user__obj['data']
+    user_obj = user__obj["data"]
 
-    joined_org = db.query(OrganizationUser) \
-        .filter(OrganizationUser.user_id == user_obj.id) \
-        .filter(OrganizationUser.organization_id == user.organization_id) \
+    joined_org = (
+        db.query(OrganizationUser)
+        .filter(OrganizationUser.user_id == user_obj.id)
+        .filter(OrganizationUser.organization_id == user.organization_id)
         .first()
+    )
 
-    has_invite = db.query(OrganizationInvite) \
-        .filter(OrganizationInvite.user_id == user_obj.id) \
-        .filter(OrganizationInvite.organization_id == user.organization_id) \
+    has_invite = (
+        db.query(OrganizationInvite)
+        .filter(OrganizationInvite.user_id == user_obj.id)
+        .filter(OrganizationInvite.organization_id == user.organization_id)
         .first()
-
+    )
 
     if user_obj and not has_invite:
         # on bulk - if user and has invite pop out of list and append to update list
@@ -481,14 +375,12 @@ async def sync_batch_user(
             email=user_obj.email,
             role_id=user.role_id,
             invite_code=user.password,
-
             # replicate the invite accepted and deleted
             is_accepted=True,
             is_deleted=True,
         )
 
         db.add(has_invite)
-
 
         if user_obj and not joined_org:
             joined_org = OrganizationUser(
@@ -499,7 +391,6 @@ async def sync_batch_user(
             )
 
             db.add(joined_org)
-
 
         try:
             db.commit()
@@ -517,7 +408,7 @@ async def sync_batch_user(
             "invite": jsonable_encoder(has_invite),
             "user_org": jsonable_encoder(joined_org),
         },
-        status_code=202 if user__obj['updated'] else 201,
+        status_code=202 if user__obj["updated"] else 201,
     )
 
 
@@ -529,26 +420,29 @@ async def sync_get_user(
 ):
 
     # Steps:
-    user_obj = db.query(user_models.User) \
-        .filter(user_models.User.email == email) \
-        .first()
-
-    if not user_obj:
-        return JSONResponse({
-            "error": "User not found"
-        },
-        status_code=404,
+    user_obj = (
+        db.query(user_models.User).filter(user_models.User.email == email).first()
     )
 
-    joined_org = db.query(OrganizationUser) \
-        .filter(OrganizationUser.user_id == user_obj.id) \
-        .filter(OrganizationUser.organization_id == organization_id) \
-        .first()
+    if not user_obj:
+        return JSONResponse(
+            {"error": "User not found"},
+            status_code=404,
+        )
 
-    has_invite = db.query(OrganizationInvite) \
-        .filter(OrganizationInvite.user_id == user_obj.id) \
-        .filter(OrganizationInvite.organization_id == organization_id) \
+    joined_org = (
+        db.query(OrganizationUser)
+        .filter(OrganizationUser.user_id == user_obj.id)
+        .filter(OrganizationUser.organization_id == organization_id)
         .first()
+    )
+
+    has_invite = (
+        db.query(OrganizationInvite)
+        .filter(OrganizationInvite.user_id == user_obj.id)
+        .filter(OrganizationInvite.organization_id == organization_id)
+        .first()
+    )
 
     return JSONResponse(
         {
@@ -558,6 +452,7 @@ async def sync_get_user(
         },
         status_code=200,
     )
+
 
 # logout user
 @app.get("/auth/{user_id}/logout", status_code=200)
@@ -571,17 +466,20 @@ async def logout_user(
     # - Delete Token
     # - Delete User Cookies
     #  find user by id
-    found_user = db.query(user_models.User).filter(user_models.User.id == user_id).first()
+    found_user = (
+        db.query(user_models.User).filter(user_models.User.id == user_id).first()
+    )
 
     if not found_user:
         return JSONResponse(
-            {"error": "User not found"}, status_code=404,
+            {"error": "User not found"},
+            status_code=404,
         )
 
     # delete refresh token
-    token = db.query(auth_models.Token) \
-        .filter(auth_models.Token.user_id == user_id) \
-        .first()
+    token = (
+        db.query(auth_models.Token).filter(auth_models.Token.user_id == user_id).first()
+    )
 
     if token:
         db.delete(token)
