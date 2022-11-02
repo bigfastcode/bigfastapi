@@ -76,7 +76,7 @@ async def create_user(
     if user.email:
         existing_user_with_email = await find_user_by_email(email=user.email, db=db)
 
-        if existing_user_with_email is not None:
+        if existing_user_with_email["user"] is not None:
             raise fastapi.HTTPException(
                 status_code=403, detail="An account with this email already exist"
             )
@@ -88,13 +88,13 @@ async def create_user(
             db=db,
         )
 
-        if existing_user_with_phone is not None:
+        if existing_user_with_phone["user"] is not None:
             raise fastapi.HTTPException(
                 status_code=403,
                 detail="An account with this phone number already exist",
             )
 
-    if existing_user_with_email is None:
+    if existing_user_with_email["user"] is None:
         # proceed with account creation with email
         user_obj = user_models.User(
             id=uuid4().hex,
@@ -120,7 +120,7 @@ async def create_user(
 
         return auth_schemas.UserCreateOut.from_orm(user_obj)
 
-    if existing_user_with_phone is None:
+    if existing_user_with_phone["user"] is None:
         # proceed to account creation with phone
         user_obj = user_models.User(
             id=uuid4().hex,
