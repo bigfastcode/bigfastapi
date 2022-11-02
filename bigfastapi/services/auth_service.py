@@ -70,8 +70,9 @@ async def create_user(
     # Validate email and phone input fields
     validate_email_and_phone_fields(user)
 
-    existing_user_with_email = None
-    existing_user_with_phone = None
+    default_user = { "user": None, "response_user": None }
+    existing_user_with_email = default_user
+    existing_user_with_phone = default_user
 
     if user.email:
         existing_user_with_email = await find_user_by_email(email=user.email, db=db)
