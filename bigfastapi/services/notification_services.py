@@ -78,24 +78,28 @@ def get_notification_recipients(organization_id, module, access_level, db):
         notification_groups = db.query(NotificationGroupModule).filter(
             NotificationGroupModule.module_id == notification_module_id).all()
 
-        notification_group_ids = []
-        for notification_group in notification_groups:
-            notification_group_ids.append(notification_group.group_id)
+        if len(notification_groups) == 0:
+            group_members = None
 
-        # Get id of all group members in those groups
-        group_members = []
+        else:
+            notification_group_ids = []
+            for notification_group in notification_groups:
+                notification_group_ids.append(notification_group.group_id)
 
-        for group_id in notification_group_ids:
-            members = db.query(NotificationGroupMember).filter(
-                NotificationGroupMember.group_id == group_id).all()
+            # Get id of all group members in those groups
+            group_members = []
 
-            group_member_ids = []
-            for group_member in members:
-                group_member_ids.append(group_member.member_id)
+            for group_id in notification_group_ids:
+                members = db.query(NotificationGroupMember).filter(
+                    NotificationGroupMember.group_id == group_id).all()
 
-            for member_id in group_member_ids:
-                if member_id not in group_members:
-                    group_members.append(member_id)
+                group_member_ids = []
+                for group_member in members:
+                    group_member_ids.append(group_member.member_id)
+
+                for member_id in group_member_ids:
+                    if member_id not in group_members:
+                        group_members.append(member_id)
     else:
         group_members = None
 

@@ -56,7 +56,8 @@ class NotificationSetting(pydantic.BaseModel):
 
 
 class NotificationSettingUpdate(NotificationSetting):
-    send_via: str
+    access_level: Optional[str]
+    send_via: Optional[SendVia]
     status: Optional[bool]
     last_updated: datetime = datetime.now()
 
