@@ -79,6 +79,8 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
 
     check_user = auth_service.valid_email_from_db(user_data["email"], db)
 
+    print(check_user)
+
     if check_user:
         refresh_token = await auth_service.create_refresh_token(
             data={"user_id": check_user.id}, db=db
