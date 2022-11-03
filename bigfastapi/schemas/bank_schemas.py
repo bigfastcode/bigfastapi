@@ -29,6 +29,7 @@ class BankBase(pydantic.BaseModel):
     country:  str
     account_number: int
     bank_name: str
+    bank_id: Optional[str]
     recipient_name: Optional[str]
     account_type: Optional[str]
     currency: Optional[str]  # currency is supposed to be require. Optional for the sake of old data
