@@ -10,16 +10,24 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Deployment
-        run: |
-          cd ${{ secrets.API_PATH }}
-          source env/bin/activate
-          bash deploy.sh > deploy.log
-          cat deploy.log
+      - name: Install dependencies and Run Deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOSTNAME }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          Script: |
+            cd /var/www/timbu/staging/bigfastapi
+            source env/bin/activate
+            bash deploy.sh > deploy.log
+            cat deploy.log
           
           
