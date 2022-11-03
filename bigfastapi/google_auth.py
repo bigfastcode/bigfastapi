@@ -58,7 +58,6 @@ CREDENTIALS_EXCEPTION = HTTPException(
 
 @app.get("/google/generate_url")
 async def google_login(request: Request):
-    # This creates the url for our /auth endpoint
     redirect_uri = f"{settings.API_URL}/google/token"
     google_auth_uri = await oauth.google.authorize_redirect(request, redirect_uri)
 
@@ -72,8 +71,7 @@ async def google_login(request: Request):
 @app.get("/google/token")
 async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db)):
 
-    # response = RedirectResponse(f"{settings.BASE_URL}/{settings.CLIENT_REDIRECT_URL}")
-    response = RedirectResponse(f"{BASE_URL}/businesses/select")
+    response = RedirectResponse(f"{settings.BASE_URL}/{settings.CLIENT_REDIRECT_URL}")
 
     token = await oauth.google.authorize_access_token(request)
 
@@ -96,7 +94,6 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
             samesite="strict",
         )
 
-        # return {"data": object_as_dict(check_user), "access_token": access_token}
         return response
 
     S = 10
@@ -114,8 +111,6 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
         is_verified=True,
         phone_country_code="",
         is_deleted=False,
-        # country_code="",
-        # state="",
         google_id="",
         google_image_url=user_data.picture,
         image_url=user_data.picture,
@@ -126,7 +121,7 @@ async def google_auth(request: Request, db: orm.Session = fastapi.Depends(get_db
     db.commit()
     db.refresh(user_obj)
 
-    response = RedirectResponse(f"{BASE_URL}/businesses/create")
+    response = RedirectResponse(f"{settings.BASE_URL}/{settings.CLIENT_REDIRECT_URL}")
 
     refresh_token = await auth_service.create_refresh_token(
         data={"user_id": user_obj.id}, db=db
