@@ -110,7 +110,7 @@ def create_organization(
     #     },
     #     status_code=201,
     # )
-    return {"message": "Organization created successfully", "data": created_org}
+    return {"message": "Organization Created Successfully", "data": created_org}
 
     # except Exception as ex:
     #     if type(ex) == HTTPException:
