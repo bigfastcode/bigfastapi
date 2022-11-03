@@ -51,7 +51,7 @@ class NotificationCreate(NotificationBase):
 class NotificationSetting(pydantic.BaseModel):
     organization_id: Optional[str]
     access_level: Optional[str]
-    send_via: SendVia
+    send_via: Optional[SendVia]
     status: Optional[bool] = True
 
 
