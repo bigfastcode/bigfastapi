@@ -26,8 +26,6 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           Script: |
             cd /var/www/timbu/staging/bigfastapi
-            source env/bin/activate
             bash deploy.sh > deploy.log
-            cat deploy.log
           
           
