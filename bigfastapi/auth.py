@@ -79,9 +79,19 @@ async def create_user(
             httponly=True,
             samesite="strict",
         )
+        
+        response_data = {
+            "data": jsonable_encoder(new_user),
+            "access_token": access_token
+        }
+        if user.device_id is not None:
+            device_token = await auth_service.create_device_token(user, db)
+            response_data.update({
+                "device_id": user.device_id, "device_token": device_token.token
+            })
 
         return JSONResponse(
-            {"data": jsonable_encoder(new_user), "access_token": access_token},
+            response_data,
             status_code=201,
         )
 
