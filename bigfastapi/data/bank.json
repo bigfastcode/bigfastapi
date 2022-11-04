@@ -2,12 +2,7 @@
   "ng": {
     "country": "Nigeria",
     "methods": {
-      "bank": [
-        "account_number",
-        "bank_name",
-        "account_name",
-        "account_type"
-      ]
+      "bank": ["account_number", "bank_name", "account_name", "account_type"]
     },
     "validation_url": "https://maylancer.org/api/nuban/api.php?account_number={account_number}&bank_code={code}",
     "banks_url": "https://maylancer.org/api/nuban/banklist.php?type=bank_code",
@@ -215,27 +210,11 @@
   "cm": {
     "country": "Cameroon",
     "methods": {
-      "bank": [
-        "account_number",
-        "account_name",
-        "bank_name"
-      ],
-      "mtn_mobile_money": [
-        "phone_number",
-        "account_name"
-      ],
-      "orange_mobile_money": [
-        "phone_number",
-        "account_name"
-      ],
-      "nexttel_mobile_money": [
-        "phone_number",
-        "account_name"
-      ],
-      "yoomee_mobile_money": [
-        "phone_number",
-        "account_name"
-      ]
+      "bank": ["account_number", "account_name", "bank_name"],
+      "mtn_mobile_money": ["phone_number", "account_name"],
+      "orange_mobile_money": ["phone_number", "account_name"],
+      "nexttel_mobile_money": ["phone_number", "account_name"],
+      "yoomee_mobile_money": ["phone_number", "account_name"]
     },
     "validation_url": "",
     "banks_url": "",
@@ -244,10 +223,7 @@
   "uk": {
     "country": "United Kingdom",
     "methods": {
-      "bank": [
-        "iban",
-        "account_name"
-      ]
+      "bank": ["iban", "account_name"]
     },
     "validation_url": "",
     "banks_url": "",
