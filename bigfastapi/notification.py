@@ -18,7 +18,8 @@ from .services.notification_services import (
     fetch_existing_setting,
     update_notification_setting,
     get_notifications,
-    check_group_member_exists
+    check_group_member_exists,
+    get_recipient_notification, get_notification_with_recipient
 )
 from bigfastapi.core.helpers import Helpers
 
@@ -208,24 +209,23 @@ async def update_org_notification_settings(
     # )
 
 
-
 @app.get("/notification-groups", response_model=List[schema.NotificationGroupResponse])
 async def get_all_notification_groups(
     organization_id: str,
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
 ):
-    #organization and user check
+    # organization and user check
     await Helpers.check_user_org_validity(
         user_id=user.id, organization_id=organization_id, db=db
     )
     groups = db.query(model.NotificationGroup).filter(
-                model.NotificationGroup.organization_id == organization_id
-            ).all()
+        model.NotificationGroup.organization_id == organization_id
+    ).all()
 
     if groups is None:
         raise HTTPException(detail="Organization has no notification groups",
-                            status_code=status.HTTP_404_NOT_FOUND)         
+                            status_code=status.HTTP_404_NOT_FOUND)
 
     return groups
 
@@ -576,9 +576,9 @@ def delete_notification_group_module(
     return {"message": "successfully deleted"}
 
 
-@app.put("/notification/{notification_id}/read", response_model=schema.Notification)
-def mark_notification_read(notification_id: str, db: orm.Session = Depends(get_db)):
-    """intro-->This endpoint allows you mark a queried notifications as read. To use, you need to make a put request to the /notification/{notification_id}/read enpoint. 
+@app.put("/notification/{notification_id}/{recipient_id}")
+async def mark_notification_read(req_body: schema.NotificationStatus, notification_id: str, recipient_id: str, db: orm.Session = Depends(get_db)):
+    """intro-->This endpoint allows you mark a queried notifications as read. To use, you need to make a put request to the /notification/{notification_id}/{recipient_id} enpoint. 
 
     paramDesc--> On put request the url takes a query parameter "notification_id" 
         param-->notification_id: This is the unique identifier of the notification
@@ -587,18 +587,23 @@ def mark_notification_read(notification_id: str, db: orm.Session = Depends(get_d
         returnBody--> details of the updated notification.
     """
 
-    notification = model.notification_selector(id=notification_id, db=db)
+    notification = await get_recipient_notification(
+        recipient_id=recipient_id, notification_id=notification_id, db=db)
 
-    if notification.has_read:
-        pass
-    else:
-        notification.has_read = True
-        notification.last_updated = datetime.utcnow()
+    if req_body.is_read:
+        notification.is_read = True
+
+    if req_body.is_cleared:
+        notification.is_cleared = True
+
+    notification.last_updated = datetime.utcnow()
 
     db.commit()
     db.refresh(notification)
 
-    return schema.Notification.from_orm(notification)
+    updated_notification = await get_notification_with_recipient(recipient_id=recipient_id, notification_id=notification_id, db=db)
+
+    return updated_notification
 
 
 @app.put("/notifications/read", response_model=List[schema.Notification])
