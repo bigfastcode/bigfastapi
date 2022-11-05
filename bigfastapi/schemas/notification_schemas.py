@@ -12,6 +12,20 @@ class SendVia(str, Enum):
     both = "both"
 
 
+class NotificationCreator(pydantic.BaseModel):
+    email: Optional[str]
+    first_name: Optional[str]
+    last_name: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+class NotificationStatus(pydantic.BaseModel):
+    is_read: Optional[bool]
+    is_cleared: Optional[bool]
+
+
 class NotificationBase(pydantic.BaseModel):
     message: str
     organization_id: str
@@ -23,6 +37,7 @@ class Notification(NotificationBase):
     creator_id: str
     date_created: datetime
     last_updated: datetime
+    creator: Optional[NotificationCreator]
 
     class Config:
         orm_mode = True
@@ -159,11 +174,20 @@ class NotificationUpdate(NotificationBase):
     pass
 
 
+class NotificationItem(pydantic.BaseModel):
+    Notification: Notification
+    is_read: bool
+    is_cleared: bool
+
+    class Config:
+        orm_mode = True
+
+
 class FetchNotificationsResponse(pydantic.BaseModel):
     page: int
     size: int
     total: int
-    items: Any
+    items: List[NotificationItem]
     previous_page: Optional[str]
     next_page: Optional[str]
 

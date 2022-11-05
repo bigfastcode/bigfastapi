@@ -237,3 +237,19 @@ async def check_group_member_exists(group_id: str, member_id: str, db: orm.Sessi
         return True
     else:
         return False
+
+
+async def get_recipient_notification(recipient_id: str, notification_id: str, db: orm.Session):
+    notification = db.query(NotificationRecipient).filter(NotificationRecipient.notification_id
+                                                          == notification_id, NotificationRecipient.recipient_id == recipient_id).first()
+
+    return notification
+
+
+async def get_notification_with_recipient(recipient_id: str, notification_id: str, db: orm.Session):
+    notification = (db.query(Notification, NotificationRecipient.is_read, NotificationRecipient.is_cleared)
+                      .join(NotificationRecipient)
+                      .filter(NotificationRecipient.notification_id == notification_id, NotificationRecipient.recipient_id == recipient_id)
+                      .first())
+
+    return notification

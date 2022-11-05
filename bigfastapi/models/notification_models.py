@@ -38,6 +38,8 @@ class Notification(database.Base):
     date_created = Column(DateTime, default=datetime.utcnow)
     last_updated = Column(DateTime, default=datetime.utcnow)
 
+    creator = relationship("User", backref="notification_creator", lazy="selectin")
+
 
 class NotificationModule(database.Base):
     __tablename__ = "notification_modules"
