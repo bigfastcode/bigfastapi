@@ -13,6 +13,7 @@ from bigfastapi.models.notification_models import (
 )
 from bigfastapi.models.organization_models import (
     OrganizationUser,
+    Organization,
     Role
 )
 from bigfastapi.schemas.notification_schemas import (
@@ -69,10 +70,13 @@ def create_notification(
 
 def get_notification_recipients(organization_id, module, access_level, db):
 
+    creator = db.query(Organization).filter(Organization.id == organization_id).first()
+
     users = db.query(OrganizationUser).filter(
         OrganizationUser.organization_id == organization_id).all()
 
     user_ids = [user.user_id for user in users]
+    user_ids.append(creator.user_id)
 
     return user_ids
     # # Find module in notification_module table that matches module and get its id
