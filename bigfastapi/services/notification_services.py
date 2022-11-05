@@ -68,85 +68,90 @@ def create_notification(
 
 
 def get_notification_recipients(organization_id, module, access_level, db):
-    # Find module in notification_module table that matches module and get its id
-    notification_module = db.query(NotificationModule).filter(
-        NotificationModule.module_name == module).first()
-    if notification_module != None:
-        notification_module_id = notification_module.id
 
-        # Get id of all groups associated with that module
-        notification_groups = db.query(NotificationGroupModule).filter(
-            NotificationGroupModule.module_id == notification_module_id).all()
+    users = db.query(OrganizationUser).filter(
+        OrganizationUser.organization_id == organization_id).all()
 
-        if len(notification_groups) == 0:
-            group_members = None
+    user_ids = [user.user_id for user in users]
 
-        else:
-            notification_group_ids = []
-            for notification_group in notification_groups:
-                notification_group_ids.append(notification_group.group_id)
+    return user_ids
+    # # Find module in notification_module table that matches module and get its id
+    # notification_module = db.query(NotificationModule).filter(
+    #     NotificationModule.module_name == module).first()
+    # if notification_module != None:
+    #     notification_module_id = notification_module.id
 
-            # Get id of all group members in those groups
-            group_members = []
+    #     # Get id of all groups associated with that module
+    #     notification_groups = db.query(NotificationGroupModule).filter(
+    #         NotificationGroupModule.module_id == notification_module_id).all()
 
-            for group_id in notification_group_ids:
-                members = db.query(NotificationGroupMember).filter(
-                    NotificationGroupMember.group_id == group_id).all()
+    #     if len(notification_groups) == 0:
+    #         group_members = None
 
-                group_member_ids = []
-                for group_member in members:
-                    group_member_ids.append(group_member.member_id)
+    #     else:
+    #         notification_group_ids = []
+    #         for notification_group in notification_groups:
+    #             notification_group_ids.append(notification_group.group_id)
 
-                for member_id in group_member_ids:
-                    if member_id not in group_members:
-                        group_members.append(member_id)
-    else:
-        group_members = None
+    #         # Get id of all group members in those groups
+    #         group_members = []
 
-    if access_level and group_members is None:
-        users_id = []
-        users = db.query(OrganizationUser).join(Role).filter(
-            OrganizationUser.organization_id == organization_id
-        ).filter(Role.role_name == access_level).all()
-        for user in users:
-            users_id.append(user.user_id)
-        return users_id
+    #         for group_id in notification_group_ids:
+    #             members = db.query(NotificationGroupMember).filter(
+    #                 NotificationGroupMember.group_id == group_id).all()
 
-    if access_level is None and group_members is None:
-        users_id = []
-        users = db.query(OrganizationUser).filter(
-            OrganizationUser.organization_id == organization_id
-        ).all()
-        for user in users:
-            users_id.append(user.user_id)
-        return users_id
+    #             group_member_ids = []
+    #             for group_member in members:
+    #                 group_member_ids.append(group_member.member_id)
 
-    if group_members and access_level is None:
-        return group_members
+    #             for member_id in group_member_ids:
+    #                 if member_id not in group_members:
+    #                     group_members.append(member_id)
+    # else:
+    #     group_members = None
 
-    if group_members and access_level:
+    # if access_level and group_members is None:
+    #     users_id = []
+    #     users = db.query(OrganizationUser).join(Role).filter(
+    #         OrganizationUser.organization_id == organization_id
+    #     ).filter(Role.role_name == access_level).all()
+    #     for user in users:
+    #         users_id.append(user.user_id)
+    #     return users_id
 
-        # get role_id with role = access_level
-        role = db.query(Role).filter(
-            Role.organization_id == organization_id
-        ).filter(Role.role_name == access_level).first()
+    # if access_level is None and group_members is None:
+    #     users_id = []
+    #     users = db.query(OrganizationUser).filter(
+    #         OrganizationUser.organization_id == organization_id
+    #     ).all()
+    #     for user in users:
+    #         users_id.append(user.user_id)
+    #     return users_id
 
-        role_id = role.id
+    # if group_members and access_level is None:
+    #     return group_members
 
-        # get group members with access_level = access_level
-        group_members_with_access_level = []
+    # if group_members and access_level:
 
-        for group_member in group_members:
-            member = db.query(OrganizationUser).filter(
-                OrganizationUser.organization_id == organization_id
-            ).filter(OrganizationUser.user_id == group_member).filter(
-                OrganizationUser.role_id == role_id).first()
+    #     # get role_id with role = access_level
+    #     role = db.query(Role).filter(
+    #         Role.organization_id == organization_id
+    #     ).filter(Role.role_name == access_level).first()
 
-            if member != None:
-                member_id = member.user_id
-                group_members_with_access_level.append(member_id)
+    #     role_id = role.id
 
-        return group_members_with_access_level
+    #     # get group members with access_level = access_level
+    #     group_members_with_access_level = []
+
+    #     for group_member in group_members:
+    #         member = db.query(OrganizationUser).filter(
+    #             OrganizationUser.organization_id == organization_id
+    #         ).filter(OrganizationUser.user_id == group_member).filter(
+    #             OrganizationUser.role_id == role_id).first()
+
+    #         if member != None:
+    #             member_id = member.user_id
+    #             group_members_with_access_level.append(member_id)
 
 
 def create_notification_setting(
@@ -220,11 +225,11 @@ async def get_notifications(user_id: str, organization_id: str, db: orm.Session,
     return notifications, total_items
 
 
-async def check_group_member_exists(group_id:str, member_id:str, db: orm.Session):
+async def check_group_member_exists(group_id: str, member_id: str, db: orm.Session):
     member = db.query(NotificationGroupMember).filter(NotificationGroupMember.group_id == group_id
-            ).filter(NotificationGroupMember.member_id == member_id).first()
+                                                      ).filter(NotificationGroupMember.member_id == member_id).first()
 
     if member != None:
         return True
     else:
-        return False        
+        return False
