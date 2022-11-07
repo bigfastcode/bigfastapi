@@ -11,8 +11,10 @@ headers = {
     "x-anchor-key": anchor_test_key
 }
 
-def verify_nuban():
-    return 'yes'
+def verify_nuban(bank_code: str, nuban: str):
+    url = f"{get_anchor_url}api/v1/payments/verify-account/{bank_code}/{nuban}"
+    response = requests.get(url, headers=headers)
+    return json.loads(response.text)
 
 def fetch_nigerian_banks():
     url = f"{get_anchor_url}api/v1/banks"

@@ -6,7 +6,7 @@ from fastapi import status, HTTPException
 from bigfastapi.schemas import bank_schemas
 from datetime import datetime
 from bigfastapi.models.bank_models import BankModels
-
+from . import anchorapi_services
 
 
 
@@ -23,7 +23,22 @@ async def add_bank(
     user_id:str,
     bank: bank_schemas.AddBank,
     db: Session
-):
+):  
+    response={}
+    if bank.country == "NG":
+        response = anchorapi_services.verify_nuban(bank_code=bank.bank_code, nuban=bank.account_number)
+        if "data" in response:
+            response_data = response["data"]["attributes"]
+            bank.recipient_name = response_data["accountName"]
+            bank.account_number = response_data["accountNumber"]
+            bank.bank_name = response_data["bank"]["name"]       
+        else:
+            raise HTTPException(detail=response["errors"][0]["detail"],
+            status_code=403)
+
+    print(bank.bank_name)
+    
+
     addbank = BankModels(
         id=bank.id if bank.id else uuid4().hex,
         organization_id=bank.organization_id,
