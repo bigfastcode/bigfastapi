@@ -576,3 +576,40 @@ async def create_role(
     db.refresh(role)
 
     return role
+
+
+def send_slack_notification_for_org_invite(
+    user,
+    organization_id,
+    recipient,
+    db: orm.Session,
+    action: str = "sent an invite"
+):
+    organization = (
+            db.query(Models.Organization)
+            .filter(Models.Organization.id == organization_id)
+            .first()
+        )
+    if organization is None:
+        raise _fastapi.HTTPException(
+            status_code=404, detail="Organization does not exist"
+        )
+    organization_name = organization.name
+    
+    if user != None:
+        if user.first_name is None and user.last_name is None:
+            sender = user.email
+        else:
+            sender = f"{user.first_name if user.first_name else ''} {user.last_name if user.last_name else ''}"
+
+    if action == "accepted invite":
+        message = f"{recipient} {action} to join {organization_name}"
+
+    elif action == "declined invite":
+        message = f"{recipient} {action} to join {organization_name}"
+    else:                    
+        message = f"{sender} {action} to {recipient} to join {organization_name}"
+    print(message)
+
+    Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
+

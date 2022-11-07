@@ -26,6 +26,8 @@ from .auth_api import *
 
 from bigfastapi.schemas import users_schemas
 from bigfastapi.services.auth_service import is_authenticated
+from bigfastapi.utils import paginator
+
 
 
 from fastapi.security import HTTPBearer
@@ -57,8 +59,12 @@ def get_all_comments_related_to_model(
 
 
 @app.get("/comments/{model_type}/{object_id}")
-def get_all_comments_for_object(
-    model_type: str, object_id: str, db_Session=Depends(get_db)
+async def get_all_comments_for_object(
+    model_type: str, 
+    object_id: str, 
+    page: int = 1,
+    size: int = 15,
+    db_Session=Depends(get_db)
 ):
     """intro-->This endpoint allows you to retrieve all comments related to a specific object. To use this endpoint you need to make a get request to the /comments/{model_type}/{object_id} endpoint 
             paramDesc-->On get request the url takes two parameters, model_type & object_id
@@ -68,10 +74,34 @@ def get_all_comments_for_object(
     returnDesc--> On sucessful request, it returns 
         returnBody--> an array of comments and their threads for a specified object
     """
+
+    # set pagination parameter
+    page_size = 15 if size < 1 or size > 15 else size
+    page_number = 1 if page <= 0 else page
+    offset = await paginator.off_set(page=page_number, size=page_size)
+
     qs = db_retrieve_all_comments_for_object(
         object_id=object_id, model_type=model_type, db=db_Session
     )
-    return {"status": True, "data": qs}
+    
+    comments = qs.offset(offset=offset).limit(limit=page_size).all()
+    
+    total_items = qs.count()
+
+    pointers = await paginator.page_urls(
+            page=page_number, size=page_size, count=total_items, endpoint=f"/comments/{model_type}/{object_id}"
+    )
+
+    response = {
+            "page": page,
+            "size": page_size,
+            "total": total_items,
+            "previous_page": pointers["previous"],
+            "next_page": pointers["next"],
+            "items": comments,
+    }    
+    # return {"status": True, "data": qs}
+    return response
 
 
 @app.get("/comments/{model_type}/comment/{comment_id}")
@@ -290,11 +320,14 @@ def db_retrieve_all_comments_for_object(object_id: int, model_type:str, db: _orm
     Returns:
         List[schema. Comment]: A list of all comments and their threads, for a specific object
     """
-    object_qs = db.query(comments_models.Comment).filter(comments_models.Comment.rel_id == object_id, 
-        comments_models.Comment.model_type == model_type, comments_models.Comment.p_id == None).all()
+    object_qs = (db.query(comments_models.Comment).filter(comments_models.Comment.rel_id == object_id, 
+        comments_models.Comment.model_type == model_type, comments_models.Comment.p_id == None)
+        .order_by(comments_models.Comment.last_updated.desc()))
     
-    object_qs = list(map(comments_schemas.Comment.from_orm, object_qs))
-    return object_qs[::-1]
+    # object_qs = list(map(comments_schemas.Comment.from_orm, object_qs))
+    # return object_qs[::-1]
+
+    return object_qs
 
 def db_retrieve_all_model_comments(model_type:str, db: _orm.Session):
     """Retrieve all comments of model type
