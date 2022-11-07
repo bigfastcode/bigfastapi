@@ -624,7 +624,18 @@ async def invite_user(
         email_info = payload.email_details
         email_info.organization_id = organization_id
 
-        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
+        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first() # get role
+
+        if not role: # create if role doesn't exist
+            role = Role(
+                id=uuid4().hex,
+                organization_id=organization_id.strip(),
+                role_name=payload.role.lower(),
+            )
+
+            db.add(role)
+            db.commit()
+            db.refresh(role)
 
         # make sure you can't send invite to yourself
         if user.email == payload.email:
