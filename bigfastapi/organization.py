@@ -456,7 +456,7 @@ def get_roles(
 
 
 @app.post("/organizations/{organization_id}/roles")
-def add_role(
+async def add_role(
     payload: AddRole,
     organization_id: str,
     db: orm.Session = Depends(get_db),
@@ -484,14 +484,14 @@ def add_role(
                 status_code=404, detail="Organization does not exist"
             )
 
-        role = organization_services.fetch_role(
+        role = await organization_services.fetch_role(
             organization_id=organization_id.strip(),
             role_name=payload.role_name.lower(),
             db=db
         )
 
         if not role:
-            role = organization_services.create_role(
+            role = await organization_services.create_role(
                 organization_id=organization_id.strip(),
                 role_name=payload.role_name.lower(),
                 db=db
@@ -645,14 +645,14 @@ async def invite_user(
         email_info.organization_id = organization_id
 
 
-        role = organization_services.fetch_role(
+        role = await organization_services.fetch_role(
             organization_id=organization_id.strip(),
             role_name=payload.role.lower(),
             db=db
         )  # fetch role
 
         if not role:
-            role = organization_services.create_role(
+            role = await organization_services.create_role(
                 organization_id=organization_id.strip(),
                 role_name=payload.role.lower(),
                 db=db
