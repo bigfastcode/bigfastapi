@@ -40,6 +40,7 @@ from bigfastapi.schemas.organization_schemas import (
 from bigfastapi.services import email_services, organization_services
 from bigfastapi.utils import paginator
 from bigfastapi.utils.utils import paginate_data
+from bigfastapi.models.notification_models import NotificationSetting
 
 # from bigfastapi.services import email_services
 from .models import organization_models as _models
@@ -96,6 +97,20 @@ def create_organization(
         if organization.create_wallet is True:
             organization_services.run_wallet_creation(created_org, db)
 
+        org_notification_settings = NotificationSetting(
+            id=uuid4().hex,
+            organization_id=created_org.id,
+            access_level=None,
+            send_via="both"
+        )
+
+        db.add(org_notification_settings)
+        db.commit()
+        db.refresh(org_notification_settings)    
+
+        if organization.create_wallet is True:
+            organization_services.run_wallet_creation(created_org, db)
+
         if background_tasks is not None:
             background_tasks.add_task(
                 organization_services.send_slack_notification, user.email, organization
@@ -117,6 +132,9 @@ def create_organization(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
         )
+
+
+
 
 @app.get("/organizations")
 def get_organizations(
@@ -461,27 +479,28 @@ def add_role(
     """
     try:
 
-        roles = db.query(Role).filter(Role.organization_id == organization_id).all()
-        if len(roles) < 1:
-            existing_role = (
-                db.query(Role)
-                .filter(Role.role_name == payload.role_name.lower())
-                .first()
+        role = (
+            db.query(Role)
+            .filter(and_(
+                Role.organization_id == organization_id,
+                Role.role_name == payload.role_name.lower()
+            ))
+            .first()
+        )
+        if role is None:
+            role = Role(
+                id=uuid4().hex,
+                organization_id=organization_id.strip(),
+                role_name=payload.role_name.lower(),
             )
-            if existing_role is None:
-                role = Role(
-                    id=uuid4().hex,
-                    organization_id=organization_id.strip(),
-                    role_name=payload.role_name.lower(),
-                )
 
-                db.add(role)
-                db.commit()
-                db.refresh(role)
+            db.add(role)
+            db.commit()
+            db.refresh(role)
 
-                return role
-            return {"message": "role already exist"}
-        return
+            return role
+        return {"message": "role already exist"}
+
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
@@ -497,6 +516,7 @@ def add_role(
 def accept_invite(
     payload: organization_schemas.OrganizationUser,
     invite_code: str,
+    background_tasks: BackgroundTasks,
     db: orm.Session = Depends(get_db),
 ):
     """intro-->This endpoint allows for a user to accept an invite. To use this endpoint you need to make a put request to the /users/accept-invite/{token} where token is a unique value recieved by the user on invite. It also takes a specified body of request
@@ -561,6 +581,19 @@ def accept_invite(
         existing_invite.is_accepted = True
         db.commit()
         db.refresh(existing_invite)
+
+        if background_tasks is not None:
+            user = (
+                db.query(user_models.User)
+                .filter(user_models.User.id == payload.user_id
+                ).first()
+            )
+            recipient = user.email
+            organization_id = organization.id
+            background_tasks.add_task(
+                organization_services.send_slack_notification_for_org_invite,
+                user, organization_id, recipient, db, "accepted invite"
+            )
 
         return {
             "invited": OrganizationUserBase.from_orm(organization_user),
@@ -653,6 +686,13 @@ async def invite_user(
         db.add(invite)
         db.commit()
         db.refresh(invite)
+
+        if background_tasks is not None:
+            recipient = payload.email
+            background_tasks.add_task(
+                organization_services.send_slack_notification_for_org_invite,
+                user, organization_id, recipient, db
+            )
 
         return JSONResponse(
             {
@@ -750,7 +790,11 @@ async def get_single_invite(
     "/organizations/decline-invite/{invite_code}",
     response_model=organization_schemas.DeclinedInviteResponse,
 )
-def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
+def decline_invite(
+    invite_code: str, 
+    background_tasks: BackgroundTasks, 
+    db: orm.Session = Depends(get_db)
+):
     """intro--> This endpoint is used to decline an invite. To use this endpoint you need to make a put request to the /users/invite/{invite_code}/decline endpoint
 
     paramDesc--> On put request, the url takes an invite code
@@ -773,6 +817,14 @@ def decline_invite(invite_code: str, db: orm.Session = Depends(get_db)):
         db.add(declined_invite)
         db.commit()
         db.refresh(declined_invite)
+
+        if background_tasks is not None:
+            recipient = declined_invite.email
+            organization_id = declined_invite.organization_id
+            background_tasks.add_task(
+                organization_services.send_slack_notification_for_org_invite,
+                None, organization_id, recipient, db, "declined invite"
+            )
 
         return declined_invite
 

@@ -41,7 +41,7 @@ async def add_bank_detail(
     reqBody-->iban: This is account's international bank account number
     reqBody-->is_preferred: This is a boolean account preference value
     reqBody-->date_created: This is the date of creation of the bank account
-    
+
     returnDesc--> On sucessful request, it returns 
         returnBody--> the newly created bank details
 

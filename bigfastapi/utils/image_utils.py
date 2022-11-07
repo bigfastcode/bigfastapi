@@ -1,6 +1,6 @@
 import os
 from uuid import uuid4
-from PIL import Image
+from PIL import Image, ImageChops
 
 from bigfastapi.db.database import SessionLocal
 
@@ -44,6 +44,21 @@ def save_thumbnail_info(filename, thumbnail_path, unique_id, size, db=SessionLoc
     return image_info
 
 
+def crop_image(image, width, height):
+    size = (width, height)
+
+    image.thumbnail(size, Image.ANTIALIAS)
+    image_size = image.size
+
+    thumb = image.crop( (0, 0, size[0], size[1]) )
+
+    offset_x = int(max( (size[0] - image_size[0]) / 2, 0 ))
+    offset_y = int(max( (size[1] - image_size[1]) / 2, 0 ))
+
+    thumb = ImageChops.offset(thumb, offset_x, offset_y)
+    return thumb
+
+
 def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=None, scale="width"):
 
     width = width if width else height
@@ -51,14 +66,7 @@ def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=
 
     # scale image
     img = Image.open(full_image_path)
-    scaler = None
-    if scale == "width" or scale == "height":
-        scaler = width if scale == "width" else height
-    if scaler is not None:
-        img = img.resize((scaler, scaler))
-        img.thumbnail((width, height))
-    else:
-        img.thumbnail((width, height))
+    img = crop_image(img, width, height)
     
     thumbnail_path = create_thumbnail_dirs(unique_id)
     thumbnail_full_path = f"{ROOT_LOCATION}/{MAIN_BUCKET}/{thumbnail_path}"
