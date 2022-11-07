@@ -27,9 +27,9 @@ class Frequencies(str, Enum):
 class BankBase(pydantic.BaseModel):
     organization_id: str
     country:  str
-    account_number: int
+    account_number: str
     bank_name: str
-    bank_id: Optional[str]
+    bank_code: Optional[str]
     recipient_name: Optional[str]
     account_type: Optional[str]
     currency: Optional[str]  # currency is supposed to be require. Optional for the sake of old data
