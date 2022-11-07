@@ -473,6 +473,16 @@ def add_role(
         returnBody--> details of the newly created organization role.
     """
     try:
+        organization = (
+            db.query(organization_models.Organization)
+            .filter(organization_models.Organization.id == organization_id)
+            .first()
+        )
+
+        if not organization:
+            raise HTTPException(
+                status_code=404, detail="Organization does not exist"
+            )
 
         role = (
             db.query(Role)
