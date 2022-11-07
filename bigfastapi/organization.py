@@ -467,7 +467,7 @@ def add_role(
             .first()
         )
 
-        if organization is None:
+        if not organization:
             raise HTTPException(
                 status_code=404, detail="Organization does not exist"
             )
