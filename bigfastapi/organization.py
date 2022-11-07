@@ -489,26 +489,20 @@ def add_role(
                 status_code=404, detail="Organization does not exist"
             )
 
-        role = (
-            db.query(Role)
-            .filter(and_(
-                Role.organization_id == organization_id,
-                Role.role_name == payload.role_name.lower()
-            ))
-            .first()
+        role = organization_services.fetch_role(
+            organization_id=organization_id.strip(),
+            role_name=payload.role_name.lower(),
+            db=db
         )
-        if role is None:
-            role = Role(
-                id=uuid4().hex,
+
+        if not role:
+            role = organization_services.create_role(
                 organization_id=organization_id.strip(),
                 role_name=payload.role_name.lower(),
+                db=db
             )
-
-            db.add(role)
-            db.commit()
-            db.refresh(role)
-
             return role
+
         return {"message": "role already exist"}
 
     except Exception as ex:
@@ -655,7 +649,19 @@ async def invite_user(
         email_info = payload.email_details
         email_info.organization_id = organization_id
 
-        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
+
+        role = organization_services.fetch_role(
+            organization_id=organization_id.strip(),
+            role_name=payload.role.lower(),
+            db=db
+        )  # fetch role
+
+        if not role:
+            role = organization_services.create_role(
+                organization_id=organization_id.strip(),
+                role_name=payload.role.lower(),
+                db=db
+            )  # if it doesn't exist; create
 
         # make sure you can't send invite to yourself
         if user.email == payload.email:

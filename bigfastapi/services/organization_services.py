@@ -5,7 +5,7 @@ from uuid import uuid4
 import fastapi as _fastapi
 from decouple import config
 from sqlalchemy import orm
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.models import contact_info_models
 from bigfastapi.models import credit_wallet_models as credit_wallet_models
@@ -540,6 +540,44 @@ def drop_role_by_name(role_name, db):
     return True
 
 
+async def fetch_role(
+    organization_id,
+    role_name,
+    db,
+):
+    """Get roles for an Organization"""
+
+    role = (
+        db.query(Models.Role)
+        .filter(and_(
+            Models.Role.organization_id == organization_id,
+            Models.Role.role_name == role_name
+        ))
+        .first()
+    )
+
+    return role
+
+async def create_role(
+    organization_id,
+    role_name,
+    db,
+):
+    """Create Role for an Organization"""
+
+    role = Models.Role(
+        id=uuid4().hex,
+        organization_id=organization_id,
+        role_name=role_name,
+    )
+
+    db.add(role)
+    db.commit()
+    db.refresh(role)
+
+    return role
+
+
 def send_slack_notification_for_org_invite(
     user,
     organization_id,
@@ -574,3 +612,4 @@ def send_slack_notification_for_org_invite(
     print(message)
 
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
+
