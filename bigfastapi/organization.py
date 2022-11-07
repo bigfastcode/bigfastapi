@@ -474,27 +474,28 @@ def add_role(
     """
     try:
 
-        roles = db.query(Role).filter(Role.organization_id == organization_id).all()
-        if len(roles) < 1:
-            existing_role = (
-                db.query(Role)
-                .filter(Role.role_name == payload.role_name.lower())
-                .first()
+        role = (
+            db.query(Role)
+            .filter(and_(
+                Role.organization_id == organization_id,
+                Role.role_name == payload.role_name.lower()
+            ))
+            .first()
+        )
+        if role is None:
+            role = Role(
+                id=uuid4().hex,
+                organization_id=organization_id.strip(),
+                role_name=payload.role_name.lower(),
             )
-            if existing_role is None:
-                role = Role(
-                    id=uuid4().hex,
-                    organization_id=organization_id.strip(),
-                    role_name=payload.role_name.lower(),
-                )
 
-                db.add(role)
-                db.commit()
-                db.refresh(role)
+            db.add(role)
+            db.commit()
+            db.refresh(role)
 
-                return role
-            return {"message": "role already exist"}
-        return
+            return role
+        return {"message": "role already exist"}
+
     except Exception as ex:
         if type(ex) == HTTPException:
             raise ex
