@@ -78,58 +78,63 @@ def create_organization(
     returnDesc--> On sucessful request, it returns
         returnBody--> details of the newly created organization
     """
-    # try:
+    try:
 
-    db_org = organization_services.get_organization_by_name(
-        name=organization.name, creator_id=user.id, db=db
-    )
+        db_org = organization_services.get_organization_by_name(
+            name=organization.name, creator_id=user.id, db=db
+        )
 
-    if db_org:
+        if db_org:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{organization.name} already exist in your organization collection",
+            )
+
+        created_org = organization_services.create_organization(
+            user=user, db=db, organization=organization
+        )
+
+        if organization.create_wallet is True:
+            organization_services.run_wallet_creation(created_org, db)
+
+        org_notification_settings = NotificationSetting(
+            id=uuid4().hex,
+            organization_id=created_org.id,
+            access_level=None,
+            send_via="both"
+        )
+
+        db.add(org_notification_settings)
+        db.commit()
+        db.refresh(org_notification_settings)    
+
+        if organization.create_wallet is True:
+            organization_services.run_wallet_creation(created_org, db)
+
+        if background_tasks is not None:
+            background_tasks.add_task(
+                organization_services.send_slack_notification, user.email, organization
+            )
+       
+        # return JSONResponse(
+        #     {
+        #         "message": "Organization created successfully",
+        #         # "data": jsonable_encoder(created_org),
+        #         "data": created_org
+        #     },
+        #     status_code=201,
+        # )
+        return {"message": "Organization created successfully", "data": created_org}
+
+    except Exception as ex:
+        if type(ex) == HTTPException:
+            raise ex
         raise HTTPException(
-            status_code=400,
-            detail=f"{organization.name} already exist in your organization collection",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
         )
 
-    created_org = organization_services.create_organization(
-        user=user, db=db, organization=organization
-    )
 
-    if organization.create_wallet is True:
-        organization_services.run_wallet_creation(created_org, db)
 
-    org_notification_settings = NotificationSetting(
-        id=uuid4().hex,
-        organization_id=created_org.id,
-        access_level=None,
-        send_via="both"
-    )
-
-    db.add(org_notification_settings)
-    db.commit()
-    db.refresh(org_notification_settings)    
-
-    if background_tasks is not None:
-        background_tasks.add_task(
-            organization_services.send_slack_notification, user.email, organization
-        )
-    print("----------------------------------------------------------------")
-    print(created_org.id)
-    # return JSONResponse(
-    #     {
-    #         "message": "Organization created successfully",
-    #         # "data": jsonable_encoder(created_org),
-    #         "data": created_org
-    #     },
-    #     status_code=201,
-    # )
-    return {"message": "Organization Created Successfully", "data": created_org}
-
-    # except Exception as ex:
-    #     if type(ex) == HTTPException:
-    #         raise ex
-    #     raise HTTPException(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
-    #     )
 
 @app.get("/organizations")
 def get_organizations(

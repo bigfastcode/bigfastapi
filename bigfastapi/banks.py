@@ -10,6 +10,7 @@ from bigfastapi.core import messages
 from datetime import datetime
 from bigfastapi.services import bank_services
 from bigfastapi.models.organization_models import Organization
+from bigfastapi.services import anchorapi_services
 
 
 router = APIRouter()
@@ -40,7 +41,7 @@ async def add_bank_detail(
     reqBody-->iban: This is account's international bank account number
     reqBody-->is_preferred: This is a boolean account preference value
     reqBody-->date_created: This is the date of creation of the bank account
-    
+
     returnDesc--> On sucessful request, it returns 
         returnBody--> the newly created bank details
 
@@ -264,8 +265,8 @@ async def get_country_schema(country: str):
 
 
 @router.get("/banks/list/nigeria", status_code=status.HTTP_200_OK)
-async def get_nigerian_banks():
-    banks = await bank_services.fetch_nigerian_banks()
+def get_nigerian_banks():
+    banks = anchorapi_services.fetch_nigerian_banks()
     return banks
 
 ###========= uncomment and use this endpoint if your last_updated is showing null====###
