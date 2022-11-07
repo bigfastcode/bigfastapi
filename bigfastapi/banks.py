@@ -10,6 +10,7 @@ from bigfastapi.core import messages
 from datetime import datetime
 from bigfastapi.services import bank_services
 from bigfastapi.models.organization_models import Organization
+from bigfastapi.services import anchorapi_services
 
 
 router = APIRouter()
@@ -264,8 +265,8 @@ async def get_country_schema(country: str):
 
 
 @router.get("/banks/list/nigeria", status_code=status.HTTP_200_OK)
-async def get_nigerian_banks():
-    banks = await bank_services.fetch_nigerian_banks()
+def get_nigerian_banks():
+    banks = anchorapi_services.fetch_nigerian_banks()
     return banks
 
 ###========= uncomment and use this endpoint if your last_updated is showing null====###

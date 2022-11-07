@@ -8,49 +8,6 @@ from datetime import datetime
 from bigfastapi.models.bank_models import BankModels
 
 
-import requests
-token = "xxxxxxxxxxxxxxxxxxx"
-
-
-async def fetch_nigerian_banks():
-    url = "https://api.okra.ng/v2/banks/list"
-    headers = {
-        "accept": "application/json; charset=utf-8",
-        "authorization": f"Bearer {token}"
-
-    }
-    response = requests.get(url, headers=headers)
-    return json.loads(response.text)
-
-async def get_nigerian_bank_by_id(bank_id: str):
-    url = "https://api.okra.ng/v2/banks/getById"
-
-    headers = {
-        "accept": "application/json; charset=utf-8",
-        "authorization": f"Bearer {token}"
-    }
-
-    response = requests.get(url, headers=headers)
-
-    return json.loads(response.text)
-
-async def verify_account_number(account_number: int, bank_id: str, bank_name: str=None ):
-    url = "https://api.okra.ng/v2/products/kyc/nuban-name-verify"
-    
-
-    print(account_number)
-    print(bank_id)
-
-    payload = f"nuban={account_number}&bank={bank_id}"
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/x-www-form-urlencoded",
-        "authorization": f"Bearer {token}"
-    }
-
-    response = requests.post(url, data=payload, headers=headers)
-
-    return json.loads(response.text)
 
 
 async def fetch_bank(id:str, db:Session):
