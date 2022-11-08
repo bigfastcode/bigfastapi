@@ -654,17 +654,10 @@ async def invite_user(
 
 
         role = await organization_services.fetch_role(
-            organization_id=organization_id.strip(),
-            role_name=payload.role.lower(),
+            organization_id="-1",
+            role_name=None,
             db=db
-        )  # fetch role
-
-        if not role:
-            role = await organization_services.create_role(
-                organization_id=organization_id.strip(),
-                role_name=payload.role.lower(),
-                db=db
-            )  # if it doesn't exist; create
+        )  # fetch global default roles
 
         # make sure you can't send invite to yourself
         if user.email == payload.email:
