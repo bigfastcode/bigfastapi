@@ -269,6 +269,12 @@ def get_nigerian_banks():
     banks = anchorapi_services.fetch_nigerian_banks()
     return banks
 
+@router.post("/banks/verify-nuban/{bank_code}/{account_number}", status_code=status.HTTP_200_OK)
+def verify_nuban(bank_code: str, account_number: str):
+    banks = anchorapi_services.verify_nuban(bank_code, account_number)
+    return banks
+
+
 ###========= uncomment and use this endpoint if your last_updated is showing null====###
 # from bigfastapi.db.database import db_engine
 # @router.get("/banks-migration/upate-last_updated",
