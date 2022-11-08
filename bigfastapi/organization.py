@@ -653,10 +653,10 @@ async def invite_user(
         email_info.organization_id = organization_id
 
 
-        role = db.query(Role).filter(or_(
-            Role.organization_id == "-1",
-            Role.organization_id == organization_id
-        )).first()  # fetch global default roles
+        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()  # get role
+
+        if not role:
+            return JSONResponse({"message": "Role does not exist"}, status_code=404)
 
         # make sure you can't send invite to yourself
         if user.email == payload.email:
