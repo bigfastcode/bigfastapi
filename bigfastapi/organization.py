@@ -653,11 +653,10 @@ async def invite_user(
         email_info.organization_id = organization_id
 
 
-        role = await organization_services.fetch_role(
-            organization_id="-1",
-            role_name=None,
-            db=db
-        )  # fetch global default roles
+        role = db.query(Role).filter(or_(
+            Role.organization_id == "-1",
+            Role.organization_id == organization_id
+        )).first()  # fetch global default roles
 
         # make sure you can't send invite to yourself
         if user.email == payload.email:
