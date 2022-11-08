@@ -16,7 +16,7 @@ from fastapi import (
 )
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from sqlalchemy.sql import expression
 
 from bigfastapi.services.auth_service import is_authenticated
@@ -454,7 +454,10 @@ def get_roles(
 
         returnBody--> list of all available roles in the queried organization
     """
-    roles = db.query(Role).filter(Role.organization_id == organization_id)
+    roles = db.query(Role).filter(or_(
+        Role.organization_id == "-1",
+        Role.organization_id == organization_id
+    ))
     roles = list(map(organization_schemas.Role.from_orm, roles))
 
     return roles
