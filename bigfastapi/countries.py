@@ -26,8 +26,8 @@ app = APIRouter(tags=["Countries"])
 COUNTRIES_DATA_PATH = pkg_resources.resource_filename('bigfastapi', 'data/')
 
 
-@app.get("/countries", response_model=Country, status_code=200)
-def get_countries():
+@app.get("/countries", status_code=200)
+def get_countries(search_value: str=""):
     """intro-->This endpoint returns a list of all countries in the world and their respective states. To get this data you need to make a get request to the /countries endpoint.
 
     returnDesc-->On sucessful request, it returns
@@ -39,7 +39,10 @@ def get_countries():
             del country["states"]
             del country["dial_code"]
             del country["sample_phone_format"]
-    return JSONResponse(status_code=status.HTTP_200_OK, content=countries)
+        if search_value == "":        
+            return JSONResponse(status_code=status.HTTP_200_OK, content=countries)
+        else:
+            return next((item for item in countries if item["name"] == search_value), None)
 
 
 @app.get("/countries/{country_code}/states", response_model=State, status_code=200)
