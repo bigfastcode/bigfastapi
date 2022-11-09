@@ -16,7 +16,7 @@ from fastapi import (
 )
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from sqlalchemy.sql import expression
 
 from bigfastapi.services.auth_service import is_authenticated
@@ -454,14 +454,17 @@ def get_roles(
 
         returnBody--> list of all available roles in the queried organization
     """
-    roles = db.query(Role).filter(Role.organization_id == organization_id)
+    roles = db.query(Role).filter(or_(
+        Role.organization_id == "-1",
+        Role.organization_id == organization_id
+    ))
     roles = list(map(organization_schemas.Role.from_orm, roles))
 
     return roles
 
 
 @app.post("/organizations/{organization_id}/roles")
-def add_role(
+async def add_role(
     payload: AddRole,
     organization_id: str,
     db: orm.Session = Depends(get_db),
@@ -478,27 +481,31 @@ def add_role(
         returnBody--> details of the newly created organization role.
     """
     try:
-
-        role = (
-            db.query(Role)
-            .filter(and_(
-                Role.organization_id == organization_id,
-                Role.role_name == payload.role_name.lower()
-            ))
+        organization = (
+            db.query(organization_models.Organization)
+            .filter(organization_models.Organization.id == organization_id)
             .first()
         )
-        if role is None:
-            role = Role(
-                id=uuid4().hex,
-                organization_id=organization_id.strip(),
-                role_name=payload.role_name.lower(),
+
+        if not organization:
+            raise HTTPException(
+                status_code=404, detail="Organization does not exist"
             )
 
-            db.add(role)
-            db.commit()
-            db.refresh(role)
+        role = await organization_services.fetch_role(
+            organization_id=organization_id.strip(),
+            role_name=payload.role_name.lower(),
+            db=db
+        )
 
+        if not role:
+            role = await organization_services.create_role(
+                organization_id=organization_id.strip(),
+                role_name=payload.role_name.lower(),
+                db=db
+            )
             return role
+
         return {"message": "role already exist"}
 
     except Exception as ex:
@@ -645,7 +652,11 @@ async def invite_user(
         email_info = payload.email_details
         email_info.organization_id = organization_id
 
-        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()
+
+        role = db.query(Role).filter(Role.role_name == payload.role.lower()).first()  # get role
+
+        if not role:
+            return JSONResponse({"message": "Role does not exist"}, status_code=404)
 
         # make sure you can't send invite to yourself
         if user.email == payload.email:

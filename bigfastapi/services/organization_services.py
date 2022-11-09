@@ -5,7 +5,7 @@ from uuid import uuid4
 import fastapi as _fastapi
 from decouple import config
 from sqlalchemy import orm
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from bigfastapi.core.helpers import Helpers
 from bigfastapi.models import contact_info_models
 from bigfastapi.models import credit_wallet_models as credit_wallet_models
@@ -374,30 +374,24 @@ async def update_organization(
     db: orm.Session,
 ):
     organization_db = await organization_selector(organization_id, user, db)
-    org_location_db = (
-        db.query(Models.OrganizationLocation, location_models.Location)
-        .filter(Models.OrganizationLocation.organization_id == organization_id)
-        .first()
-    )
-    org_contact_info_db = (
-        db.query(Models.OrganizationContactInfo, contact_info_models.ContactInfo)
-        .filter(Models.OrganizationContactInfo.organization_id == organization_id)
-        .all()
-    )
-
     currencyUpdated = False
-    if organization.mission != None:
-        organization_db.mission = organization.mission
 
-    if organization.vision != None:
-        organization_db.vision = organization.vision
+    organization_dict = organization.dict()
+    for key, value in organization_dict.items():
+        if value:
+            if key in ["name", "contact_infos", "location"]:
+                continue
+            if key == "currency_code":
+                currencyUpdated = True
+
+            setattr(organization_db, key, value)
 
     if organization.name != None:
         db_org = await fetch_organization_by_name(
             name=organization.name, organization_id=organization_id, db=db
         )
 
-        if db_org:
+        if db_org and db_org.id != organization_id:
             raise _fastapi.HTTPException(
                 status_code=400, detail="Organization name already in use"
             )
@@ -406,55 +400,76 @@ async def update_organization(
 
     # contact infos
     if organization.contact_infos:
-        if (
-            len(organization.contact_infos) != 0
-            and len(organization.contact_infos) == 1
-        ):
-            if organization.contact_infos[0] != None:
-                org_contact_info_db[0][0].contact_data = organization.contact_infos[
-                    0
-                ].contact_data
-                org_contact_info_db[0][0].contact_type = organization.contact_infos[
-                    0
-                ].contact_type
+        for contact_info in organization.contact_infos:
+            contact_info_db = (
+                db.query(Models.OrganizationContactInfo)
+                .filter(
+                    and_(
+                        Models.OrganizationContactInfo.organization_id == organization_id,
+                        Models.OrganizationContactInfo.contact_type == contact_info.contact_type
+                    )
+                )
+                .first()
+            )
 
-        if (
-            len(organization.contact_infos) != 0
-            and len(organization.contact_infos) == 2
-        ):
-            if organization.contact_infos[0] != None:
-                org_contact_info_db[0][0].contact_data = organization.contact_infos[
-                    0
-                ].contact_data
-                org_contact_info_db[0][0].contact_type = organization.contact_infos[
-                    0
-                ].contact_type
-
-            if organization.contact_infos[1] != None:
-                org_contact_info_db[0][1].contact_data = organization.contact_infos[
-                    1
-                ].contact_data
-                org_contact_info_db[0][
-                    1
-                ].phone_country_code = organization.contact_infos[1].phone_country_code
-                org_contact_info_db[0][1].contact_type = organization.contact_infos[
-                    1
-                ].contact_type
+            if contact_info_db:
+                contact_info_dict = contact_info.dict()
+                for key, value in contact_info_dict.items():
+                    if value:
+                        setattr(contact_info_db, key, value)
+            else:
+                contact_info_id = uuid4().hex
+                organization_contact = Models.OrganizationContactInfo(
+                    id=contact_info_id,
+                    contact_data=contact_info.contact_data,
+                    contact_tag=contact_info.contact_tag,
+                    contact_type=contact_info.contact_type,
+                    contact_title=contact_info.contact_title,
+                    phone_country_code=contact_info.phone_country_code,
+                    description=contact_info.description,
+                    association_id=uuid4().hex,
+                    contact_info_id=contact_info_id,
+                    organization_id=organization_id,
+                )
+                db.add(organization_contact)
+        db.commit()
 
     # location
     if organization.location:
-        if organization.location[0].country != None:
-            org_location_db[0].country = organization.location[0].country
-        if organization.location[0].state != None:
-            org_location_db[0].state = organization.location[0].state
-        if organization.location[0].full_address != None:
-            org_location_db[0].full_address = organization.location[0].full_address
+        for location in organization.location:
+            location_db = (
+                db.query(Models.OrganizationLocation)
+                .filter(
+                    Models.OrganizationLocation.organization_id == organization_id
+                )
+                .first()
+            )
 
-    organization_db.tagline = organization.tagline
-
-    if organization.currency_code != None:
-        organization_db.currency_code = organization.currency_code
-        currencyUpdated = True
+            if location_db:
+                location_dict = location.dict()
+                for key, value in location_dict.items():
+                    if value:
+                        setattr(location_db, key, value)
+            else:
+                location_id = uuid4().hex
+                organization_location = Models.OrganizationLocation(
+                    id=location_id,
+                    country=location.country,
+                    state=location.state,
+                    county=location.county,
+                    zip_code=location.zip_code,
+                    full_address=location.full_address,
+                    street=location.street,
+                    significant_landmark=location.significant_landmark,
+                    driving_instructions=location.driving_instructions,
+                    longitude=location.longitude,
+                    latitude=location.latitude,
+                    association_id=uuid4().hex,
+                    location_id=location_id,
+                    organization_id=organization_id,
+                )
+                db.add(organization_location)
+        db.commit()
 
     organization_db.last_updated = _dt.datetime.utcnow()
 
@@ -540,6 +555,44 @@ def drop_role_by_name(role_name, db):
     return True
 
 
+async def fetch_role(
+    organization_id,
+    role_name,
+    db,
+):
+    """Get roles for an Organization"""
+
+    role = (
+        db.query(Models.Role)
+        .filter(and_(
+            Models.Role.organization_id == organization_id,
+            Models.Role.role_name == role_name
+        ))
+        .first()
+    )
+
+    return role
+
+async def create_role(
+    organization_id,
+    role_name,
+    db,
+):
+    """Create Role for an Organization"""
+
+    role = Models.Role(
+        id=uuid4().hex,
+        organization_id=organization_id,
+        role_name=role_name,
+    )
+
+    db.add(role)
+    db.commit()
+    db.refresh(role)
+
+    return role
+
+
 def send_slack_notification_for_org_invite(
     user,
     organization_id,
@@ -574,3 +627,4 @@ def send_slack_notification_for_org_invite(
     print(message)
 
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
+
