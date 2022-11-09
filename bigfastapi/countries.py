@@ -33,6 +33,7 @@ def get_countries(search_value: str=""):
     returnDesc-->On sucessful request, it returns
         returnBody--> "an array country objects".
     """
+    suggestions = []
     with open(COUNTRIES_DATA_PATH + "/countries.json") as file:
         countries = json.load(file)
         for country in countries:
@@ -42,7 +43,17 @@ def get_countries(search_value: str=""):
         if search_value == "":        
             return JSONResponse(status_code=status.HTTP_200_OK, content=countries)
         else:
-            return next((item for item in countries if item["name"] == search_value), None)
+            # result =  next((item for item in countries if item["name"] == search_value), [])
+            # if result == []:
+            for country in countries:
+                if search_value in country["name"]:
+                    suggestions.append(country)
+    
+            result = suggestions
+            if type(result) == dict:
+                return [result] 
+            else:
+                return result
 
 
 @app.get("/countries/{country_code}/states", response_model=State, status_code=200)
