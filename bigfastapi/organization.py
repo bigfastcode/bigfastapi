@@ -463,57 +463,57 @@ def get_roles(
     return roles
 
 
-@app.post("/organizations/{organization_id}/roles")
-async def add_role(
-    payload: AddRole,
-    organization_id: str,
-    db: orm.Session = Depends(get_db),
-):
-    """intro--> This endpoint allows you to create roles in an organization. To use this endpoint you need to make a post request to the /organizations/{organization_id}/roles endpoint with a specified body of request
+# @app.post("/organizations/{organization_id}/roles")
+# async def add_role(
+#     payload: AddRole,
+#     organization_id: str,
+#     db: orm.Session = Depends(get_db),
+# ):
+#     """intro--> This endpoint allows you to create roles in an organization. To use this endpoint you need to make a post request to the /organizations/{organization_id}/roles endpoint with a specified body of request
 
-        paramDesc--> On get request, the request url takes the parameter, organization id
-            param--> organization_id: This is the unique Id of the organization of interest
+#         paramDesc--> On get request, the request url takes the parameter, organization id
+#             param--> organization_id: This is the unique Id of the organization of interest
 
-            reqBody--> organization_id: This is a unique Id of the organization of interest
-            reqBody--> role_name: This is the name of the new role to be created in the organization
+#             reqBody--> organization_id: This is a unique Id of the organization of interest
+#             reqBody--> role_name: This is the name of the new role to be created in the organization
 
-    returnDesc--> On sucessful request, it returns:
-        returnBody--> details of the newly created organization role.
-    """
-    try:
-        organization = (
-            db.query(organization_models.Organization)
-            .filter(organization_models.Organization.id == organization_id)
-            .first()
-        )
+#     returnDesc--> On sucessful request, it returns:
+#         returnBody--> details of the newly created organization role.
+#     """
+#     try:
+#         organization = (
+#             db.query(organization_models.Organization)
+#             .filter(organization_models.Organization.id == organization_id)
+#             .first()
+#         )
 
-        if not organization:
-            raise HTTPException(
-                status_code=404, detail="Organization does not exist"
-            )
+#         if not organization:
+#             raise HTTPException(
+#                 status_code=404, detail="Organization does not exist"
+#             )
 
-        role = await organization_services.fetch_role(
-            organization_id=organization_id.strip(),
-            role_name=payload.role_name.lower(),
-            db=db
-        )
+#         role = await organization_services.fetch_role(
+#             organization_id=organization_id.strip(),
+#             role_name=payload.role_name.lower(),
+#             db=db
+#         )
 
-        if not role:
-            role = await organization_services.create_role(
-                organization_id=organization_id.strip(),
-                role_name=payload.role_name.lower(),
-                db=db
-            )
-            return role
+#         if not role:
+#             role = await organization_services.create_role(
+#                 organization_id=organization_id.strip(),
+#                 role_name=payload.role_name.lower(),
+#                 db=db
+#             )
+#             return role
 
-        return {"message": "role already exist"}
+#         return {"message": "role already exist"}
 
-    except Exception as ex:
-        if type(ex) == HTTPException:
-            raise ex
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
-        )
+#     except Exception as ex:
+#         if type(ex) == HTTPException:
+#             raise ex
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(ex)
+#         )
 
 
 @app.put(

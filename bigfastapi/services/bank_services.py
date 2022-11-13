@@ -36,9 +36,7 @@ async def add_bank(
             raise HTTPException(detail=response["errors"][0]["detail"],
             status_code=403)
 
-    print(bank.bank_name)
-    print(bank.recipient_name)
-    
+  
 
     addbank = BankModels(
         id=bank.id if bank.id else uuid4().hex,
@@ -48,7 +46,7 @@ async def add_bank(
         bank_name=bank.bank_name,
         recipient_name=bank.recipient_name,
         country=bank.country,
-        currency=bank.currency,
+        currency=bank.currency_code,
         frequency=bank.frequency,
         sort_code=bank.sort_code,
         swift_code=bank.swift_code,
@@ -113,8 +111,8 @@ async def update_bank(
         bank_account.bank_address = bank.bank_address
     if bank.account_type:
         bank_account.account_type = bank.account_type
-    if bank.currency:
-        bank_account.currency = bank.currency
+    if bank.currency_code:
+        bank_account.currency = bank.currency_code
     if bank.frequency:
         bank_account.frequency = bank.frequency
     if bank.is_preferred:
