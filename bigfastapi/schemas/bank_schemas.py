@@ -32,7 +32,7 @@ class BankBase(pydantic.BaseModel):
     bank_code: Optional[str]
     recipient_name: Optional[str]
     account_type: Optional[str]
-    currency: Optional[str]  # currency is supposed to be require. Optional for the sake of old data
+    currency_code: Optional[str]  # currency is supposed to be require. Optional for the sake of old data
     frequency: Optional[Frequencies]
     bank_address: Optional[str]
     swift_code: Optional[str]
