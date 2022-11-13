@@ -111,8 +111,8 @@ async def update_bank(
         bank_account.bank_address = bank.bank_address
     if bank.account_type:
         bank_account.account_type = bank.account_type
-    if bank.currency:
-        bank_account.currency = bank.currency
+    if bank.currency_code:
+        bank_account.currency = bank.currency_code
     if bank.frequency:
         bank_account.frequency = bank.frequency
     if bank.is_preferred:
