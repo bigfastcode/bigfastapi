@@ -379,7 +379,7 @@ async def update_organization(
     organization_dict = organization.dict()
     for key, value in organization_dict.items():
         if value:
-            if key in ["name", "contact_infos", "location", "currency_code"]:
+            if key in ["name", "contact_infos", "location"]:
                 continue
             if key == "currency_code":
                 currencyUpdated = True

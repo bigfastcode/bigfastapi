@@ -16,7 +16,10 @@ def verify_nuban(bank_code: str, nuban: str):
     response = requests.get(url, headers=headers)
     return json.loads(response.text)
 
-def fetch_nigerian_banks():
+def fetch_nigerian_banks(search_val: str=""):
     url = f"{get_anchor_url}api/v1/banks"
     response = requests.get(url, headers=headers)
-    return json.loads(response.text)
+    if search_val == "":
+        return json.loads(response.text)
+    else:
+        return "search value"

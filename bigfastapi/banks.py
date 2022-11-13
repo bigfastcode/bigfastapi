@@ -260,6 +260,7 @@ async def get_country_schema(country: str):
     Raises: 
         HTTP_4O4_NOT_FOUND: Country not in the list of supported countries.
     """
+
     schema = await bank_services.BV.get_country_data(country=country)
     return schema
 
@@ -268,6 +269,12 @@ async def get_country_schema(country: str):
 def get_nigerian_banks():
     banks = anchorapi_services.fetch_nigerian_banks()
     return banks
+
+@router.get("/banks/verify-nuban/{bank_code}/{account_number}", status_code=status.HTTP_200_OK)
+def verify_nuban(bank_code: str, account_number: str):
+    banks = anchorapi_services.verify_nuban(bank_code, account_number)
+    return banks
+
 
 ###========= uncomment and use this endpoint if your last_updated is showing null====###
 # from bigfastapi.db.database import db_engine
