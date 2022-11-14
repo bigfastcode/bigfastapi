@@ -854,6 +854,7 @@ def decline_invite(
 async def revoke_invite(
     organization_id: str,
     invite_code: str,
+    background_tasks: BackgroundTasks,
     user: users_schemas.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db),
 ):
@@ -888,6 +889,13 @@ async def revoke_invite(
         db.add(revoked_invite)
         db.commit()
         db.refresh(revoked_invite)
+
+        if background_tasks is not None:
+            recipient = revoked_invite.email        
+            background_tasks.add_task(
+                organization_services.send_slack_notification_for_org_invite,
+                user, organization_id, recipient, db, "revoked invite"
+            )
 
         return revoked_invite
 
