@@ -37,35 +37,35 @@ def create_notification(
         Setting.organization_id == notification["organization_id"]
     ).first()
 
-    if existing_setting.status == True:
-        new_notification = Notification(
-            id=uuid4().hex,
-            creator_id=notification["creator_id"],
-            message=notification["message"],
-            organization_id=notification["organization_id"],
-            access_level=notification["access_level"]
+    # if existing_setting.status == True: #creates notification when status is set to True
+    new_notification = Notification(
+        id=uuid4().hex,
+        creator_id=notification["creator_id"],
+        message=notification["message"],
+        organization_id=notification["organization_id"],
+        access_level=notification["access_level"]
+    )
+    db.add(new_notification)
+
+    recipient_ids = get_notification_recipients(
+        organization_id=notification["organization_id"],
+        module=notification["module"],
+        access_level=notification["access_level"],
+        db=db
+    )
+
+    print(recipient_ids)
+    for recipient in recipient_ids:
+        new_notification_recipient = NotificationRecipient(
+            id=uuid4().hex, notification_id=new_notification.id, recipient_id=recipient,
+            is_read=False, is_cleared=False
         )
-        db.add(new_notification)
+        db.add(new_notification_recipient)
 
-        recipient_ids = get_notification_recipients(
-            organization_id=notification["organization_id"],
-            module=notification["module"],
-            access_level=notification["access_level"],
-            db=db
-        )
+    db.commit()
+    db.refresh(new_notification)
 
-        print(recipient_ids)
-        for recipient in recipient_ids:
-            new_notification_recipient = NotificationRecipient(
-                id=uuid4().hex, notification_id=new_notification.id, recipient_id=recipient,
-                is_read=False, is_cleared=False
-            )
-            db.add(new_notification_recipient)
-
-        db.commit()
-        db.refresh(new_notification)
-
-        return new_notification
+    return new_notification
 
 
 def get_notification_recipients(organization_id, module, access_level, db):
