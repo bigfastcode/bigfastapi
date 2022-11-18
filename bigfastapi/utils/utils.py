@@ -143,7 +143,7 @@ async def generate_payment_link(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
             )
     else:
-        flutterwaveKey = "FLWSECK_TEST-0dc7495ac8531f128c392aa75a8b2b78-X"
+        flutterwaveKey = config("FLUTTERWAVE_SEC_KEY")
         headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + flutterwaveKey,
