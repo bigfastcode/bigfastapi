@@ -104,6 +104,9 @@ async def generate_payment_link(
     tx_ref: str,
     amount: float,
     provider: PaymentProvider,
+    email: str = "",
+    phone_number: str = "",
+    phone_country_code: str = "",
     front_end_redirect_url="",
 ):
     if provider == PaymentProvider.STRIPE:
@@ -140,7 +143,7 @@ async def generate_payment_link(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
             )
     else:
-        flutterwaveKey = config("FLUTTERWAVE_SEC_KEY")
+        flutterwaveKey = "FLWSECK_TEST-0dc7495ac8531f128c392aa75a8b2b78-X"
         headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + flutterwaveKey,
@@ -153,14 +156,16 @@ async def generate_payment_link(
             username = customer.email if customer.first_name is None else customer.first_name
             username += "" if customer.last_name is None else " " + customer.last_name
 
+        
+
         data = {
             "tx_ref": tx_ref,
             "amount": amount,
             "currency": currency,
             "redirect_url": api_redirect_url,
             "customer": {
-                "email": "disujt@gmail.com",
-                "phonenumber": "2349024678934",
+                "email": email,
+                "phonenumber": phone_country_code+phone_number,
                 "name": username,
             },
             "meta": {"redirect_url": front_end_redirect_url},
