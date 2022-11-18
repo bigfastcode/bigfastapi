@@ -190,8 +190,7 @@ async def create_new_comment_for_object(
         mentions=mentions,
         db=db_Session,
         user=user
-    )
-    print(notification)
+    )    
 
     background_tasks.add_task(
         create_notification, 
