@@ -1,13 +1,13 @@
 import datetime
 import random
 import string
-from datetime import datetime
 from uuid import uuid4
 
 import fastapi
 import passlib.hash as _hash
 import sqlalchemy.orm as orm
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi.responses import JSONResponse
 from getmac import get_mac_address as gma
 from sqlalchemy import and_
 
@@ -19,6 +19,20 @@ from .services import email_services
 from .utils import utils
 
 app = APIRouter()
+
+
+@app.get("/apiKey/{user_id}", status_code=200)
+async def check_user_has_API_cred(user_id: str, db: orm.Session=Depends(get_db)):
+    """Check if user has API credentials"""
+
+    API_credentials = db.query(auth_models.APIKeys).filter(
+        auth_models.APIKeys.user_id == user_id
+    ).first()
+
+    if not API_credentials:
+        return JSONResponse({"message": "API Credentials not found"}, status_code=404)
+
+    return JSONResponse({"message": "Users API Credentials exists"}, status_code=200)
 
 
 @app.post("/apiKey", status_code=201)
