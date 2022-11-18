@@ -61,6 +61,7 @@ class NotificationRecipientResponse(NotificationBase):
 class NotificationCreate(NotificationBase):
     creator_id: str
     module: str
+    mentions: Optional[list] = None
 
 
 class NotificationSetting(pydantic.BaseModel):
