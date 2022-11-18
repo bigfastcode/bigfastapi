@@ -91,7 +91,7 @@ def get_notification_recipients(organization_id, module, access_level, db, menti
             if users:
                 for user in users: user_ids.append(user.user_id)
         return user_ids
-        
+
     creator = db.query(Organization).filter(Organization.id == organization_id).first()
 
     users = db.query(OrganizationUser).filter(
@@ -303,6 +303,5 @@ async def create_comment_notification_format(
         "access_level": access_level,
         "mentions": mentions
     }
-
-    print(notification_format)
+    
     return notification_format
