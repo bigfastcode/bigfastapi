@@ -75,10 +75,7 @@ async def get_user_notifications(
 
     response = {"page": page, "size": page_size, "total": total_items,
                 "previous_page": pointers['previous'], "next_page": pointers["next"], "items": notifications}
-
-    for notification in notifications:
-        print(notification)
-
+                
     return response
 
 
