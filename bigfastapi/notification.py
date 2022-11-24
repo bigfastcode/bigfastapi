@@ -30,7 +30,7 @@ app = APIRouter(tags=["Notification"])
 def get_a_notification(notification_id: str, db: orm.Session = Depends(get_db)):
     """intro-->This endpoint allows you to details of a particular notification. You need to make a get request to the /notification/{notification_id} 
 
-    paramDesc--> On get request the url takes a query parameter "notification_id"
+    paramDesc--> On get request the url takes a parameter "notification_id"
         param-->notification_id: This is the unique identifier of the notification
 
     returnDesc-->On sucessful request, it returns
@@ -48,10 +48,16 @@ async def get_user_notifications(
         user: user_schema.User = Depends(is_authenticated),
         db: orm.Session = Depends(get_db)):
 
-    """intro-->This endpoint allows you to retrieve all notifications from the database. To retrieve you need to make a get request to the /notifications endpoint
+    """intro-->This endpoint allows you to retrieve all notifications for an authenticated user
+               from the database. To retrieve you need to make a get request to the /notifications endpoint
 
+    paramDesc--> On get request, the request url takes query parameters - "organization_id", "page", "size".
+                page and size parameters are optional.
+        param--> organization_id: This is the unique identifier of the organization in which the user belongs.
+        param--> page: This is the page of interest, this is 1 by default.
+        param--> size: This is the size per page, this is 50 by default.                   
 
-    returnDesc-->On sucessful request, it returns
+    returnDesc-->On sucessful request, it returns:
         returnBody--> an array of notifications.
     """
     # validate user and organization
@@ -87,9 +93,12 @@ async def create_user_notification(
 
     """intro-->This endpoint allows you to create a new notification. To create, you need to make a post request to the /notification endpoint with a required body of request as specified below
 
-        reqBody-->message: This is the content of the notification
-        reqBody-->recipient: This the receiver of the notification
-        reqBody-->creator: This is the creator of the notification
+    reqBody-->message: This is the content of the notification        
+    reqBody-->creator_id: This is the unique identifier of the creator of the notification
+    reqBody-->organization_id: This is the unique identifier of the organization in which the user belongs.
+    reqBody-->module: This is the unit/area of concern of the notification
+    reqBody-->access_level: This is the role of users meant to receive the notification
+    reqBody-->mentions: This is a list of unique identifiers of mentioned users
 
     returnDesc-->On sucessful request, it returns
         returnBody--> the details of the newly created notification.
@@ -110,11 +119,15 @@ async def get_org_notification_settings(
         user: user_schema.User = Depends(is_authenticated),
         db: orm.Session = Depends(get_db)):
 
-    """intro-->This endpoint allows you to retrieve all notifications from the database. To retrieve you need to make a get request to the /notifications endpoint
+    """intro-->This endpoint allows you to retrieve an organization's notification settings from the database. 
+               To retrieve, you need to make a get request to the /notifications-settings/{organization_id} endpoint.
+
+    paramDesc--> On get request, the request url takes the parameter, organization id
+        param--> organization_id: This is unique Id of the organization of interest
 
 
-    returnDesc-->On sucessful request, it returns
-        returnBody--> an array of notifications.
+    returnDesc-->On sucessful request, it returns:
+        returnBody--> details of the queried notification settings of the organization 
     """
     # validate user and organization
     await Helpers.check_user_org_validity(
@@ -134,14 +147,16 @@ async def create_org_notification_settings(
         user: user_schema.User = Depends(is_authenticated),
         db: orm.Session = Depends(get_db)):
 
-    """intro-->This endpoint allows you to create a new notification. To create, you need to make a post request to the /notification endpoint with a required body of request as specified below
+    """intro-->This endpoint allows you to create notification settings for an organization. 
+               To create, you need to make a post request to the /notification-settings endpoint with the specified body of request.
 
-        reqBody-->message: This is the content of the notification
-        reqBody-->recipient: This the receiver of the notification
-        reqBody-->creator: This is the creator of the notification
-
+    reqBody-->organization_id: This is the unique ID of the organization of interest
+    reqBody-->access_level: This is the role of users of the organization meant to receive notifications
+    reqBody-->send_via: This is the medium through which the notification will be sent.
+    reqBody-->status: This is a boolean value that determines if notifications will be sent in an organization or not.
+    
     returnDesc-->On sucessful request, it returns
-        returnBody--> the details of the newly created notification.
+        returnBody--> the details of the newly created notification settings.
     """
     # if user.is_superuser:
 
@@ -179,6 +194,20 @@ async def update_org_notification_settings(
         user: user_schema.User = Depends(is_authenticated),
         db: orm.Session = Depends(get_db)):
 
+    """intro-->This endpoint allows you to update existing notification settings of an organization. 
+               To update, you need to make a put request to the /notification-settings/{setting_id} endpoint with the specified body of request.
+
+    paramDesc-->On put request, the request url takes the parameter setting_id
+        param-->setting_id: This is the unique id of organization's notification settings
+    
+        reqBody-->access_level: This is the role of users of the organization meant to receive notifications
+        reqBody-->send_via: This is the medium through which the notification will be sent.
+        reqBody-->status: This is a boolean value that determines if notifications will be sent in an organization or not.
+    
+    returnDesc-->On sucessful request, it returns:
+        returnBody--> the details of the updated notification settings.
+    """
+
     # if user.is_superuser:
 
     # organization and user check
@@ -212,6 +241,15 @@ async def get_all_notification_groups(
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
 ):
+    """intro-->This endpoint allows you to retrieve all notification groups of an organization
+               from the database. To retrieve you need to make a get request to the /notification-groups endpoint
+
+    paramDesc--> On get request, the request url takes query parameter organization_id
+        param--> organization_id: This is the unique identifier of the organization                          
+
+    returnDesc-->On sucessful request, it returns:
+        returnBody--> an array of notification groups.
+    """
     # organization and user check
     await Helpers.check_user_org_validity(
         user_id=user.id, organization_id=organization_id, db=db
@@ -235,6 +273,17 @@ async def get_notification_group(
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
 ):
+
+    """intro-->This endpoint allows you to retrieve a specific notification group of an organization
+               from the database. To retrieve you need to make a get request to the /notification-group/{group_id} endpoint
+
+    paramDesc--> On get request, the request url takes parameter group_id and query parameter organization_id
+        param--> group_id: This is the unique identifier of the notification group
+        param--> organization_id: This is the unique identifier of the organization                          
+
+    returnDesc-->On sucessful request, it returns:
+        returnBody--> the details of the notification group.
+    """
     # organization and user check
     await Helpers.check_user_org_validity(
         user_id=user.id, organization_id=organization_id, db=db
@@ -256,6 +305,19 @@ async def create_notification_group(
         organization_id: str,  # query_parameter
         user: user_schema.User = Depends(is_authenticated),
         db: orm.Session = Depends(get_db)):
+
+    """intro-->This endpoint allows you to create a notification group for an organization. 
+               To create, you need to make a post request to the /notification-group endpoint with the specified body of request.
+
+    paramDesc--> On post request, the request url takes query parameter organization_id        
+        param--> organization_id: This is the unique identifier of the organization in which the notification group is to be created.
+
+    reqBody-->name: This is the name of the notification group
+    reqBody-->members: This is a list of unique IDs of members to be added to the notification group
+    
+    returnDesc-->On sucessful request, it returns
+        returnBody--> the details of the newly created notification groups.
+    """
 
     # organization and user check
     await Helpers.check_user_org_validity(
@@ -296,6 +358,19 @@ async def update_notification_group(
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
 ):
+    """intro-->This endpoint allows you to update an existing notification group of an organization. 
+               To update, you need to make a put request to the /notification-groups/{group_id} endpoint with the specified body of request.
+
+    paramDesc-->On put request, the request url takes the parameter group_id and query parameter organization_id
+        param-->group_id: This is the unique id of the notification group
+        param-->organization_id: This is the unique id of the organization in which the notification group belongs  
+    
+        reqBody-->name: This is the name of the notification group
+        reqBody-->members: This is a list of unique IDs of members to be added to the notification group
+    
+    returnDesc-->On sucessful request, it returns:
+        returnBody--> the details of the updated notification group.
+    """
 
     # organization and user check
     await Helpers.check_user_org_validity(
@@ -337,8 +412,9 @@ async def delete_notification_group(
 ):
     """intro-->This endpoint allows you to delete a particular notification group from the database. You need to make a delete request to the /notification-group/{notification_id} endpoint.
 
-    paramDesc-->On delete request the url takes a query parameter "group_id" 
+    paramDesc-->On delete request the url takes parameter group_id and query parameter organization_id
         param-->group_id: This is the unique identifier of the notification group
+        param-->organization_id: This is the unique identifier of the organization 
 
     returnDesc-->On sucessful request, it returns message,
         returnBody--> "success".
@@ -412,15 +488,15 @@ def add_member_to_notification_group(
 
 
 @app.delete("/notification-group/notification-member/{group_member_id}")
-def delete_notification_group(
+def delete_notification_group_member(
     group_member_id: str,
     user: user_schema.User = Depends(is_authenticated),
     db: orm.Session = Depends(get_db)
 ):
-    """intro-->This endpoint allows you to delete a particular notification group from the database. You need to make a delete request to the /notification-group/{notification_id} endpoint.
+    """intro-->This endpoint allows you to delete a particular notification group member from the database. You need to make a delete request to the /notification-group/{notification_id} endpoint.
 
-    paramDesc-->On delete request the url takes a query parameter "group_id" 
-        param-->group_id: This is the unique identifier of the notification group
+    paramDesc-->On delete request the url takes a query parameter "group_member_id" 
+        param-->group_member_id: This is the unique identifier of the notification group member
 
     returnDesc-->On sucessful request, it returns message,
         returnBody--> "success".
