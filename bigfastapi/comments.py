@@ -28,6 +28,11 @@ from bigfastapi.schemas import users_schemas
 from bigfastapi.services.auth_service import is_authenticated
 from bigfastapi.utils import paginator
 
+from bigfastapi.services.notification_services import (
+    get_mentions,
+    create_comment_notification_format,
+    create_notification
+)
 
 
 from fastapi.security import HTTPBearer
@@ -63,7 +68,7 @@ async def get_all_comments_for_object(
     model_type: str, 
     object_id: str, 
     page: int = 1,
-    size: int = 15,
+    size: int = 10,
     db_Session=Depends(get_db)
 ):
     """intro-->This endpoint allows you to retrieve all comments related to a specific object. To use this endpoint you need to make a get request to the /comments/{model_type}/{object_id} endpoint 
@@ -76,7 +81,7 @@ async def get_all_comments_for_object(
     """
 
     # set pagination parameter
-    page_size = 15 if size < 1 or size > 15 else size
+    page_size = 10 if size < 1 or size > 10 else size
     page_number = 1 if page <= 0 else page
     offset = await paginator.off_set(page=page_number, size=page_size)
 
@@ -143,7 +148,7 @@ def reply_to_comment(
 
 
 @app.post("/comments/{model_type}/{object_id}")
-def create_new_comment_for_object(
+async def create_new_comment_for_object(
     model_type: str,
     object_id: str,
     background_tasks: BackgroundTasks,
@@ -164,6 +169,8 @@ def create_new_comment_for_object(
     )
 
     commenter = db_Session.query(user_models.User).filter(user_models.User.id == comment.commenter_id).first()
+    mentions = await get_mentions(comment.text)
+    print(mentions)
 
     log = create_log_comment( 
         organization_id=comment.org_id,
@@ -175,7 +182,22 @@ def create_new_comment_for_object(
         created_for_model="biz_partner",
         db=db_Session, 
         user=user
-    ) 
+    )
+
+    notification = await create_comment_notification_format(
+        organization_id=comment.org_id, 
+        module="comments", 
+        mentions=mentions,
+        db=db_Session,
+        user=user
+    )    
+
+    background_tasks.add_task(
+        create_notification, 
+        notification=notification, 
+        user=user, 
+        db=db_Session
+    )
 
     background_tasks.add_task(
         createActivityLog, 

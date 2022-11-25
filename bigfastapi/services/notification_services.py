@@ -16,6 +16,7 @@ from bigfastapi.models.organization_models import (
     Organization,
     Role
 )
+from bigfastapi.models.user_models import User
 from bigfastapi.schemas.notification_schemas import (
     NotificationCreate,
     NotificationSetting,
@@ -23,6 +24,7 @@ from bigfastapi.schemas.notification_schemas import (
 )
 from bigfastapi.schemas import users_schemas as user_schema
 from uuid import uuid4
+import re
 
 
 def create_notification(
@@ -37,38 +39,58 @@ def create_notification(
         Setting.organization_id == notification["organization_id"]
     ).first()
 
-    if existing_setting.status == True:
-        new_notification = Notification(
-            id=uuid4().hex,
-            creator_id=notification["creator_id"],
-            message=notification["message"],
-            organization_id=notification["organization_id"],
-            access_level=notification["access_level"]
+    # if existing_setting.status == True: #creates notification when status is set to True
+    new_notification = Notification(
+        id=uuid4().hex,
+        creator_id=notification["creator_id"],
+        message=notification["message"],
+        organization_id=notification["organization_id"],
+        access_level=notification["access_level"]
+    )
+    db.add(new_notification)
+
+    recipient_ids = get_notification_recipients(
+        organization_id=notification["organization_id"],
+        module=notification["module"],
+        access_level=notification["access_level"],
+        db=db,
+        mentions=notification["mentions"] if notification["mentions"] else None
+    )
+
+    print(recipient_ids)
+    for recipient in recipient_ids:
+        new_notification_recipient = NotificationRecipient(
+            id=uuid4().hex, notification_id=new_notification.id, recipient_id=recipient,
+            is_read=False, is_cleared=False
         )
-        db.add(new_notification)
+        db.add(new_notification_recipient)
 
-        recipient_ids = get_notification_recipients(
-            organization_id=notification["organization_id"],
-            module=notification["module"],
-            access_level=notification["access_level"],
-            db=db
-        )
+    db.commit()
+    db.refresh(new_notification)
 
-        print(recipient_ids)
-        for recipient in recipient_ids:
-            new_notification_recipient = NotificationRecipient(
-                id=uuid4().hex, notification_id=new_notification.id, recipient_id=recipient,
-                is_read=False, is_cleared=False
-            )
-            db.add(new_notification_recipient)
-
-        db.commit()
-        db.refresh(new_notification)
-
-        return new_notification
+    return new_notification
 
 
-def get_notification_recipients(organization_id, module, access_level, db):
+def get_notification_recipients(organization_id, module, access_level, db, mentions):
+    if mentions and module == "comments":
+        user_ids = []
+        for name in mentions:
+            first_name = f"{name}%"
+
+            creator = db.query(Organization).join(User).filter(
+                Organization.id == organization_id
+            ).filter(User.first_name.ilike(first_name)).first()
+
+            users = db.query(OrganizationUser).join(User).filter(
+                OrganizationUser.organization_id == organization_id
+            ).filter(User.first_name.ilike(first_name)).all()
+
+            if creator:
+                user_ids.append(creator.user_id)
+
+            if users:
+                for user in users: user_ids.append(user.user_id)
+        return user_ids
 
     creator = db.query(Organization).filter(Organization.id == organization_id).first()
 
@@ -253,3 +275,33 @@ async def get_notification_with_recipient(recipient_id: str, notification_id: st
                       .first())
 
     return notification
+
+
+async def get_mentions(comment):
+    mentions = re.findall(r'(?<=@)\w+', comment)
+    return mentions
+
+
+async def create_comment_notification_format(
+    organization_id: str, 
+    module: str,    
+    mentions: list,
+    action: str = "mentioned", 
+    db: orm.Session = Depends(get_db),
+    user: user_schema.User = Depends(is_authenticated)    
+):
+    message = f"{user.first_name} mentioned you in a comment"
+    try:
+        access_level = await get_organization_access_level(organization_id=organization_id, db=db)
+    except:
+        access_level = None    
+    notification_format =  {
+        "creator_id": user.id,
+        "module": module,
+        "message": message,
+        "organization_id": organization_id,
+        "access_level": access_level,
+        "mentions": mentions
+    }
+    
+    return notification_format

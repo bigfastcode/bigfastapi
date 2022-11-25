@@ -99,11 +99,14 @@ def generate_code(new_length: int = None):
 
 async def generate_payment_link(
     api_redirect_url: str,
-    user: users_schemas.User,
+    customer: dict,
     currency: str,
     tx_ref: str,
     amount: float,
     provider: PaymentProvider,
+    email: str = "",
+    phone_number: str = "",
+    phone_country_code: str = "",
     front_end_redirect_url="",
 ):
     if provider == PaymentProvider.STRIPE:
@@ -146,16 +149,23 @@ async def generate_payment_link(
             "Authorization": "Bearer " + flutterwaveKey,
         }
         url = "https://api.flutterwave.com/v3/payments/"
-        username = user.email if user.first_name is None else user.first_name
-        username += "" if user.last_name is None else " " + user.last_name
+        username=""
+        if customer.biz_partner_type == "supplier":
+            username = customer.business_name
+        else:
+            username = customer.email if customer.first_name is None else customer.first_name
+            username += "" if customer.last_name is None else " " + customer.last_name
+
+        
+
         data = {
             "tx_ref": tx_ref,
             "amount": amount,
             "currency": currency,
             "redirect_url": api_redirect_url,
             "customer": {
-                "email": user.email,
-                "phonenumber": user.phone_number,
+                "email": email,
+                "phonenumber": phone_country_code+phone_number,
                 "name": username,
             },
             "meta": {"redirect_url": front_end_redirect_url},

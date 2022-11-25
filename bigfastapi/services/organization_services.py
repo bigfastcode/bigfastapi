@@ -622,6 +622,10 @@ def send_slack_notification_for_org_invite(
 
     elif action == "declined invite":
         message = f"{recipient} {action} to join {organization_name}"
+
+    elif action == "revoked invite":
+        message = f"{sender} {action} earlier sent to {recipient} to join {organization_name}"
+        
     else:                    
         message = f"{sender} {action} to {recipient} to join {organization_name}"
     print(message)
