@@ -225,7 +225,7 @@ def run_wallet_creation(newOrganization: Models.Organization, db: orm.Session):
     create_credit_wallet(organization_id=newOrganization.id, db=db)
 
 
-def create_org_image_full_path(organization, db: orm.Session):
+def create_org_image_full_path(organization, db: orm.Session, width=60, height=60):
     root_location = os.path.abspath(os.environ.get("FILES_BASE_FOLDER", "filestorage"))
     image_folder = os.environ.get("IMAGES_FOLDER", "images")
     image_url = organization.image_url.strip("/")
@@ -234,7 +234,7 @@ def create_org_image_full_path(organization, db: orm.Session):
     if (image_url != "" and os.path.exists(os.path.join(root_location, image_url))):
         appBasePath = config("API_URL")
         filename = image_url.split("/")[-1]
-        size = (60, 60)
+        size = (width, height)
         key = f"{filename}_{organization.id}_{size}"
         thumbnail = db.query(ExtraInfo).filter(ExtraInfo.key==key).first()
 
