@@ -19,8 +19,7 @@ class ResponseModel(BaseModel):
     message: str
 
 
-sms_api = "https://telex.im/api/send-message"
-
+SMS_API = settings.SMS_API
 ORGANIZATION_ID = settings.TELEX_ORGANIZATION_ID
 ORGANIZATION_KEY = settings.TELEX_ORGANIZATION_KEY
 
@@ -57,7 +56,7 @@ async def SendSMS(
     }
 
     req = requests.post(
-        url=sms_api, 
+        url=SMS_API, 
         json=data,
         headers=headers
     )
