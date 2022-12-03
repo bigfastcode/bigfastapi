@@ -9,8 +9,6 @@ class HashableBaseModel(BaseModel):
 
 class SMS(HashableBaseModel):
     sender: str
-    recipient: str
-    body: Optional[str] = None
-    provider: str = "nuobject"
-    user: str
-    passkey: str
+    recipient: list
+    content: str
+    message_type: str = "sms"
