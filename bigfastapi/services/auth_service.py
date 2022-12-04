@@ -174,7 +174,7 @@ def validate_email_and_phone_fields(user: auth_schemas.UserCreate):
 
 
 def send_slack_notification_for_auth(user, action: str = "login"):
-    message = f"New {action} from {user.email}"
+    message = f"New {action} from {user['user'].email}"
 
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
 
@@ -209,6 +209,9 @@ async def create_refresh_token(data: dict, db: orm.Session):
 def verify_refresh_token(refresh_token: str, credentials_exception, db: orm.Session):
     """Verify an assigned refresh token"""
     try:
+        if not refresh_token:
+            raise fastapi.HTTPException(status_code=401, detail="expired or invalid login token")
+
         payload = jwt.decode(refresh_token, JWT_SECRET, algorithms=[ALGORITHM])
         id: str = payload.get("user_id")
 
