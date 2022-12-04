@@ -174,7 +174,7 @@ def validate_email_and_phone_fields(user: auth_schemas.UserCreate):
 
 
 def send_slack_notification_for_auth(user, action: str = "login"):
-    message = f"New {action} from {user.email}"
+    message = f"New {action} from {user['user'].email}"
 
     Helpers.slack_notification("LOG_WEBHOOK_URL", text=message)
 
