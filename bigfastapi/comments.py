@@ -22,7 +22,7 @@ from bigfastapi.db import database
 from bigfastapi.activity_log import createActivityLog
 from .schemas import comments_schemas
 from .models import comments_models, user_models
-from .auth_api import *
+from .services.auth_service import *
 
 from bigfastapi.schemas import users_schemas
 from bigfastapi.services.auth_service import is_authenticated

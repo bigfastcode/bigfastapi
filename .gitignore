@@ -14,7 +14,7 @@ BigFastAPI.egg-info
 database.db
 test.db
 
-bfa-env
+benv
 
 /.history
 
