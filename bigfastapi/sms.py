@@ -26,7 +26,7 @@ ORGANIZATION_KEY = settings.TELEX_ORGANIZATION_KEY
 @app.post("/sms/send")
 async def SendSMS(
         sms_details: sms_schema.SMS,
-        # db: orm.Session = fastapi.Depends(get_db)
+        db: orm.Session = fastapi.Depends(get_db)
     ):
 
     """intro-->This endpoint allows you to send an sms. To use this endpoint you need to make a post request to the /sms/send endpoint
@@ -47,6 +47,48 @@ async def SendSMS(
         "message_type": sms_details.message_type,
         "customers": sms_details.recipient,
         "content": sms_details.content         
+    }
+
+    headers={
+        'Content-Type': 'application/json',
+        "ORGANIZATION-KEY":ORGANIZATION_KEY, 
+        "ORGANIZATION-ID": ORGANIZATION_ID
+    }
+
+    req = requests.post(
+        url=SMS_API, 
+        json=data,
+        headers=headers
+    )
+
+    if req.text["status"] == True:
+        sms = sms_models.SMS(
+                id=uuid4().hex,
+                sender=sms_details.sender,
+                recipient=sms_details.recipient,
+                body=sms_details.body
+            )
+
+        db.add(sms)
+        db.commit()
+        db.refresh(sms)
+
+    return json.loads(req.text)
+
+
+async def send_sms(
+        sender: str,
+        recipient: list,
+        content: str,
+        message_type: str = "sms"
+    ):
+
+ 
+    data={
+        "sender": sender,
+        "message_type": message_type,
+        "customers": recipient,
+        "content": content         
     }
 
     headers={
