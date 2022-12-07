@@ -2,7 +2,6 @@ import os
 from typing import List
 from uuid import uuid4
 
-import pkg_resources
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -19,13 +18,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from bigfastapi.db.database import get_db
-from bigfastapi.files import deleteFile, isFileExist, upload_image
+from bigfastapi.files import deleteFile, is_file_exist, upload_image
 from bigfastapi.models import landing_page_models
 from bigfastapi.schemas import landing_page_schemas
 from bigfastapi.services import landing_page_services
-from bigfastapi.utils.settings import LANDING_PAGE_FOLDER, LANDING_PAGE_FORM_PATH
-
 from bigfastapi.services.auth_service import is_authenticated
+from bigfastapi.utils.settings import LANDING_PAGE_FOLDER, LANDING_PAGE_FORM_PATH
 
 app = APIRouter(tags=["Landing Page"])
 
@@ -354,7 +352,10 @@ async def update_landing_page(
 
     # query and update each of the text fields given in the http request
     for key, value in vars(request).items():
-        if key in request_fields and getdicvalue(update_landing_page_data.id, db=db, key=key) != value:
+        if (
+            key in request_fields
+            and getdicvalue(update_landing_page_data.id, db=db, key=key) != value
+        ):
             db.query(landing_page_models.LandingPageOtherInfo).filter(
                 landing_page_models.LandingPageOtherInfo.value
                 == getdicvalue(update_landing_page_data.id, db=db, key=key)
@@ -371,7 +372,7 @@ async def update_landing_page(
 
     # query and update each of the file fields given in the http request
     for key, value in params.items():
-        if key in request_files and not await isFileExist(value.filename):
+        if key in request_files and not await is_file_exist(value.filename):
             query = getdicvalue(update_landing_page_data.id, db=db, key=key)
             if await deleteFile(query):
                 upload = await upload_image(
@@ -419,9 +420,17 @@ async def delete_landingPage(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"error": "You are not authorized to perform this action."},
         )
-    
+
     # check if the landing page exists, if not then raise error
-    if not (landingpage_data := (db.query(landing_page_models.LandingPage).filter(landing_page_models.LandingPage.landing_page_name == landingpage_name).first())):
+    if not (
+        landingpage_data := (
+            db.query(landing_page_models.LandingPage)
+            .filter(
+                landing_page_models.LandingPage.landing_page_name == landingpage_name
+            )
+            .first()
+        )
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error": "Data could not be found. Please try again."},
