@@ -9,7 +9,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import Boolean, DateTime, String, Text
 
 from bigfastapi.db.database import Base
-from bigfastapi.files import deleteFile, isFileExist
+from bigfastapi.files import deleteFile, is_file_exist
 from bigfastapi.models.contact_info_models import ContactInfo
 from bigfastapi.models.location_models import Location
 
@@ -135,12 +135,12 @@ async def deleteBizImageIfExist(org: Organization):
     if not org:
         return False
     # check if user object contains image endpoint
-    if (org.image_url != None):
+    if org.image_url != None:
         image_url = org.image_url.strip("/")
         image_folder = os.environ.get("IMAGES_FOLDER", "images")
         image_path = f"/{image_folder}/{image_url}"
 
-        isImageInFile = await isFileExist(image_path)
+        isImageInFile = await is_file_exist(image_path)
 
         # check if image exist in file prior and delete it
         if isImageInFile:
