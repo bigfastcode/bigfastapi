@@ -107,3 +107,24 @@ def generate_thumbnail_for_image(full_image_path, unique_id, width=None, height=
     thumbnail = save_thumbnail_info(filename, thumbnail_path, unique_id, (width, height))
 
     return thumbnail
+
+
+def delete_thumbnails(filename, bucket_name, file_instance, file_path, db):
+    filename = os.path.splitext(filename)[0]
+    key = f"{filename}_{bucket_name}_%"
+    thumbnails = db.query(ExtraInfo).filter(
+        ExtraInfo.key.ilike(key)
+    ).all()
+    dir_full_path = os.path.join(ROOT_LOCATION, MAIN_BUCKET)
+    for thumbnail in thumbnails:
+        thumbnail_full_path = os.path.join(dir_full_path, thumbnail.value)
+        try:
+            os.remove(thumbnail_full_path)
+            db.delete(thumbnail)
+        except Exception as ex:
+            raise ex
+    os.remove(file_path)
+    db.delete(file_instance)
+    db.commit()
+
+    return True
