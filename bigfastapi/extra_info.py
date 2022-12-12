@@ -173,12 +173,12 @@ def db_create_extra_info_for_object(object_id: str, model_type: str, extrainfo: 
     info_exists = db.query(ExtraInfo).filter(
         ExtraInfo.rel_id == object_id, ExtraInfo.key == extrainfo.key).first()
     if info_exists:
-        raise HTTPException(
+        raise fastapi.HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Key already exists for extra info")
 
     id = extrainfo.id if extrainfo.id else uuid4().hex
     obj = ExtraInfo(id=id, rel_id=object_id, model_type=model_type, key=extrainfo.key,
-                    value=extrainfo.value, date_created=extrainfo.date_created,
+                    value=extrainfo.value, value_dt=extrainfo.value_dt, date_created=extrainfo.date_created,
                     last_updated=extrainfo.last_updated)
     db.add(obj)
     db.commit()
@@ -202,12 +202,14 @@ def update_extra_info(extrainfo_id: str, extrainfo: ExtraInfoUpdate, db: _orm.Se
     info = db_retrieve_extra_info_by_id(id=extrainfo_id, model_type=model_type, db=db)
 
     if not info:
-        raise HTTPException(detail="NOT FOUND", status_code=status.HTTP_404_NOT_FOUND)
+        raise fastapi.HTTPException(detail="NOT FOUND", status_code=status.HTTP_404_NOT_FOUND)
 
     if extrainfo.key:
         info.key = extrainfo.key
     if extrainfo.value:
         info.value = extrainfo.value
+    if extrainfo.value_dt:
+        info.value_dt = extrainfo.value_dt
 
     db.commit()
     db.refresh(info)
