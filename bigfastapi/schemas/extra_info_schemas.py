@@ -8,8 +8,8 @@ from typing import List, Optional
 class ExtraInfoBase(BaseModel):
     id: Optional[str]
     key: str
-    value: str
-    value_dt: Optional[str]
+    value: str = None
+    value_dt: Optional[datetime.datetime]
     date_created: Optional[datetime.datetime] = datetime.datetime.now()
     last_updated: Optional[datetime.datetime] = datetime.datetime.now()
 
@@ -20,4 +20,4 @@ class ExtraInfoBase(BaseModel):
 class ExtraInfoUpdate(BaseModel):
     key: Optional[str]
     value: Optional[str]
-    value_dt: Optional[str]
+    value_dt: Optional[datetime.datetime]
