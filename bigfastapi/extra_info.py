@@ -173,7 +173,7 @@ def db_create_extra_info_for_object(object_id: str, model_type: str, extrainfo: 
     info_exists = db.query(ExtraInfo).filter(
         ExtraInfo.rel_id == object_id, ExtraInfo.key == extrainfo.key).first()
     if info_exists:
-        raise HTTPException(
+        raise fastapi.HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Key already exists for extra info")
 
     id = extrainfo.id if extrainfo.id else uuid4().hex
