@@ -208,6 +208,8 @@ def update_extra_info(extrainfo_id: str, extrainfo: ExtraInfoUpdate, db: _orm.Se
         info.key = extrainfo.key
     if extrainfo.value:
         info.value = extrainfo.value
+    if extrainfo.value_dt:
+        info.value_dt = extrainfo.value_dt
 
     db.commit()
     db.refresh(info)
