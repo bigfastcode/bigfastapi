@@ -178,7 +178,7 @@ def db_create_extra_info_for_object(object_id: str, model_type: str, extrainfo: 
 
     id = extrainfo.id if extrainfo.id else uuid4().hex
     obj = ExtraInfo(id=id, rel_id=object_id, model_type=model_type, key=extrainfo.key,
-                    value=extrainfo.value, date_created=extrainfo.date_created,
+                    value=extrainfo.value, value_dt=extrainfo.value_dt, date_created=extrainfo.date_created,
                     last_updated=extrainfo.last_updated)
     db.add(obj)
     db.commit()
