@@ -202,7 +202,7 @@ def update_extra_info(extrainfo_id: str, extrainfo: ExtraInfoUpdate, db: _orm.Se
     info = db_retrieve_extra_info_by_id(id=extrainfo_id, model_type=model_type, db=db)
 
     if not info:
-        raise HTTPException(detail="NOT FOUND", status_code=status.HTTP_404_NOT_FOUND)
+        raise fastapi.HTTPException(detail="NOT FOUND", status_code=status.HTTP_404_NOT_FOUND)
 
     if extrainfo.key:
         info.key = extrainfo.key
