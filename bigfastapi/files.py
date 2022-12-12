@@ -12,7 +12,7 @@ from bigfastapi.auth_api import is_authenticated
 from bigfastapi.db.database import get_db
 from bigfastapi.models.user_models import User
 from bigfastapi.utils import settings as settings
-from bigfastapi.utils.image_utils import generate_thumbnail_for_image
+from bigfastapi.utils.image_utils import generate_thumbnail_for_image, delete_thumbnails
 from bigfastapi.utils.response import Response
 
 from .models import file_models as model
@@ -430,11 +430,12 @@ async def upload_image(
         return file
 
 
-@app.delete("/delete-file/{filename}", status_code=202)
+@app.delete("/files/{filename}/delete", status_code=202)
 async def delete_file(
     filename: str,
     bucket_name: str,
     organization_id: str,
+    background_tasks: fastapi.BackgroundTasks,
     db: orm.Session = fastapi.Depends(get_db),
     user: User = fastapi.Depends(is_authenticated),
 ):
@@ -457,9 +458,14 @@ async def delete_file(
         )
 
     base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
+    image_folder = os.environ.get("IMAGE_FOLDER", "images")
     file_absolute_path = os.path.realpath(
         os.path.join(base_folder, bucket_name, filename)
     )
+    image_file_absolute_path = os.path.realpath(
+        os.path.join(os.path.join(base_folder, image_folder), bucket_name, filename)
+    )
+
     file_instance = (
         db.query(model.File)
         .filter(
@@ -468,16 +474,25 @@ async def delete_file(
         .first()
     )
 
-    if not os.path.isfile(file_absolute_path):
+    if not os.path.isfile(file_absolute_path) and not os.path.isfile(image_file_absolute_path):
         raise fastapi.HTTPException(status_code=404, detail="File does not exist")
 
     try:
-        print(file_absolute_path, file_instance.filename)
-        os.remove(file_absolute_path)
-        # delete all thumbnails too
-        db.delete(file_instance)
+        if os.path.isfile(image_file_absolute_path):
+            # delete image file and all its thumbnails
+            background_tasks.add_task(
+                delete_thumbnails,
+                filename,
+                bucket_name,
+                file_instance,
+                image_file_absolute_path,
+                db
+            )
+        else:
+            os.remove(file_absolute_path)
+            db.delete(file_instance)
 
-    except OSError:
+    except OSError as err:
         raise fastapi.HTTPException(
             status_code=500,
             detail="An error occured while deleting this file. Please try again",
