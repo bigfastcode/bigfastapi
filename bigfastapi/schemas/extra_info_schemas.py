@@ -20,3 +20,4 @@ class ExtraInfoBase(BaseModel):
 class ExtraInfoUpdate(BaseModel):
     key: Optional[str]
     value: Optional[str]
+    value_dt: Optional[str]
