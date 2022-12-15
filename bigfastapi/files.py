@@ -8,17 +8,20 @@ import sqlalchemy.orm as orm
 from fastapi.responses import FileResponse
 from sqlalchemy import and_
 
+from bigfastapi.auth_api import is_authenticated
 from bigfastapi.db.database import get_db
 from bigfastapi.models.user_models import User
-from bigfastapi.auth_api import is_authenticated
 from bigfastapi.utils import settings as settings
-from bigfastapi.utils.image_utils import generate_thumbnail_for_image
+from bigfastapi.utils.image_utils import generate_thumbnail_for_image, delete_thumbnails
+from bigfastapi.utils.response import Response
 
 from .models import file_models as model
 from .models.extra_info_models import ExtraInfo
 from .schemas import file_schemas as schema
 
-# Import the Router
+# from bigfastapi.core.helpers import Helpers
+
+
 app = fastapi.APIRouter()
 
 
@@ -427,7 +430,78 @@ async def upload_image(
         return file
 
 
-async def isFileExist(filePath: str):
+@app.delete("/files/{filename}/delete", status_code=202)
+async def delete_file(
+    filename: str,
+    bucket_name: str,
+    organization_id: str,
+    background_tasks: fastapi.BackgroundTasks,
+    db: orm.Session = fastapi.Depends(get_db),
+    user: User = fastapi.Depends(is_authenticated),
+):
+
+    # await Helpers.check_user_org_validity(
+    #     user_id=user.id, organization_id=organization_id, db=db
+    # )
+
+    # Make sure the base folder exists
+    if settings.FILES_BASE_FOLDER == None or len(settings.FILES_BASE_FOLDER) < 2:
+        raise fastapi.HTTPException(
+            status_code=404,
+            detail="Base folder does not exist or base folder length too short",
+        )
+
+    # Make sure the bucket name does not contain any paths
+    if bucket_name.isalnum() == False:
+        raise fastapi.HTTPException(
+            status_code=406, detail="Bucket name has to be alpha-numeric"
+        )
+
+    base_folder = os.path.realpath(settings.FILES_BASE_FOLDER)
+    image_folder = os.environ.get("IMAGE_FOLDER", "images")
+    file_absolute_path = os.path.realpath(
+        os.path.join(base_folder, bucket_name, filename)
+    )
+    image_file_absolute_path = os.path.realpath(
+        os.path.join(os.path.join(base_folder, image_folder), bucket_name, filename)
+    )
+
+    file_instance = (
+        db.query(model.File)
+        .filter(
+            and_(model.File.bucketname == bucket_name, model.File.filename == filename)
+        )
+        .first()
+    )
+
+    if not os.path.isfile(file_absolute_path) and not os.path.isfile(image_file_absolute_path):
+        raise fastapi.HTTPException(status_code=404, detail="File does not exist")
+
+    try:
+        if os.path.isfile(image_file_absolute_path):
+            # delete image file and all its thumbnails
+            background_tasks.add_task(
+                delete_thumbnails,
+                filename,
+                bucket_name,
+                file_instance,
+                image_file_absolute_path,
+                db
+            )
+        else:
+            os.remove(file_absolute_path)
+            db.delete(file_instance)
+
+    except OSError as err:
+        raise fastapi.HTTPException(
+            status_code=500,
+            detail="An error occured while deleting this file. Please try again",
+        )
+
+    return Response("File deleted successfully", 202)
+
+
+async def is_file_exist(filePath: str):
     """Check the existence of a file in directory
 
     Args:
