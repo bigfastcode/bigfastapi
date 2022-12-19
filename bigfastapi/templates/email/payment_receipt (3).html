@@ -419,7 +419,7 @@
                                             margin-bottom: 20px;
                                           "
                                         >
-                                          hotels.ng
+                                          Timbu
                                         </h1>
                                       </center>
                                     </td>
@@ -467,9 +467,9 @@
                                       <center style="width: 100%">
                                         <span
                                           style="color: #fff; font-size: 12px"
-                                          >The Biggest Hotel Reservation Agency
-                                          in Nigeria</span
-                                        >
+                                          >Scalable ledger solution for small
+                                          and medium sized business globally.
+                                        </span>
                                       </center>
                                     </td>
                                     <td
@@ -762,11 +762,7 @@
                                               align="left"
                                               valign="top"
                                             >
-                                              <span
-                                                >Please find attached the
-                                                receipt of payments for your
-                                                guest.
-                                              </span>
+                                              <span>{{custom_message}} </span>
                                             </td>
                                             <td
                                               class="expander"
@@ -866,8 +862,8 @@
                                               valign="top"
                                             >
                                               <span>
-                                                Below are the reservation
-                                                details and payment breakdown.
+                                                <!-- Below are the reservation
+                                                details and payment breakdown. -->
                                               </span>
                                             </td>
                                             <td
@@ -981,7 +977,7 @@
                                               <center
                                                 style="width: 100%"
                                               ></center>
-                                              Client Name
+                                              Customer Name
                                             </td>
                                             <td
                                               class="expander"
@@ -1111,7 +1107,7 @@
                                               align="left"
                                               valign="top"
                                             >
-                                              Schedule Details
+                                              Payment Details
                                             </td>
                                           </tr>
                                           <tr
@@ -1138,7 +1134,7 @@
                                               align="left"
                                               valign="top"
                                             >
-                                              Arrival Date:
+                                              Date Recorded:
                                             </td>
                                             <td
                                               class="seven sub-columns last cell-padding"
@@ -1156,8 +1152,7 @@
                                               align="left"
                                               valign="top"
                                             >
-                                              <!-- " {{checkin}}"  -->
-                                              checkin
+                                              {{date_recorded}}
                                             </td>
                                             <td
                                               class="expander"
@@ -1201,7 +1196,7 @@
                                               align="left"
                                               valign="top"
                                             >
-                                              Departure Date:
+                                              Date Transacted:
                                             </td>
                                             <td
                                               class="seven sub-columns last cell-padding"
@@ -1219,8 +1214,7 @@
                                               align="left"
                                               valign="top"
                                             >
-                                              <!-- " {{checkout}}" -->
-                                              checkout
+                                              {{date_transacted}}
                                             </td>
                                             <td
                                               class="expander"
@@ -1249,7 +1243,7 @@
                               <br />
 
                               <!-- " {{rooms}}" -->
-                              rooms
+                              <!-- rooms -->
                               <table
                                 border="0"
                                 style="
@@ -1282,26 +1276,23 @@
                                       "
                                       align="left"
                                     >
-                                      Room Type
+                                      Description
                                     </th>
                                     <th
                                       style="text-align: center"
                                       align="center"
-                                    >
-                                      No of Rooms
-                                    </th>
+                                    ></th>
+
                                     <th
                                       style="text-align: center"
                                       align="center"
-                                    >
-                                      Rate per Room
-                                    </th>
+                                    ></th>
+
                                     <th
                                       style="text-align: center"
                                       align="center"
-                                    >
-                                      No of Nights
-                                    </th>
+                                    ></th>
+
                                     <th
                                       style="
                                         border-top-right-radius: 5px;
@@ -1335,8 +1326,8 @@
                                       valign="top"
                                     >
                                       <u></u>
-                                      <!-- {{roomname}} -->
-                                      roomname
+
+                                      {{description}}
                                       <u></u>
                                     </td>
                                     <td
@@ -1351,8 +1342,7 @@
                                       valign="top"
                                     >
                                       <u></u>
-                                      <!-- {{roomnumber}}  -->
-                                      roomnumber
+
                                       <u></u>
                                     </td>
                                     <td
@@ -1366,9 +1356,8 @@
                                       align="center"
                                       valign="top"
                                     >
-                                      ₦ <u></u>
-                                      <!-- {{roomprice}}  -->
-                                      roomprice
+                                      <u></u>
+
                                       <u></u>
                                     </td>
                                     <td
@@ -1398,8 +1387,7 @@
                                       valign="top"
                                     >
                                       ₦ <u></u>
-                                      <!-- {{roomsubtotal}} -->
-                                      roomsubtotal
+                                      {{amount}}
                                       <u></u>
                                     </td>
                                   </tr>
@@ -1414,9 +1402,6 @@
                                     align="left"
                                     bgcolor="#F5F5F5"
                                   >
-                                    <!-- {{rooms}} -->
-                                    rooms
-
                                     <td
                                       style="
                                         text-align: right;
@@ -1434,7 +1419,7 @@
                                       align="right"
                                       valign="top"
                                     >
-                                      Grand Total (Rack Rate):
+                                      Total:
                                       <span
                                         style="
                                           color: #03b668;
@@ -1449,7 +1434,7 @@
                                         "
                                         >₦ <u></u>
                                         <!-- {{total_price}} -->
-                                        total_price
+                                        {{amount}}
                                         <u></u><span> </span
                                       ></span>
                                     </td>
@@ -1546,7 +1531,7 @@
                                                   padding: 4px 20px;
                                                 "
                                               >
-                                                ₦ {{total_price}}
+                                                ₦ {{amount}}
                                               </span>
                                               <br />
                                               <div
@@ -1569,7 +1554,7 @@
                                                   padding: 4px 20px;
                                                 "
                                               >
-                                                N 00.00
+                                                0
                                               </span>
                                             </td>
                                             <td
@@ -1596,10 +1581,9 @@
                                   </tr>
                                 </tbody>
                               </table>
-                              <div style="padding: 10px; background: #ddd">
-                                Thanks for using Timbu. This email is the
-                                receipt for your payment.
-                              </div>
+                              <div
+                                style="padding: 10px; background: #ddd"
+                              ></div>
                               <hr
                                 style="
                                   color: #d9d9d9;
@@ -1679,10 +1663,10 @@
                                               align="left"
                                               valign="top"
                                             >
-                                              Please call us on
+                                              <!-- Please call us on
                                               <strong>08088980513</strong> or
                                               reply this email if you require
-                                              any further information.
+                                              any further information. -->
                                             </td>
                                           </tr>
                                         </tbody>
@@ -1707,7 +1691,7 @@
                                       font-size: 15px;
                                       color: #d7d7d7;
                                     "
-                                    >Bookings Team</span
+                                    >Timbu Team</span
                                   >
                                 </div>
                                 <div
@@ -1919,14 +1903,14 @@
                                                 "
                                               >
                                                 <center style="width: 100%">
-                                                  This email was sent to
+                                                  <!-- This email was sent to
                                                   {{client_email}} for hotel
                                                   reservation purposes.
                                                   <br />
                                                   Were you satisfied with our
                                                   service? If No, e-mail your
                                                   complaints to our Managing
-                                                  Director md@hotels.ng
+                                                  Director md@hotels.ng -->
                                                 </center>
                                               </span>
                                             </td>
@@ -2042,17 +2026,14 @@
                                         "
                                         align="center"
                                       >
-                                        Hotels.ng is an online booking agency
-                                        specialised in hotel booking within
-                                        Nigeria. We market hotels online and
-                                        book rooms for clients. We proffer hotel
-                                        accommodation solution to people looking
-                                        for hotels within an area or particular
-                                        city.
-                                        <br />
+                                        Managing your business has never been
+                                        this easy. Timbu is a comprehensive
+                                        one-stop solution for everything you
+                                        need to run your company
+                                        <!-- <br />
                                         We provide them with appropriate hotels
                                         that match their budget and
-                                        expectations.
+                                        expectations. -->
                                       </div>
                                     </td>
                                     <td
